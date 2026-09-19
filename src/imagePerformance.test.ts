@@ -151,13 +151,17 @@ describe('index.html — font loading (Phase 10, Part 11)', () => {
     // explanatory HTML comment nearby is allowed to name the removed
     // families without failing this check.
     const fontLinkHref = html.match(/href="(https:\/\/fonts\.googleapis\.com\/css2\?[^"]+)"/)?.[1] ?? ''
-    expect(fontLinkHref).not.toContain('Instrument')
+    // Instrument *Serif* is used (Photography section); only the
+    // never-used Instrument *Sans* is guarded against.
+    expect(fontLinkHref).not.toContain('Instrument+Sans')
     expect(fontLinkHref).not.toContain('Poppins')
   })
 
   it('still requests every font family actually referenced in the codebase', () => {
     expect(html).toContain('Inter+Tight')
     expect(html).toContain('Playfair+Display')
+    expect(html).toContain('family=Inter:')
+    expect(html).toContain('Instrument+Serif')
   })
 
   it('keeps the local DEMO Picktea font self-hosted with font-display: swap (unchanged)', () => {

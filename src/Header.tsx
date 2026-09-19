@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 
 const navLinks: { label: string; href: string }[] = [
@@ -11,6 +11,7 @@ const navLinks: { label: string; href: string }[] = [
 ]
 
 function Header() {
+  const location = useLocation()
   
   const [headerVisible, setHeaderVisible] = useState(true)
   const [atTop, setAtTop] = useState(true)

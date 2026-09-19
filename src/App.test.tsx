@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // and several do real data fetching (Blog.tsx) or use
 // IntersectionObserver (Hero.tsx/About.tsx's videos, unavailable in
 // jsdom) — mocked out to keep this test scoped and deterministic.
-for (const mod of ['Hero', 'Services', 'About', 'Work', 'TrustedBy', 'Capabilities', 'Results', 'FAQs', 'Blog', 'Industries', 'Testimonials', 'Contact', 'CTA']) {
+for (const mod of ['Hero', 'Services', 'About', 'Work', 'Capabilities', 'Results', 'FAQs', 'Blog', 'Industries', 'Testimonials', 'Contact', 'CTA']) {
   vi.doMock(`./${mod}`, () => ({ default: () => null }))
 }
 

@@ -1,24 +1,31 @@
-import { lazy, Suspense, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import PublicLayout from './PublicLayout'
-import { removeLinkTag, removeMetaTag, setDocumentTitle, setLinkTag, setMetaTag } from './blog/lib/documentHead'
-import Hero from './Hero'
-import Services from './Services'
-import About from './About'
-import Work from './Work'
-import TrustedBy from './TrustedBy'
-import Capabilities from './Capabilities'
-import Results from './Results'
-import FAQs from './FAQs'
-import Blog from './Blog'
-import Industries from './Industries'
-import Testimonials from './Testimonials'
-import Contact from './Contact'
-import CTA from './CTA'
-import BlogPage from './blog/pages/BlogPage'
-import BlogDetailPage from './blog/pages/BlogDetailPage'
-import NotFound from './NotFound'
-import WebsiteSectionProps from './Seo'
+import { lazy, Suspense, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
+import PublicLayout from "./PublicLayout";
+import {
+  removeLinkTag,
+  removeMetaTag,
+  setDocumentTitle,
+  setLinkTag,
+  setMetaTag,
+} from "./blog/lib/documentHead";
+import Hero from "./Hero";
+import Services from "./Services";
+import About from "./About";
+import Work from "./Work";
+import TrustedBy from "./TrustedBy";
+import Photography from "./Photography";
+import Capabilities from "./Capabilities";
+import Results from "./Results";
+import FAQs from "./FAQs";
+import Blog from "./Blog";
+import Industries from "./Industries";
+import Testimonials from "./Testimonials";
+import Contact from "./Contact";
+import CTA from "./CTA";
+import BlogPage from "./blog/pages/BlogPage";
+import BlogDetailPage from "./blog/pages/BlogDetailPage";
+import NotFound from "./NotFound";
+import WebsiteSectionProps from "./Seo";
 
 // Route-level code splitting (Phase 10, Part 13): AdminRoutes pulls in
 // the entire CMS — react-markdown's admin preview, the SEO analyzer,
@@ -27,14 +34,14 @@ import WebsiteSectionProps from './Seo'
 // chunk, fetched only when someone actually navigates to /admin/*;
 // the public routes above are unaffected (still eager, still exactly
 // as before) and no route path or admin behavior changes.
-const AdminRoutes = lazy(() => import('./admin/AdminRoutes'))
+const AdminRoutes = lazy(() => import("./admin/AdminRoutes"));
 
 // Same copy as the static fallback in index.html — kept in sync
 // manually (see that file's own comment) rather than shared, since
 // one lives in HTML evaluated before any JS runs and the other is set
 // by this effect once React actually mounts.
 const HOME_DESCRIPTION =
-  'We help brands build a stronger presence through strategic brand identity, social media, content, marketing, development and SEO.'
+  "We help brands build a stronger presence through strategic brand identity, social media, content, marketing, development and SEO.";
 
 // Header/Footer now live in PublicLayout (see App()) so /blog and
 // /blog/:slug can share them too — Home itself is unchanged section
@@ -55,15 +62,15 @@ export function Home() {
   // whichever page is active is always the one responsible for its
   // own metadata being correct, exactly like the rest of this app.
   useEffect(() => {
-    setDocumentTitle('BRANDWORKS')
-    setMetaTag('name', 'description', HOME_DESCRIPTION)
-    setLinkTag('canonical', `${window.location.origin}/`)
+    setDocumentTitle("BRANDWORKS");
+    setMetaTag("name", "description", HOME_DESCRIPTION);
+    setLinkTag("canonical", `${window.location.origin}/`);
 
     return () => {
-      removeMetaTag('name', 'description')
-      removeLinkTag('canonical')
-    }
-  }, [])
+      removeMetaTag("name", "description");
+      removeLinkTag("canonical");
+    };
+  }, []);
 
   return (
     <>
@@ -71,19 +78,19 @@ export function Home() {
       <Services />
       <About />
       <Work />
-      <TrustedBy />
+      {/* <TrustedBy /> */}
+      <Photography />
       <Capabilities />
+      <WebsiteSectionProps />
       <Results />
-      {/* <Work/> */}
       <FAQs />
       <Blog />
       <Industries />
       <Testimonials />
       <Contact />
-      <WebsiteSectionProps/>
       <CTA />
     </>
-  )
+  );
 }
 
 function App() {
@@ -108,7 +115,7 @@ function App() {
         }
       />
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;
