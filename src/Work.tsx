@@ -29,7 +29,7 @@ const allPhotos = [Photo1, Photo2, Photo3, Photo4, Photo5, Photo6, Photo7, Photo
 
 
 /**
- * Vertical editorial reveal for Photography → Work transition:
+ * Vertical editorial reveal → portfolio morphing transition:
  *
  * PHOTOGRAPHY (centered title)
  * ↓
@@ -41,12 +41,16 @@ const allPhotos = [Photo1, Photo2, Photo3, Photo4, Photo5, Photo6, Photo7, Photo
  * ↓
  * media expands horizontally into fullscreen
  * ↓
- * fullscreen image lifts upward as curtain
+ * fullscreen image splits into 3 vertical panels
  * ↓
- * WORK WITH IMPACT revealed underneath
+ * panels separate, images morph into actual projects
+ * ↓
+ * panels transform into portfolio layout
+ * ↓
+ * work portfolio appears seamlessly
  *
- * Two-stage motion: vertical opening → horizontal release
- * Creates cinematic, fashion-film inspired transition
+ * Creative transformation: fullscreen photography becomes the work portfolio.
+ * No intermediate "Work with Impact" title screen.
  *
  * Native scroll is still in control. Motion only reads scroll progress, so it
  * works with the site's existing Lenis setup and does not add scroll-jacking.
@@ -134,15 +138,78 @@ function WorkReveal() {
   // Starts as thin horizontal slice, expands vertically
   const mediaClipPath = useTransform(
     scrollYProgress,
-    [0, 0.15, 0.35, 0.88, 1],
+    [0, 0.15, 0.35, 0.68],
     [
       'inset(48% 40% 48% 40%)',  // small square in center
       'inset(35% 35% 35% 35%)',  // larger square
       'inset(0 35% 0 35%)',       // vertical slit
-      'inset(0 0 0 0)',           // full visible
-      'inset(0 0 100% 0)',        // reveal upward for Work section
+      'inset(0 0 0 0)',           // full visible (fullscreen)
     ]
   )
+
+  // Panel transforms: split fullscreen into 3 vertical sections
+  // Panel 1 (left): moves up slightly
+  const panel1Y = useTransform(scrollYProgress, [0.68, 0.92], ['0vh', '-14vh'])
+  const panel1Scale = useTransform(scrollYProgress, [0.68, 0.92], [1, 1.015])
+  const panel1Width = useTransform(scrollYProgress, [0.68, 0.92, 1], ['33.33%', '35%', '45%'])
+
+  // Panel 2 (center): moves down slightly
+  const panel2Y = useTransform(scrollYProgress, [0.68, 0.92], ['0vh', '14vh'])
+  const panel2Scale = useTransform(scrollYProgress, [0.68, 0.92], [1.015, 1])
+  const panel2Width = useTransform(scrollYProgress, [0.68, 0.92, 1], ['33.33%', '30%', '55%'])
+
+  // Panel 3 (right): moves up slightly
+  const panel3Y = useTransform(scrollYProgress, [0.68, 0.92], ['0vh', '-10vh'])
+  const panel3Scale = useTransform(scrollYProgress, [0.68, 0.92], [1, 1.02])
+  const panel3Width = useTransform(scrollYProgress, [0.68, 0.92, 1], ['33.33%', '35%', '40%'])
+
+  // Panel clip paths: show different vertical sections of the fullscreen image
+  // These create the 3-panel illusion of the same fullscreen image split
+  const panel1ClipPath = useTransform(
+    scrollYProgress,
+    [0.68, 0.76, 0.92, 1],
+    [
+      'inset(0 66.67% 0 0)',    // left third
+      'inset(0 66.67% 0 0)',    // still left third
+      'inset(0 55% 0 0)',       // morph outward
+      'inset(0 55% 0 0)',       // final position
+    ]
+  )
+
+  const panel2ClipPath = useTransform(
+    scrollYProgress,
+    [0.68, 0.76, 0.92, 1],
+    [
+      'inset(0 33.33% 0 33.33%)',  // center third
+      'inset(0 33.33% 0 33.33%)',  // still center
+      'inset(0 22.5% 0 22.5%)',    // morph outward
+      'inset(0 22.5% 0 22.5%)',    // final position
+    ]
+  )
+
+  const panel3ClipPath = useTransform(
+    scrollYProgress,
+    [0.68, 0.76, 0.92, 1],
+    [
+      'inset(0 0 0 66.67%)',    // right third
+      'inset(0 0 0 66.67%)',    // still right third
+      'inset(0 0 0 60%)',       // morph outward
+      'inset(0 0 0 60%)',       // final position
+    ]
+  )
+
+  // Image morphing: crossfade from original photos to project images within panels
+  // Panel 1 image opacity (fade out original, fade in project 1)
+  const panel1OriginalOpacity = useTransform(scrollYProgress, [0.76, 0.84], [1, 0])
+  const panel1ProjectOpacity = useTransform(scrollYProgress, [0.76, 0.84], [0, 1])
+
+  // Panel 2 image opacity (fade out original, fade in project 2)
+  const panel2OriginalOpacity = useTransform(scrollYProgress, [0.76, 0.84], [1, 0])
+  const panel2ProjectOpacity = useTransform(scrollYProgress, [0.76, 0.84], [0, 1])
+
+  // Panel 3 image opacity (fade out original, fade in project 3)
+  const panel3OriginalOpacity = useTransform(scrollYProgress, [0.76, 0.84], [1, 0])
+  const panel3ProjectOpacity = useTransform(scrollYProgress, [0.76, 0.84], [0, 1])
 
   // Subtle vertical image movement
   // Photo 1: subtle scale up and vertical pan
@@ -176,96 +243,234 @@ function WorkReveal() {
   }
 
   return (
-    <div ref={runwayRef} className="relative h-[700vh] bg-white" aria-hidden="true">
-      <div className="sticky top-0 h-screen overflow-hidden bg-white">
-        {/* PHOTOGRAPHY title - split vertically to react to expanding media */}
+    <div ref={runwayRef} className="relative h-[900vh] bg-white" aria-hidden="true">
+      {/* PHOTOGRAPHY title - split vertically to react to expanding media */}
+      <motion.div
+        className="pointer-events-none fixed inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-[2vw]"
+        style={{ opacity: typographyOpacity }}
+      >
+        {/* Upper portion of text */}
         <motion.div
-          className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-[2vw]"
-          style={{ opacity: typographyOpacity }}
+          className="text-center text-[clamp(90px,12vw,190px)] leading-[0.82] font-thin tracking-[-0.055em] text-[#111] uppercase"
+          style={{
+            fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
+            y: typographyUpperY,
+          }}
         >
-          {/* Upper portion of text */}
+          Photo
+        </motion.div>
+
+        {/* Lower portion of text */}
+        <motion.div
+          className="text-center text-[clamp(90px,12vw,190px)] leading-[0.82] font-thin tracking-[-0.055em] text-[#111] uppercase"
+          style={{
+            fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
+            y: typographyLowerY,
+          }}
+        >
+          graphy
+        </motion.div>
+      </motion.div>
+
+      {/* Vertical media container - editorial reveal to fullscreen */}
+      <motion.div
+        className="fixed inset-0 z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center overflow-hidden bg-neutral-950 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]"
+        style={{
+          opacity: mediaOpacity,
+          width: mediaWidth,
+          height: mediaHeight,
+          borderRadius: mediaRadius,
+          clipPath: mediaClipPath,
+          willChange: 'width, height, border-radius, clip-path',
+        }}
+      >
+        {/* Photo container with subtle vertical movement */}
+        <div className="relative h-full w-full">
+          {showcasePhotos.map((photo, idx) => (
+            <motion.div
+              key={photo}
+              className="absolute inset-0"
+              style={{
+                opacity: photoOpacities[idx],
+                scale: idx === 0 ? photo1Scale : idx === 1 ? photo2Scale : idx === 2 ? photo3Scale : 1,
+                y: idx === 0 ? photo1Y : idx === 1 ? photo2Y : idx === 2 ? photo3Y : 0,
+              }}
+            >
+              <img
+                src={photo}
+                alt=""
+                className="h-full w-full select-none object-cover"
+                draggable={false}
+              />
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* 3-PANEL MORPHING SECTION - transforms fullscreen image into portfolio */}
+      <div className="fixed inset-0 z-30 flex overflow-hidden bg-white" style={{ pointerEvents: 'none' }}>
+        {/* Panel 1 (Left) */}
+        <motion.div
+          className="flex-1 overflow-hidden"
+          style={{
+            width: panel1Width,
+            y: panel1Y,
+            scale: panel1Scale,
+          }}
+        >
+          {/* Original photo section */}
           <motion.div
-            className="text-center text-[clamp(90px,12vw,190px)] leading-[0.82] font-thin tracking-[-0.055em] text-[#111] uppercase"
+            className="absolute inset-0"
             style={{
-              fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
-              y: typographyUpperY,
+              opacity: panel1OriginalOpacity,
+              clipPath: panel1ClipPath,
             }}
           >
-            Photo
+            <div className="relative h-full w-full">
+              {showcasePhotos.map((photo, idx) => (
+                <motion.div
+                  key={`panel1-orig-${photo}`}
+                  className="absolute inset-0"
+                  style={{ opacity: photoOpacities[idx] }}
+                >
+                  <img
+                    src={photo}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    draggable={false}
+                  />
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
 
-          {/* Lower portion of text */}
+          {/* Project 1 image replacement */}
           <motion.div
-            className="text-center text-[clamp(90px,12vw,190px)] leading-[0.82] font-thin tracking-[-0.055em] text-[#111] uppercase"
+            className="absolute inset-0"
             style={{
-              fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
-              y: typographyLowerY,
+              opacity: panel1ProjectOpacity,
             }}
           >
-            graphy
+            <img
+              src={showcasePhotos[0]}
+              alt="Project 1"
+              className="h-full w-full object-cover"
+            />
           </motion.div>
         </motion.div>
 
-        {/* Vertical media container - editorial reveal */}
+        {/* Panel 2 (Center) */}
         <motion.div
-          className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center overflow-hidden bg-neutral-950 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]"
+          className="flex-1 overflow-hidden"
           style={{
-            opacity: mediaOpacity,
-            width: mediaWidth,
-            height: mediaHeight,
-            borderRadius: mediaRadius,
-            clipPath: mediaClipPath,
-            willChange: 'width, height, border-radius, clip-path',
+            width: panel2Width,
+            y: panel2Y,
+            scale: panel2Scale,
           }}
         >
-          {/* Photo container with subtle vertical movement */}
-          <div className="relative h-full w-full">
-            {showcasePhotos.map((photo, idx) => (
-              <motion.div
-                key={photo}
-                className="absolute inset-0"
-                style={{
-                  opacity: photoOpacities[idx],
-                  scale: idx === 0 ? photo1Scale : idx === 1 ? photo2Scale : idx === 2 ? photo3Scale : 1,
-                  y: idx === 0 ? photo1Y : idx === 1 ? photo2Y : idx === 2 ? photo3Y : 0,
-                }}
-              >
-                <img
-                  src={photo}
-                  alt=""
-                  className="h-full w-full select-none object-cover"
-                  draggable={false}
-                />
-              </motion.div>
-            ))}
-          </div>
+          {/* Original photo section */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              opacity: panel2OriginalOpacity,
+              clipPath: panel2ClipPath,
+            }}
+          >
+            <div className="relative h-full w-full">
+              {showcasePhotos.map((photo, idx) => (
+                <motion.div
+                  key={`panel2-orig-${photo}`}
+                  className="absolute inset-0"
+                  style={{ opacity: photoOpacities[idx] }}
+                >
+                  <img
+                    src={photo}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    draggable={false}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Project 2 image replacement */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              opacity: panel2ProjectOpacity,
+            }}
+          >
+            <img
+              src={showcasePhotos[1]}
+              alt="Project 2"
+              className="h-full w-full object-cover"
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Panel 3 (Right) */}
+        <motion.div
+          className="flex-1 overflow-hidden"
+          style={{
+            width: panel3Width,
+            y: panel3Y,
+            scale: panel3Scale,
+          }}
+        >
+          {/* Original photo section */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              opacity: panel3OriginalOpacity,
+              clipPath: panel3ClipPath,
+            }}
+          >
+            <div className="relative h-full w-full">
+              {showcasePhotos.map((photo, idx) => (
+                <motion.div
+                  key={`panel3-orig-${photo}`}
+                  className="absolute inset-0"
+                  style={{ opacity: photoOpacities[idx] }}
+                >
+                  <img
+                    src={photo}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    draggable={false}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Project 3 image replacement */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              opacity: panel3ProjectOpacity,
+            }}
+          >
+            <img
+              src={showcasePhotos[2]}
+              alt="Project 3"
+              className="h-full w-full object-cover"
+            />
+          </motion.div>
         </motion.div>
       </div>
 
-      {/* Work section placeholder - will be revealed as media clips upward */}
-      <div className="relative z-0 bg-white px-4 py-20 sm:px-[2vw] sm:py-28">
+      {/* Portfolio section - appears directly after transition (no separate title) */}
+      <div className="relative z-40 bg-white px-4 pt-32 pb-20 sm:px-[2vw] sm:pt-40 sm:pb-28">
         <div className="mx-auto w-full max-w-5xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            viewport={{ once: true, margin: '0px 0px -100px 0px' }}
-            className="mb-16 text-center"
-          >
-            <div className="mb-4 text-[13px] font-medium tracking-[0.16em] text-neutral-500 uppercase">
-              What We Do
-            </div>
-            <h2
-              className="text-[clamp(42px,8vw,72px)] leading-[1.1] font-thin tracking-[-0.03em] text-[#111]"
-              style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
-            >
-              Work with Impact
-            </h2>
-          </motion.div>
-
-          {/* Placeholder grid for work projects */}
+          {/* Portfolio grid with staggered reveal */}
           <div className="grid gap-6 md:grid-cols-2">
-            {[1, 2, 3, 4].map((idx) => (
+            {[
+              { title: 'Aerolink', image: showcasePhotos[0] },
+              { title: 'Riaaj Vintage', image: showcasePhotos[1] },
+              { title: 'Delhi-6', image: showcasePhotos[2] },
+              { title: 'Brand Project', image: showcasePhotos[0] },
+            ].map((project, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 24 }}
@@ -276,10 +481,22 @@ function WorkReveal() {
                   delay: idx * 0.08,
                 }}
                 viewport={{ once: true, margin: '0px 0px -80px 0px' }}
-                className="aspect-square overflow-hidden rounded-2xl bg-neutral-100"
+                className="group overflow-hidden rounded-2xl"
               >
-                <div className="h-full w-full flex items-center justify-center text-neutral-400 font-medium">
-                  Project {idx}
+                <div className="aspect-square overflow-hidden bg-neutral-100">
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+                <div className="pt-4">
+                  <h3
+                    className="text-[16px] font-medium tracking-[-0.01em] text-[#111]"
+                    style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
+                  >
+                    {project.title}
+                  </h3>
                 </div>
               </motion.div>
             ))}
