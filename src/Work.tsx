@@ -143,26 +143,8 @@ function WorkImpactMediaSequence({
 function WorkReveal() {
   const runwayRef = useRef<HTMLDivElement>(null)
   const prefersReducedMotion = useReducedMotion() ?? false
-  const [activeServiceIndex, setActiveServiceIndex] = useState(0)
-  const [activeDemoIndex, setActiveDemoIndex] = useState(0)
-
-  useEffect(() => {
-    if (prefersReducedMotion) return
-
-    const interval = window.setInterval(() => {
-      setActiveDemoIndex((current) => {
-        const currentService = services[activeServiceIndex]
-        const nextIndex = (current + 1) % currentService.demos.length
-
-        if (nextIndex === 0) {
-          setActiveServiceIndex((prev) => (prev + 1) % services.length)
-        }
-        return nextIndex
-      })
-    }, 2400)
-
-    return () => window.clearInterval(interval)
-  }, [activeServiceIndex, prefersReducedMotion])
+  const activeServiceIndex = 0
+  const activeDemoIndex = 0
 
   const currentService = services[activeServiceIndex]
   const currentDemo = currentService.demos[activeDemoIndex]
