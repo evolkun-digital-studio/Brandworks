@@ -243,10 +243,13 @@ function WorkReveal() {
   }
 
   return (
-    <div ref={runwayRef} className="relative h-[650vh] bg-white">
-      {/* PHOTOGRAPHY title - split vertically to react to expanding media */}
-      <motion.div
-        className="pointer-events-none fixed inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-[2vw]"
+    <div>
+      <div ref={runwayRef} className="relative h-[650vh] bg-white">
+        {/* STICKY VIEWPORT CONTAINER - contains all transition animation */}
+        <div className="sticky top-0 h-screen overflow-hidden bg-white">
+          {/* PHOTOGRAPHY title - split vertically to react to expanding media */}
+          <motion.div
+            className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-[2vw]"
         style={{ opacity: typographyOpacity }}
       >
         {/* Upper portion of text */}
@@ -272,9 +275,9 @@ function WorkReveal() {
         </motion.div>
       </motion.div>
 
-      {/* Vertical media container - editorial reveal to fullscreen */}
-      <motion.div
-        className="fixed inset-0 z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center overflow-hidden bg-neutral-950 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]"
+          {/* Vertical media container - editorial reveal to fullscreen */}
+          <motion.div
+            className="absolute inset-0 z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center overflow-hidden bg-neutral-950 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]"
         style={{
           opacity: mediaOpacity,
           width: mediaWidth,
@@ -308,8 +311,8 @@ function WorkReveal() {
         </div>
       </motion.div>
 
-      {/* 3-PANEL MORPHING SECTION - transforms fullscreen image into portfolio */}
-      <div className="fixed inset-0 z-30 flex overflow-hidden bg-white" style={{ pointerEvents: 'none' }}>
+          {/* 3-PANEL MORPHING SECTION - transforms fullscreen image into portfolio */}
+          <div className="absolute inset-0 z-30 flex overflow-hidden bg-white" style={{ pointerEvents: 'none' }}>
         {/* Panel 1 (Left) */}
         <motion.div
           className="flex-1 overflow-hidden"
@@ -460,9 +463,11 @@ function WorkReveal() {
           </motion.div>
         </motion.div>
       </div>
+        {/* END STICKY VIEWPORT CONTAINER */}
+      </div>
 
-      {/* Portfolio section - appears directly after transition */}
-      <div className="relative z-40 bg-white px-4 pt-32 pb-20 sm:px-[2vw] sm:pt-40 sm:pb-28">
+      {/* Portfolio section - OUTSIDE transition container, in normal document flow */}
+      <div className="relative z-0 bg-white px-4 py-20 sm:px-[2vw] sm:py-28">
         <div className="mx-auto w-full max-w-5xl">
           {/* Portfolio grid with staggered reveal */}
           <div className="grid gap-6 md:grid-cols-2">
@@ -504,6 +509,7 @@ function WorkReveal() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }
