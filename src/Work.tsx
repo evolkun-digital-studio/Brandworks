@@ -154,37 +154,35 @@ function WorkReveal() {
     offset: ['start start', 'end end'],
   })
 
-  // Start as the tiny central "video" seen in the reference, pause there for
-  // a beat, then let the work physically take over the viewport.
+  // Start as the tiny central photo, pause there for a beat, then expand slowly
   const mediaScale = useTransform(
     scrollYProgress,
-    [0, 0.06, 0.2, 0.38, 0.78, 1],
+    [0, 0.04, 0.12, 0.25, 0.55, 1],
     [0.018, 0.035, 0.14, 0.23, 1.02, 1.02],
   )
   const mediaOpacity = useTransform(
     scrollYProgress,
-    [0, 0.04, 0.08, 0.15],
+    [0, 0.03, 0.06, 0.12],
     [0, 0.4, 0.7, 1]
   )
   const mediaRadius = useTransform(
     scrollYProgress,
-    [0.24, 0.48, 0.72],
+    [0.17, 0.35, 0.52],
     [18, 12, 0]
   )
 
-  // Title scale and position
-  const titleScale = useTransform(scrollYProgress, [0, 0.68, 0.88], [1, 0.99, 1.025])
-  const titleY = useTransform(scrollYProgress, [0, 0.62, 0.86], ['0vh', '0vh', '-2.2vh'])
+  // Title scale and position - extended for longer scroll
+  const titleScale = useTransform(scrollYProgress, [0, 0.55, 0.75], [1, 0.99, 1.025])
+  const titleY = useTransform(scrollYProgress, [0, 0.5, 0.7], ['0vh', '0vh', '-2.2vh'])
 
-  // Text separation animation - "The" moves left, "Work" moves right
-  const theX = useTransform(scrollYProgress, [0, 0.4, 0.8], ['0%', '-15vw', '-35vw'])
-  const workX = useTransform(scrollYProgress, [0, 0.4, 0.8], ['0%', '15vw', '35vw'])
-  const textSeparationOpacity = useTransform(scrollYProgress, [0, 0.35, 0.75, 1], [1, 1, 0.3, 0])
+  // Text separation animation - "Our" moves left, "Photography" moves right
+  const theX = useTransform(scrollYProgress, [0, 0.25, 0.55], ['0%', '-25vw', '-55vw'])
+  const workX = useTransform(scrollYProgress, [0, 0.25, 0.55], ['0%', '25vw', '55vw'])
+  const textSeparationOpacity = useTransform(scrollYProgress, [0, 0.2, 0.65, 1], [1, 1, 0.3, 0])
 
-  // A white hand-off removes the hard cut when the sticky reveal releases and
-  // the original Work-with-impact content starts immediately afterwards.
-  const whiteOutOpacity = useTransform(scrollYProgress, [0.9, 1], [0, 1])
-  const microCopyOpacity = useTransform(scrollYProgress, [0.08, 0.28, 0.56], [0, 1, 0])
+  // A white hand-off removes the hard cut when the sticky reveal releases
+  const whiteOutOpacity = useTransform(scrollYProgress, [0.92, 1], [0, 1])
+  const microCopyOpacity = useTransform(scrollYProgress, [0.05, 0.2, 0.4], [0, 1, 0])
 
   if (prefersReducedMotion) {
     return (
@@ -205,7 +203,7 @@ function WorkReveal() {
   }
 
   return (
-    <div ref={runwayRef} className="relative h-[500vh] bg-white" aria-hidden="true">
+    <div ref={runwayRef} className="relative h-[700vh] bg-white" aria-hidden="true">
       <div className="sticky top-0 h-screen overflow-hidden bg-white">
         <motion.div
   className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
@@ -222,7 +220,7 @@ function WorkReveal() {
       style={{ x: theX }}
       transition={{ type: "spring", damping: 35, stiffness: 70, mass: 1.1, duration: 1 }}
     >
-      What
+      Our
     </motion.span>
 
     <motion.span
@@ -230,7 +228,7 @@ function WorkReveal() {
       style={{ x: workX }}
       transition={{ type: "spring", damping: 35, stiffness: 70, mass: 1.1, duration: 1 }}
     >
-      We Do
+      Photography
     </motion.span>
   </div>
 </motion.div>
