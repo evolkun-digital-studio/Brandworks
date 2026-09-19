@@ -243,7 +243,7 @@ function WorkReveal() {
   }
 
   return (
-    <div ref={runwayRef} className="relative h-[900vh] bg-white" aria-hidden="true">
+    <div ref={runwayRef} className="relative h-[650vh] bg-white">
       {/* PHOTOGRAPHY title - split vertically to react to expanding media */}
       <motion.div
         className="pointer-events-none fixed inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-[2vw]"
@@ -282,6 +282,7 @@ function WorkReveal() {
           borderRadius: mediaRadius,
           clipPath: mediaClipPath,
           willChange: 'width, height, border-radius, clip-path',
+          pointerEvents: 'none',
         }}
       >
         {/* Photo container with subtle vertical movement */}
@@ -460,7 +461,7 @@ function WorkReveal() {
         </motion.div>
       </div>
 
-      {/* Portfolio section - appears directly after transition (no separate title) */}
+      {/* Portfolio section - appears directly after transition */}
       <div className="relative z-40 bg-white px-4 pt-32 pb-20 sm:px-[2vw] sm:pt-40 sm:pb-28">
         <div className="mx-auto w-full max-w-5xl">
           {/* Portfolio grid with staggered reveal */}
