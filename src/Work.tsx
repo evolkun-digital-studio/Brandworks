@@ -29,19 +29,24 @@ const allPhotos = [Photo1, Photo2, Photo3, Photo4, Photo5, Photo6, Photo7, Photo
 
 
 /**
- * Refined Photography → Work transition:
+ * Vertical editorial reveal for Photography → Work transition:
  *
  * PHOTOGRAPHY (centered title)
  * ↓
- * small image window appears
+ * small VERTICAL media window appears (3:5 aspect ratio)
  * ↓
- * image expands and masks typography
+ * media expands vertically through typography
  * ↓
- * fullscreen immersive visual
+ * media reaches tall editorial frame (90%+ viewport height)
  * ↓
- * direct handoff to Work section (no white fade)
+ * media expands horizontally into fullscreen
  * ↓
- * Work content revealed beneath
+ * fullscreen image lifts upward as curtain
+ * ↓
+ * WORK WITH IMPACT revealed underneath
+ *
+ * Two-stage motion: vertical opening → horizontal release
+ * Creates cinematic, fashion-film inspired transition
  *
  * Native scroll is still in control. Motion only reads scroll progress, so it
  * works with the site's existing Lenis setup and does not add scroll-jacking.
@@ -50,7 +55,7 @@ function WorkReveal() {
   const runwayRef = useRef<HTMLDivElement>(null)
   const prefersReducedMotion = useReducedMotion() ?? false
 
-  // Get 3 strong photos for the transition (not 5)
+  // Get 3 strong photos for the transition
   const showcasePhotos = useMemo(() => {
     const shuffled = [...allPhotos].sort(() => Math.random() - 0.5)
     return shuffled.slice(0, 3)
@@ -61,34 +66,36 @@ function WorkReveal() {
     offset: ['start start', 'end end'],
   })
 
-  // Timing distribution:
-  // 0.00–0.15: PHOTOGRAPHY + small visual
-  // 0.15–0.28: small visual activates
-  // 0.28–0.55: visual grows to medium size
-  // 0.55–0.78: visual grows aggressively toward fullscreen, typography masked
-  // 0.78–0.88: fullscreen photography
-  // 0.88–1.00: fullscreen image reveals Work content
+  // Timing progression:
+  // 0.00–0.15: PHOTOGRAPHY + small vertical visual
+  // 0.15–0.35: media expands mainly vertically
+  // 0.35–0.55: media reaches almost full viewport height
+  // 0.55–0.78: width begins expanding horizontally
+  // 0.78–0.88: image becomes 100vw × 100vh
+  // 0.88–1.00: vertical curtain reveals Work with impact
 
-  // Photo crossfades with 3 images only
+  // Photo crossfades with 3 images
   const photoOpacities = [
     useTransform(scrollYProgress, [0, 0.15, 0.35, 0.48], [1, 1, 0.8, 0]),      // Photo 0
     useTransform(scrollYProgress, [0.35, 0.48, 0.65, 0.75], [0, 1, 1, 0.3]),    // Photo 1
     useTransform(scrollYProgress, [0.63, 0.75, 0.88, 0.95], [0, 1, 1, 0.5]),    // Photo 2
   ]
 
-  // Smooth scale expansion with proper timing
-  // Stage A (0–0.15): invisible to 1.8% (small)
-  // Stage B (0.15–0.28): 1.8% to 15% (activates)
-  // Stage C (0.28–0.55): 15% to 45% (medium)
-  // Stage D (0.55–0.88): 45% to 100% (fullscreen)
-  // Stage E (0.88–1.00): hold at 100%
-  const mediaScale = useTransform(
+  // VERTICAL STAGE (0–0.55): grow height primarily
+  // Start: 12vw × 35vh → 24vw × 92vh
+  const mediaWidth = useTransform(
     scrollYProgress,
-    [0, 0.08, 0.15, 0.28, 0.55, 0.88, 1],
-    [0.008, 0.018, 0.035, 0.15, 0.95, 1, 1],
+    [0, 0.08, 0.15, 0.35, 0.55, 0.78, 1],
+    ['3.5vw', '6vw', '12vw', '18vw', '24vw', '70vw', '100vw'],
   )
 
-  // Media stays fully opaque throughout (never fade to white)
+  const mediaHeight = useTransform(
+    scrollYProgress,
+    [0, 0.08, 0.15, 0.35, 0.55, 0.78, 1],
+    ['18vh', '22vh', '35vh', '60vh', '92vh', '100vh', '100vh'],
+  )
+
+  // Media stays fully opaque throughout
   const mediaOpacity = useTransform(
     scrollYProgress,
     [0, 0.06, 0.12, 1],
@@ -96,37 +103,59 @@ function WorkReveal() {
   )
 
   // Border radius transitions smoothly
-  // Small: 12px → Medium: 8px → Large: 4px → Fullscreen: 0px
+  // Vertical frame: 6px → fullscreen: 0px
   const mediaRadius = useTransform(
     scrollYProgress,
-    [0.12, 0.28, 0.55, 0.78, 0.88],
-    [12, 10, 6, 2, 0]
+    [0.12, 0.35, 0.55, 0.78, 0.88],
+    [6, 5, 4, 2, 0]
   )
 
-  // Typography masking: text fades out as media expands
-  // The media (z-20) already sits above text (z-10), but we hide text via opacity
+  // Typography reacts to vertical expansion
+  // Upper text moves up, lower text moves down as media grows vertically
+  const typographyUpperY = useTransform(
+    scrollYProgress,
+    [0, 0.35, 0.55],
+    ['0px', '-40px', '-80px']
+  )
+
+  const typographyLowerY = useTransform(
+    scrollYProgress,
+    [0, 0.35, 0.55],
+    ['0px', '40px', '80px']
+  )
+
   const typographyOpacity = useTransform(
     scrollYProgress,
     [0, 0.55, 0.75],
     [1, 0.8, 0]
   )
 
+  // Vertical clip-path for editorial reveal
+  // Starts as thin horizontal slice, expands vertically
+  const mediaClipPath = useTransform(
+    scrollYProgress,
+    [0, 0.15, 0.35, 0.88, 1],
+    [
+      'inset(48% 40% 48% 40%)',  // small square in center
+      'inset(35% 35% 35% 35%)',  // larger square
+      'inset(0 35% 0 35%)',       // vertical slit
+      'inset(0 0 0 0)',           // full visible
+      'inset(0 0 100% 0)',        // reveal upward for Work section
+    ]
+  )
 
-  // Subtle photo zoom and pan effects (very restrained)
-  // Photo 1: subtle scale up
-  const photo1Scale = useTransform(scrollYProgress, [0.35, 0.48], [1, 1.035])
-  const photo1X = useTransform(scrollYProgress, [0.35, 0.48], ['0%', '-1%'])
+  // Subtle vertical image movement
+  // Photo 1: subtle scale up and vertical pan
+  const photo1Scale = useTransform(scrollYProgress, [0.35, 0.48], [1, 1.04])
+  const photo1Y = useTransform(scrollYProgress, [0.35, 0.48], ['2%', '-2%'])
 
-  // Photo 2: subtle scale down
-  const photo2Scale = useTransform(scrollYProgress, [0.48, 0.63], [1.03, 1])
-  const photo2Y = useTransform(scrollYProgress, [0.48, 0.63], ['1%', '-1%'])
+  // Photo 2: subtle scale and vertical pan
+  const photo2Scale = useTransform(scrollYProgress, [0.48, 0.63], [1.035, 1])
+  const photo2Y = useTransform(scrollYProgress, [0.48, 0.63], ['-1%', '1.5%'])
 
-  // Clip path to reveal Work section underneath (instead of white fade)
-  // The media container clips upward to reveal content below
-  const mediaClipPath = useTransform(scrollYProgress, [0.88, 1], [
-    'inset(0 0 0 0)',
-    'inset(0 0 100% 0)'
-  ])
+  // Photo 3: subtle vertical motion
+  const photo3Scale = useTransform(scrollYProgress, [0.63, 0.78], [1.03, 1])
+  const photo3Y = useTransform(scrollYProgress, [0.63, 0.78], ['1%', '-1%'])
 
   if (prefersReducedMotion) {
     return (
@@ -138,7 +167,7 @@ function WorkReveal() {
           >
             Photography
           </div>
-          <div className="mt-12 aspect-video w-[clamp(220px,18vw,320px)] overflow-hidden rounded-lg bg-neutral-100 sm:mt-14">
+          <div className="mt-12 w-[clamp(180px,12vw,240px)] overflow-hidden rounded-lg bg-neutral-100 sm:mt-14" style={{ aspectRatio: '3/5' }}>
             <img src={showcasePhotos[0]} alt="" className="h-full w-full object-cover" />
           </div>
         </div>
@@ -147,36 +176,49 @@ function WorkReveal() {
   }
 
   return (
-    <div ref={runwayRef} className="relative h-[650vh] bg-white" aria-hidden="true">
+    <div ref={runwayRef} className="relative h-[700vh] bg-white" aria-hidden="true">
       <div className="sticky top-0 h-screen overflow-hidden bg-white">
-        {/* PHOTOGRAPHY title - centered, responsive, no awkward cropping */}
+        {/* PHOTOGRAPHY title - split vertically to react to expanding media */}
         <motion.div
-          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4 sm:px-[2vw]"
+          className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-4 sm:px-[2vw]"
           style={{ opacity: typographyOpacity }}
         >
-          <div
+          {/* Upper portion of text */}
+          <motion.div
             className="text-center text-[clamp(90px,12vw,190px)] leading-[0.82] font-thin tracking-[-0.055em] text-[#111] uppercase"
             style={{
               fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
+              y: typographyUpperY,
             }}
           >
-            Photography
-          </div>
+            Photo
+          </motion.div>
+
+          {/* Lower portion of text */}
+          <motion.div
+            className="text-center text-[clamp(90px,12vw,190px)] leading-[0.82] font-thin tracking-[-0.055em] text-[#111] uppercase"
+            style={{
+              fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
+              y: typographyLowerY,
+            }}
+          >
+            graphy
+          </motion.div>
         </motion.div>
 
-        {/* Expanding media container - masks typography via z-index and clip-path */}
+        {/* Vertical media container - editorial reveal */}
         <motion.div
-          className="absolute inset-0 z-20 flex items-center justify-center overflow-hidden bg-neutral-950 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]"
+          className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center overflow-hidden bg-neutral-950 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]"
           style={{
             opacity: mediaOpacity,
-            scale: mediaScale,
+            width: mediaWidth,
+            height: mediaHeight,
             borderRadius: mediaRadius,
-            transformOrigin: '50% 50%',
             clipPath: mediaClipPath,
-            willChange: 'transform, opacity, border-radius, clip-path',
+            willChange: 'width, height, border-radius, clip-path',
           }}
         >
-          {/* Photo container with subtle zoom effects */}
+          {/* Photo container with subtle vertical movement */}
           <div className="relative h-full w-full">
             {showcasePhotos.map((photo, idx) => (
               <motion.div
@@ -184,9 +226,8 @@ function WorkReveal() {
                 className="absolute inset-0"
                 style={{
                   opacity: photoOpacities[idx],
-                  scale: idx === 0 ? photo1Scale : idx === 1 ? photo2Scale : 1,
-                  x: idx === 0 ? photo1X : 0,
-                  y: idx === 1 ? photo2Y : 0,
+                  scale: idx === 0 ? photo1Scale : idx === 1 ? photo2Scale : idx === 2 ? photo3Scale : 1,
+                  y: idx === 0 ? photo1Y : idx === 1 ? photo2Y : idx === 2 ? photo3Y : 0,
                 }}
               >
                 <img
