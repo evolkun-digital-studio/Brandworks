@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  PYTHON_VERSION: "3.12"
+  # Test environment variables — no real credentials needed for unit tests.
+  APP_ENV: testing
+  APP_DEBUG: "false"
+  SECRET_KEY: "ci-secret-key-that-is-long-enough-for-pydantic-validation-32chars"
+  DATABASE_URL: "postgresql+asyncpg://kinikh:password@localhost:5432/kinikh_ivr_test"
+  REDIS_URL: "redis://localhost:6379/0"
+  OPENAI_API_KEY: "sk-test"
+  ELEVENLABS_API_KEY: "el-test"
+  ELEVENLABS_VOICE_ID_EN: "en-voice-id"
+  ELEVENLABS_VOICE_ID_HI: "hi-voice-id"
+  EXOTEL_SID: "test-sid"
+  EXOTEL_TOKEN: "test-token"
+  EXOTEL_API_KEY: "test-api-key"
+  EXOTEL_API_SECRET: "test-api-secret"
+  EXOTEL_CALLER_ID: "+910000000000"
+  EXOTEL_WEBHOOK_SECRET: "test-webhook-secret"
+  SMTP_USERNAME: "test@example.com"
+  SMTP_PASSWORD: "test-password"
+  SMTP_FROM_EMAIL: "noreply@example.com"
+  JWT_SECRET_KEY: "ci-jwt-secret-key-that-is-long-enough-for-pydantic-32chars"
+
+jobs:
+  # ── Lint & format ────────────────────────────────────────────────────────────
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install dev dependencies
+        run: pip install ruff black isort
+
+      - name: Ruff — lint
+        run: ruff check app tests
+
+      - name: Ruff — format check
+        run: ruff format --check app tests
+
+      - name: Black — format check
+        run: black --check app tests
+
+      - name: isort — import order check
+        run: isort --check-only --profile black --line-length 100 app tests
+
+  # ── Tests ─────────────────────────────────────────────────────────────────────
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: kinikh
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: kinikh_ivr_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kinikh -d kinikh_ivr_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            -v
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+
+  # ── Security scan ─────────────────────────────────────────────────────────────
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install bandit
+        run: pip install bandit
+
+      - name: Run bandit
+        run: bandit -r app -ll --skip B104,B311 -f json -o bandit-report.json || true
+
+      - name: Upload bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  # ── Docker build check ────────────────────────────────────────────────────────
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: runtime
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: kinikh-ivr:ci
