@@ -1,0 +1,18 @@
+node_modules
+dist
+
+# Environment variables (local secrets/config) — never commit this.
+.env
+.env.local
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
