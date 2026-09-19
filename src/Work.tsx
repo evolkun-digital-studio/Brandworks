@@ -6,39 +6,47 @@ import {
   useTransform,
 } from 'motion/react'
 
-// Import temporary transition photography
+// Import temporary editorial photography
 import Photo1 from '/src/Photo/Photo1.jpg'
 import Photo2 from '/src/Photo/Photo2.jpg'
 import Photo3 from '/src/Photo/Photo3.jpg'
+import Photo4 from '/src/Photo/Photo4.png'
+import Photo5 from '/src/Photo/Photo5.png'
+import Photo6 from '/src/Photo/Photo6.png'
 
 // TEMPORARY TRANSITION IMAGES
-// High-quality editorial photography for the transition sequence.
-// Replace these URLs with final BrandWorks project photography.
-// Keep all images in this single array for easy future replacement.
+// Six premium editorial photographs for the showcase.
+// Replace these with final BrandWorks project photography.
 const TEMP_PHOTOGRAPHY_IMAGES = [
-  Photo1,  // Left panel primary
-  Photo2,  // Center panel primary (becomes fullscreen)
-  Photo3,  // Right panel primary
+  Photo1,  // Photo 1: enters from bottom
+  Photo2,  // Photo 2: enters from bottom
+  Photo3,  // Photo 3: enters from right
+  Photo4,  // Photo 4: enters from right
+  Photo5,  // Photo 5: enters from bottom
+  Photo6,  // Photo 6: enters from bottom
 ]
 
 /**
- * PHOTOGRAPHY → Editorial Strips → Fullscreen → Portfolio Transition
+ * PHOTOGRAPHY Showcase Transition
  *
- * Cinematic, slow-paced scroll experience with deliberate hold moments.
- * 520vh total scroll distance allows for contemplative progression.
+ * Six editorial photographs enter sequentially with directional reveals:
+ * Up, Up, Right, Right, Up, Up
  *
- * Timeline:
- * 0.00–0.10: PHOTOGRAPHY title
- * 0.10–0.20: photography enters letters
- * 0.20–0.25: image masking strengthens
- * 0.25–0.31: HOLD typography + imagery
- * 0.31–0.50: vertical strips emerge
- * 0.50–0.63: HOLD three-panel composition
- * 0.63–0.77: panels expand
- * 0.77–0.82: HOLD large editorial composition
- * 0.82–0.91: side panels exit, hero takes over
- * 0.91–0.96: HOLD fullscreen photography
- * 0.96–1.00: fullscreen reveals portfolio
+ * Long scroll experience (540vh) with intentional holds and smooth transitions.
+ * No carousel UI, no cards—pure editorial image choreography.
+ *
+ * Scroll Timeline:
+ * 0.00–0.08: PHOTOGRAPHY title
+ * 0.08–0.18: Photo 1 reveals from bottom
+ * 0.18–0.30: Photo 1 holds, subtle motion
+ * 0.30–0.40: Photo 2 pushes from bottom
+ * 0.40–0.52: Photo 2 holds, subtle motion
+ * 0.52–0.62: Photo 3 pushes from right
+ * 0.62–0.72: Photo 3 holds
+ * 0.72–0.80: Photo 4 pushes from right
+ * 0.80–0.88: Photo 4 holds
+ * 0.88–0.94: Photo 5 pushes from bottom
+ * 0.94–1.00: Photo 6 pushes from bottom, leads to portfolio
  */
 function WorkReveal() {
   const runwayRef = useRef<HTMLDivElement>(null)
@@ -49,40 +57,39 @@ function WorkReveal() {
     offset: ['start start', 'end end'],
   })
 
-  // === TYPOGRAPHY PHASE ===
-  const typographyOpacity = useTransform(scrollYProgress, [0, 0.10, 0.31, 0.50], [1, 1, 0.8, 0])
+  // TITLE PHASE
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.08, 0.18], [1, 1, 0.3])
 
-  // === LETTER MASKING PHASE (0.10–0.25) ===
-  const letterPhotoOpacity = useTransform(scrollYProgress, [0.10, 0.25], [0, 1])
+  // PHOTO 1 - enters from bottom
+  const photo1ClipPath = useTransform(scrollYProgress, [0.08, 0.18], ['inset(100% 0 0 0)', 'inset(0 0 0 0)'])
+  const photo1Opacity = useTransform(scrollYProgress, [0.08, 0.18, 0.30, 0.40], [0, 1, 1, 0.8])
+  const photo1Scale = useTransform(scrollYProgress, [0.18, 0.30], [1.05, 1])
+  const photo1Y = useTransform(scrollYProgress, [0.18, 0.30], ['2%', '-1%'])
 
-  // === LEFT STRIP ===
-  const leftStripY = useTransform(scrollYProgress, [0.31, 0.50, 0.63, 0.82, 0.91], ['0vh', '-30vh', '-30vh', '-80vh', '-100vh'])
-  const leftStripHeight = useTransform(scrollYProgress, [0.31, 0.50, 0.63, 0.77, 0.91], ['2vh', '45vh', '45vh', '85vh', '100vh'])
-  const leftStripWidth = useTransform(scrollYProgress, [0.31, 0.50, 0.63, 0.77, 0.82, 0.91], ['6vw', '18vw', '18vw', '28vw', '0vw', '0vw'])
-  const leftStripOpacity = useTransform(scrollYProgress, [0.31, 0.50, 0.82, 0.91], [0, 1, 1, 0])
-  // Internal camera movement during holds
-  const leftImageScale = useTransform(scrollYProgress, [0.50, 0.63, 0.77, 0.82], [1, 1.04, 1.02, 1])
-  const leftImageY = useTransform(scrollYProgress, [0.50, 0.63, 0.77, 0.82], ['2%', '-2%', '1%', '-1%'])
-  const leftImageOpacity = useTransform(scrollYProgress, [0.31, 0.50], [0, 1])
+  // PHOTO 2 - enters from bottom, pushes photo 1 up
+  const photo2ClipPath = useTransform(scrollYProgress, [0.30, 0.40], ['inset(100% 0 0 0)', 'inset(0 0 0 0)'])
+  const photo2Opacity = useTransform(scrollYProgress, [0.30, 0.40, 0.52, 0.62], [0, 1, 1, 0.8])
+  const photo2Y = useTransform(scrollYProgress, [0.30, 0.40, 0.52], ['-100vh', '0vh', '-40vh'])
+  const photo2Scale = useTransform(scrollYProgress, [0.40, 0.52], [1.04, 1])
 
-  // === CENTER STRIP (becomes fullscreen) ===
-  const centerStripY = useTransform(scrollYProgress, [0.31, 0.50, 0.63, 0.82, 0.91, 1], ['0vh', '-20vh', '-20vh', '0vh', '0vh', '-100vh'])
-  const centerStripHeight = useTransform(scrollYProgress, [0.31, 0.50, 0.63, 0.77, 0.82, 0.91, 1], ['2vh', '50vh', '50vh', '90vh', '100vh', '100vh', '100vh'])
-  const centerStripWidth = useTransform(scrollYProgress, [0.31, 0.50, 0.63, 0.77, 0.82, 0.91, 1], ['6vw', '20vw', '20vw', '32vw', '100vw', '100vw', '100vw'])
-  // Internal camera movement
-  const centerImageScale = useTransform(scrollYProgress, [0.50, 0.63, 0.77, 0.82, 0.96], [1, 1.035, 1.02, 1, 1.01])
-  const centerImageY = useTransform(scrollYProgress, [0.50, 0.63, 0.77, 0.82, 0.96], ['-1%', '1.5%', '-1%', '0%', '1%'])
-  const centerImageOpacity = useTransform(scrollYProgress, [0.31, 0.50], [0, 1])
+  // PHOTO 3 - enters from right
+  const photo3ClipPath = useTransform(scrollYProgress, [0.52, 0.62], ['inset(0 100% 0 0)', 'inset(0 0 0 0)'])
+  const photo3Opacity = useTransform(scrollYProgress, [0.52, 0.62, 0.72, 0.80], [0, 1, 1, 0.8])
+  const photo3Y = useTransform(scrollYProgress, [0.52, 0.62, 0.72], ['-80vh', '-40vh', '-80vh'])
 
-  // === RIGHT STRIP ===
-  const rightStripY = useTransform(scrollYProgress, [0.31, 0.50, 0.63, 0.82, 0.91], ['0vh', '30vh', '30vh', '80vh', '100vh'])
-  const rightStripHeight = useTransform(scrollYProgress, [0.31, 0.50, 0.63, 0.77, 0.91], ['2vh', '48vh', '48vh', '88vh', '100vh'])
-  const rightStripWidth = useTransform(scrollYProgress, [0.31, 0.50, 0.63, 0.77, 0.82, 0.91], ['6vw', '19vw', '19vw', '30vw', '0vw', '0vw'])
-  const rightStripOpacity = useTransform(scrollYProgress, [0.31, 0.50, 0.82, 0.91], [0, 1, 1, 0])
-  // Internal camera movement
-  const rightImageScale = useTransform(scrollYProgress, [0.50, 0.63, 0.77, 0.82], [1, 1.045, 1.03, 1])
-  const rightImageX = useTransform(scrollYProgress, [0.50, 0.63, 0.77, 0.82], ['-1%', '1%', '-1%', '0%'])
-  const rightImageOpacity = useTransform(scrollYProgress, [0.31, 0.50], [0, 1])
+  // PHOTO 4 - enters from right
+  const photo4ClipPath = useTransform(scrollYProgress, [0.72, 0.80], ['inset(0 100% 0 0)', 'inset(0 0 0 0)'])
+  const photo4Opacity = useTransform(scrollYProgress, [0.72, 0.80, 0.88, 0.94], [0, 1, 1, 0.8])
+  const photo4Y = useTransform(scrollYProgress, [0.72, 0.80, 0.88], ['-60vh', '-20vh', '-60vh'])
+
+  // PHOTO 5 - enters from bottom
+  const photo5ClipPath = useTransform(scrollYProgress, [0.88, 0.94], ['inset(100% 0 0 0)', 'inset(0 0 0 0)'])
+  const photo5Opacity = useTransform(scrollYProgress, [0.88, 0.94, 1], [0, 1, 1])
+  const photo5Y = useTransform(scrollYProgress, [0.88, 0.94], ['-100vh', '-50vh'])
+
+  // PHOTO 6 - enters from bottom, leads to portfolio
+  const photo6ClipPath = useTransform(scrollYProgress, [0.94, 1], ['inset(100% 0 0 0)', 'inset(0 0 0 0)'])
+  const photo6Y = useTransform(scrollYProgress, [0.94, 1], ['-100vh', '-80vh'])
 
   if (prefersReducedMotion) {
     return (
@@ -101,93 +108,141 @@ function WorkReveal() {
 
   return (
     <div>
-      {/* LONG SCROLL RUNWAY - Makes the entire experience slower and more cinematic */}
-      <div ref={runwayRef} className="relative h-[520vh] bg-white">
-        {/* STICKY VIEWPORT - Animation happens here */}
+      {/* LONG SCROLL RUNWAY */}
+      <div ref={runwayRef} className="relative h-[540vh] bg-white">
+        {/* STICKY VIEWPORT */}
         <div className="sticky top-0 h-screen overflow-hidden bg-white flex items-center justify-center">
-          {/* HERO TYPOGRAPHY - PHOTOGRAPHY title */}
+          {/* PHOTOGRAPHY TITLE */}
           <motion.div
-            className="absolute inset-0 z-10 flex items-center justify-center"
-            style={{ opacity: typographyOpacity }}
+            className="absolute inset-0 z-50 flex items-center justify-center"
+            style={{ opacity: titleOpacity }}
           >
             <div
-              className="text-center text-[clamp(90px,11.5vw,190px)] leading-[0.82] font-bold tracking-[-0.055em] text-[#111] uppercase"
+              className="text-center text-[clamp(90px,11.5vw,190px)] leading-[0.82] font-bold tracking-[-0.055em] text-[#111] uppercase pointer-events-none"
               style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
             >
               Photography
             </div>
           </motion.div>
 
-          {/* LETTER MASKING - Photography inside letter shapes */}
-          <motion.div
-            className="absolute inset-0 z-5 flex items-center justify-center pointer-events-none"
-            style={{ opacity: letterPhotoOpacity }}
-          >
-            <div className="relative w-full h-full flex items-center justify-center">
+          {/* IMAGE SHOWCASE CONTAINER */}
+          <div className="absolute inset-0 z-0">
+            {/* PHOTO 1 - Bottom Entry */}
+            <motion.div
+              className="absolute inset-0"
+              style={{
+                opacity: photo1Opacity,
+                clipPath: photo1ClipPath,
+                willChange: 'transform, clip-path',
+              }}
+            >
+              <motion.div
+                className="w-full h-full"
+                style={{
+                  scale: photo1Scale,
+                  y: photo1Y,
+                }}
+              >
+                <img
+                  src={TEMP_PHOTOGRAPHY_IMAGES[0]}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </motion.div>
+            </motion.div>
+
+            {/* PHOTO 2 - Bottom Entry, Pushes Photo 1 Up */}
+            <motion.div
+              className="absolute inset-0"
+              style={{
+                opacity: photo2Opacity,
+                clipPath: photo2ClipPath,
+                y: photo2Y,
+                willChange: 'transform, clip-path',
+              }}
+            >
+              <motion.div
+                className="w-full h-full"
+                style={{
+                  scale: photo2Scale,
+                }}
+              >
+                <img
+                  src={TEMP_PHOTOGRAPHY_IMAGES[1]}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </motion.div>
+            </motion.div>
+
+            {/* PHOTO 3 - Right Entry */}
+            <motion.div
+              className="absolute inset-0"
+              style={{
+                opacity: photo3Opacity,
+                clipPath: photo3ClipPath,
+                y: photo3Y,
+                willChange: 'transform, clip-path',
+              }}
+            >
               <img
-                src={TEMP_PHOTOGRAPHY_IMAGES[1]}
+                src={TEMP_PHOTOGRAPHY_IMAGES[2]}
                 alt=""
-                className="w-[clamp(90px,11.5vw,190px)] h-auto object-cover"
-                style={{ willChange: 'transform' }}
+                className="w-full h-full object-cover"
               />
-            </div>
-          </motion.div>
-
-          {/* LEFT STRIP */}
-          <motion.div
-            className="absolute z-20 left-[12%] overflow-hidden bg-black"
-            style={{
-              y: leftStripY,
-              height: leftStripHeight,
-              width: leftStripWidth,
-              opacity: leftStripOpacity,
-              willChange: 'transform, opacity',
-            }}
-          >
-            <motion.div
-              className="relative w-full h-full"
-              style={{ scale: leftImageScale, y: leftImageY, opacity: leftImageOpacity }}
-            >
-              <img src={TEMP_PHOTOGRAPHY_IMAGES[0]} alt="" className="w-full h-full object-cover" />
             </motion.div>
-          </motion.div>
 
-          {/* CENTER STRIP - Becomes fullscreen */}
-          <motion.div
-            className="absolute z-30 left-1/2 -translate-x-1/2 overflow-hidden bg-black"
-            style={{
-              y: centerStripY,
-              height: centerStripHeight,
-              width: centerStripWidth,
-              willChange: 'transform',
-            }}
-          >
+            {/* PHOTO 4 - Right Entry */}
             <motion.div
-              className="relative w-full h-full"
-              style={{ scale: centerImageScale, y: centerImageY, opacity: centerImageOpacity }}
+              className="absolute inset-0"
+              style={{
+                opacity: photo4Opacity,
+                clipPath: photo4ClipPath,
+                y: photo4Y,
+                willChange: 'transform, clip-path',
+              }}
             >
-              <img src={TEMP_PHOTOGRAPHY_IMAGES[1]} alt="" className="w-full h-full object-cover" />
+              <img
+                src={TEMP_PHOTOGRAPHY_IMAGES[3]}
+                alt=""
+                className="w-full h-full object-cover"
+              />
             </motion.div>
-          </motion.div>
 
-          {/* RIGHT STRIP */}
-          <motion.div
-            className="absolute z-20 right-[12%] overflow-hidden bg-black"
-            style={{
-              y: rightStripY,
-              height: rightStripHeight,
-              width: rightStripWidth,
-              opacity: rightStripOpacity,
-              willChange: 'transform, opacity',
-            }}
-          >
+            {/* PHOTO 5 - Bottom Entry */}
             <motion.div
-              className="relative w-full h-full"
-              style={{ scale: rightImageScale, x: rightImageX, opacity: rightImageOpacity }}
+              className="absolute inset-0"
+              style={{
+                opacity: photo5Opacity,
+                clipPath: photo5ClipPath,
+                y: photo5Y,
+                willChange: 'transform, clip-path',
+              }}
             >
-              <img src={TEMP_PHOTOGRAPHY_IMAGES[2]} alt="" className="w-full h-full object-cover" />
+              <img
+                src={TEMP_PHOTOGRAPHY_IMAGES[4]}
+                alt=""
+                className="w-full h-full object-cover"
+              />
             </motion.div>
-          </motion.div>
+
+            {/* PHOTO 6 - Bottom Entry, Leads to Portfolio */}
+            <motion.div
+              className="absolute inset-0"
+              style={{
+                opacity: 1,
+                clipPath: photo6ClipPath,
+                y: photo6Y,
+                willChange: 'transform, clip-path',
+              }}
+            >
+              <img
+                src={TEMP_PHOTOGRAPHY_IMAGES[5]}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          </div>
         </div>
       </div>
 
@@ -199,7 +254,7 @@ function WorkReveal() {
               { title: 'Aerolink', image: TEMP_PHOTOGRAPHY_IMAGES[0] },
               { title: 'Riaaj Vintage', image: TEMP_PHOTOGRAPHY_IMAGES[1] },
               { title: 'Delhi-6', image: TEMP_PHOTOGRAPHY_IMAGES[2] },
-              { title: 'Brand Project', image: TEMP_PHOTOGRAPHY_IMAGES[0] },
+              { title: 'Brand Project', image: TEMP_PHOTOGRAPHY_IMAGES[3] },
             ].map((project, idx) => (
               <motion.div
                 key={idx}
