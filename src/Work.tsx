@@ -29,9 +29,19 @@ const allPhotos = [Photo1, Photo2, Photo3, Photo4, Photo5, Photo6, Photo7, Photo
 
 
 /**
- * Reference-inspired entrance for Work:
- * THE WORK -> tiny moving visual -> visual expands through the type ->
- * full-viewport image -> clean white hand-off to the existing section.
+ * Refined Photography → Work transition:
+ *
+ * PHOTOGRAPHY (centered title)
+ * ↓
+ * small image window appears
+ * ↓
+ * image expands and masks typography
+ * ↓
+ * fullscreen immersive visual
+ * ↓
+ * direct handoff to Work section (no white fade)
+ * ↓
+ * Work content revealed beneath
  *
  * Native scroll is still in control. Motion only reads scroll progress, so it
  * works with the site's existing Lenis setup and does not add scroll-jacking.
@@ -40,10 +50,10 @@ function WorkReveal() {
   const runwayRef = useRef<HTMLDivElement>(null)
   const prefersReducedMotion = useReducedMotion() ?? false
 
-  // Get 5 random photos for the showcase
+  // Get 3 strong photos for the transition (not 5)
   const showcasePhotos = useMemo(() => {
     const shuffled = [...allPhotos].sort(() => Math.random() - 0.5)
-    return shuffled.slice(0, 5)
+    return shuffled.slice(0, 3)
   }, [])
 
   const { scrollYProgress } = useScroll({
@@ -51,56 +61,84 @@ function WorkReveal() {
     offset: ['start start', 'end end'],
   })
 
-  // Photo index changes at different scroll points
+  // Timing distribution:
+  // 0.00–0.15: PHOTOGRAPHY + small visual
+  // 0.15–0.28: small visual activates
+  // 0.28–0.55: visual grows to medium size
+  // 0.55–0.78: visual grows aggressively toward fullscreen, typography masked
+  // 0.78–0.88: fullscreen photography
+  // 0.88–1.00: fullscreen image reveals Work content
+
+  // Photo crossfades with 3 images only
   const photoOpacities = [
-    useTransform(scrollYProgress, [0, 0.12, 0.2, 0.25], [1, 1, 0.5, 0]),      // Photo 0
-    useTransform(scrollYProgress, [0.15, 0.25, 0.35, 0.4], [0, 1, 1, 0.5]),    // Photo 1
-    useTransform(scrollYProgress, [0.3, 0.4, 0.5, 0.55], [0, 1, 1, 0.5]),      // Photo 2
-    useTransform(scrollYProgress, [0.45, 0.55, 0.65, 0.7], [0, 1, 1, 0.5]),    // Photo 3
-    useTransform(scrollYProgress, [0.6, 0.7, 0.8, 0.85], [0, 1, 1, 0.5]),      // Photo 4
+    useTransform(scrollYProgress, [0, 0.15, 0.35, 0.48], [1, 1, 0.8, 0]),      // Photo 0
+    useTransform(scrollYProgress, [0.35, 0.48, 0.65, 0.75], [0, 1, 1, 0.3]),    // Photo 1
+    useTransform(scrollYProgress, [0.63, 0.75, 0.88, 0.95], [0, 1, 1, 0.5]),    // Photo 2
   ]
 
-  // Start as the tiny central photo, pause there for a beat, then expand slowly
+  // Smooth scale expansion with proper timing
+  // Stage A (0–0.15): invisible to 1.8% (small)
+  // Stage B (0.15–0.28): 1.8% to 15% (activates)
+  // Stage C (0.28–0.55): 15% to 45% (medium)
+  // Stage D (0.55–0.88): 45% to 100% (fullscreen)
+  // Stage E (0.88–1.00): hold at 100%
   const mediaScale = useTransform(
     scrollYProgress,
-    [0, 0.04, 0.12, 0.25, 0.55, 1],
-    [0.018, 0.035, 0.14, 0.23, 1.02, 1.02],
+    [0, 0.08, 0.15, 0.28, 0.55, 0.88, 1],
+    [0.008, 0.018, 0.035, 0.15, 0.95, 1, 1],
   )
+
+  // Media stays fully opaque throughout (never fade to white)
   const mediaOpacity = useTransform(
     scrollYProgress,
-    [0, 0.03, 0.06, 0.12],
-    [0, 0.4, 0.7, 1]
+    [0, 0.06, 0.12, 1],
+    [0, 0.5, 1, 1]
   )
+
+  // Border radius transitions smoothly
+  // Small: 12px → Medium: 8px → Large: 4px → Fullscreen: 0px
   const mediaRadius = useTransform(
     scrollYProgress,
-    [0.17, 0.35, 0.52],
-    [18, 12, 0]
+    [0.12, 0.28, 0.55, 0.78, 0.88],
+    [12, 10, 6, 2, 0]
   )
 
-  // Title scale and position - extended for longer scroll
-  const titleScale = useTransform(scrollYProgress, [0, 0.55, 0.75], [1, 0.99, 1.025])
-  const titleY = useTransform(scrollYProgress, [0, 0.5, 0.7], ['0vh', '0vh', '-2.2vh'])
+  // Typography masking: text fades out as media expands
+  // The media (z-20) already sits above text (z-10), but we hide text via opacity
+  const typographyOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.55, 0.75],
+    [1, 0.8, 0]
+  )
 
-  // Text separation animation - "Our" moves left, "Photography" moves right
-  const theX = useTransform(scrollYProgress, [0, 0.25, 0.55], ['0%', '-25vw', '-55vw'])
-  const workX = useTransform(scrollYProgress, [0, 0.25, 0.55], ['0%', '25vw', '55vw'])
-  const textSeparationOpacity = useTransform(scrollYProgress, [0, 0.2, 0.65, 1], [1, 1, 0.3, 0])
 
-  // A white hand-off removes the hard cut when the sticky reveal releases
-  const whiteOutOpacity = useTransform(scrollYProgress, [0.92, 1], [0, 1])
-  const microCopyOpacity = useTransform(scrollYProgress, [0.05, 0.2, 0.4], [0, 1, 0])
+  // Subtle photo zoom and pan effects (very restrained)
+  // Photo 1: subtle scale up
+  const photo1Scale = useTransform(scrollYProgress, [0.35, 0.48], [1, 1.035])
+  const photo1X = useTransform(scrollYProgress, [0.35, 0.48], ['0%', '-1%'])
+
+  // Photo 2: subtle scale down
+  const photo2Scale = useTransform(scrollYProgress, [0.48, 0.63], [1.03, 1])
+  const photo2Y = useTransform(scrollYProgress, [0.48, 0.63], ['1%', '-1%'])
+
+  // Clip path to reveal Work section underneath (instead of white fade)
+  // The media container clips upward to reveal content below
+  const mediaClipPath = useTransform(scrollYProgress, [0.88, 1], [
+    'inset(0 0 0 0)',
+    'inset(0 0 100% 0)'
+  ])
 
   if (prefersReducedMotion) {
     return (
       <div className="bg-white px-4 pt-14 sm:pt-20" aria-hidden="true">
-        <div className="mx-auto flex w-full max-w-screen-lg flex-col items-center">
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
           <div
-            className="text-center text-[clamp(58px,13vw,150px)] leading-[0.82] font-thin tracking-[-0.065em] text-[#111] uppercase"
+            className="text-center text-[clamp(90px,12vw,190px)] leading-[0.82] font-thin tracking-[-0.055em] text-[#111] uppercase"
             style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
           >
-            Our Photography
+            Photography
           </div>
-          <div className="mt-8 aspect-video w-full overflow-hidden rounded-lg bg-neutral-100 sm:mt-10">
+          <div className="mt-12 aspect-video w-[clamp(220px,18vw,320px)] overflow-hidden rounded-lg bg-neutral-100 sm:mt-14">
             <img src={showcasePhotos[0]} alt="" className="h-full w-full object-cover" />
           </div>
         </div>
@@ -109,74 +147,103 @@ function WorkReveal() {
   }
 
   return (
-    <div ref={runwayRef} className="relative h-[700vh] bg-white" aria-hidden="true">
+    <div ref={runwayRef} className="relative h-[650vh] bg-white" aria-hidden="true">
       <div className="sticky top-0 h-screen overflow-hidden bg-white">
+        {/* PHOTOGRAPHY title - centered, responsive, no awkward cropping */}
         <motion.div
-  className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
-  style={{ opacity: textSeparationOpacity, scale: titleScale, y: titleY }}
->
-  <div
-    className="flex items-center justify-center gap-[clamp(14px,2.2vw,38px)] px-4 text-[clamp(58px,10.6vw,178px)] leading-[0.78] tracking-[-0.07em] text-[#111] uppercase sm:px-[4vw]"
-    style={{
-      fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
-    }}
-  >
-    <motion.span
-      className="font-bold"
-      style={{ x: theX }}
-      transition={{ type: "spring", damping: 35, stiffness: 70, mass: 1.1, duration: 1 }}
-    >
-      Our
-    </motion.span>
+          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4 sm:px-[2vw]"
+          style={{ opacity: typographyOpacity }}
+        >
+          <div
+            className="text-center text-[clamp(90px,12vw,190px)] leading-[0.82] font-thin tracking-[-0.055em] text-[#111] uppercase"
+            style={{
+              fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
+            }}
+          >
+            Photography
+          </div>
+        </motion.div>
 
-    <motion.span
-      className="font-normal"
-      style={{ x: workX }}
-      transition={{ type: "spring", damping: 35, stiffness: 70, mass: 1.1, duration: 1 }}
-    >
-      Photography
-    </motion.span>
-  </div>
-</motion.div>
-
+        {/* Expanding media container - masks typography via z-index and clip-path */}
         <motion.div
-          className="absolute inset-0 z-20 overflow-hidden bg-neutral-950 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]"
+          className="absolute inset-0 z-20 flex items-center justify-center overflow-hidden bg-neutral-950 shadow-[0_0_0_1px_rgba(0,0,0,0.05)]"
           style={{
             opacity: mediaOpacity,
             scale: mediaScale,
             borderRadius: mediaRadius,
             transformOrigin: '50% 50%',
-            willChange: 'transform, opacity, border-radius',
+            clipPath: mediaClipPath,
+            willChange: 'transform, opacity, border-radius, clip-path',
           }}
         >
-          {showcasePhotos.map((photo, idx) => (
-            <motion.div
-              key={photo}
-              className="absolute inset-0"
-              style={{ opacity: photoOpacities[idx] }}
-            >
-              <img
-                src={photo}
-                alt=""
-                className="h-full w-full select-none object-cover"
-                draggable={false}
-              />
-            </motion.div>
-          ))}
-
-          <motion.div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between p-5 text-[10px] font-medium tracking-[0.16em] text-white/75 uppercase sm:p-7"
-            style={{ opacity: microCopyOpacity }}
-          >
-            <span>Our Photography</span>
-            <span>Brandworks / 2026</span>
-          </motion.div>
+          {/* Photo container with subtle zoom effects */}
+          <div className="relative h-full w-full">
+            {showcasePhotos.map((photo, idx) => (
+              <motion.div
+                key={photo}
+                className="absolute inset-0"
+                style={{
+                  opacity: photoOpacities[idx],
+                  scale: idx === 0 ? photo1Scale : idx === 1 ? photo2Scale : 1,
+                  x: idx === 0 ? photo1X : 0,
+                  y: idx === 1 ? photo2Y : 0,
+                }}
+              >
+                <img
+                  src={photo}
+                  alt=""
+                  className="h-full w-full select-none object-cover"
+                  draggable={false}
+                />
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
+      </div>
 
-        <motion.div
-          className="pointer-events-none absolute inset-0 z-30 bg-white"
-          style={{ opacity: whiteOutOpacity }}
-        />
+      {/* Work section placeholder - will be revealed as media clips upward */}
+      <div className="relative z-0 bg-white px-4 py-20 sm:px-[2vw] sm:py-28">
+        <div className="mx-auto w-full max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            viewport={{ once: true, margin: '0px 0px -100px 0px' }}
+            className="mb-16 text-center"
+          >
+            <div className="mb-4 text-[13px] font-medium tracking-[0.16em] text-neutral-500 uppercase">
+              What We Do
+            </div>
+            <h2
+              className="text-[clamp(42px,8vw,72px)] leading-[1.1] font-thin tracking-[-0.03em] text-[#111]"
+              style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
+            >
+              Work with Impact
+            </h2>
+          </motion.div>
+
+          {/* Placeholder grid for work projects */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {[1, 2, 3, 4].map((idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.5,
+                  ease: 'easeOut',
+                  delay: idx * 0.08,
+                }}
+                viewport={{ once: true, margin: '0px 0px -80px 0px' }}
+                className="aspect-square overflow-hidden rounded-2xl bg-neutral-100"
+              >
+                <div className="h-full w-full flex items-center justify-center text-neutral-400 font-medium">
+                  Project {idx}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
