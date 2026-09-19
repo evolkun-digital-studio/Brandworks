@@ -1,0 +1,38 @@
+{
+  "name": "brandworks-backend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Backend API for BRANDWORKS (separate from the src/ frontend).",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "lint": "oxlint",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "admin:create": "tsx src/scripts/createAdmin.ts",
+    "blog:verify": "tsx src/scripts/verifyBlogDataLayer.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "argon2": "^0.45.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.7.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.6.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.13.3",
+    "oxlint": "^1.75.0",
+    "tsx": "^4.19.2",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

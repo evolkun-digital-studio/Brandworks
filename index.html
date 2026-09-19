@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      Phase 13 static SEO fallback: this title/description is the only
+      one a crawler that doesn't execute JavaScript ever sees for *any*
+      route (including a 404, briefly, before its own noindex title
+      applies) — the homepage itself never overrode these dynamically
+      before this phase (Phase 8 deliberately kept homepage SEO out of
+      scope). Title casing matches the brand name exactly as used
+      everywhere else (JSON-LD's Organization name, the Header
+      wordmark, etc.) — it was previously lowercase "brandworks" here,
+      inconsistent with that. The description reuses the Hero
+      section's own existing copy verbatim rather than inventing new
+      marketing language.
+
+      No static canonical tag here: a root-relative href="/" is the
+      only deployment-agnostic option (no production domain is
+      hardcoded anywhere in this codebase) but Vite's HTML asset
+      pipeline resolves a bare "/" href as a project-relative file
+      path — which is the repo root *directory* — and fails the build
+      (EISDIR). Home() (src/App.tsx) sets a real canonical
+      (`${window.location.origin}/`) the moment React mounts instead —
+      see this phase's report for the one gap that leaves: a crawler
+      that reads the raw HTML without executing JS gets no canonical
+      at all, only title+description.
+    -->
+    <title>BRANDWORKS</title>
+    <meta
+      name="description"
+      content="We help brands build a stronger presence through strategic brand identity, social media, content, marketing, development and SEO."
+    />
+
+    <!--
+      Phase 10 font performance: this stylesheet used to be pulled in
+      via `@import` at the top of src/index.css, which is render-
+      blocking in a way the browser's preload scanner can't discover
+      early (it has to fetch and parse index.css first, *then* start
+      the Google Fonts request). A <link> here is discoverable
+      immediately, and preconnect gets the DNS/TLS handshake to both
+      Google Fonts hosts started before the CSS request is even sent.
+      Only the two font families actually used anywhere in this
+      project are requested (Instrument Sans and Poppins were fetched
+      but never referenced by any component — removed); `display=swap`
+      is unchanged from before, so text is never invisible while these
+      load.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@500;600&display=swap"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
