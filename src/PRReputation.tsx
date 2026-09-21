@@ -7,7 +7,7 @@ import { FadeUp } from './FadeUp'
 // Content
 // ---------------------------------------------------------------------------
 
-const EYEBROW = 'Service 02 — PR & Founder Reputation'
+const EYEBROW = 'Service — PR & Founder Reputation'
 const TITLE = 'People search your name before they sign anything.'
 const SUBTITLE = 'Founder narrative. Earned press. Public record.'
 const DESCRIPTION =

@@ -1,1123 +1,435 @@
-import { useRef } from "react";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import ScrollTrigger from "gsap/ScrollTrigger";
+import { useRef } from 'react'
+import gsap from 'gsap'
+import ScrollTrigger from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import { graphicsMotionMedia } from '../../data/graphicsMotionMedia'
 
-import { creativeProductionMedia } from "../../data/creativeProductionMedia";
-
-import PeopleScene from "./scenes/PeopleScene";
-import ScreenTransition from "./scenes/ScreenTransition";
-import GraphicScene from "./scenes/GraphicScene";
-import MotionScene from "./scenes/MotionScene";
-import CodeScene from "./scenes/CodeScene";
-import CreativeWall from "./scenes/CreativeWall";
-import EndingScene from "./scenes/EndingScene";
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
-
-type SceneMap = {
-  intro: HTMLElement | null;
-  people: HTMLElement | null;
-  monitor: HTMLElement | null;
-  graphic: HTMLElement | null;
-  motion: HTMLElement | null;
-  code: HTMLElement | null;
-  wall: HTMLElement | null;
-  ending: HTMLElement | null;
-};
-
-const STAGE =
-  "mx-auto h-full w-full max-w-[1760px] px-[clamp(20px,4vw,80px)] py-[clamp(24px,5vh,72px)]";
+gsap.registerPlugin(ScrollTrigger)
 
 /**
- * --------------------------------------------------------
- * DEPTH SYSTEM
- * --------------------------------------------------------
+ * GRAPHICS / MOTION / DIGITAL CRAFT SECTION
  *
- * active = current foreground slide
- * back   = previous slide
- * deep   = 2+ layers behind
+ * New concept: "FROM FRAME TO SYSTEM"
+ *
+ * The user experiences one creative idea transforming:
+ * Static Graphic → Deconstructed Elements → Motion Video →
+ * Motion Workspace → Digital Output → Creative System → Final Statement
+ *
+ * Visual continuity connects each stage.
+ * Asymmetric editorial layout throughout.
+ * One master GSAP timeline with ScrollTrigger.
  */
 
-const DEPTH = {
-  active: {
-    filter: "blur(0px) brightness(1)",
-    boxShadow: "0 32px 90px rgba(0,0,0,0.16)",
-  },
-
-  back: {
-    filter: "blur(8px) brightness(0.68)",
-    boxShadow: "0 42px 120px rgba(0,0,0,0.34)",
-  },
-
-  deep: {
-    filter: "blur(12px) brightness(0.52)",
-    boxShadow: "0 55px 150px rgba(0,0,0,0.40)",
-  },
-} as const;
-
-export default function GraphicsMotionExperience() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const canvasRef = useRef<HTMLDivElement>(null);
-
-  const media = creativeProductionMedia;
+function GraphicsMotionExperience() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const titleRef = useRef<HTMLDivElement>(null)
+  const frame1Ref = useRef<HTMLDivElement>(null)
+  const frame2Ref = useRef<HTMLDivElement>(null)
+  const motionRef = useRef<HTMLDivElement>(null)
+  const workspaceRef = useRef<HTMLDivElement>(null)
+  const codeRef = useRef<HTMLDivElement>(null)
+  const systemRef = useRef<HTMLDivElement>(null)
+  const finalRef = useRef<HTMLDivElement>(null)
 
   useGSAP(
     () => {
-      const section = sectionRef.current;
-      const canvas = canvasRef.current;
-
-      if (!section || !canvas) return;
-
-      const getLayer = (name: string) =>
-        canvas.querySelector(`[data-layer="${name}"]`) as HTMLElement | null;
-
-      const scenes: SceneMap = {
-        intro: getLayer("intro"),
-        people: getLayer("people"),
-        monitor: getLayer("monitor"),
-        graphic: getLayer("graphic"),
-        motion: getLayer("motion"),
-        code: getLayer("code"),
-        wall: getLayer("wall"),
-        ending: getLayer("ending"),
-      };
-
-      const photos = Array.from(
-        canvas.querySelectorAll<HTMLElement>("[data-photo]"),
-      );
-
-      const allLayers = Object.values(scenes).filter(Boolean) as HTMLElement[];
-
-      const depthLayers = [
-        scenes.monitor,
-        scenes.graphic,
-        scenes.motion,
-        scenes.code,
-        scenes.wall,
-      ].filter(Boolean) as HTMLElement[];
-
-      /**
-       * REDUCED MOTION
-       */
-
-      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-      if (mediaQuery.matches) {
-        gsap.set(allLayers, {
-          clearProps: "all",
-          autoAlpha: 0,
-        });
-
-        if (scenes.people) {
-          gsap.set(scenes.people, {
-            autoAlpha: 1,
-          });
-        }
-
-        return;
-      }
-
-      /**
-       * INITIAL STATE
-       */
-
-      gsap.set(allLayers, {
-        autoAlpha: 0,
-        force3D: true,
-      });
-
-      /**
-       * All slides initially sharp.
-       *
-       * Important for reverse scrolling.
-       */
-      gsap.set(depthLayers, {
-        ...DEPTH.active,
-        force3D: true,
-      });
-
-      gsap.set(scenes.intro, {
-        autoAlpha: 1,
-      });
-
-      gsap.set(scenes.people, {
-        xPercent: -3,
-        yPercent: 5,
-        scale: 0.96,
-        filter: "blur(0px) brightness(1)",
-      });
-
-      gsap.set(scenes.monitor, {
-        xPercent: 8,
-        yPercent: 4,
-        scale: 0.86,
-      });
-
-      gsap.set(scenes.graphic, {
-        xPercent: -7,
-        yPercent: 4,
-        scale: 0.88,
-      });
-
-      gsap.set(scenes.motion, {
-        xPercent: 8,
-        yPercent: -3,
-        scale: 0.9,
-      });
-
-      gsap.set(scenes.code, {
-        yPercent: 14,
-        scale: 0.94,
-      });
-
-      gsap.set(scenes.wall, {
-        yPercent: 5,
-        scale: 0.95,
-      });
-
-      gsap.set(scenes.ending, {
-        yPercent: 8,
-      });
-
-      if (photos.length) {
-        gsap.set(photos, {
-          autoAlpha: 0,
-          yPercent: 5,
-          scale: 0.97,
-          force3D: true,
-        });
-      }
-
-      /**
-       * MASTER TIMELINE
-       */
+      if (!sectionRef.current || !canvasRef.current) return
 
       const tl = gsap.timeline({
-        defaults: {
-          ease: "power3.inOut",
-          overwrite: "auto",
-        },
-
         scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 1.3,
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: 'bottom bottom',
+          pin: true,
+          pinSpacing: true,
+          scrub: 1.2,
+          anticipatePin: 1,
           invalidateOnRefresh: true,
         },
-      });
+      }) as any
 
-      /**
-       * ======================================================
-       * INTRO
-       * ======================================================
-       */
+      // ===== OPENING: Title enters and holds
+      tl.fromTo(
+        titleRef.current,
+        { autoAlpha: 0, yPercent: 20, scale: 0.95 },
+        { autoAlpha: 1, yPercent: 0, scale: 1, duration: 1.8, ease: 'power2.out' },
+        0
+      )
 
-      tl.addLabel("intro", 0);
+      // ===== STAGE 1: Static Graphic appears with asymmetric positioning
+      tl.fromTo(
+        frame1Ref.current,
+        { autoAlpha: 0, scale: 0.92, xPercent: 8 },
+        { autoAlpha: 1, scale: 1, xPercent: 0, duration: 2, ease: 'power3.inOut', force3D: true },
+        0.6
+      )
+
+      // ===== STAGE 2: Title fades, frame1 begins to scale down, frame2 enters
+      tl.to(
+        titleRef.current,
+        { autoAlpha: 0, yPercent: -15, scale: 0.92, duration: 1.2, ease: 'power2.inOut' },
+        2.2
+      )
+
+      // Frame 1 shrinks and moves
+      tl.to(
+        frame1Ref.current,
+        { scale: 0.7, xPercent: -15, yPercent: 8, autoAlpha: 0.6, duration: 2, ease: 'power2.inOut', force3D: true },
+        2.2,
+        '<0.3'
+      )
+
+      // Frame 2 enters (deconstructed elements)
+      tl.fromTo(
+        frame2Ref.current,
+        { autoAlpha: 0, scale: 0.88, yPercent: 12 },
+        { autoAlpha: 1, scale: 1, yPercent: 0, duration: 2, ease: 'power3.inOut', force3D: true },
+        2.8
+      )
+
+      // ===== STAGE 3: Motion enters, previous elements move to edges
+      tl.to(
+        frame2Ref.current,
+        { scale: 0.55, xPercent: 18, yPercent: -10, autoAlpha: 0.4, duration: 2, ease: 'power2.inOut', force3D: true },
+        4.8
+      )
+
+      tl.to(
+        frame1Ref.current,
+        { scale: 0.48, xPercent: -20, yPercent: 12, autoAlpha: 0.25, duration: 2, ease: 'power2.inOut', force3D: true },
+        4.8,
+        '<0'
+      )
 
       tl.fromTo(
-        "[data-intro-kicker]",
-        {
-          y: 18,
-          autoAlpha: 0,
-        },
-        {
-          y: 0,
-          autoAlpha: 1,
-          duration: 5,
-          ease: "power3.out",
-        },
-        0,
-      );
+        motionRef.current,
+        { autoAlpha: 0, scale: 0.9, yPercent: 15 },
+        { autoAlpha: 1, scale: 1, yPercent: 0, duration: 2.2, ease: 'power3.inOut', force3D: true },
+        5.2
+      )
+
+      // ===== STAGE 4: Motion workspace (technical annotations appear)
+      tl.fromTo(
+        workspaceRef.current,
+        { autoAlpha: 0, yPercent: 20 },
+        { autoAlpha: 1, yPercent: 0, duration: 1.4, ease: 'power2.out' },
+        6.8
+      )
+
+      // ===== STAGE 5: Code/Digital appears, motion moves to side
+      tl.to(
+        motionRef.current,
+        { scale: 0.65, xPercent: -12, yPercent: 8, autoAlpha: 0.5, duration: 2, ease: 'power2.inOut', force3D: true },
+        8.2
+      )
+
+      tl.to(
+        workspaceRef.current,
+        { autoAlpha: 0, yPercent: -10, duration: 1, ease: 'power2.in' },
+        8.2,
+        '<0'
+      )
 
       tl.fromTo(
-        "[data-intro-a]",
-        {
-          yPercent: 105,
-        },
-        {
-          yPercent: 0,
-          duration: 7,
-          ease: "expo.out",
-        },
-        1,
-      );
+        codeRef.current,
+        { autoAlpha: 0, scale: 0.88, xPercent: 20 },
+        { autoAlpha: 1, scale: 1, xPercent: 0, duration: 1.8, ease: 'power3.inOut', force3D: true },
+        8.8
+      )
+
+      // ===== STAGE 6: Creative System assembles everything
+      tl.to(
+        [frame1Ref.current, frame2Ref.current, motionRef.current],
+        { scale: 0.42, xPercent: -8, yPercent: 10, autoAlpha: 0.3, duration: 2, ease: 'power2.inOut', force3D: true },
+        10.4
+      )
+
+      tl.to(
+        codeRef.current,
+        { scale: 0.52, xPercent: 14, yPercent: -8, autoAlpha: 0.35, duration: 2, ease: 'power2.inOut', force3D: true },
+        10.4,
+        '<0'
+      )
 
       tl.fromTo(
-        "[data-intro-b]",
-        {
-          yPercent: 105,
-        },
-        {
-          yPercent: 0,
-          duration: 7,
-          ease: "expo.out",
-        },
-        2.5,
-      );
+        systemRef.current,
+        { autoAlpha: 0, scale: 0.92, yPercent: 12 },
+        { autoAlpha: 1, scale: 1, yPercent: 0, duration: 2, ease: 'power3.inOut', force3D: true },
+        11
+      )
+
+      // ===== STAGE 7: Final Statement, system fades to background
+      tl.to(
+        systemRef.current,
+        { scale: 0.8, autoAlpha: 0.25, duration: 1.5, ease: 'power2.inOut', force3D: true },
+        13.2
+      )
 
       tl.fromTo(
-        "[data-intro-rule]",
-        {
-          scaleX: 0,
-          transformOrigin: "left center",
-        },
-        {
-          scaleX: 1,
-          duration: 6,
-        },
-        4,
-      );
-
-      /**
-       * ======================================================
-       * PEOPLE
-       * ======================================================
-       */
-
-      tl.addLabel("people", 13);
-
-      if (scenes.people) {
-        tl.to(
-          scenes.people,
-          {
-            autoAlpha: 1,
-            xPercent: 0,
-            yPercent: 0,
-            scale: 1,
-            duration: 12,
-            ease: "expo.inOut",
-          },
-          "people",
-        );
-      }
-
-      if (photos[0]) {
-        tl.to(
-          photos[0],
-          {
-            autoAlpha: 1,
-            yPercent: 0,
-            scale: 1,
-            duration: 8,
-          },
-          14,
-        );
-      }
-
-      if (photos[1]) {
-        tl.to(
-          photos[1],
-          {
-            autoAlpha: 1,
-            yPercent: 0,
-            scale: 1,
-            duration: 8,
-          },
-          19,
-        );
-      }
-
-      if (photos[2]) {
-        tl.to(
-          photos[2],
-          {
-            autoAlpha: 1,
-            yPercent: 0,
-            scale: 1,
-            duration: 8,
-          },
-          24,
-        );
-      }
-
-      if (scenes.intro) {
-        tl.to(
-          scenes.intro,
-          {
-            xPercent: -4,
-            yPercent: -3,
-            scale: 0.93,
-            autoAlpha: 0.12,
-            duration: 15,
-          },
-          16,
-        );
-      }
-
-      if (scenes.people) {
-        tl.to(
-          scenes.people,
-          {
-            scale: 1.008,
-            yPercent: -0.4,
-            duration: 10,
-            ease: "sine.inOut",
-          },
-          29,
-        );
-      }
-
-      /**
-       * ======================================================
-       * MONITOR ACTIVE
-       * ======================================================
-       */
-
-      tl.addLabel("monitor", 39);
-
-      if (scenes.monitor) {
-        tl.to(
-          scenes.monitor,
-          {
-            autoAlpha: 1,
-            xPercent: 0,
-            yPercent: 0,
-            scale: 0.93,
-
-            ...DEPTH.active,
-
-            duration: 12,
-            ease: "expo.inOut",
-          },
-          "monitor",
-        );
-
-        tl.to(
-          scenes.monitor,
-          {
-            scale: 1,
-            duration: 12,
-            ease: "power3.inOut",
-          },
-          49,
-        );
-      }
-
-      /**
-       * PEOPLE moves backwards.
-       */
-
-      if (scenes.people) {
-        tl.to(
-          scenes.people,
-          {
-            xPercent: -8,
-            yPercent: 4,
-            scale: 0.82,
-            autoAlpha: 0.36,
-
-            filter: "blur(7px) brightness(0.72)",
-
-            duration: 16,
-          },
-          42,
-        );
-      }
-
-      if (scenes.monitor) {
-        tl.to(
-          scenes.monitor,
-          {
-            scale: 1.006,
-            duration: 9,
-            ease: "sine.inOut",
-          },
-          60,
-        );
-      }
-
-      /**
-       * ======================================================
-       * GRAPHIC ACTIVE
-       * ======================================================
-       */
-
-      tl.addLabel("graphic", 69);
-
-      if (scenes.graphic) {
-        tl.to(
-          scenes.graphic,
-          {
-            autoAlpha: 1,
-            xPercent: 0,
-            yPercent: 0,
-            scale: 1,
-
-            ...DEPTH.active,
-
-            duration: 13,
-            ease: "expo.inOut",
-          },
-          "graphic",
-        );
-
-        tl.to(
-          scenes.graphic,
-          {
-            scale: 1.006,
-            duration: 10,
-            ease: "sine.inOut",
-          },
-          81,
-        );
-      }
-
-      /**
-       * MONITOR goes backwards.
-       *
-       * Noticeable blur + strong depth shadow.
-       */
-
-      if (scenes.monitor) {
-        tl.to(
-          scenes.monitor,
-          {
-            xPercent: 13,
-            yPercent: -6,
-            scale: 0.76,
-            autoAlpha: 0.58,
-
-            ...DEPTH.back,
-
-            duration: 16,
-            ease: "power3.inOut",
-          },
-          71,
-        );
-      }
-
-      if (scenes.people) {
-        tl.to(
-          scenes.people,
-          {
-            autoAlpha: 0,
-            scale: 0.72,
-            filter: "blur(10px) brightness(0.55)",
-            duration: 10,
-          },
-          72,
-        );
-      }
-
-      /**
-       * ======================================================
-       * MOTION ACTIVE
-       * ======================================================
-       */
-
-      tl.addLabel("motion", 91);
-
-      if (scenes.motion) {
-        tl.to(
-          scenes.motion,
-          {
-            autoAlpha: 1,
-            xPercent: 0,
-            yPercent: 0,
-            scale: 1,
-
-            ...DEPTH.active,
-
-            duration: 14,
-            ease: "expo.inOut",
-          },
-          "motion",
-        );
-
-        tl.to(
-          scenes.motion,
-          {
-            scale: 1.01,
-            duration: 10,
-            ease: "sine.inOut",
-          },
-          104,
-        );
-      }
-
-      /**
-       * GRAPHIC goes backwards.
-       */
-
-      if (scenes.graphic) {
-        tl.to(
-          scenes.graphic,
-          {
-            xPercent: -12,
-            yPercent: 6,
-            scale: 0.76,
-            autoAlpha: 0.55,
-
-            ...DEPTH.back,
-
-            duration: 16,
-            ease: "power3.inOut",
-          },
-          93,
-        );
-      }
-
-      /**
-       * MONITOR goes DEEP behind Graphic.
-       */
-
-      if (scenes.monitor) {
-        tl.to(
-          scenes.monitor,
-          {
-            yPercent: -13,
-            xPercent: 18,
-            scale: 0.56,
-            autoAlpha: 0.22,
-
-            ...DEPTH.deep,
-
-            duration: 15,
-            ease: "power3.inOut",
-          },
-          95,
-        );
-      }
-
-      /**
-       * ======================================================
-       * CODE ACTIVE
-       * ======================================================
-       */
-
-      tl.addLabel("code", 115);
-
-      if (scenes.code) {
-        tl.to(
-          scenes.code,
-          {
-            autoAlpha: 1,
-            yPercent: 0,
-            scale: 1,
-
-            ...DEPTH.active,
-
-            duration: 14,
-            ease: "expo.inOut",
-          },
-          "code",
-        );
-
-        tl.to(
-          scenes.code,
-          {
-            scale: 1.004,
-            duration: 10,
-            ease: "sine.inOut",
-          },
-          128,
-        );
-      }
-
-      /**
-       * MOTION moves backward.
-       */
-
-      if (scenes.motion) {
-        tl.to(
-          scenes.motion,
-          {
-            xPercent: 8,
-            yPercent: -8,
-            scale: 0.77,
-            autoAlpha: 0.56,
-
-            ...DEPTH.back,
-
-            duration: 16,
-            ease: "power3.inOut",
-          },
-          117,
-        );
-      }
-
-      /**
-       * GRAPHIC goes deeper.
-       */
-
-      if (scenes.graphic) {
-        tl.to(
-          scenes.graphic,
-          {
-            xPercent: -17,
-            yPercent: -8,
-            scale: 0.61,
-            autoAlpha: 0.25,
-
-            ...DEPTH.deep,
-
-            duration: 15,
-            ease: "power3.inOut",
-          },
-          119,
-        );
-      }
-
-      /**
-       * ======================================================
-       * CREATIVE WALL ACTIVE
-       * ======================================================
-       */
-
-      tl.addLabel("wall", 139);
-
-      if (scenes.wall) {
-        tl.to(
-          scenes.wall,
-          {
-            autoAlpha: 1,
-            yPercent: 0,
-            scale: 1,
-
-            ...DEPTH.active,
-
-            duration: 15,
-            ease: "expo.inOut",
-          },
-          "wall",
-        );
-
-        tl.to(
-          scenes.wall,
-          {
-            scale: 1.006,
-            yPercent: -0.4,
-            duration: 12,
-            ease: "sine.inOut",
-          },
-          153,
-        );
-      }
-
-      /**
-       * CODE moves backwards.
-       */
-
-      if (scenes.code) {
-        tl.to(
-          scenes.code,
-          {
-            yPercent: 8,
-            scale: 0.75,
-            autoAlpha: 0.5,
-
-            ...DEPTH.back,
-
-            duration: 16,
-            ease: "power3.inOut",
-          },
-          142,
-        );
-
-        /**
-         * Only disappear AFTER depth effect is clearly visible.
-         */
-        tl.to(
-          scenes.code,
-          {
-            yPercent: 12,
-            scale: 0.66,
-            autoAlpha: 0,
-
-            filter: "blur(12px) brightness(0.48)",
-
-            duration: 10,
-          },
-          155,
-        );
-      }
-
-      /**
-       * MOTION becomes deep background.
-       */
-
-      if (scenes.motion) {
-        tl.to(
-          scenes.motion,
-          {
-            xPercent: 17,
-            yPercent: -12,
-            scale: 0.62,
-            autoAlpha: 0.25,
-
-            ...DEPTH.deep,
-
-            duration: 16,
-            ease: "power3.inOut",
-          },
-          142,
-        );
-
-        tl.to(
-          scenes.motion,
-          {
-            autoAlpha: 0,
-            duration: 8,
-          },
-          157,
-        );
-      }
-
-      /**
-       * GRAPHIC disappears furthest back.
-       */
-
-      if (scenes.graphic) {
-        tl.to(
-          scenes.graphic,
-          {
-            xPercent: -22,
-            yPercent: -13,
-            scale: 0.53,
-            autoAlpha: 0,
-
-            filter: "blur(14px) brightness(0.42)",
-            boxShadow: "0 60px 170px rgba(0,0,0,0.42)",
-
-            duration: 15,
-          },
-          142,
-        );
-      }
-
-      if (scenes.monitor) {
-        tl.to(
-          scenes.monitor,
-          {
-            autoAlpha: 0,
-            duration: 10,
-          },
-          143,
-        );
-      }
-
-      /**
-       * ======================================================
-       * ENDING
-       * ======================================================
-       */
-
-      tl.addLabel("ending", 166);
-
-      if (scenes.ending) {
-        tl.to(
-          scenes.ending,
-          {
-            autoAlpha: 1,
-            yPercent: 0,
-            duration: 13,
-            ease: "expo.inOut",
-          },
-          "ending",
-        );
-      }
-
-      /**
-       * WALL now moves behind final copy.
-       */
-
-      if (scenes.wall) {
-        tl.to(
-          scenes.wall,
-          {
-            scale: 0.88,
-            yPercent: -3,
-            autoAlpha: 0.44,
-
-            filter: "blur(8px) brightness(0.65)",
-            boxShadow: "0 45px 130px rgba(0,0,0,0.34)",
-
-            duration: 16,
-            ease: "power3.inOut",
-          },
-          167,
-        );
-      }
-
-      if (scenes.ending) {
-        tl.to(
-          scenes.ending,
-          {
-            scale: 1.004,
-            duration: 10,
-            ease: "sine.inOut",
-          },
-          179,
-        );
-      }
-
-      if (scenes.ending) {
-        tl.to(
-          scenes.ending,
-          {
-            yPercent: -3,
-            duration: 8,
-            ease: "power2.in",
-          },
-          190,
-        );
-      }
-
-      if (scenes.wall) {
-        tl.to(
-          scenes.wall,
-          {
-            yPercent: -7,
-            scale: 0.82,
-            autoAlpha: 0.08,
-
-            filter: "blur(12px) brightness(0.52)",
-
-            duration: 8,
-          },
-          190,
-        );
+        finalRef.current,
+        { autoAlpha: 0, scale: 0.95, yPercent: 15 },
+        { autoAlpha: 1, scale: 1, yPercent: 0, duration: 1.8, ease: 'power3.inOut' },
+        13.5
+      )
+
+      return () => {
+        if (tl.scrollTrigger) {
+          tl.scrollTrigger.kill()
+        }
+        tl.kill()
       }
     },
-    {
-      scope: sectionRef,
-    },
-  );
+    { scope: sectionRef }
+  )
 
   return (
     <section
       ref={sectionRef}
-      aria-label="Graphics, motion and digital craft"
-      className=" relative h-[520vh] w-full md:h-[700vh] lg:h-[900vh]"
+      className="relative w-full bg-white"
+      aria-label="Graphics, motion, and digital craft section"
     >
-      <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
+      <div
+        ref={canvasRef}
+        className="relative h-screen w-full overflow-hidden bg-white"
+      >
+        {/* ===== OPENING: Title and Label */}
         <div
-          ref={canvasRef}
-          className=" relative mx-auto h-full w-full max-w-[1920px] overflow-hidden "
-          style={{ isolation: "isolate" }}
+          ref={titleRef}
+          className="pointer-events-none absolute inset-0 z-[70] flex flex-col items-center justify-center opacity-0"
         >
-          {/* INTRO */}
+          <div className="max-w-[1200px] px-6 text-center">
+            <p className="mb-6 text-[11px] font-medium uppercase tracking-[0.18em] text-neutral-500">
+              Graphics / Motion / Digital
+            </p>
+            <h2
+              className="text-[clamp(56px,9vw,110px)] font-bold leading-[0.86] tracking-[-0.055em] text-[#111]"
+              style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
+            >
+              From Frame<br />to System.
+            </h2>
+            <p className="mt-6 text-[14px] leading-[1.6] text-neutral-600 max-w-[520px] mx-auto">
+              One idea. Designed, animated and built across every screen.
+            </p>
+          </div>
+        </div>
 
-          <div
-            data-layer="intro"
-            className=" absolute inset-0 z-10 flex items-center px-[clamp(24px,5vw,100px)]"
-          >
-            <div className="mx-auto w-full max-w-[1640px]">
-              <div
-                data-intro-kicker
-                className="mb-6 text-[11px] font-medium uppercase tracking-[0.2em] text-[#777]"
-              >
-                Graphics / Motion / Digital Craft
+        {/* ===== STAGE 1: Static Graphic Design */}
+        <div
+          ref={frame1Ref}
+          className="absolute top-[50%] left-[8%] translate-y-[-50%] w-[50vw] max-w-[700px] h-auto opacity-0 will-change-transform"
+          style={{ perspective: '1200px', backfaceVisibility: 'hidden' }}
+        >
+          <div className="relative w-full aspect-square overflow-hidden rounded-lg bg-neutral-100 shadow-lg">
+            <img
+              src={graphicsMotionMedia.staticGraphic.url}
+              alt={graphicsMotionMedia.staticGraphic.alt}
+              className="w-full h-full object-cover"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+          <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+            Static Design
+          </p>
+        </div>
+
+        {/* ===== STAGE 2: Deconstructed Elements */}
+        <div
+          ref={frame2Ref}
+          className="absolute top-[40%] right-[10%] translate-y-[-50%] w-[55vw] max-w-[750px] opacity-0 will-change-transform"
+          style={{ perspective: '1200px', backfaceVisibility: 'hidden' }}
+        >
+          <div className="grid gap-4 grid-cols-[1.4fr_1fr]">
+            <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100 shadow-md">
+              <img
+                src={graphicsMotionMedia.graphicElements.detail}
+                alt="Graphic detail"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100 shadow-md">
+              <img
+                src={graphicsMotionMedia.graphicElements.texture}
+                alt="Texture element"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+          <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+            Deconstructed
+          </p>
+        </div>
+
+        {/* ===== STAGE 3: Motion / Video */}
+        <div
+          ref={motionRef}
+          className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[60vw] max-w-[850px] opacity-0 will-change-transform"
+          style={{ perspective: '1200px', backfaceVisibility: 'hidden' }}
+        >
+          <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-black shadow-lg">
+            <video
+              src={graphicsMotionMedia.motionVideo.url}
+              poster={graphicsMotionMedia.motionVideo.poster}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+            Motion Design
+          </p>
+        </div>
+
+        {/* ===== STAGE 4: Motion Workspace (Annotations) */}
+        <div
+          ref={workspaceRef}
+          className="absolute bottom-[15%] left-[12%] opacity-0 pointer-events-none"
+        >
+          <div className="space-y-2 text-[10px] font-mono text-neutral-500">
+            <div className="flex gap-4">
+              <span>00:00:01:12</span>
+              <span>FRAME 036</span>
+            </div>
+            <div className="text-[9px] tracking-[0.1em] uppercase">
+              MOTION STUDY
+            </div>
+          </div>
+        </div>
+
+        {/* ===== STAGE 5: Code / Digital Output */}
+        <div
+          ref={codeRef}
+          className="absolute top-[45%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[65vw] max-w-[900px] opacity-0 will-change-transform"
+          style={{ perspective: '1200px', backfaceVisibility: 'hidden' }}
+        >
+          <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+            {/* Visual Output */}
+            <div>
+              <div className="relative w-full aspect-video overflow-hidden rounded-lg bg-neutral-100 shadow-lg mb-3">
+                <img
+                  src={graphicsMotionMedia.digitalOutput.visual}
+                  alt="Digital output"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+                Visual Output
+              </p>
+            </div>
 
-              <div className="overflow-hidden">
-                <div
-                  data-intro-a
-                  className="
-                    text-[clamp(60px,9.5vw,174px)]
-                    font-semibold
-                    leading-[0.83]
-                    tracking-[-0.06em]
-                    text-[#111]
-                  "
-                >
-                  MADE BY
-                </div>
+            {/* Code Snippet */}
+            <div>
+              <div className="relative bg-neutral-900 rounded-lg p-4 shadow-lg mb-3 overflow-hidden max-h-[240px]">
+                <pre className="text-[9px] font-mono text-neutral-300 leading-[1.6] whitespace-pre-wrap break-words">
+                  {graphicsMotionMedia.digitalOutput.code}
+                </pre>
               </div>
-
-              <div className="overflow-hidden">
-                <div
-                  data-intro-b
-                  className="
-                    ml-[7vw]
-                    text-[clamp(60px,9.5vw,174px)]
-                    font-light
-                    leading-[0.83]
-                    tracking-[-0.06em]
-                    text-[#111]
-                  "
-                >
-                  PEOPLE.
-                </div>
-              </div>
-
-              <div data-intro-rule className="mt-10 h-px w-full bg-black/15" />
-
-              <p className="mt-5 max-w-[440px] text-sm leading-[1.6] text-[#666]">
-                Design, motion and technology shaped by the people making it.
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+                Technical
               </p>
             </div>
           </div>
+        </div>
 
-          {/* PEOPLE */}
-
-          <div
-            data-layer="people"
-            className="absolute inset-0 z-20 opacity-0"
-            style={{
-              /**
-               * IMPORTANT:
-               * Do NOT use contain: paint.
-               * It can clip the visual depth effects.
-               */
-              contain: "layout",
-            }}
+        {/* ===== STAGE 6: Creative System (All Elements Combined) */}
+        <div
+          ref={systemRef}
+          className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[70vw] max-w-[1000px] opacity-0 will-change-transform"
+          style={{ perspective: '1200px', backfaceVisibility: 'hidden' }}
+        >
+          <div className="relative w-full bg-neutral-50 rounded-lg overflow-hidden shadow-xl"
+            style={{ aspectRatio: '16/10' }}
           >
-            <div className={STAGE}>
-              <PeopleScene media={media.people} />
+            {/* Dominant piece - top left, largest */}
+            <div className="absolute top-0 left-0 w-[55%] h-[65%] overflow-hidden">
+              <img
+                src={graphicsMotionMedia.creativeSystem.dominant}
+                alt="Dominant creative work"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-          </div>
 
-          {/* MONITOR */}
-
-          <div
-            data-layer="monitor"
-            className="
-              absolute
-              left-1/2
-              top-1/2
-              z-30
-
-              h-[70vh]
-              w-[min(80vw,1380px)]
-
-              -translate-x-1/2
-              -translate-y-1/2
-
-              opacity-0
-            "
-            style={{
-              contain: "layout",
-            }}
-          >
-            {/*
-              Shadow belongs to OUTER wrapper.
-              Clipping belongs to INNER wrapper.
-            */}
-
-            <div className="h-full w-full overflow-hidden">
-              <ScreenTransition screenImage={media.screens[0]} />
+            {/* Supporting 1 - top right */}
+            <div className="absolute top-0 right-0 w-[45%] h-[65%] overflow-hidden border-l border-neutral-200">
+              <img
+                src={graphicsMotionMedia.creativeSystem.supporting1}
+                alt="Supporting work 1"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-          </div>
 
-          {/* GRAPHIC */}
-
-          <div
-            data-layer="graphic"
-            className="
-              absolute
-              left-[6%]
-              top-1/2
-              z-40
-
-              h-[min(70vh,740px)]
-              w-[min(55vw,940px)]
-
-              -translate-y-1/2
-              opacity-0
-            "
-            style={{
-              contain: "layout",
-            }}
-          >
-            <div className="h-full w-full overflow-hidden">
-              <GraphicScene graphic={media.graphics[0]} />
+            {/* Supporting 2 - bottom left */}
+            <div className="absolute bottom-0 left-0 w-[35%] h-[35%] overflow-hidden border-t border-neutral-200">
+              <img
+                src={graphicsMotionMedia.creativeSystem.supporting2}
+                alt="Supporting work 2"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-          </div>
 
-          {/* MOTION */}
-
-          <div
-            data-layer="motion"
-            className="
-              absolute
-              right-[5%]
-              top-[12%]
-              z-50
-
-              h-[min(62vh,660px)]
-              w-[min(46vw,820px)]
-
-              opacity-0
-            "
-            style={{
-              contain: "layout",
-            }}
-          >
-            <div className="h-full w-full overflow-hidden">
-              <MotionScene motion={media.motion[0]} />
+            {/* Detail - bottom right */}
+            <div className="absolute bottom-0 right-0 w-[65%] h-[35%] overflow-hidden border-t border-neutral-200 flex items-center justify-center bg-neutral-900 p-4">
+              <img
+                src={graphicsMotionMedia.creativeSystem.detail}
+                alt="Detail"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-          </div>
 
-          {/* CODE */}
-
-          <div
-            data-layer="code"
-            className="
-              absolute
-              bottom-[5vh]
-              left-1/2
-              z-60
-
-              h-[min(47vh,500px)]
-              w-[min(82vw,1440px)]
-
-              -translate-x-1/2
-              opacity-0
-            "
-            style={{
-              contain: "layout",
-            }}
-          >
-            <div className="h-full w-full overflow-hidden">
-              <CodeScene code={media.code} output={media.output} />
-            </div>
-          </div>
-
-          {/* CREATIVE WALL */}
-
-          <div
-            data-layer="wall"
-            className="
-              absolute
-              inset-[clamp(18px,3vw,54px)]
-              z-70
-              opacity-0
-            "
-            style={{
-              contain: "layout",
-            }}
-          >
-            <div className="h-full w-full overflow-hidden">
-              <div className="mx-auto h-full w-full max-w-[1760px]">
-                <CreativeWall wall={media.creativeWall} />
+            {/* Typography overlay */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="text-center px-8">
+                <p className="text-[clamp(40px,6vw,72px)] font-bold leading-[0.9] tracking-[-0.055em] text-white drop-shadow-xl"
+                  style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
+                >
+                  Integrated<br />System
+                </p>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* ENDING */}
-
-          <div
-            data-layer="ending"
-            className="
-              absolute
-              inset-0
-              z-80
-              flex
-              items-center
-              justify-center
-              px-[clamp(24px,6vw,110px)]
-              opacity-0
-            "
-          >
-            <div className="mx-auto w-full max-w-[1500px]">
-              <EndingScene />
-            </div>
+        {/* ===== STAGE 7: Final Statement */}
+        <div
+          ref={finalRef}
+          className="pointer-events-none absolute inset-0 z-[75] flex flex-col items-center justify-center opacity-0"
+        >
+          <div className="max-w-[1100px] px-6 text-center">
+            <h2
+              className="text-[clamp(64px,10vw,130px)] font-bold leading-[0.86] tracking-[-0.055em] text-[#111]"
+              style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
+            >
+              Design.<br />Motion.<br />Code.
+            </h2>
+            <p className="mt-8 text-[18px] leading-[1.7] text-neutral-600 font-light">
+              One creative system.
+            </p>
+            <p className="mt-6 text-[12px] font-medium uppercase tracking-[0.16em] text-neutral-400">
+              Everything interconnected
+            </p>
           </div>
         </div>
       </div>
     </section>
-  );
+  )
 }
+
+export default GraphicsMotionExperience

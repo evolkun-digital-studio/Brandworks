@@ -288,7 +288,7 @@ function PhotographyReveal() {
   )
 }
 
-function Work() {
+function Photography() {
   return (
     <section
       id="photography"
@@ -299,4 +299,4 @@ function Work() {
   )
 }
 
-export default Work
+export default Photography

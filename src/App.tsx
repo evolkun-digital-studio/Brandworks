@@ -5,7 +5,8 @@ import { removeLinkTag, removeMetaTag, setDocumentTitle, setLinkTag, setMetaTag 
 import Hero from './Hero'
 import Services from './Services'
 import About from './About'
-import Work from './Work'
+import Photography from './Work'
+import Work from './WorkWithImpact'
 import TrustedBy from "./TrustedBy";
 import Videography from './Videography'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
@@ -75,6 +76,7 @@ export function Home() {
       <Services />
       <About />
       <Work />
+      <Photography/>
       <Videography />
       <GraphicsMotionExperience />
       <PRReputation />
