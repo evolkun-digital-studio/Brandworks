@@ -15,6 +15,8 @@ type FadeUpProps = {
   style?: CSSProperties
   as?: 'div' | 'section' | 'span' | 'h2' | 'h3' | 'p'
   once?: boolean
+  /** Fraction of the element that must be in view before it plays. */
+  amount?: number
 }
 
 /**
@@ -35,6 +37,7 @@ export function FadeUp({
   style,
   as = 'div',
   once = true,
+  amount = 0.2,
 }: FadeUpProps) {
   const reduce = useReducedMotion()
   // `motion[as]` is a union of element components, which TS can't
@@ -56,7 +59,7 @@ export function FadeUp({
       style={style}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once, amount: 0.2 }}
+      viewport={{ once, amount }}
       transition={{ duration, delay, ease: EASE }}
     >
       {children}

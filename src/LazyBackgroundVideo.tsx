@@ -12,11 +12,16 @@ interface LazyBackgroundVideoProps {
    */
   priority?: boolean
   /**
-   * These are all silent, purely decorative brand-motion loops with
+   * An accessible name, for the one case where the film is content
+   * rather than decoration (the Industries case study). Supplying it
+   * flips `ariaHidden` off by default — a named element that assistive
+   * tech is told to skip would be a contradiction.
+   */
+  ariaLabel?: string
+  /**
+   * The rest are silent, purely decorative brand-motion loops with
    * no meaningful spoken/informational content — true by default so
-   * assistive tech skips them (Phase 11, Part 15). Every current
-   * usage is decorative, so there's no case yet where this needs to
-   * be false.
+   * assistive tech skips them (Phase 11, Part 15).
    */
   ariaHidden?: boolean
 }
@@ -62,7 +67,13 @@ function useReducedMotion(): boolean {
  *    does not alter the intended UX." Keeping this simple also avoids
  *    building a bespoke video framework (Part 4/14).
  */
-function LazyBackgroundVideo({ src, className, priority = false, ariaHidden = true }: LazyBackgroundVideoProps) {
+function LazyBackgroundVideo({
+  src,
+  className,
+  priority = false,
+  ariaLabel,
+  ariaHidden = !ariaLabel,
+}: LazyBackgroundVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const reducedMotion = useReducedMotion()
 
@@ -110,6 +121,7 @@ function LazyBackgroundVideo({ src, className, priority = false, ariaHidden = tr
       autoPlay={loadImmediately}
       preload={activated ? 'metadata' : 'none'}
       aria-hidden={ariaHidden}
+      aria-label={ariaLabel}
       className={className}
     />
   )
