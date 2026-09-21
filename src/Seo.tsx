@@ -1026,7 +1026,7 @@ function Intro({ headingId }: { headingId: string }) {
       <Reveal delay={80} className="mt-5 sm:mt-6">
         <h2
           id={headingId}
-          className="max-w-5xl text-balance text-[2.75rem] font-semibold leading-[1.02] tracking-[-0.04em] text-neutral-950 sm:text-6xl lg:text-7xl"
+          className="max-w-5xl text-balance text-[2.70rem] font-semibold leading-[1.02] tracking-[-0.04em] text-neutral-950 sm:text-5xl lg:text-6xl"
         >
           Being online isn’t enough.
           <span className="block text-neutral-400">You need to be findable.</span>

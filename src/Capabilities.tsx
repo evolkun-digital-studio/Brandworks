@@ -52,7 +52,7 @@ const GROTESK = "font-['Google_Sans_Flex','Helvetica',sans-serif]"
 // Display type uses the Thin cut; small text (labels, counters, copy) Regular.
 const DISPLAY = `${GROTESK} font-thin`
 
-const TITLE_CLASS = `${DISPLAY} text-[clamp(44px,12vw,64px)] leading-[0.96] tracking-[-0.04em] text-[#111] md:text-[clamp(46px,4.7vw,78px)]`
+const TITLE_CLASS = `${DISPLAY} text-[clamp(44px,12vw,64px)] leading-[0.96] tracking-[-0.04em] text-[#111] md:text-[clamp(46px,4.7vw,78px)] font-medium`
 const LABEL_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.14em] text-[#777] uppercase`
 const COUNTER_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.08em] text-[#888] tabular-nums`
 

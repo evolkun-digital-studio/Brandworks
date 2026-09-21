@@ -12,8 +12,8 @@ import { SectionContainer, SectionDescription, SectionHeading, SectionLabel } fr
 // element so its space is reserved before it loads.
 // ---------------------------------------------------------------------------
 
-const CLOUDINARY_UPLOAD = 'https://res.cloudinary.com/dpjdnoqii/image/upload'
-const IMAGE_PATH = 'v1789885243/ChatGPT_Image_Sep_20_2026_11_46_37_AM_pe0wvg.png'
+const CLOUDINARY_UPLOAD = 'https://res.cloudinary.com/dmzo1kt0d/image/upload'
+const IMAGE_PATH = 'v1789994866/ChatGPT_Image_Sep_21_2026_03_09_11_PM.webp'
 
 const PR_SECTION = {
   label: 'PR & Founder Reputation',

@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import PublicLayout from './PublicLayout'
 import { removeLinkTag, removeMetaTag, setDocumentTitle, setLinkTag, setMetaTag } from './blog/lib/documentHead'
 import Hero from './Hero'
+import HumanLedBrandIntelligence from './HumanLedBrandIntelligence'
 import Services from './Services'
 import About from './About'
 import Photography from './Work'
@@ -73,6 +74,7 @@ export function Home() {
   return (
     <>
       <Hero />
+      <HumanLedBrandIntelligence />
       <Services />
       <About />
       <Work />
