@@ -16,6 +16,34 @@
 }
 
 /*
+ * Layout and ink tokens for the editorial sections. One container width,
+ * one gutter, one vertical rhythm — so a section's spacing is decided
+ * here once rather than re-typed as arbitrary values on each element.
+ */
+:root {
+  --page-max-width: 1440px;
+  --page-gutter: clamp(20px, 4vw, 64px);
+  --grid-gap: clamp(20px, 2.5vw, 40px);
+  --section-space: clamp(88px, 11vw, 180px);
+  --content-gap: clamp(24px, 4vw, 64px);
+  --text-gap: clamp(20px, 2vw, 32px);
+  --media-gap: clamp(48px, 6vw, 96px);
+
+  --ink: #111;
+  /* 5.66:1 on white. The site's older 0.55 tint measures 4.17:1, under
+     WCAG AA for text at these sizes. */
+  --ink-muted: rgba(17, 17, 17, 0.64);
+  --rule: rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 767px) {
+  :root {
+    --page-gutter: 18px;
+    --section-space: 72px;
+  }
+}
+
+/*
  * Inter Tight / Playfair Display are loaded via a non-render-blocking
  * <link rel="stylesheet"> in index.html instead of an @import here
  * (Phase 10) — @import forces the browser to fetch and parse this
@@ -99,6 +127,213 @@ body {
   line-height: 1;
   font-weight: 500;
   letter-spacing: 0.08em;
+}
+
+/*
+ * Editorial section primitives (see SectionPrimitives.tsx). Unlike the
+ * `.site-*` classes above these sit in `@layer components`, so a Tailwind
+ * utility on the same element can still override them — an unlayered
+ * rule would silently beat every utility regardless of class order.
+ */
+@layer components {
+  .section-container {
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin-inline: auto;
+    padding-inline: var(--page-gutter);
+  }
+
+  .section-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--grid-gap);
+  }
+
+  /* P2 */
+  .section-label {
+    font-family: var(--font-inter);
+    font-size: clamp(11px, 0.8vw, 13px);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  /* H2 — the Instrument Serif display voice the other editorial
+     sections already use, at their tracking too: this face is drawn
+     tight, and at -0.045em its letters visibly fuse. No measure of its
+     own: a heading takes the width of the grid columns it is given. */
+  .section-heading {
+    font-family: var(--font-instrument);
+    font-size: clamp(42px, 6vw, 96px);
+    font-weight: 400;
+    line-height: 0.94;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  /* P1 */
+  .section-description {
+    max-width: 58ch;
+    font-family: var(--font-inter);
+    font-size: clamp(16px, 1.35vw, 21px);
+    line-height: 1.5;
+    letter-spacing: -0.015em;
+    text-wrap: pretty;
+    color: var(--ink-muted);
+  }
+
+  @media (max-width: 1023px) {
+    .section-grid {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .section-grid {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}
+
+/*
+ * PR & Founder Reputation. Desktop: label in columns 1–3, statement in
+ * 4–10, index in 11–12, banner across all twelve. Tablet stacks the
+ * three text blocks on an 8-column grid; phones collapse to one column.
+ * Every edge comes from the grid — nothing is positioned by coordinate.
+ */
+.pr-section {
+  position: relative;
+  /* Its own stacking context above anything the pinned Videography
+     stage before it might leave behind. */
+  isolation: isolate;
+  z-index: 10;
+  padding-block: var(--section-space);
+  overflow-x: clip;
+  background: #fff;
+  color: var(--ink);
+}
+
+.pr-header {
+  align-items: start;
+  row-gap: var(--content-gap);
+}
+
+.pr-rule {
+  grid-column: 1 / -1;
+  display: flex;
+  height: 1px;
+  transform-origin: left center;
+}
+
+.pr-label {
+  grid-column: 1 / 3;
+}
+
+/* Eight columns, so the heading's longer line fits whole. Measured in
+   Instrument Serif at -0.03em, "before they sign anything." runs 0.805×
+   its font-size (18.7ch) — no `ch` cap below that can hold it on one
+   line, so the column sets the measure and the size is capped to fit
+   it: at 104px the line needs 837px, and the column is 862–871px from
+   1440px up. Below that 7vw keeps the same proportion to the column,
+   and `balance` splits the two halves evenly. */
+.pr-copy {
+  grid-column: 3 / 11;
+}
+
+.pr-heading {
+  font-size: clamp(64px, 7vw, 104px);
+  line-height: 0.9;
+}
+
+.pr-description {
+  margin-top: var(--text-gap);
+}
+
+.pr-meta {
+  grid-column: 11 / 13;
+  display: grid;
+  justify-items: end;
+  gap: 16px;
+  text-align: right;
+}
+
+.pr-meta ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pr-media {
+  margin: var(--media-gap) 0 0;
+  overflow: hidden;
+}
+
+/* The banner keeps its own 1586×992 proportions at every width: the
+   artwork carries type along its top and bottom edges, so any tighter
+   ratio would crop through it. At its natural ratio `cover` crops
+   nothing. */
+.pr-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1586 / 992;
+  object-fit: cover;
+  object-position: center;
+}
+
+@media (max-width: 1023px) {
+  .pr-label,
+  .pr-meta {
+    grid-column: 1 / -1;
+  }
+
+  .pr-copy {
+    grid-column: 1 / 8;
+  }
+
+  .pr-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-items: start;
+    gap: 8px 24px;
+    text-align: left;
+  }
+
+  .pr-meta ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+  }
+
+  .pr-heading {
+    font-size: clamp(58px, 8vw, 84px);
+  }
+}
+
+@media (max-width: 767px) {
+  .pr-header {
+    gap: var(--content-gap);
+  }
+
+  .pr-heading {
+    font-size: clamp(46px, 14vw, 68px);
+    line-height: 0.94;
+  }
+
+  /* One short line each, rather than a row that wraps unevenly. */
+  .pr-meta,
+  .pr-meta ul {
+    display: grid;
+    justify-items: start;
+    gap: 8px;
+  }
 }
 
 /*
