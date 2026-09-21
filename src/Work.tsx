@@ -6,267 +6,295 @@ import { useGSAP } from '@gsap/react'
 gsap.registerPlugin(ScrollTrigger)
 
 const photographyImages = [
-  'https://images.unsplash.com/photo-1495707902905-78189c7e58d1?w=1600&q=80',
-  'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&q=80',
-  'https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=1600&q=80',
-  'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1600&q=80',
-  'https://images.unsplash.com/photo-1508615039623-a25605d2b022?w=1600&q=80',
-  'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=1600&q=80',
+  'https://images.unsplash.com/photo-1495707902905-78189c7e58d1?w=1600&q=85',
+  'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&q=85',
+  'https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=1600&q=85',
+  'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1600&q=85',
+  'https://images.unsplash.com/photo-1508615039623-a25605d2b022?w=1600&q=85',
+  'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=1600&q=85',
 ]
 
-function WorkReveal() {
+type Direction = 'up' | 'right'
+
+const transitionDirections: Direction[] = [
+  'up',
+  'up',
+  'right',
+  'right',
+  'up',
+  'up',
+]
+
+function PhotographyReveal() {
   const sectionRef = useRef<HTMLElement>(null)
   const sceneRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLDivElement>(null)
-  const photoRefs = useRef<(HTMLDivElement | null)[]>([])
+  const exitRef = useRef<HTMLDivElement>(null)
+
+  const panelRefs = useRef<(HTMLDivElement | null)[]>([])
+  const imageRefs = useRef<(HTMLImageElement | null)[]>([])
 
   useGSAP(
     () => {
-      if (!sectionRef.current || !sceneRef.current || !titleRef.current) return
+      if (
+        !sectionRef.current ||
+        !sceneRef.current ||
+        !titleRef.current ||
+        !exitRef.current
+      ) {
+        return
+      }
 
-      const photos = photoRefs.current.filter(Boolean)
-      if (photos.length < 6) return
+      const panels = panelRefs.current.filter(
+        (panel): panel is HTMLDivElement => Boolean(panel)
+      )
 
-      // === SET INITIAL POSITIONS ===
-      gsap.set(photos[0], {
-        yPercent: 0,
-        xPercent: 0,
-        zIndex: 10,
-      })
+      const images = imageRefs.current.filter(
+        (image): image is HTMLImageElement => Boolean(image)
+      )
 
-      gsap.set(photos[1], {
-        yPercent: 100,
-        xPercent: 0,
-        zIndex: 20,
-      })
-
-      gsap.set(photos[2], {
-        yPercent: 100,
-        xPercent: 0,
-        zIndex: 30,
-      })
-
-      gsap.set(photos[3], {
-        yPercent: 0,
-        xPercent: 100,
-        zIndex: 40,
-      })
-
-      gsap.set(photos[4], {
-        yPercent: 0,
-        xPercent: 100,
-        zIndex: 50,
-      })
-
-      gsap.set(photos[5], {
-        yPercent: 100,
-        xPercent: 0,
-        zIndex: 60,
-      })
+      if (
+        panels.length !== photographyImages.length ||
+        images.length !== photographyImages.length
+      ) {
+        return
+      }
 
       gsap.set(titleRef.current, {
-        opacity: 1,
+        autoAlpha: 1,
         yPercent: 0,
+        scale: 1,
       })
 
-      // === BUILD TIMELINE ===
-      const tl = gsap.timeline({
+      gsap.set(exitRef.current, {
+        yPercent: 100,
+      })
+
+      panels.forEach((panel, index) => {
+        const direction = transitionDirections[index]
+
+        if (direction === 'right') {
+          gsap.set(panel, {
+            clipPath: 'inset(0% 0% 0% 100%)',
+            xPercent: 5,
+            yPercent: 0,
+            force3D: true,
+          })
+
+          gsap.set(images[index], {
+            scale: 1.12,
+            xPercent: 6,
+            yPercent: 0,
+            force3D: true,
+          })
+        } else {
+          gsap.set(panel, {
+            clipPath: 'inset(100% 0% 0% 0%)',
+            xPercent: 0,
+            yPercent: 5,
+            force3D: true,
+          })
+
+          gsap.set(images[index], {
+            scale: 1.12,
+            xPercent: 0,
+            yPercent: 6,
+            force3D: true,
+          })
+        }
+      })
+
+      const timeline = gsap.timeline({
         scrollTrigger: {
-          trigger: sectionRef.current,
+          trigger: sceneRef.current,
           start: 'top top',
-          end: 'bottom bottom',
-          scrub: 1,
+          end: () =>
+            `+=${window.innerHeight * (photographyImages.length * 1.65)}`,
+          pin: true,
+          pinSpacing: true,
+          scrub: 1.2,
+          anticipatePin: 1,
           invalidateOnRefresh: true,
           markers: false,
         },
       })
 
-      // Title fade out after initial display
-      tl.to(titleRef.current, {
-        opacity: 0,
-        yPercent: -20,
-        duration: 1.5,
-        ease: 'power2.inOut',
+      timeline.to(
+        titleRef.current,
+        {
+          scale: 1.02,
+          duration: 0.55,
+          ease: 'none',
+        },
+        0
+      )
+
+      panels.forEach((panel, index) => {
+        const direction = transitionDirections[index]
+        const start = 0.5 + index * 1.1
+        const incomingImage = images[index]
+        const outgoingImage = index > 0 ? images[index - 1] : null
+
+        if (index === 0) {
+          timeline.to(
+            titleRef.current,
+            {
+              autoAlpha: 0,
+              yPercent: -15,
+              scale: 0.965,
+              duration: 1,
+              ease: 'power2.inOut',
+            },
+            start
+          )
+        }
+
+        if (outgoingImage) {
+          timeline.to(
+            outgoingImage,
+            {
+              scale: 1.07,
+              xPercent: direction === 'right' ? -3 : 0,
+              yPercent: direction === 'up' ? -3 : 0,
+              duration: 1.4,
+              ease: 'none',
+              force3D: true,
+            },
+            start
+          )
+        }
+
+        timeline.to(
+          panel,
+          {
+            clipPath: 'inset(0% 0% 0% 0%)',
+            xPercent: 0,
+            yPercent: 0,
+            duration: 1.35,
+            ease: 'power3.inOut',
+            force3D: true,
+          },
+          start
+        )
+
+        timeline.to(
+          incomingImage,
+          {
+            scale: 1.015,
+            xPercent: 0,
+            yPercent: 0,
+            duration: 1.5,
+            ease: 'power2.out',
+            force3D: true,
+          },
+          start
+        )
       })
 
-      // Photo 1 initial hold
-      tl.to({}, { duration: 0.8 })
+      const lastImage = images[images.length - 1]
+      const finalStart = 0.5 + transitionDirections.length * 1.1
 
-      // Photo 2 — ENTERS FROM BOTTOM
-      tl.to(
-        photos[1],
+      timeline.to(
+        lastImage,
+        {
+          scale: 1.055,
+          yPercent: -1.5,
+          duration: 0.9,
+          ease: 'none',
+          force3D: true,
+        },
+        finalStart
+      )
+
+      timeline.to(
+        exitRef.current,
         {
           yPercent: 0,
-          duration: 1.5,
+          duration: 1,
           ease: 'power3.inOut',
         },
-        '<'
-      )
-
-      // Hold Photo 2
-      tl.to({}, { duration: 1 })
-
-      // Photo 3 — ENTERS FROM BOTTOM
-      tl.to(
-        photos[2],
-        {
-          yPercent: 0,
-          duration: 1.5,
-          ease: 'power3.inOut',
-        },
-        '<'
-      )
-
-      // Hold Photo 3
-      tl.to({}, { duration: 1 })
-
-      // Photo 4 — ENTERS FROM RIGHT
-      tl.to(
-        photos[3],
-        {
-          xPercent: 0,
-          duration: 1.5,
-          ease: 'power3.inOut',
-        },
-        '<'
-      )
-
-      // Hold Photo 4
-      tl.to({}, { duration: 1 })
-
-      // Photo 5 — ENTERS FROM RIGHT
-      tl.to(
-        photos[4],
-        {
-          xPercent: 0,
-          duration: 1.5,
-          ease: 'power3.inOut',
-        },
-        '<'
-      )
-
-      // Hold Photo 5
-      tl.to({}, { duration: 1 })
-
-      // Photo 6 — ENTERS FROM BOTTOM
-      tl.to(
-        photos[5],
-        {
-          yPercent: 0,
-          duration: 1.5,
-          ease: 'power3.inOut',
-        },
-        '<'
-      )
-
-      // Final hold on Photo 6
-      tl.to({}, { duration: 1.5 })
-
-      // === FINAL TRANSITION: MOVE ENTIRE SCENE UP ===
-      tl.to(
-        sceneRef.current,
-        {
-          yPercent: -100,
-          duration: 1.5,
-          ease: 'power3.inOut',
-        },
-        '<'
+        finalStart + 0.45
       )
 
       return () => {
-        if (tl.scrollTrigger) {
-          tl.scrollTrigger.kill()
-        }
-        tl.kill()
+        timeline.scrollTrigger?.kill()
+        timeline.kill()
       }
     },
-    { scope: sectionRef }
+    {
+      scope: sectionRef,
+    }
   )
 
   return (
-    <div>
-      {/* 600VH SCROLL RUNWAY */}
-      <section ref={sectionRef} className="relative h-[600vh] bg-white">
-        {/* STICKY VIEWPORT WITH OVERFLOW-HIDDEN */}
+    <section
+      ref={sectionRef}
+      className="relative isolate w-full bg-white"
+    >
+      <div
+        ref={sceneRef}
+        className="relative h-screen w-full overflow-hidden bg-white"
+      >
         <div
-          ref={sceneRef}
-          className="sticky top-0 h-screen overflow-hidden bg-white"
+          ref={titleRef}
+          className="pointer-events-none absolute inset-0 z-[70] flex items-center justify-center overflow-hidden bg-white"
         >
-          {/* PHOTOGRAPHY TITLE */}
-          <div
-            ref={titleRef}
-            className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
+          <h2
+            className="px-5 text-center text-[clamp(68px,11.5vw,190px)] font-bold uppercase leading-[0.82] tracking-[-0.055em] text-[#111] will-change-transform"
+            style={{
+              fontFamily:
+                "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
+            }}
           >
-            <div
-              className="text-center text-[clamp(90px,11.5vw,190px)] leading-[0.82] font-bold tracking-[-0.055em] text-[#111] uppercase"
-              style={{
-                fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
-              }}
-            >
-              Photography
-            </div>
-          </div>
-
-          {/* IMAGE PANELS STACK */}
-          {photographyImages.map((image, idx) => (
-            <div
-              key={idx}
-              ref={(el) => {
-                photoRefs.current[idx] = el
-              }}
-              className="absolute inset-0 h-full w-full overflow-hidden bg-white"
-            >
-              <img
-                src={image}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            </div>
-          ))}
+            Photography
+          </h2>
         </div>
-      </section>
 
-      {/* PORTFOLIO SECTION - Normal document flow */}
-      {/* <div className="relative z-0 bg-white px-4 py-20 sm:px-[2vw] sm:py-28">
-        <div className="mx-auto w-full max-w-5xl">
-          <div className="grid gap-6 md:grid-cols-2">
-            {[
-              { title: 'Aerolink', image: photographyImages[0] },
-              { title: 'Riaaj Vintage', image: photographyImages[1] },
-              { title: 'Delhi-6', image: photographyImages[2] },
-              { title: 'Brand Project', image: photographyImages[3] },
-            ].map((project, idx) => (
-              <div key={idx} className="group">
-                <div className="aspect-square overflow-hidden bg-neutral-100 rounded-2xl">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <div className="pt-4">
-                  <h3
-                    className="text-[16px] font-medium tracking-[-0.01em] text-[#111]"
-                    style={{
-                      fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
-                    }}
-                  >
-                    {project.title}
-                  </h3>
-                </div>
-              </div>
-            ))}
+        {photographyImages.map((image, index) => (
+          <div
+            key={`${image}-${index}`}
+            ref={(element) => {
+              panelRefs.current[index] = element
+            }}
+            className="absolute inset-0 h-full w-full overflow-hidden bg-[#111] will-change-[transform,clip-path]"
+            style={{
+              zIndex: 10 + index,
+            }}
+          >
+            <img
+              ref={(element) => {
+                imageRefs.current[index] = element
+              }}
+              src={image}
+              alt={`BrandWorks photography project ${index + 1}`}
+              draggable={false}
+              decoding="async"
+              loading={index < 3 ? 'eager' : 'lazy'}
+              onLoad={() => {
+                ScrollTrigger.refresh()
+              }}
+              className="h-full w-full select-none object-cover will-change-transform"
+            />
           </div>
-        </div>
-      </div> */}
-    </div>
+        ))}
+
+        <div
+          ref={exitRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[90] bg-white will-change-transform"
+        />
+      </div>
+    </section>
   )
 }
 
 function Work() {
   return (
-    <section id="work" className="bg-white">
-      <WorkReveal />
+    <section
+      id="photography"
+      className="relative w-full bg-white"
+    >
+      <PhotographyReveal />
     </section>
   )
 }

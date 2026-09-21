@@ -1152,7 +1152,7 @@ export default function WebsiteSection({ className = '', ctaHref = '#contact' }:
   return (
     <section
       aria-labelledby={headingId}
-      className={`relative w-full overflow-x-clip bg-(--seo-bg) px-4 text-neutral-900 [--seo-bg:#faf9f6] sm:px-6 lg:px-8 ${className}`}
+      className={`relative w-full overflow-x-clip bg-white px-4 text-neutral-900 [--seo-bg:#ffffff] sm:px-6 lg:px-8 ${className}`}
     >
       <div className="mx-auto max-w-7xl">
         <Intro headingId={headingId} />

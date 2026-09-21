@@ -18,7 +18,7 @@ function Hero() {
         <LazyBackgroundVideo
           src={titleVideo}
           priority
-          className="h-full w-full scale-100 object-cover invert"
+          className="h-full w-full scale-100 object-cover invert brightness-70 contrast-125"
         />
       </div>
 
@@ -30,7 +30,7 @@ function Hero() {
       <a
         href="#"
         onClick={() => trackEvent({ name: AnalyticsEvents.contactCtaClick, params: { source: 'hero' } })}
-        className="mt-4 flex h-[40px] min-w-[156px] items-center justify-center gap-[8px] rounded-[4px] border border-neutral-900 bg-neutral-900 p-[12px] opacity-100 transition-opacity hover:opacity-85 sm:mt-5"
+        className="mt-5 flex h-[40px] min-w-[156px] items-center justify-center gap-[8px] rounded-[2px] border border-neutral-900 bg-neutral-900 p-[12px] opacity-100 transition-opacity hover:opacity-85 sm:mt-5"
       >
         <span className="site-ui flex items-center justify-center whitespace-nowrap text-white uppercase">
           Start a project
@@ -41,7 +41,7 @@ function Hero() {
          video on the homepage after Brand2 (~12.9MB) — deferred until
          it's about to scroll into view rather than loaded eagerly
          (Phase 11, Part 3/4). */}
-      <div className="mt-14 h-[806px] w-[1417px] max-w-[calc(100%-24px)] overflow-hidden rounded-[8px] bg-neutral-100 sm:mt-16">
+      <div className="mt-15 h-[806px] w-[1417px] max-w-[calc(100%-24px)] overflow-hidden rounded-[8px] bg-neutral-100 sm:mt-16">
         <LazyBackgroundVideo
           src={brandVideo}
           className="h-full w-full object-cover opacity-100"
