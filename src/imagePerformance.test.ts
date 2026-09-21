@@ -77,9 +77,16 @@ describe('BlogDetailPage — article cover image (likely LCP candidate)', () => 
 describe('Services.tsx — near-fold homepage images', () => {
   const img = findImgBlock(read('Services.tsx'), 'src={category.image}')
 
-  it('is eager, not lazy — a plausible LCP candidate right after the hero', () => {
-    expect(img).toContain('loading="eager"')
-    expect(img).not.toContain('loading="lazy"')
+  // The reel used to be three cards, every one of them eager. It now
+  // carries six, only the first of which is on screen at first paint —
+  // so the eager/lazy split is per card rather than blanket, and the
+  // guard is that the front card keeps its eager load.
+  it('loads the front card eagerly — a plausible LCP candidate right after the hero', () => {
+    expect(img).toContain("loading={index === 0 ? 'eager' : 'lazy'}")
+  })
+
+  it('lazy-loads every card behind it', () => {
+    expect(img).toContain("'lazy'")
   })
 
   it('does not force async decoding on a plausible LCP image', () => {
@@ -90,7 +97,9 @@ describe('Services.tsx — near-fold homepage images', () => {
 describe.each([
   ['Results.tsx', 'src={result.image}'],
   ['Work.tsx', 'src={project.image}'],
-  ['Industries.tsx', 'src={industry.image}'],
+  // Industries.tsx used to be listed here. Its still-image case study
+  // is now a film, so the same "below the fold, must not load eagerly"
+  // guarantee is asserted in videoPerformance.test.ts instead.
   ['Contact.tsx', 'src={photo16}'],
 ])('%s — below-the-fold homepage images', (file, srcExpr) => {
   const img = findImgBlock(read(file), srcExpr)

@@ -70,6 +70,28 @@ describe('About.tsx — video source and loading strategy', () => {
   })
 })
 
+describe('Industries.tsx — Real Estate case study film', () => {
+  const source = read('Industries.tsx')
+
+  it('uses LazyBackgroundVideo, not a raw <video> element', () => {
+    expect(source).toContain('LazyBackgroundVideo')
+    expect(source).not.toMatch(/<video/)
+  })
+
+  it('does not mark it priority — it sits well below the fold and the file is ~13MB', () => {
+    const block = source.slice(source.indexOf('<LazyBackgroundVideo'), source.indexOf('<LazyBackgroundVideo') + 300)
+    expect(block).not.toContain('priority')
+  })
+
+  it('reserves layout space via a fixed aspect ratio, so the film cannot shift the page', () => {
+    expect(source).toContain('aspect-[16/10]')
+  })
+
+  it('names the film for assistive tech — this one is content, not decoration', () => {
+    expect(source).toContain('ariaLabel=')
+  })
+})
+
 describe('Videography.tsx — YouTube-driven pinned section', () => {
   const source = read('Videography.tsx')
 
