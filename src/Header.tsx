@@ -1,5 +1,6 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
+import { matches } from './lib/scrollMotion'
 
 const navLinks: { label: string; href: string }[] = [
   { label: 'Home', href: '#' },
@@ -11,8 +12,6 @@ const navLinks: { label: string; href: string }[] = [
 ]
 
 function Header() {
-  const location = useLocation()
-  
   const [headerVisible, setHeaderVisible] = useState(true)
   const [atTop, setAtTop] = useState(true)
   const lastScrollY = useRef(0)
@@ -65,8 +64,11 @@ function Header() {
     willChange: 'transform',
   }
 
-  // Accessibility: respect reduced motion
-  if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  // Accessibility: respect reduced motion. `matches` is the shared
+  // helper the scroll sections use — it also guards against
+  // environments where `matchMedia` itself is missing (jsdom, and any
+  // server render), which calling it directly here did not.
+  if (matches('(prefers-reduced-motion: reduce)')) {
     headerStyle.transitionDuration = '0.01ms'
   }
 

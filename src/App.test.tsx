@@ -9,9 +9,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // Home renders every homepage section — none of them are relevant to
 // what this file tests (its own title/description/canonical effect),
 // and several do real data fetching (Blog.tsx) or use
-// IntersectionObserver (Hero.tsx/About.tsx's videos, unavailable in
+// IntersectionObserver (Hero.tsx/About.tsx/Videography.tsx's videos, unavailable in
 // jsdom) — mocked out to keep this test scoped and deterministic.
-for (const mod of ['Hero', 'Services', 'About', 'Work', 'Capabilities', 'Results', 'FAQs', 'Blog', 'Industries', 'Testimonials', 'Contact', 'CTA']) {
+for (const mod of ['Hero', 'Services', 'About', 'Work', 'Videography', 'PRReputation', 'Capabilities', 'Results', 'FAQs', 'Blog', 'Industries', 'Testimonials', 'Contact', 'CTA']) {
   vi.doMock(`./${mod}`, () => ({ default: () => null }))
 }
 

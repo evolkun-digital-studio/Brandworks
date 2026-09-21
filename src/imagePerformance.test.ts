@@ -151,7 +151,7 @@ describe('index.html — font loading (Phase 10, Part 11)', () => {
     // explanatory HTML comment nearby is allowed to name the removed
     // families without failing this check.
     const fontLinkHref = html.match(/href="(https:\/\/fonts\.googleapis\.com\/css2\?[^"]+)"/)?.[1] ?? ''
-    // Instrument *Serif* is used (Photography section); only the
+    // Instrument *Serif* is used (Videography section); only the
     // never-used Instrument *Sans* is guarded against.
     expect(fontLinkHref).not.toContain('Instrument+Sans')
     expect(fontLinkHref).not.toContain('Poppins')

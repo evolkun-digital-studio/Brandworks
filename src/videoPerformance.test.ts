@@ -70,6 +70,44 @@ describe('About.tsx — video source and loading strategy', () => {
   })
 })
 
+describe('Videography.tsx — YouTube-driven pinned section', () => {
+  const source = read('Videography.tsx')
+
+  it('uses no <img> as storytelling media', () => {
+    expect(source).not.toMatch(/<img/)
+  })
+
+  it('wires the four films by clean video ID, never share (?si=) links', () => {
+    for (const id of ['PJWHAiDARMQ', '5EpyN_6dqyk', 'weeI1G46q0o', '_r-nPqWGG6c']) {
+      expect(source).toContain(`videoId: '${id}'`)
+    }
+    expect(source).not.toMatch(/[?&]si=[A-Za-z0-9_-]/)
+  })
+
+  it('builds one embed URL: autoplay, muted, looping via playlist, no controls or related videos', () => {
+    expect(source.match(/<iframe/g)).toHaveLength(1)
+    for (const param of ['autoplay=1', 'mute=1', 'loop=1', '&playlist=${videoId}', 'controls=0', 'rel=0', 'playsinline=1']) {
+      expect(source).toContain(param)
+    }
+  })
+
+  it('keeps the embeds non-interactive', () => {
+    const iframe = source.slice(source.indexOf('<iframe'), source.indexOf('/>', source.indexOf('<iframe')))
+    expect(iframe).toContain("pointerEvents: 'none'")
+    expect(iframe).toContain('tabIndex={-1}')
+  })
+
+  it('the direct-video fallback is muted, looping, inline and has no native controls', () => {
+    const video = source.slice(source.indexOf('<video'), source.indexOf('/>', source.indexOf('<video')))
+    for (const attr of ['autoPlay', 'muted', 'loop', 'playsInline']) expect(video).toContain(attr)
+    expect(video).not.toContain('controls')
+  })
+
+  it('mounts reel players only while their card is in view', () => {
+    expect(source).toContain('new IntersectionObserver')
+  })
+})
+
 describe('production video assets are untouched', () => {
   it('all three source files still exist at their original paths and sizes are unchanged from the Phase 10 audit', () => {
     const assetsDir = path.join(srcDir, 'assets')

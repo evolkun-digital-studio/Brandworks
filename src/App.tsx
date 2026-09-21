@@ -6,7 +6,8 @@ import Hero from './Hero'
 import Services from './Services'
 import About from './About'
 import Work from './Work'
-import Photography from './Photography'
+import Videography from './Videography'
+import PRReputation from './PRReputation'
 import Capabilities from './Capabilities'
 import Results from './Results'
 import FAQs from './FAQs'
@@ -70,7 +71,8 @@ export function Home() {
       <Services />
       <About />
       <Work />
-      <Photography />
+      <Videography />
+      <PRReputation />
       <Capabilities />
       <Results />
       <FAQs />
