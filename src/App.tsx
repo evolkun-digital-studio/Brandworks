@@ -1,30 +1,27 @@
-import { lazy, Suspense, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
-import PublicLayout from "./PublicLayout";
-import {
-  removeLinkTag,
-  removeMetaTag,
-  setDocumentTitle,
-  setLinkTag,
-  setMetaTag,
-} from "./blog/lib/documentHead";
-import Hero from "./Hero";
-import Services from "./Services";
-import About from "./About";
-import Work from "./Work";
+import { lazy, Suspense, useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import PublicLayout from './PublicLayout'
+import { removeLinkTag, removeMetaTag, setDocumentTitle, setLinkTag, setMetaTag } from './blog/lib/documentHead'
+import Hero from './Hero'
+import Services from './Services'
+import About from './About'
+import Work from './Work'
 import TrustedBy from "./TrustedBy";
-import Photography from "./Photography";
-import Capabilities from "./Capabilities";
-import Results from "./Results";
-import FAQs from "./FAQs";
-import Blog from "./Blog";
-import Industries from "./Industries";
-import Testimonials from "./Testimonials";
-import Contact from "./Contact";
-import CTA from "./CTA";
-import BlogPage from "./blog/pages/BlogPage";
-import BlogDetailPage from "./blog/pages/BlogDetailPage";
-import NotFound from "./NotFound";
+import Videography from './Videography'
+import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
+import PRReputation from './PRReputation'
+// import Photography from './Photography'
+import Capabilities from './Capabilities'
+import Results from './Results'
+import FAQs from './FAQs'
+import Blog from './Blog'
+import Industries from './Industries'
+import Testimonials from './Testimonials'
+import Contact from './Contact'
+import CTA from './CTA'
+import BlogPage from './blog/pages/BlogPage'
+import BlogDetailPage from './blog/pages/BlogDetailPage'
+import NotFound from './NotFound'
 import WebsiteSectionProps from "./Seo";
 
 // Route-level code splitting (Phase 10, Part 13): AdminRoutes pulls in
@@ -78,10 +75,12 @@ export function Home() {
       <Services />
       <About />
       <Work />
-      {/* <TrustedBy /> */}
-      <Photography />
-      <Capabilities />
+      <Videography />
+      <GraphicsMotionExperience />
+      <PRReputation />
+      {/* <Photography /> */}
       <WebsiteSectionProps />
+      <Capabilities />
       <Results />
       <FAQs />
       <Blog />

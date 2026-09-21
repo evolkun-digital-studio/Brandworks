@@ -240,7 +240,7 @@ function PhotographyReveal() {
           className="pointer-events-none absolute inset-0 z-[70] flex items-center justify-center overflow-hidden bg-white"
         >
           <h2
-            className="px-5 text-center text-[clamp(68px,11.5vw,190px)] font-bold uppercase leading-[0.82] tracking-[-0.055em] text-[#111] will-change-transform"
+            className="px-5 text-center text-[clamp(68px,11.5vw,120px)] font-bold uppercase leading-[0.82] tracking-[-0.055em] text-[#111] will-change-transform"
             style={{
               fontFamily:
                 "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",

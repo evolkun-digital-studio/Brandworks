@@ -41,12 +41,11 @@ function Hero() {
          video on the homepage after Brand2 (~12.9MB) — deferred until
          it's about to scroll into view rather than loaded eagerly
          (Phase 11, Part 3/4). */}
-      <div className="mt-15 h-[806px] w-[1417px] max-w-[calc(100%-24px)] overflow-hidden rounded-[8px] bg-neutral-100 sm:mt-16">
+      {/* <div className="mt-15 h-[806px] w-[1417px] max-w-[calc(100%-24px)] overflow-hidden rounded-[8px] bg-neutral-100 sm:mt-16">
         <LazyBackgroundVideo
           src={brandVideo}
-          className="h-full w-full object-cover opacity-100"
-        />
-      </div>
+          className="h-full w-full object-cover opacity-100" />
+      </div> */}
     </main>
   )
 }
