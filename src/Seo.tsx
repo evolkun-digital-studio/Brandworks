@@ -130,8 +130,6 @@ const PERFORMANCE = [
   { label: 'CTR', to: 6.9, decimals: 1, suffix: '%', delta: '0.8', unit: ' pts' },
 ] as const
 
-const METHOD = ['Research', 'Diagnose', 'Prioritise', 'Improve', 'Measure'] as const
-
 /* ------------------------------ Motion helpers ----------------------------- */
 
 const EASE_OUT = 'ease-[cubic-bezier(0.22,1,0.36,1)]'
@@ -298,22 +296,6 @@ function GrowBar({ value, delay = 0, className }: { value: number; delay?: numbe
       style={{
         width: revealed ? `${value}%` : '0%',
         transitionDuration: '1300ms',
-        transitionDelay: `${delay}ms`,
-        transitionTimingFunction: EASE_IN_OUT,
-      }}
-    />
-  )
-}
-
-/** Thin rule that draws in from the left. Pass a `bg-*` class for other backgrounds. */
-function Rule({ delay = 0, className = 'bg-neutral-200' }: { delay?: number; className?: string }) {
-  const revealed = useContext(RevealContext)
-  return (
-    <span
-      aria-hidden="true"
-      className={`absolute inset-x-0 top-0 h-px origin-left transition-[scale] duration-[1100ms] motion-reduce:transition-none ${className}`}
-      style={{
-        scale: revealed ? 'none' : '0 1',
         transitionDelay: `${delay}ms`,
         transitionTimingFunction: EASE_IN_OUT,
       }}

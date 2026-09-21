@@ -1,4 +1,3 @@
-import brandVideo from './assets/Brand1.mp4'
 import titleVideo from './assets/ForWebsite.mp4'
 import LazyBackgroundVideo from './LazyBackgroundVideo'
 import { trackEvent } from './analytics/analytics'

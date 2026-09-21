@@ -8,7 +8,6 @@ import Services from './Services'
 import About from './About'
 import Photography from './Work'
 import Work from './WorkWithImpact'
-import TrustedBy from "./TrustedBy";
 import Videography from './Videography'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
 import PRReputation from './PRReputation'

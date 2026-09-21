@@ -10,8 +10,6 @@ gsap.registerPlugin(ScrollTrigger)
 // Replace with final BrandWorks architectural/concrete photography.
 const TEMPORARY_IMAGE = 'https://res.cloudinary.com/dmzo1kt0d/image/upload/v1789995717/hero-architecture-DRSGJqBP.jpg'
 
-const BACKGROUND_WORDS = ['TRUST', 'STORY', 'PERCEPTION', 'INFLUENCE', 'MEANING']
-
 function HumanLedBrandIntelligence() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const eyebrowRef = useRef<HTMLDivElement>(null)
@@ -167,7 +165,7 @@ function HumanLedBrandIntelligence() {
                 className="text-[clamp(38px,8.3vw,58px)] leading-[0.82] font-semibold tracking-[-0.065em]"
               >
                 {['Your brand', "isn't competing", 'for attention.'].map((line, idx) => (
-                  <div key={idx} className="headline-line overflow-hidden opacity-0" style={{ yPercent: 105 }}>
+                  <div key={idx} className="headline-line overflow-hidden opacity-0" style={{ transform: 'translateY(105%)' }}>
                     {line}
                   </div>
                 ))}
