@@ -7,6 +7,8 @@ import Services from './Services'
 import About from './About'
 import Photography from './Work'
 import Work from './WorkWithImpact'
+import PhotographyTransition from './components/PhotographyTransition/PhotographyTransition'
+import BrandIntelligence from './components/BrandIntelligence/BrandIntelligence'
 import TrustedBy from "./TrustedBy";
 import Videography from './Videography'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
@@ -74,8 +76,10 @@ export function Home() {
     <>
       <Hero />
       <Services />
+      {/* <BrandIntelligence /> */}
       <About />
       <Work />
+      <PhotographyTransition />
       <Photography/>
       <Videography />
       <GraphicsMotionExperience />

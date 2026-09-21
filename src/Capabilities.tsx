@@ -64,11 +64,10 @@ const FOCUS_START = 0.06
 const FOCUS_END = 0.92
 
 // Focus steps by distance (in rows) from the focus line. Tone is opacity
-// on #111. Only the focused row grows: a transform scale of 1.2 on the
-// focus line easing linearly back to exactly 1 one row away, so every
-// other row keeps its real font-size and nothing re-lays out.
+// on #111 and size is a transform scale on one shared base font-size, so
+// both stay on the compositor instead of re-laying out text every frame.
 const OPACITY_BY_DISTANCE = [1, 0.55, 0.28, 0.08] as const
-const SCALE_BY_DISTANCE = [1.2, 1] as const
+const SCALE_BY_DISTANCE = [1.18, 0.94, 0.86, 0.8] as const
 const BLUR_BY_DISTANCE = [0, 0, 0.3, 1, 1.4] as const
 
 /** Piecewise-linear lookup: distance (in rows) from the focus line → value. */
@@ -383,10 +382,7 @@ function ServiceRow({
     const blur = lookup(BLUR_BY_DISTANCE, d)
     return blur < 0.05 ? 'none' : `blur(${blur.toFixed(2)}px)`
   })
-  // Scale reads the raw distance (no plateau): 0 → 1.2, .5 → 1.1, 1+ → 1.
-  const scale = useTransform([focus, layout], ([s]: number[]) =>
-    centers.current.length === TOTAL ? lookup(SCALE_BY_DISTANCE, Math.abs(index - s)) : 1,
-  )
+  const scale = useTransform(distance, (d) => lookup(SCALE_BY_DISTANCE, d))
   // The index tag cancels the row's scale so it stays a quiet 10px label.
   const tagScale = useTransform(scale, (v) => 1 / v)
   const firstLine = LINE_BREAKS[name]
@@ -399,7 +395,7 @@ function ServiceRow({
     <motion.li
       ref={itemRef}
       style={{ opacity, filter, scale, transformOrigin: 'left center' }}
-      className={`${GROTESK} text-[42px] leading-[1.1] font-normal tracking-[-0.035em] text-[#111]`}
+      className={`${DISPLAY} text-[clamp(38px,4.6vw,52px)] leading-[1.1] tracking-[-0.035em] text-[#111] lg:text-[clamp(44px,4.4vw,76px)]`}
     >
       {firstLine && (
         <>
@@ -415,7 +411,7 @@ function ServiceRow({
         <motion.span
           aria-hidden="true"
           style={{ scale: tagScale, transformOrigin: 'left center' }}
-          className="ml-[0.4em] inline-block align-top text-[10px] leading-[2.2] font-normal tracking-[0.08em] tabular-nums opacity-50"
+          className="ml-[0.4em] inline-block align-top text-[10px] leading-[2.2] tracking-[0.08em] tabular-nums opacity-50"
         >
           {pad(index + 1)}
         </motion.span>
