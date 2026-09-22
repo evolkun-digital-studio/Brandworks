@@ -1,302 +1,474 @@
-import { useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { TouchEvent } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
+// Cropped WebP copy of the hosted Canon frame (transparent background and
+// screen). Screen insets in index.css are measured from it.
+import cameraFrame from './assets/canon-camera-frame.webp'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const photographyImages = [
-  'https://images.unsplash.com/photo-1495707902905-78189c7e58d1?w=1600&q=85',
-  'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&q=85',
-  'https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=1600&q=85',
-  'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1600&q=85',
-  'https://images.unsplash.com/photo-1508615039623-a25605d2b022?w=1600&q=85',
-  'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=1600&q=85',
+  'https://images.unsplash.com/photo-1495707902905-78189c7e58d1?w=2400&q=80',
+  'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=2400&q=80',
+  'https://images.unsplash.com/photo-1511379938547-c1f69b13d835?w=2400&q=80',
+  'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=2400&q=80',
+  'https://images.unsplash.com/photo-1508615039623-a25605d2b022?w=2400&q=80',
+  'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=2400&q=80',
 ]
 
-type Direction = 'up' | 'right'
+const TOTAL = photographyImages.length
+const pad = (n: number) => String(n).padStart(2, '0')
 
-const transitionDirections: Direction[] = [
-  'up',
-  'up',
-  'right',
-  'right',
-  'up',
-  'up',
-]
+type Direction = 1 | -1
+type Viewport = 'desktop' | 'tablet' | 'mobile'
 
-function PhotographyReveal() {
+/** How long each photograph stays up in the fullscreen gallery. */
+const AUTO_CHANGE_DELAY = 4000
+
+/**
+ * The display opening inside the camera frame, as fractions of the frame's
+ * width and height. Mirrors .photo-camera__screen in index.css.
+ */
+const SCREEN = { left: 0.13831, top: 0.43496, width: 0.48718, height: 0.43191 }
+
+/**
+ * The scroll sequence, as [start, end] positions on one timeline whose
+ * transition runs 0 → 1 (then holds on the fullscreen gallery for HOLD).
+ * The tracks overlap so they read as a single motion:
+ *   zoom      the camera grows about its display, which travels to centre
+ *   frameOut  the camera body fades once the zoom is clearly under way
+ *   expand    the display box itself grows out to cover the whole section
+ *   layer     the photo lifts above the (by then invisible) frame
+ *   controls  the carousel controls arrive as fullscreen is reached
+ * Scrolling back up plays the same timeline in reverse.
+ */
+const SEQUENCE = {
+  heading: [0.04, 0.24],
+  zoom: [0.15, 0.8],
+  frameOut: [0.35, 0.8],
+  expand: [0.55, 1],
+  layer: 0.8,
+  controls: [0.84, 1],
+} as const
+const HOLD = 0.4
+
+/**
+ * Per viewport: how much of the section the display may fill at the end of
+ * the zoom, before it expands to cover, and how far the section stays
+ * pinned. Phones zoom less and expand more, avoiding extreme scale.
+ */
+const ZOOM_LAYOUT: Record<Viewport, { fit: number; end: string }> = {
+  desktop: { fit: 0.9, end: '+=220%' },
+  tablet: { fit: 0.92, end: '+=190%' },
+  mobile: { fit: 0.92, end: '+=160%' },
+}
+
+/**
+ * Works out the zoom from the camera's layout box. Layout offsets are used
+ * rather than getBoundingClientRect() because ScrollTrigger re-measures on
+ * refresh while the camera may already be mid-zoom, and offsets ignore
+ * transforms. The transform origin is the centre of the display opening,
+ * so scaling grows the screen in place, and x/y carry that point to the
+ * centre of the section.
+ *
+ * `cover` is the display box, in the camera's own (pre-scale) pixels, that
+ * exactly covers the section once the zoom has finished, centred on the
+ * same point, with a few pixels of bleed so no edge ever shows.
+ */
+const BLEED = 4
+
+function measureZoom(section: HTMLElement, camera: HTMLElement, viewport: Viewport) {
+  const width = section.clientWidth
+  const height = section.clientHeight
+
+  // Fractional layout size: offsetWidth rounds, and the zoom magnifies it.
+  const style = getComputedStyle(camera)
+  const cameraW = parseFloat(style.width)
+  const cameraH = parseFloat(style.height)
+
+  const originX = cameraW * (SCREEN.left + SCREEN.width / 2)
+  const originY = cameraH * (SCREEN.top + SCREEN.height / 2)
+  const screenW = cameraW * SCREEN.width
+  const screenH = cameraH * SCREEN.height
+
+  const { fit } = ZOOM_LAYOUT[viewport]
+  const scale = Math.min((width * fit) / screenW, (height * fit) / screenH)
+  const coverW = (width + BLEED * 2) / scale
+  const coverH = (height + BLEED * 2) / scale
+
+  return {
+    origin: `${originX}px ${originY}px`,
+    scale,
+    x: width / 2 - (camera.offsetLeft + originX),
+    y: height / 2 - (camera.offsetTop + originY),
+    screen: {
+      left: cameraW * SCREEN.left,
+      top: cameraH * SCREEN.top,
+      width: screenW,
+      height: screenH,
+    },
+    cover: { left: originX - coverW / 2, top: originY - coverH / 2, width: coverW, height: coverH },
+  }
+}
+
+const span = ([start, end]: readonly [number, number]) => ({ at: start, duration: end - start })
+
+function PhotographyGallery() {
   const sectionRef = useRef<HTMLElement>(null)
-  const sceneRef = useRef<HTMLDivElement>(null)
-  const titleRef = useRef<HTMLDivElement>(null)
-  const exitRef = useRef<HTMLDivElement>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const cameraRef = useRef<HTMLDivElement>(null)
+  const screenRef = useRef<HTMLDivElement>(null)
+  const frameRef = useRef<HTMLImageElement>(null)
+  const controlsRef = useRef<HTMLDivElement>(null)
+  const slideRefs = useRef<(HTMLImageElement | null)[]>([])
 
-  const panelRefs = useRef<(HTMLDivElement | null)[]>([])
-  const imageRefs = useRef<(HTMLImageElement | null)[]>([])
+  const currentRef = useRef(0)
+  const timelineRef = useRef<gsap.core.Timeline | null>(null)
+  const touchRef = useRef<{ x: number; y: number } | null>(null)
 
+  // Autoplay runs only in the fullscreen gallery, while the section is on
+  // screen, the tab is visible and nobody is on the controls.
+  const autoplayRef = useRef<number | null>(null)
+  const inGalleryRef = useRef(false)
+  const visibleRef = useRef(false)
+  const holdRef = useRef(false)
+
+  const [active, setActive] = useState(0)
+
+  const { contextSafe } = useGSAP({ scope: sectionRef })
+
+  // Only the photograph on the display changes, as a soft crossfade with a
+  // slight breath in scale.
+  const show = useCallback(
+    (dir: Direction) =>
+      contextSafe(() => {
+        // A click mid-fade finishes the current one first, so the display
+        // never shows more than the two photos being exchanged.
+        timelineRef.current?.progress(1)
+
+        const from = currentRef.current
+        const to = (from + dir + TOTAL) % TOTAL
+        const outgoing = slideRefs.current[from]
+        const incoming = slideRefs.current[to]
+        if (!outgoing || !incoming) return
+
+        currentRef.current = to
+        setActive(to)
+
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        const duration = reduced ? 0.4 : 0.8
+
+        const tl = gsap.timeline({
+          defaults: { duration, ease: 'power2.inOut' },
+          onComplete: () => {
+            gsap.set(outgoing, { opacity: 0, scale: 1, zIndex: 0 })
+            gsap.set(incoming, { zIndex: 0 })
+            timelineRef.current = null
+          },
+        })
+        timelineRef.current = tl
+
+        tl.set(incoming, { zIndex: 1 })
+        tl.fromTo(outgoing, { opacity: 1, scale: 1 }, { opacity: 0, scale: reduced ? 1 : 1.02 }, 0)
+        tl.fromTo(incoming, { opacity: 0, scale: reduced ? 1 : 0.98 }, { opacity: 1, scale: 1 }, 0)
+      })(),
+    [contextSafe],
+  )
+
+  const syncAutoplay = useCallback(() => {
+    if (autoplayRef.current !== null) window.clearTimeout(autoplayRef.current)
+    autoplayRef.current = null
+    if (!inGalleryRef.current || !visibleRef.current || holdRef.current || document.hidden) return
+
+    autoplayRef.current = window.setTimeout(() => {
+      show(1)
+      syncAutoplay()
+    }, AUTO_CHANGE_DELAY)
+  }, [show])
+
+  /** A manual step: changes the photo and restarts the autoplay countdown. */
+  const go = useCallback(
+    (dir: Direction) => {
+      show(dir)
+      syncAutoplay()
+    },
+    [show, syncAutoplay],
+  )
+
+  const holdAutoplay = (hold: boolean) => {
+    holdRef.current = hold
+    syncAutoplay()
+  }
+
+  // Scroll-driven entry: the pinned section scrubs one timeline from the
+  // whole camera, into its display, out to a fullscreen photograph — and
+  // scrolling up scrubs the same timeline back.
   useGSAP(
     () => {
-      if (
-        !sectionRef.current ||
-        !sceneRef.current ||
-        !titleRef.current ||
-        !exitRef.current
-      ) {
-        return
-      }
+      const section = sectionRef.current
+      const heading = headingRef.current
+      const camera = cameraRef.current
+      const screen = screenRef.current
+      const frame = frameRef.current
+      const controls = controlsRef.current
+      if (!section || !heading || !camera || !screen || !frame || !controls) return
 
-      const panels = panelRefs.current.filter(
-        (panel): panel is HTMLDivElement => Boolean(panel)
-      )
-
-      const images = imageRefs.current.filter(
-        (image): image is HTMLImageElement => Boolean(image)
-      )
-
-      if (
-        panels.length !== photographyImages.length ||
-        images.length !== photographyImages.length
-      ) {
-        return
-      }
-
-      gsap.set(titleRef.current, {
-        autoAlpha: 1,
-        yPercent: 0,
-        scale: 1,
-      })
-
-      gsap.set(exitRef.current, {
-        yPercent: 100,
-      })
-
-      panels.forEach((panel, index) => {
-        const direction = transitionDirections[index]
-
-        if (direction === 'right') {
-          gsap.set(panel, {
-            clipPath: 'inset(0% 0% 0% 100%)',
-            xPercent: 5,
-            yPercent: 0,
-            force3D: true,
-          })
-
-          gsap.set(images[index], {
-            scale: 1.12,
-            xPercent: 6,
-            yPercent: 0,
-            force3D: true,
-          })
-        } else {
-          gsap.set(panel, {
-            clipPath: 'inset(100% 0% 0% 0%)',
-            xPercent: 0,
-            yPercent: 5,
-            force3D: true,
-          })
-
-          gsap.set(images[index], {
-            scale: 1.12,
-            xPercent: 0,
-            yPercent: 6,
-            force3D: true,
-          })
-        }
-      })
-
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: sceneRef.current,
-          start: 'top top',
-          end: () =>
-            `+=${window.innerHeight * (photographyImages.length * 1.65)}`,
-          pin: true,
-          pinSpacing: true,
-          scrub: 1.2,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          markers: false,
-        },
-      })
-
-      timeline.to(
-        titleRef.current,
+      const mm = gsap.matchMedia()
+      mm.add(
         {
-          scale: 1.02,
-          duration: 0.55,
-          ease: 'none',
+          motion: '(prefers-reduced-motion: no-preference)',
+          tablet: '(min-width: 768px) and (max-width: 1023px)',
+          mobile: '(max-width: 767px)',
         },
-        0
-      )
+        (context) => {
+          const { motion, tablet, mobile } = context.conditions as Record<string, boolean>
+          if (!motion) return
 
-      panels.forEach((panel, index) => {
-        const direction = transitionDirections[index]
-        const start = 0.5 + index * 1.1
-        const incomingImage = images[index]
-        const outgoingImage = index > 0 ? images[index - 1] : null
+          const viewport: Viewport = mobile ? 'mobile' : tablet ? 'tablet' : 'desktop'
+          let zoom = measureZoom(section, camera, viewport)
+          // Switches the controls to their fullscreen overlay layout.
+          section.classList.add('photo-gallery--zoom')
 
-        if (index === 0) {
-          timeline.to(
-            titleRef.current,
-            {
-              autoAlpha: 0,
-              yPercent: -15,
-              scale: 0.965,
-              duration: 1,
-              ease: 'power2.inOut',
+          const setGallery = (inGallery: boolean) => {
+            if (inGallery === inGalleryRef.current) return
+            inGalleryRef.current = inGallery
+            syncAutoplay()
+          }
+
+          const tl = gsap.timeline({
+            defaults: { ease: 'none' },
+            scrollTrigger: {
+              trigger: section,
+              start: 'top top',
+              end: ZOOM_LAYOUT[viewport].end,
+              pin: true,
+              scrub: mobile ? 0.6 : 0.8,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              onRefreshInit: () => {
+                zoom = measureZoom(section, camera, viewport)
+              },
             },
-            start
-          )
-        }
+            // Fullscreen is reached at 1; the hold follows.
+            onUpdate: () => setGallery(tl.time() >= 0.999),
+          })
 
-        if (outgoingImage) {
-          timeline.to(
-            outgoingImage,
+          const headingSpan = span(SEQUENCE.heading)
+          const zoomSpan = span(SEQUENCE.zoom)
+          const frameSpan = span(SEQUENCE.frameOut)
+          const expandSpan = span(SEQUENCE.expand)
+          const controlsSpan = span(SEQUENCE.controls)
+
+          // The title makes way as the zoom begins.
+          tl.fromTo(heading, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -32, duration: headingSpan.duration }, headingSpan.at)
+
+          // The camera grows about its display and carries it to the centre.
+          tl.fromTo(
+            camera,
+            { x: 0, y: 0, scale: 1, transformOrigin: () => zoom.origin },
             {
-              scale: 1.07,
-              xPercent: direction === 'right' ? -3 : 0,
-              yPercent: direction === 'up' ? -3 : 0,
-              duration: 1.4,
-              ease: 'none',
-              force3D: true,
+              x: () => zoom.x,
+              y: () => zoom.y,
+              scale: () => zoom.scale,
+              duration: zoomSpan.duration,
+              ease: 'sine.inOut',
+              force3D: false,
             },
-            start
+            zoomSpan.at,
           )
-        }
 
-        timeline.to(
-          panel,
-          {
-            clipPath: 'inset(0% 0% 0% 0%)',
-            xPercent: 0,
-            yPercent: 0,
-            duration: 1.35,
-            ease: 'power3.inOut',
-            force3D: true,
-          },
-          start
-        )
+          // The body fades out while the zoom carries it past the edges.
+          tl.fromTo(frame, { opacity: 1 }, { opacity: 0, duration: frameSpan.duration }, frameSpan.at)
 
-        timeline.to(
-          incomingImage,
-          {
-            scale: 1.015,
-            xPercent: 0,
-            yPercent: 0,
-            duration: 1.5,
-            ease: 'power2.out',
-            force3D: true,
-          },
-          start
-        )
-      })
+          // The same display box — same photo layer — grows out of the bezel
+          // until it covers the section, losing its rounded corners.
+          tl.fromTo(
+            screen,
+            {
+              left: () => zoom.screen.left,
+              top: () => zoom.screen.top,
+              width: () => zoom.screen.width,
+              height: () => zoom.screen.height,
+              borderRadius: () => getComputedStyle(screen).borderTopLeftRadius,
+            },
+            {
+              left: () => zoom.cover.left,
+              top: () => zoom.cover.top,
+              width: () => zoom.cover.width,
+              height: () => zoom.cover.height,
+              borderRadius: 0,
+              duration: expandSpan.duration,
+              ease: 'sine.inOut',
+            },
+            expandSpan.at,
+          )
 
-      const lastImage = images[images.length - 1]
-      const finalStart = 0.5 + transitionDirections.length * 1.1
+          // Once the frame is gone the photo lifts above it; nothing visible
+          // changes, but the fullscreen layer order is then true.
+          tl.set(screen, { zIndex: 10 }, SEQUENCE.layer)
 
-      timeline.to(
-        lastImage,
-        {
-          scale: 1.055,
-          yPercent: -1.5,
-          duration: 0.9,
-          ease: 'none',
-          force3D: true,
+          // The carousel controls arrive with fullscreen, and on the way
+          // back are the first thing to go.
+          tl.fromTo(controls, { autoAlpha: 0 }, { autoAlpha: 1, duration: controlsSpan.duration }, controlsSpan.at)
+
+          // The fullscreen gallery holds before the page moves on.
+          tl.to({}, { duration: HOLD }, 1)
+
+          return () => {
+            setGallery(false)
+            section.classList.remove('photo-gallery--zoom')
+            gsap.set([heading, camera, screen, frame, controls], { clearProps: 'all' })
+          }
         },
-        finalStart
       )
-
-      timeline.to(
-        exitRef.current,
-        {
-          yPercent: 0,
-          duration: 1,
-          ease: 'power3.inOut',
-        },
-        finalStart + 0.45
-      )
-
-      return () => {
-        timeline.scrollTrigger?.kill()
-        timeline.kill()
-      }
     },
-    {
-      scope: sectionRef,
-    }
+    { scope: sectionRef, dependencies: [syncAutoplay] },
   )
+
+  // Autoplay pauses whenever the section is off screen.
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => {
+      visibleRef.current = entry.isIntersecting
+      syncAutoplay()
+    })
+    observer.observe(section)
+    return () => observer.disconnect()
+  }, [syncAutoplay])
+
+  // …and while the tab is hidden.
+  useEffect(() => {
+    document.addEventListener('visibilitychange', syncAutoplay)
+    return () => document.removeEventListener('visibilitychange', syncAutoplay)
+  }, [syncAutoplay])
+
+  useEffect(
+    () => () => {
+      timelineRef.current?.kill()
+      if (autoplayRef.current !== null) window.clearTimeout(autoplayRef.current)
+    },
+    [],
+  )
+
+  // Arrow keys, only while the gallery is the thing on screen.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+      const target = event.target as HTMLElement | null
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+
+      const section = sectionRef.current
+      if (!section) return
+      const { top, bottom } = section.getBoundingClientRect()
+      const vh = window.innerHeight
+      if (top > vh * 0.5 || bottom < vh * 0.5) return
+
+      event.preventDefault()
+      go(event.key === 'ArrowRight' ? 1 : -1)
+    }
+
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [go])
+
+  const onTouchStart = (event: TouchEvent) => {
+    const touch = event.touches[0]
+    touchRef.current = { x: touch.clientX, y: touch.clientY }
+  }
+
+  const onTouchEnd = (event: TouchEvent) => {
+    const start = touchRef.current
+    touchRef.current = null
+    if (!start) return
+    const touch = event.changedTouches[0]
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) go(dx < 0 ? 1 : -1)
+  }
 
   return (
     <section
       ref={sectionRef}
-      className="relative isolate w-full bg-white"
+      id="photography"
+      aria-roledescription="carousel"
+      aria-label="Photography"
+      className="photo-gallery relative w-full bg-white"
     >
-      <div
-        ref={sceneRef}
-        className="relative h-screen w-full overflow-hidden bg-white"
+      <h2
+        ref={headingRef}
+        className="px-5 text-center text-[clamp(44px,6.5vw,96px)] font-bold uppercase leading-[0.82] tracking-[-0.055em] text-[#111]"
+        style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
       >
-        <div
-          ref={titleRef}
-          className="pointer-events-none absolute inset-0 z-[70] flex items-center justify-center overflow-hidden bg-white"
-        >
-          <h2
-            className="px-5 text-center text-[clamp(68px,11.5vw,120px)] font-bold uppercase leading-[0.82] tracking-[-0.055em] text-[#111] will-change-transform"
-            style={{
-              fontFamily:
-                "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif",
-            }}
-          >
-            Photography
-          </h2>
-        </div>
+        Photography
+      </h2>
 
-        {photographyImages.map((image, index) => (
-          <div
-            key={`${image}-${index}`}
-            ref={(element) => {
-              panelRefs.current[index] = element
-            }}
-            className="absolute inset-0 h-full w-full overflow-hidden bg-[#111] will-change-[transform,clip-path]"
-            style={{
-              zIndex: 10 + index,
-            }}
-          >
+      <div ref={cameraRef} className="photo-camera" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {/* The photographs, stacked and clipped to the display opening. Only
+           the active one is visible. */}
+        <div ref={screenRef} className="photo-camera__screen">
+          {photographyImages.map((image, index) => (
             <img
+              key={image}
               ref={(element) => {
-                imageRefs.current[index] = element
+                slideRefs.current[index] = element
               }}
               src={image}
               alt={`BrandWorks photography project ${index + 1}`}
+              aria-hidden={index !== active}
               draggable={false}
               decoding="async"
-              loading={index < 3 ? 'eager' : 'lazy'}
-              onLoad={() => {
-                ScrollTrigger.refresh()
-              }}
-              className="h-full w-full select-none object-cover will-change-transform"
+              loading="lazy"
+              className="photo-camera__slide"
             />
-          </div>
-        ))}
+          ))}
+        </div>
 
-        <div
-          ref={exitRef}
+        <img
+          ref={frameRef}
+          src={cameraFrame}
+          alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-[90] bg-white will-change-transform"
+          width={1287}
+          height={984}
+          draggable={false}
+          decoding="async"
+          loading="lazy"
+          className="photo-camera__frame"
         />
+      </div>
+
+      <div
+        ref={controlsRef}
+        className="photo-controls"
+        onPointerEnter={() => holdAutoplay(true)}
+        onPointerLeave={() => holdAutoplay(false)}
+        onFocus={() => holdAutoplay(true)}
+        onBlur={() => holdAutoplay(false)}
+      >
+        <button type="button" className="photo-nav photo-nav--prev" onClick={() => go(-1)}>
+          <span className="photo-nav__line" aria-hidden="true" />
+          <span className="site-ui">Previous</span>
+        </button>
+
+        <span className="photo-count site-ui tabular-nums" aria-live="polite">
+          <span className="sr-only">Photo </span>
+          <span className="photo-count__current">{pad(active + 1)}</span>
+          <span aria-hidden="true"> / </span>
+          <span className="sr-only"> of </span>
+          {pad(TOTAL)}
+        </span>
+
+        <button type="button" className="photo-nav photo-nav--next" onClick={() => go(1)}>
+          <span className="site-ui">Next</span>
+          <span className="photo-nav__line" aria-hidden="true" />
+        </button>
       </div>
     </section>
   )
 }
 
-function Photography() {
-  return (
-    <section
-      id="photography"
-      className="relative w-full bg-white"
-    >
-      <PhotographyReveal />
-    </section>
-  )
-}
-
-export default Photography
+export default PhotographyGallery

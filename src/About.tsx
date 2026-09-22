@@ -5,7 +5,7 @@ import LazyBackgroundVideo from './LazyBackgroundVideo'
 const ABOUT_TEXT =
   'Minimal Brandworks is a creative studio that brings strategy, creativity and digital expertise together to build distinctive brands and meaningful experiences.'
 
-const ABOUT_WORDS = ABOUT_TEXT.split(' ')
+const ABOUT_WORDS =ABOUT_TEXT.split(' ')
 
 // neutral-400 -> neutral-900
 const COLOR_FROM: [number, number, number] = [163, 163, 163]

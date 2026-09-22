@@ -13,6 +13,7 @@ import TrustedBy from "./TrustedBy";
 import Videography from './Videography'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
 import PRReputation from './PRReputation'
+import SocialMedia from './components/SocialMedia/SocialMedia'
 // import Photography from './Photography'
 import Capabilities from './Capabilities'
 import Results from './Results'
@@ -84,6 +85,7 @@ export function Home() {
       <Videography />
       <GraphicsMotionExperience />
       <PRReputation />
+      <SocialMedia />
       {/* <Photography /> */}
       <WebsiteSectionProps />
       <Capabilities />

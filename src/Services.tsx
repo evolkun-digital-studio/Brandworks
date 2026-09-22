@@ -56,16 +56,19 @@ const VISIBLE_ANGLE = 88
  */
 const FADE_ANGLE = 76
 /**
- * Ring radius as a multiple of card width, which is what closes the gap
- * between cards. It is a multiple rather than a fixed px value because
- * the card is itself responsive — `clamp(280px, 30vw, 510px)` — so any
- * fixed radius drifts out of proportion as the viewport moves. At 1.15
- * the perceived space between the centre card and its neighbour holds at
- * 44–51px from 900px through 1920px.
+ * The on-screen gap between the centre card's edge and its neighbour's
+ * near edge, once the neighbour is projected through the stage's
+ * perspective. The radius is solved from this (see `radiusForGap`), so the
+ * gap holds as the responsive card — `clamp(280px, 30vw, 510px)` — grows
+ * and shrinks. Mobile is a flat flex row and takes its gap from CSS.
  */
-const RADIUS_FACTOR = 1.15
+const DESKTOP_GAP = 16
+const TABLET_GAP = 12
+const DESKTOP_QUERY = '(min-width: 1024px)'
+/** Fallback if the stage's computed perspective can't be read. */
+const DEFAULT_PERSPECTIVE = 1200
 /** Degrees per second of unattended drift. */
-const AUTO_SPEED = 6.5
+const AUTO_SPEED = 12
 /** What the drift is scaled to while a pointer rests on the stage. */
 const HOVER_SPEED_SCALE = 0.25
 /** How fast that scale is eased, so interaction ends in a glide, not a jolt. */
@@ -88,6 +91,21 @@ const MOBILE_QUERY = '(max-width: 700px)'
 
 /** Folds any angle into [-180, 180), where 0 is facing the camera. */
 const normalizeAngle = (angle: number) => (((angle % 360) + 540) % 360) - 180
+
+/**
+ * The ring radius at which a card at ±STEP projects `gap` px clear of the
+ * centre card. The neighbour's near edge sits at
+ * (R·sinθ − h·cosθ, −R(1 − cosθ) + h·sinθ), and projects to x·p / (p − z);
+ * setting that equal to h + gap and solving for R gives this.
+ */
+function radiusForGap(cardWidth: number, gap: number, perspective: number) {
+  const h = cardWidth / 2
+  const theta = STEP * (Math.PI / 180)
+  const s = Math.sin(theta)
+  const c = Math.cos(theta)
+  const edge = h + gap
+  return (edge * (perspective - h * s) + h * c * perspective) / (s * perspective - edge * (1 - c))
+}
 
 type CardVisual = {
   transform: string
@@ -196,7 +214,14 @@ function useReel(enabled: boolean, animate: boolean): Engine {
 
   const measure = useCallback(() => {
     const card = cardsRef.current.find(Boolean)
-    radius.current = (card?.offsetWidth ?? 0) * RADIUS_FACTOR
+    const stage = stageRef.current
+    const perspective = stage ? parseFloat(getComputedStyle(stage).perspective) : Number.NaN
+    const gap = matches(DESKTOP_QUERY) ? DESKTOP_GAP : TABLET_GAP
+    radius.current = radiusForGap(
+      card?.offsetWidth ?? 0,
+      gap,
+      Number.isFinite(perspective) && perspective > 0 ? perspective : DEFAULT_PERSPECTIVE,
+    )
     layout()
   }, [layout])
 

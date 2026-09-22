@@ -80,6 +80,39 @@
   font-display: swap;
 }
 
+/* Google Sans Flex at the same 72pt optical size as the Thin above, as a
+   variable font over weights 100–600 (instanced from Google's variable
+   release and subset to the Thin's character set). Its own family name so
+   the extra weights only reach the Our Services section — elsewhere bold
+   Google Sans Flex keeps rendering exactly as it did. */
+@font-face {
+  font-family: 'Google Sans Flex Display';
+  src: url('./Font/GoogleSansFlex_72pt-Display-wght100-600.woff2') format('woff2');
+  font-weight: 100 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+.services-display {
+  font-family: 'Google Sans Flex Display', 'Google Sans Flex', 'Helvetica', sans-serif;
+}
+
+/* Our Services index: the row the arrow points at is SemiBold and full
+   ink, the rest stay thin and soft grey. Weight and colour ease between
+   the two; opacity keeps following the scroll-driven focus. */
+.service-row {
+  font-weight: 100;
+  color: #aaa;
+  transition:
+    color 0.35s ease,
+    font-weight 0.35s ease;
+}
+
+.service-row.is-active {
+  font-weight: 600;
+  color: #111;
+}
+
 body {
   font-family: 'Google Sans Flex', ui-sans-serif, system-ui, -apple-system,
     'Helvetica Neue', Arial, sans-serif;
@@ -799,5 +832,201 @@ body {
 
   .brand-signal-card {
     height: clamp(220px, 36vh, 460px);
+  }
+}
+
+/*
+ * Photography — camera gallery (Work.tsx). A centred Canon camera whose
+ * display is the gallery: photographs crossfade on it and nowhere else.
+ * With motion allowed, the section pins at the top of the viewport and
+ * scroll zooms the camera into its display (the transform is set by GSAP),
+ * so the stage is exactly one viewport tall and clips what grows past it.
+ * Layering inside .photo-camera:
+ *   2 screen  — the photographs, clipped to the display opening
+ *   5 frame   — the camera PNG, on top while it is visible
+ * Once the frame has faded the screen box grows to cover the section and
+ * GSAP lifts it to 10; the fullscreen controls overlay sits at 20.
+ *
+ * Screen geometry is measured from src/assets/canon-camera-frame.webp (a
+ * 1287×984 camera) whose display opening is 625×423 at (179, 429),
+ * grown by one pixel on each side so no seam shows under
+ * the anti-aliased bezel edge.
+ */
+.photo-gallery {
+  --camera-w: min(64vw, 1180px, calc((100svh - 330px) * 1.3079));
+  --photo-gap: clamp(20px, 3.2vh, 40px);
+
+  display: flex;
+  height: 100vh;
+  height: 100svh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--photo-gap);
+  overflow: clip;
+  /* The top clears the fixed navbar. */
+  padding-top: clamp(72px, 10vh, 110px);
+  padding-bottom: clamp(24px, 4vh, 40px);
+}
+
+.photo-camera {
+  position: relative;
+  z-index: 1;
+  width: var(--camera-w);
+  aspect-ratio: 1287 / 984;
+  container-type: inline-size;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.photo-camera__screen {
+  position: absolute;
+  left: 13.831%;
+  top: 43.496%;
+  width: 48.718%;
+  height: 43.191%;
+  z-index: 2;
+  overflow: hidden;
+  border-radius: 0.2cqw;
+  background: #0d0d0d;
+}
+
+.photo-camera__slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  /* No will-change: a promoted layer would keep its pre-zoom raster and
+     blur as the camera scales up. */
+}
+
+.photo-camera__slide:first-child {
+  opacity: 1;
+}
+
+.photo-camera__frame {
+  position: relative;
+  z-index: 5;
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+/* Without the scroll zoom (reduced motion) the controls sit ~30–40px
+   under the camera. */
+.photo-controls {
+  display: flex;
+  width: var(--camera-w);
+  align-items: center;
+  justify-content: space-between;
+  margin-top: calc(clamp(30px, 2.8vw, 40px) - var(--photo-gap));
+  color: #111;
+}
+
+.photo-count {
+  color: rgba(17, 17, 17, 0.45);
+}
+
+.photo-count__current {
+  color: #111;
+}
+
+/* With the scroll zoom the section is one pinned viewport, the controls
+   are hidden until the photograph is fullscreen, and then overlay its
+   lower edge in white over a soft shade (GSAP fades them in and out). */
+.photo-gallery--zoom {
+  --camera-w: min(64vw, 1180px, calc((100svh - 260px) * 1.3079));
+}
+
+.photo-gallery--zoom .photo-controls {
+  position: absolute;
+  z-index: 20;
+  inset: auto 0 0;
+  width: auto;
+  margin: 0;
+  padding: clamp(56px, 9vh, 96px) var(--page-gutter) clamp(22px, 4.5vh, 40px);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0));
+  color: #fff;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.photo-gallery--zoom .photo-nav {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+}
+
+.photo-gallery--zoom .photo-count {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.photo-gallery--zoom .photo-count__current {
+  color: #fff;
+}
+
+.photo-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding-block: 10px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.photo-nav:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 6px;
+}
+
+/* Thin-line arrow; the line reaches a little further on hover. */
+.photo-nav__line {
+  position: relative;
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.photo-nav:hover .photo-nav__line,
+.photo-nav:focus-visible .photo-nav__line {
+  width: 44px;
+}
+
+.photo-nav__line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+}
+
+.photo-nav--prev .photo-nav__line::after {
+  left: 0.5px;
+  transform: translateY(-50%) rotate(-135deg);
+}
+
+.photo-nav--next .photo-nav__line::after {
+  right: 0.5px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+@media (max-width: 1023px) {
+  .photo-gallery {
+    --camera-w: min(82vw, calc((100svh - 330px) * 1.3079));
+  }
+}
+
+@media (max-width: 767px) {
+  .photo-gallery {
+    --camera-w: 94vw;
+  }
+
+  .photo-nav__line {
+    width: 22px;
   }
 }

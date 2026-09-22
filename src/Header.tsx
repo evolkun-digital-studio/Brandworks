@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { matches } from './lib/scrollMotion'
 
-const navLinks: { label: string; href: string }[] = [
+const LOGO_SRC = 'https://ik.imagekit.io/rxoyjxx4c/Asset%204@4x.png'
+
+const navLinks:{ label: string; href: string }[] = [
   { label: 'Home', href: '#' },
   { label: 'Work', href: '#' },
   { label: 'About', href: '#' },
@@ -51,13 +53,10 @@ function Header() {
   const isDarkHero = false
   
   const topTextColor = isDarkHero ? 'text-white' : 'text-neutral-900'
-  const topLogoColor = isDarkHero ? 'text-white border-white' : 'text-neutral-900 border-neutral-900'
-  
+
   const fixedTextColor = 'text-[#111]'
-  const fixedLogoColor = 'text-[#111] border-[#111]'
-  
+
   const textColor = atTop ? topTextColor : fixedTextColor
-  const logoColor = atTop ? topLogoColor : fixedLogoColor
 
   let headerStyle: React.CSSProperties = {
     transition: 'transform 500ms cubic-bezier(0.76, 0, 0.24, 1), background-color 350ms ease, color 350ms ease',
@@ -95,21 +94,10 @@ function Header() {
         style={{ gridTemplateColumns: '1fr auto 1fr' }}
       >
         {/* Left */}
-        <div className="justify-self-start flex items-center gap-1.5">
-          <Link
-            to="/"
-            aria-label="Brandworks home"
-            className={`text-[18px] leading-none font-semibold tracking-[-0.02em] ${textColor}`}
-          >
-            BRANDWORKS
+        <div className="justify-self-start flex items-center">
+          <Link to="/" aria-label="Brandworks home" className="block">
+            <img src={LOGO_SRC} alt="BrandWorks" className="block h-auto w-[175px] object-contain" />
           </Link>
-
-          <span
-            aria-hidden="true"
-            className={`-translate-y-1.5 flex h-[15px] w-[15px] items-center justify-center rounded-full border text-[7px] leading-none font-semibold ${logoColor}`}
-          >
-            R
-          </span>
         </div>
 
         {/* Center */}
@@ -156,20 +144,10 @@ function Header() {
 
       {/* Mobile/Tablet Layout */}
       <div className="flex lg:hidden w-full h-[68px] items-center justify-between px-4 sm:px-8">
-        <div className="flex items-center gap-1.5">
-          <Link
-            to="/"
-            aria-label="Brandworks home"
-            className={`text-[18px] leading-none font-semibold tracking-[-0.02em] ${textColor}`}
-          >
-            BRANDWORKS
+        <div className="flex items-center">
+          <Link to="/" aria-label="Brandworks home" className="block">
+            <img src={LOGO_SRC} alt="BrandWorks" className="block h-auto w-[145px] object-contain" />
           </Link>
-          <span
-            aria-hidden="true"
-            className={`-translate-y-1.5 flex h-[15px] w-[15px] items-center justify-center rounded-full border text-[7px] leading-none font-semibold ${logoColor}`}
-          >
-            R
-          </span>
         </div>
         
         <button
