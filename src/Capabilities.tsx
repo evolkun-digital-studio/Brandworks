@@ -52,7 +52,8 @@ const GROTESK = "font-['Google_Sans_Flex','Helvetica',sans-serif]"
 // Display type uses the Thin cut; small text (labels, counters, copy) Regular.
 const DISPLAY = `${GROTESK} font-thin`
 
-const TITLE_CLASS = `${DISPLAY} text-[clamp(44px,12vw,64px)] leading-[0.96] tracking-[-0.04em] text-[#111] md:text-[clamp(46px,4.7vw,78px)] font-medium`
+// The title is SemiBold, from the variable display cut (see .services-display).
+const TITLE_CLASS = `services-display font-semibold text-[clamp(44px,12vw,64px)] leading-[0.96] tracking-[-0.04em] text-[#111] md:text-[clamp(46px,4.7vw,78px)]`
 const LABEL_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.14em] text-[#777] uppercase`
 const COUNTER_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.08em] text-[#888] tabular-nums`
 
@@ -334,6 +335,7 @@ function ServiceScrollIndex() {
                   index={i}
                   name={service.name}
                   description={service.description}
+                  active={i === active}
                   focus={focus}
                   layout={layout}
                   centers={centers}
@@ -360,6 +362,7 @@ function ServiceRow({
   index,
   name,
   description,
+  active,
   focus,
   layout,
   centers,
@@ -368,6 +371,8 @@ function ServiceRow({
   index: number
   name: string
   description: string
+  /** The row the arrow points at — the same index as the counter. */
+  active: boolean
   focus: MotionValue<number>
   layout: MotionValue<number>
   centers: RefObject<number[]>
@@ -395,7 +400,7 @@ function ServiceRow({
     <motion.li
       ref={itemRef}
       style={{ opacity, filter, scale, transformOrigin: 'left center' }}
-      className={`${DISPLAY} text-[clamp(38px,4.6vw,52px)] leading-[1.1] tracking-[-0.035em] text-[#111] lg:text-[clamp(44px,4.4vw,76px)]`}
+      className={`services-display service-row${active ? ' is-active' : ''} text-[clamp(38px,4.6vw,52px)] leading-[1.1] tracking-[-0.035em] lg:text-[clamp(44px,4.4vw,76px)]`}
     >
       {firstLine && (
         <>
@@ -411,7 +416,7 @@ function ServiceRow({
         <motion.span
           aria-hidden="true"
           style={{ scale: tagScale, transformOrigin: 'left center' }}
-          className="ml-[0.4em] inline-block align-top text-[10px] leading-[2.2] tracking-[0.08em] tabular-nums opacity-50"
+          className="ml-[0.4em] inline-block align-top text-[10px] leading-[2.2] font-thin tracking-[0.08em] tabular-nums opacity-50"
         >
           {pad(index + 1)}
         </motion.span>

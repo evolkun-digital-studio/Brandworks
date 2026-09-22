@@ -1,0 +1,81 @@
+/*
+ * Phone shell (SocialPhone.tsx). Every measurement is in container units of
+ * the phone's own width, so the bezel, corners and island scale together
+ * and the screen mask always sits exactly inside the frame. The width comes
+ * from the section using it, through --social-phone-width.
+ */
+.social-phone {
+  --phone-bezel: 3.4cqw;
+  --phone-radius: 15.5cqw;
+
+  position: relative;
+  width: var(--social-phone-width, clamp(16.5rem, 23vw, 21rem));
+  aspect-ratio: 640 / 1284;
+  margin: 0 auto;
+  container-type: inline-size;
+}
+
+/* The screen tucks one pixel under the bezel, so the anti-aliased inner
+   edge of the frame always covers it and no video can show past it. */
+.social-phone__screen {
+  position: absolute;
+  z-index: 2;
+  inset: calc(var(--phone-bezel) - 1px);
+  overflow: hidden;
+  border-radius: calc(var(--phone-radius) - var(--phone-bezel) + 1px);
+  background: #000;
+  isolation: isolate;
+  /* Safari otherwise ignores the rounded clip on playing <video>. */
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+/* The frame also carries the float shadow: a box-shadow on one rounded
+   layer, cheaper to repaint over playing video than a filter. */
+.social-phone__frame {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  border: var(--phone-bezel) solid #0d0d0f;
+  border-radius: var(--phone-radius);
+  box-shadow:
+    0 0 0 1px #2b2b30,
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 70px 90px -40px rgba(17, 17, 17, 0.38),
+    0 24px 40px -20px rgba(17, 17, 17, 0.2);
+  pointer-events: none;
+}
+
+/* Camera island. */
+.social-phone__frame::before {
+  content: '';
+  position: absolute;
+  top: 2.4cqw;
+  left: 50%;
+  width: 29cqw;
+  height: 8.4cqw;
+  border-radius: 999px;
+  background: #0d0d0f;
+  transform: translateX(-50%);
+}
+
+/* Side buttons: power on the right, volume on the left. */
+.social-phone::before,
+.social-phone::after {
+  content: '';
+  position: absolute;
+  width: 1.1cqw;
+  border-radius: 1cqw;
+  background: #1c1c20;
+}
+
+.social-phone::before {
+  top: 26%;
+  right: -0.9cqw;
+  height: 16%;
+}
+
+.social-phone::after {
+  top: 20%;
+  left: -0.9cqw;
+  height: 10%;
+}

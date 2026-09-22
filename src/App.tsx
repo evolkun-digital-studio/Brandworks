@@ -10,11 +10,10 @@ import Photography from './Work'
 import Work from './WorkWithImpact'
 import SocialContent from './components/socialMedia/SocailMedia'
 import PhotographyTransition from './components/PhotographyTransition/PhotographyTransition'
-import BrandIntelligence from './components/BrandIntelligence/BrandIntelligence'
-import TrustedBy from "./TrustedBy";
 import Videography from './Videography'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
 import PRReputation from './PRReputation'
+import SocialMedia from './components/socialMedia/SocialMedia'
 // import Photography from './Photography'
 import Capabilities from './Capabilities'
 import Results from './Results'
@@ -82,11 +81,12 @@ export function Home() {
       {/* <BrandIntelligence /> */}
       <About />
       <Work />
-      <PhotographyTransition />
+      {/* <PhotographyTransition /> */}
       <Photography/>
       <Videography />
       <GraphicsMotionExperience />
       <PRReputation />
+      <SocialMedia />
       {/* <Photography /> */}
       <SocialContent/>
       <WebsiteSectionProps />

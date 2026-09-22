@@ -1,0 +1,106 @@
+/*
+ * Social Media section (SocialMedia.tsx). White with the lime pattern over
+ * the whole section; the copy sits left as an editorial block and the phone
+ * holds the centre of the composition, slightly right of the page's middle.
+ */
+.social-section {
+  /* The phone is sized here, from the section's layout: 360–430px on
+     desktop, but never taller than the viewport can show whole. */
+  --social-phone-width: min(clamp(20rem, 28vw, 26.875rem), calc(86svh / 2.006));
+
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  padding-block: var(--section-space);
+  background: #fff;
+  color: var(--ink);
+}
+
+/* The supplied pattern, knocked back so it sits behind the copy and phone.
+   The layer is taller than the section so its slow parallax drift never
+   shows an edge. */
+.social-pattern {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.social-pattern__layer {
+  position: absolute;
+  inset: -7% 0;
+  background: url('https://ik.imagekit.io/rxoyjxx4c/pattern%20@4x.png?updatedAt=1790058641375') 50% 50% / cover no-repeat;
+  opacity: 0.35;
+  transform: rotate(30deg) scale(1.15);
+  transform-origin: center;
+  will-change: transform;
+}
+/* Copy | phone | air. The empty third column is what pushes the phone a
+   little right of centre and keeps the composition off-balance. */
+.social-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.55fr);
+  column-gap: var(--grid-gap);
+  align-items: center;
+}
+
+.social-copy {
+  display: grid;
+  justify-items: start;
+  gap: var(--text-gap);
+  max-width: 32rem;
+  padding-top: clamp(0px, 7vw, 120px);
+}
+
+.social-heading {
+  font-size: clamp(40px, 5vw, 80px);
+}
+
+/* Heavier and darker than the shared P1, so it holds up over the pattern. */
+.social-description {
+  max-width: 34ch;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* SplitText's line masks: a little room below each line so descenders are
+   not clipped by the tight display line-height. */
+.social-line-mask {
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+
+.social-stage {
+  display: grid;
+  justify-items: center;
+  padding-block: clamp(24px, 3vw, 48px);
+}
+
+.social-stage__phone {
+  transform-origin: 50% 60%;
+}
+
+@media (max-width: 1023px) {
+  .social-section {
+    --social-phone-width: min(80vw, 24rem, calc(86svh / 2.006));
+  }
+
+  /* A tall, narrow section would blow `cover` up to a few giant stars;
+     keep the pattern at a readable scale and let it run down the page. */
+  .social-pattern__layer {
+    background-size: 150vw auto;
+    background-repeat: repeat-y;
+    background-position: 50% 0;
+  }
+
+  .social-layout {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--media-gap);
+  }
+
+  .social-copy {
+    max-width: 36rem;
+    padding-top: 0;
+  }
+}

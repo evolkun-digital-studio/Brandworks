@@ -1,1283 +1,474 @@
-import { useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { TouchEvent } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
-import { useReducedMotion } from 'motion/react'
+// Cropped WebP copy of the hosted Canon frame (transparent background and
+// screen). Screen insets in index.css are measured from it.
+import cameraFrame from './assets/canon-camera-frame.webp'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const PHOTOS = {
-  hero: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=2400&q=90',
+const photographyImages = [
+  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=2400&q=85',
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=2400&q=85',
+  'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=2400&q=85',
+  'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=2400&q=85',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=2400&q=85',
+  'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=2400&q=85',
+]
 
-  portraitOne:
-    'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1600&q=90',
+const TOTAL = photographyImages.length
+const pad = (n: number) => String(n).padStart(2, '0')
 
-  portraitTwo:
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1600&q=90',
+type Direction = 1 | -1
+type Viewport = 'desktop' | 'tablet' | 'mobile'
 
-  final:
-    'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=2400&q=90',
+/** How long each photograph stays up in the fullscreen gallery. */
+const AUTO_CHANGE_DELAY = 2000
+
+/**
+ * The display opening inside the camera frame, as fractions of the frame's
+ * width and height. Mirrors .photo-camera__screen in index.css.
+ */
+const SCREEN = { left: 0.13831, top: 0.43496, width: 0.48718, height: 0.43191 }
+
+/**
+ * The scroll sequence, as [start, end] positions on one timeline whose
+ * transition runs 0 → 1 (then holds on the fullscreen gallery for HOLD).
+ * The tracks overlap so they read as a single motion:
+ *   zoom      the camera grows about its display, which travels to centre
+ *   frameOut  the camera body fades once the zoom is clearly under way
+ *   expand    the display box itself grows out to cover the whole section
+ *   layer     the photo lifts above the (by then invisible) frame
+ *   controls  the carousel controls arrive as fullscreen is reached
+ * Scrolling back up plays the same timeline in reverse.
+ */
+const SEQUENCE = {
+  heading: [0.04, 0.24],
+  zoom: [0.15, 0.8],
+  frameOut: [0.35, 0.8],
+  expand: [0.55, 1],
+  layer: 0.8,
+  controls: [0.84, 1],
+} as const
+const HOLD = 0.4
+
+/**
+ * Per viewport: how much of the section the display may fill at the end of
+ * the zoom, before it expands to cover, and how far the section stays
+ * pinned. Phones zoom less and expand more, avoiding extreme scale.
+ */
+const ZOOM_LAYOUT: Record<Viewport, { fit: number; end: string }> = {
+  desktop: { fit: 0.9, end: '+=220%' },
+  tablet: { fit: 0.92, end: '+=190%' },
+  mobile: { fit: 0.92, end: '+=160%' },
 }
 
-export default function Photography() {
+/**
+ * Works out the zoom from the camera's layout box. Layout offsets are used
+ * rather than getBoundingClientRect() because ScrollTrigger re-measures on
+ * refresh while the camera may already be mid-zoom, and offsets ignore
+ * transforms. The transform origin is the centre of the display opening,
+ * so scaling grows the screen in place, and x/y carry that point to the
+ * centre of the section.
+ *
+ * `cover` is the display box, in the camera's own (pre-scale) pixels, that
+ * exactly covers the section once the zoom has finished, centred on the
+ * same point, with a few pixels of bleed so no edge ever shows.
+ */
+const BLEED = 4
+
+function measureZoom(section: HTMLElement, camera: HTMLElement, viewport: Viewport) {
+  const width = section.clientWidth
+  const height = section.clientHeight
+
+  // Fractional layout size: offsetWidth rounds, and the zoom magnifies it.
+  const style = getComputedStyle(camera)
+  const cameraW = parseFloat(style.width)
+  const cameraH = parseFloat(style.height)
+
+  const originX = cameraW * (SCREEN.left + SCREEN.width / 2)
+  const originY = cameraH * (SCREEN.top + SCREEN.height / 2)
+  const screenW = cameraW * SCREEN.width
+  const screenH = cameraH * SCREEN.height
+
+  const { fit } = ZOOM_LAYOUT[viewport]
+  const scale = Math.min((width * fit) / screenW, (height * fit) / screenH)
+  const coverW = (width + BLEED * 2) / scale
+  const coverH = (height + BLEED * 2) / scale
+
+  return {
+    origin: `${originX}px ${originY}px`,
+    scale,
+    x: width / 2 - (camera.offsetLeft + originX),
+    y: height / 2 - (camera.offsetTop + originY),
+    screen: {
+      left: cameraW * SCREEN.left,
+      top: cameraH * SCREEN.top,
+      width: screenW,
+      height: screenH,
+    },
+    cover: { left: originX - coverW / 2, top: originY - coverH / 2, width: coverW, height: coverH },
+  }
+}
+
+const span = ([start, end]: readonly [number, number]) => ({ at: start, duration: end - start })
+
+function PhotographyGallery() {
   const sectionRef = useRef<HTMLElement>(null)
-  const stageRef = useRef<HTMLDivElement>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const cameraRef = useRef<HTMLDivElement>(null)
+  const screenRef = useRef<HTMLDivElement>(null)
+  const frameRef = useRef<HTMLImageElement>(null)
+  const controlsRef = useRef<HTMLDivElement>(null)
+  const slideRefs = useRef<(HTMLImageElement | null)[]>([])
 
-  /*
-   * INTRO
-   */
-  const introRef = useRef<HTMLDivElement>(null)
-  const titleRef = useRef<HTMLHeadingElement>(null)
-  const introCopyRef = useRef<HTMLParagraphElement>(null)
+  const currentRef = useRef(0)
+  const timelineRef = useRef<gsap.core.Timeline | null>(null)
+  const touchRef = useRef<{ x: number; y: number } | null>(null)
 
-  /*
-   * CONTACT SHEET
-   */
-  const collageRef = useRef<HTMLDivElement>(null)
-  const mainCardRef = useRef<HTMLDivElement>(null)
-  const leftCardRef = useRef<HTMLDivElement>(null)
-  const rightCardRef = useRef<HTMLDivElement>(null)
-  const bottomCardRef = useRef<HTMLDivElement>(null)
+  // Autoplay runs only in the fullscreen gallery, while the section is on
+  // screen, the tab is visible and nobody is on the controls.
+  const autoplayRef = useRef<number | null>(null)
+  const inGalleryRef = useRef(false)
+  const visibleRef = useRef(false)
+  const holdRef = useRef(false)
 
-  /*
-   * HERO EXPANSION
-   */
-  const heroRef = useRef<HTMLDivElement>(null)
-  const heroImageRef = useRef<HTMLImageElement>(null)
-  const heroCaptionRef = useRef<HTMLDivElement>(null)
+  const [active, setActive] = useState(0)
 
-  /*
-   * PORTRAIT SPLIT
-   */
-  const splitRef = useRef<HTMLDivElement>(null)
+  const { contextSafe } = useGSAP({ scope: sectionRef })
 
-  const splitLeftRef = useRef<HTMLDivElement>(null)
-  const splitRightRef = useRef<HTMLDivElement>(null)
+  // Only the photograph on the display changes, as a soft crossfade with a
+  // slight breath in scale.
+  const show = useCallback(
+    (dir: Direction) =>
+      contextSafe(() => {
+        // A click mid-fade finishes the current one first, so the display
+        // never shows more than the two photos being exchanged.
+        timelineRef.current?.progress(1)
 
-  const splitLeftImageRef = useRef<HTMLImageElement>(null)
-  const splitRightImageRef = useRef<HTMLImageElement>(null)
+        const from = currentRef.current
+        const to = (from + dir + TOTAL) % TOTAL
+        const outgoing = slideRefs.current[from]
+        const incoming = slideRefs.current[to]
+        if (!outgoing || !incoming) return
 
-  const splitCaptionRef = useRef<HTMLDivElement>(null)
+        currentRef.current = to
+        setActive(to)
 
-  /*
-   * FINAL FRAME
-   */
-  const finalRef = useRef<HTMLDivElement>(null)
-  const finalImageRef = useRef<HTMLImageElement>(null)
-  const finalCaptionRef = useRef<HTMLDivElement>(null)
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        const duration = reduced ? 0.4 : 0.8
 
-  /*
-   * UI CHROME
-   */
-  const chromeRef = useRef<HTMLDivElement>(null)
-  const progressRef = useRef<HTMLDivElement>(null)
-  const stepRef = useRef<HTMLSpanElement>(null)
-  const phaseRef = useRef<HTMLSpanElement>(null)
+        const tl = gsap.timeline({
+          defaults: { duration, ease: 'power2.inOut' },
+          onComplete: () => {
+            gsap.set(outgoing, { opacity: 0, scale: 1, zIndex: 0 })
+            gsap.set(incoming, { zIndex: 0 })
+            timelineRef.current = null
+          },
+        })
+        timelineRef.current = tl
 
-  const reduceMotion = useReducedMotion()
+        tl.set(incoming, { zIndex: 1 })
+        tl.fromTo(outgoing, { opacity: 1, scale: 1 }, { opacity: 0, scale: reduced ? 1 : 1.02 }, 0)
+        tl.fromTo(incoming, { opacity: 0, scale: reduced ? 1 : 0.98 }, { opacity: 1, scale: 1 }, 0)
+      })(),
+    [contextSafe],
+  )
 
+  const syncAutoplay = useCallback(() => {
+    if (autoplayRef.current !== null) window.clearTimeout(autoplayRef.current)
+    autoplayRef.current = null
+    if (!inGalleryRef.current || !visibleRef.current || holdRef.current || document.hidden) return
+
+    autoplayRef.current = window.setTimeout(() => {
+      show(1)
+      syncAutoplay()
+    }, AUTO_CHANGE_DELAY)
+  }, [show])
+
+  /** A manual step: changes the photo and restarts the autoplay countdown. */
+  const go = useCallback(
+    (dir: Direction) => {
+      show(dir)
+      syncAutoplay()
+    },
+    [show, syncAutoplay],
+  )
+
+  const holdAutoplay = (hold: boolean) => {
+    holdRef.current = hold
+    syncAutoplay()
+  }
+
+  // Scroll-driven entry: the pinned section scrubs one timeline from the
+  // whole camera, into its display, out to a fullscreen photograph — and
+  // scrolling up scrubs the same timeline back.
   useGSAP(
     () => {
-      if (
-        !sectionRef.current ||
-        !stageRef.current ||
-        !introRef.current ||
-        !titleRef.current ||
-        !introCopyRef.current ||
-        !collageRef.current ||
-        !mainCardRef.current ||
-        !leftCardRef.current ||
-        !rightCardRef.current ||
-        !bottomCardRef.current ||
-        !heroRef.current ||
-        !heroImageRef.current ||
-        !heroCaptionRef.current ||
-        !splitRef.current ||
-        !splitLeftRef.current ||
-        !splitRightRef.current ||
-        !splitLeftImageRef.current ||
-        !splitRightImageRef.current ||
-        !splitCaptionRef.current ||
-        !finalRef.current ||
-        !finalImageRef.current ||
-        !finalCaptionRef.current ||
-        !chromeRef.current ||
-        !progressRef.current ||
-        !stepRef.current ||
-        !phaseRef.current
-      ) {
-        return
-      }
-
       const section = sectionRef.current
-      const stage = stageRef.current
-
-      const intro = introRef.current
-      const title = titleRef.current
-      const introCopy = introCopyRef.current
-
-      const collage = collageRef.current
-
-      const mainCard = mainCardRef.current
-      const leftCard = leftCardRef.current
-      const rightCard = rightCardRef.current
-      const bottomCard = bottomCardRef.current
-
-      const hero = heroRef.current
-      const heroImage = heroImageRef.current
-      const heroCaption = heroCaptionRef.current
-
-      const split = splitRef.current
-      const splitLeft = splitLeftRef.current
-      const splitRight = splitRightRef.current
-
-      const splitLeftImage = splitLeftImageRef.current
-      const splitRightImage = splitRightImageRef.current
-
-      const splitCaption = splitCaptionRef.current
-
-      const finalFrame = finalRef.current
-      const finalImage = finalImageRef.current
-      const finalCaption = finalCaptionRef.current
-
-      const chrome = chromeRef.current
-      const progress = progressRef.current
-      const step = stepRef.current
-      const phase = phaseRef.current
-
-      /*
-       * REDUCED MOTION
-       */
-
-      if (reduceMotion) {
-        gsap.set(intro, {
-          autoAlpha: 0,
-          display: 'none',
-        })
-
-        gsap.set(collage, {
-          display: 'none',
-        })
-
-        gsap.set(hero, {
-          autoAlpha: 1,
-          clipPath: 'inset(6vh 5vw)',
-        })
-
-        gsap.set(heroImage, {
-          scale: 1,
-        })
-
-        gsap.set(heroCaption, {
-          autoAlpha: 1,
-        })
-
-        gsap.set(split, {
-          display: 'none',
-        })
-
-        gsap.set(finalFrame, {
-          display: 'none',
-        })
-
-        gsap.set(chrome, {
-          autoAlpha: 1,
-        })
-
-        return
-      }
-
-      let disposed = false
+      const heading = headingRef.current
+      const camera = cameraRef.current
+      const screen = screenRef.current
+      const frame = frameRef.current
+      const controls = controlsRef.current
+      if (!section || !heading || !camera || !screen || !frame || !controls) return
 
       const mm = gsap.matchMedia()
-
       mm.add(
         {
-          desktop: '(min-width: 768px)',
+          motion: '(prefers-reduced-motion: no-preference)',
+          tablet: '(min-width: 768px) and (max-width: 1023px)',
           mobile: '(max-width: 767px)',
         },
         (context) => {
-          const conditions = context.conditions as {
-            desktop: boolean
-            mobile: boolean
+          const { motion, tablet, mobile } = context.conditions as Record<string, boolean>
+          if (!motion) return
+
+          const viewport: Viewport = mobile ? 'mobile' : tablet ? 'tablet' : 'desktop'
+          let zoom = measureZoom(section, camera, viewport)
+          // Switches the controls to their fullscreen overlay layout.
+          section.classList.add('photo-gallery--zoom')
+
+          const setGallery = (inGallery: boolean) => {
+            if (inGallery === inGalleryRef.current) return
+            inGalleryRef.current = inGallery
+            syncAutoplay()
           }
 
-          const desktop = conditions.desktop
-
-          const cards = [
-            mainCard,
-            leftCard,
-            rightCard,
-            bottomCard,
-          ]
-
-          /*
-           * INITIAL STATE
-           */
-
-          gsap.set(stage, {
-            force3D: true,
-          })
-
-          gsap.set(cards, {
-            autoAlpha: 0,
-            force3D: true,
-          })
-
-          gsap.set(chrome, {
-            autoAlpha: 0,
-          })
-
-          gsap.set(progress, {
-            scaleX: 0,
-            transformOrigin: 'left center',
-          })
-
-          /*
-           * HERO
-           */
-
-          gsap.set(hero, {
-            autoAlpha: 0,
-            force3D: true,
-          })
-
-          gsap.set(heroImage, {
-            scale: 1.085,
-            force3D: true,
-          })
-
-          gsap.set(heroCaption, {
-            autoAlpha: 0,
-            y: 20,
-          })
-
-          /*
-           * SPLIT
-           */
-
-          gsap.set(split, {
-            autoAlpha: 0,
-          })
-
-          gsap.set([splitLeft, splitRight], {
-            force3D: true,
-          })
-
-          gsap.set(splitLeftImage, {
-            scale: 1.1,
-            yPercent: 4,
-            force3D: true,
-          })
-
-          gsap.set(splitRightImage, {
-            scale: 1.1,
-            yPercent: -4,
-            force3D: true,
-          })
-
-          gsap.set(splitCaption, {
-            autoAlpha: 0,
-            y: 20,
-          })
-
-          /*
-           * FINAL
-           */
-
-          gsap.set(finalFrame, {
-            autoAlpha: 0,
-          })
-
-          gsap.set(finalImage, {
-            scale: 1.1,
-            force3D: true,
-          })
-
-          gsap.set(finalCaption, {
-            autoAlpha: 0,
-            y: 24,
-          })
-
-          /*
-           * RESPONSIVE HERO MASKS
-           */
-
-          const heroStart = desktop
-            ? 'inset(23vh 29vw 23vh 29vw)'
-            : 'inset(25vh 12vw 25vh 12vw)'
-
-          const heroFrame = desktop
-            ? 'inset(6vh 5vw 6vh 5vw)'
-            : 'inset(8vh 4vw 8vh 4vw)'
-
-          /*
-           * MASTER TIMELINE
-           */
-
-          const timeline = gsap.timeline({
-            defaults: {
-              ease: 'power3.inOut',
-            },
-
+          const tl = gsap.timeline({
+            defaults: { ease: 'none' },
             scrollTrigger: {
               trigger: section,
               start: 'top top',
-
-              end: () =>
-                `+=${window.innerHeight * (desktop ? 5.5 : 4.8)}`,
-
-              pin: stage,
-
-              scrub: desktop ? 1.15 : 0.85,
-
+              end: ZOOM_LAYOUT[viewport].end,
+              pin: true,
+              scrub: mobile ? 0.6 : 0.8,
               anticipatePin: 1,
-
               invalidateOnRefresh: true,
+              onRefreshInit: () => {
+                zoom = measureZoom(section, camera, viewport)
+              },
             },
+            // Fullscreen is reached at 1; the hold follows.
+            onUpdate: () => setGallery(tl.time() >= 0.999),
           })
 
-          /*
-           * ───────────────────────────────────────
-           * 01 — INTRO → CONTACT SHEET
-           * ───────────────────────────────────────
-           */
+          const headingSpan = span(SEQUENCE.heading)
+          const zoomSpan = span(SEQUENCE.zoom)
+          const frameSpan = span(SEQUENCE.frameOut)
+          const expandSpan = span(SEQUENCE.expand)
+          const controlsSpan = span(SEQUENCE.controls)
 
-          timeline
-            .to(
-              chrome,
-              {
-                autoAlpha: 1,
-                duration: 0.5,
-              },
-              0,
-            )
+          // The title makes way as the zoom begins.
+          tl.fromTo(heading, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -32, duration: headingSpan.duration }, headingSpan.at)
 
-            .to(
-              title,
-              {
-                yPercent: -10,
-                scale: 0.965,
-                opacity: 0.08,
-                duration: 1.4,
-              },
-              0,
-            )
-
-            .to(
-              introCopy,
-              {
-                y: -20,
-                autoAlpha: 0,
-                duration: 0.7,
-              },
-              0.05,
-            )
-
-          /*
-           * CENTER IMAGE
-           */
-
-          timeline.fromTo(
-            mainCard,
+          // The camera grows about its display and carries it to the centre.
+          tl.fromTo(
+            camera,
+            { x: 0, y: 0, scale: 1, transformOrigin: () => zoom.origin },
             {
-              yPercent: 22,
-              scale: 0.88,
-              clipPath: 'inset(16% 0% 0% 0%)',
-              autoAlpha: 0,
+              x: () => zoom.x,
+              y: () => zoom.y,
+              scale: () => zoom.scale,
+              duration: zoomSpan.duration,
+              ease: 'sine.inOut',
+              force3D: false,
             },
-            {
-              yPercent: 0,
-              scale: 1,
-              clipPath: 'inset(0% 0% 0% 0%)',
-              autoAlpha: 1,
-
-              duration: 1.05,
-              ease: 'expo.out',
-            },
-            0.18,
+            zoomSpan.at,
           )
 
-          /*
-           * LEFT IMAGE
-           */
+          // The body fades out while the zoom carries it past the edges.
+          tl.fromTo(frame, { opacity: 1 }, { opacity: 0, duration: frameSpan.duration }, frameSpan.at)
 
-          timeline.fromTo(
-            leftCard,
+          // The same display box — same photo layer — grows out of the bezel
+          // until it covers the section, losing its rounded corners.
+          tl.fromTo(
+            screen,
             {
-              xPercent: desktop ? -45 : -25,
-              yPercent: 16,
-              rotation: -5,
-              scale: 0.9,
-              autoAlpha: 0,
+              left: () => zoom.screen.left,
+              top: () => zoom.screen.top,
+              width: () => zoom.screen.width,
+              height: () => zoom.screen.height,
+              borderRadius: () => getComputedStyle(screen).borderTopLeftRadius,
             },
             {
-              xPercent: 0,
-              yPercent: 0,
-              rotation: desktop ? -1.7 : -1,
-              scale: 1,
-              autoAlpha: 1,
-
-              duration: 0.95,
-              ease: 'expo.out',
+              left: () => zoom.cover.left,
+              top: () => zoom.cover.top,
+              width: () => zoom.cover.width,
+              height: () => zoom.cover.height,
+              borderRadius: 0,
+              duration: expandSpan.duration,
+              ease: 'sine.inOut',
             },
-            0.32,
+            expandSpan.at,
           )
 
-          /*
-           * RIGHT IMAGE
-           */
-
-          timeline.fromTo(
-            rightCard,
-            {
-              xPercent: desktop ? 45 : 24,
-              yPercent: -14,
-              rotation: 5,
-              scale: 0.9,
-              autoAlpha: 0,
-            },
-            {
-              xPercent: 0,
-              yPercent: 0,
-              rotation: desktop ? 1.5 : 1,
-              scale: 1,
-              autoAlpha: 1,
-
-              duration: 0.95,
-              ease: 'expo.out',
-            },
-            0.42,
-          )
-
-          /*
-           * BOTTOM IMAGE
-           */
-
-          timeline.fromTo(
-            bottomCard,
-            {
-              yPercent: 35,
-              xPercent: 14,
-              rotation: 3,
-              scale: 0.9,
-              autoAlpha: 0,
-            },
-            {
-              yPercent: 0,
-              xPercent: 0,
-              rotation: desktop ? 1 : 0.5,
-              scale: 1,
-              autoAlpha: 1,
-
-              duration: 0.9,
-              ease: 'expo.out',
-            },
-            0.52,
-          )
-
-          timeline.to(
-            intro,
-            {
-              autoAlpha: 0,
-              duration: 0.4,
-            },
-            0.72,
-          )
-
-          /*
-           * SLOW CONTACT-SHEET DRIFT
-           */
-
-          timeline
-            .to(
-              leftCard,
-              {
-                xPercent: desktop ? -14 : -7,
-                yPercent: -10,
-                rotation: desktop ? -2.5 : -1.5,
-
-                duration: 1.2,
-                ease: 'none',
-              },
-              1.02,
-            )
-
-            .to(
-              rightCard,
-              {
-                xPercent: desktop ? 12 : 6,
-                yPercent: 8,
-                rotation: desktop ? 2.4 : 1.3,
-
-                duration: 1.2,
-                ease: 'none',
-              },
-              1.02,
-            )
-
-            .to(
-              bottomCard,
-              {
-                xPercent: desktop ? 8 : 4,
-                yPercent: -10,
-
-                duration: 1.2,
-                ease: 'none',
-              },
-              1.02,
-            )
-
-            .to(
-              mainCard,
-              {
-                scale: 1.025,
-
-                duration: 1.2,
-                ease: 'none',
-              },
-              1.02,
-            )
-
-          /*
-           * ───────────────────────────────────────
-           * 02 — CONTACT SHEET → HERO FRAME
-           * ───────────────────────────────────────
-           */
-
-          timeline.set(
-            hero,
-            {
-              autoAlpha: 1,
-              clipPath: heroStart,
-            },
-            1.28,
-          )
-
-          timeline
-            .to(
-              hero,
-              {
-                clipPath: heroFrame,
-
-                duration: 1.35,
-                ease: 'power4.inOut',
-              },
-              1.28,
-            )
-
-            .to(
-              heroImage,
-              {
-                scale: 1.02,
-
-                duration: 1.35,
-                ease: 'power3.out',
-              },
-              1.28,
-            )
-
-          /*
-           * Original center card disappears into
-           * the matching fullscreen image.
-           */
-
-          timeline.to(
-            mainCard,
-            {
-              autoAlpha: 0,
-              scale: 1.04,
-
-              duration: 0.35,
-            },
-            1.3,
-          )
-
-          /*
-           * Peripheral images float away instead
-           * of simply fading.
-           */
-
-          timeline
-            .to(
-              leftCard,
-              {
-                xPercent: desktop ? -40 : -18,
-                yPercent: -14,
-                autoAlpha: 0,
-
-                duration: 0.85,
-              },
-              1.38,
-            )
-
-            .to(
-              rightCard,
-              {
-                xPercent: desktop ? 40 : 18,
-                yPercent: 14,
-                autoAlpha: 0,
-
-                duration: 0.85,
-              },
-              1.38,
-            )
-
-            .to(
-              bottomCard,
-              {
-                yPercent: 30,
-                scale: 0.94,
-                autoAlpha: 0,
-
-                duration: 0.8,
-              },
-              1.42,
-            )
-
-          /*
-           * HERO FRAME → FULL BLEED
-           */
-
-          timeline
-            .to(
-              hero,
-              {
-                clipPath: 'inset(0% 0% 0% 0%)',
-
-                duration: 0.95,
-                ease: 'power4.inOut',
-              },
-              2.28,
-            )
-
-            .to(
-              heroImage,
-              {
-                scale: 1.055,
-                xPercent: -1,
-
-                duration: 1.05,
-                ease: 'none',
-              },
-              2.28,
-            )
-
-            .to(
-              heroCaption,
-              {
-                autoAlpha: 1,
-                y: 0,
-
-                duration: 0.55,
-                ease: 'power3.out',
-              },
-              2.65,
-            )
-
-          /*
-           * ───────────────────────────────────────
-           * 03 — FULL BLEED → PORTRAIT SPLIT
-           * ───────────────────────────────────────
-           */
-
-          timeline.set(
-            split,
-            {
-              autoAlpha: 1,
-            },
-            3.22,
-          )
-
-          timeline
-            .fromTo(
-              splitLeft,
-              {
-                clipPath: 'inset(0% 100% 0% 0%)',
-                xPercent: -4,
-              },
-              {
-                clipPath: 'inset(0% 0% 0% 0%)',
-                xPercent: 0,
-
-                duration: 1.1,
-                ease: 'power4.inOut',
-              },
-              3.22,
-            )
-
-            .fromTo(
-              splitRight,
-              {
-                clipPath: 'inset(0% 0% 0% 100%)',
-                xPercent: 4,
-              },
-              {
-                clipPath: 'inset(0% 0% 0% 0%)',
-                xPercent: 0,
-
-                duration: 1.1,
-                ease: 'power4.inOut',
-              },
-              3.3,
-            )
-
-          /*
-           * INTERNAL IMAGE PARALLAX
-           */
-
-          timeline
-            .to(
-              splitLeftImage,
-              {
-                scale: 1.02,
-                yPercent: -2,
-
-                duration: 1.1,
-                ease: 'power2.out',
-              },
-              3.22,
-            )
-
-            .to(
-              splitRightImage,
-              {
-                scale: 1.02,
-                yPercent: 2,
-
-                duration: 1.1,
-                ease: 'power2.out',
-              },
-              3.3,
-            )
-
-          timeline.to(
-            heroCaption,
-            {
-              autoAlpha: 0,
-              y: -16,
-
-              duration: 0.35,
-            },
-            3.1,
-          )
-
-          timeline.to(
-            splitCaption,
-            {
-              autoAlpha: 1,
-              y: 0,
-
-              duration: 0.5,
-              ease: 'power3.out',
-            },
-            3.92,
-          )
-
-          /*
-           * ───────────────────────────────────────
-           * 04 — PORTRAIT SPLIT → FINAL CAMPAIGN
-           * ───────────────────────────────────────
-           */
-
-          timeline.set(
-            finalFrame,
-            {
-              autoAlpha: 1,
-              clipPath: 'inset(44% 0% 44% 0%)',
-            },
-            4.5,
-          )
-
-          timeline
-            .to(
-              finalFrame,
-              {
-                clipPath: 'inset(0% 0% 0% 0%)',
-
-                duration: 1.2,
-                ease: 'power4.inOut',
-              },
-              4.5,
-            )
-
-            .to(
-              finalImage,
-              {
-                scale: 1.015,
-
-                duration: 1.2,
-                ease: 'power3.out',
-              },
-              4.5,
-            )
-
-          /*
-           * Portraits move apart while the final
-           * image grows through the middle.
-           */
-
-          timeline
-            .to(
-              splitLeft,
-              {
-                xPercent: -105,
-                scale: 0.965,
-                opacity: 0.3,
-
-                duration: 0.9,
-                ease: 'power3.inOut',
-              },
-              4.62,
-            )
-
-            .to(
-              splitRight,
-              {
-                xPercent: 105,
-                scale: 0.965,
-                opacity: 0.3,
-
-                duration: 0.9,
-                ease: 'power3.inOut',
-              },
-              4.62,
-            )
-
-            .to(
-              splitCaption,
-              {
-                autoAlpha: 0,
-                y: -14,
-
-                duration: 0.25,
-              },
-              4.5,
-            )
-
-          /*
-           * FINAL COPY
-           */
-
-          timeline.to(
-            finalCaption,
-            {
-              autoAlpha: 1,
-              y: 0,
-
-              duration: 0.55,
-              ease: 'power3.out',
-            },
-            5.18,
-          )
-
-          /*
-           * FINAL BREATH
-           */
-
-          timeline.to(
-            finalImage,
-            {
-              scale: 1,
-              xPercent: 1.2,
-
-              duration: 1.1,
-              ease: 'none',
-            },
-            5.16,
-          )
-
-          /*
-           * PROGRESS UI
-           *
-           * Using timeline progress means the indicator
-           * follows the smoothed scrub animation, not the
-           * raw browser scroll position.
-           */
-
-          const setProgress = gsap.quickSetter(
-            progress,
-            'scaleX',
-          )
-
-          let previousPhase = -1
-
-          const updateChrome = () => {
-            const p = timeline.progress()
-
-            setProgress(p)
-
-            let index = 0
-
-            if (p >= 0.25) index = 1
-            if (p >= 0.53) index = 2
-            if (p >= 0.78) index = 3
-
-            if (index === previousPhase) return
-
-            previousPhase = index
-
-            const phases = [
-              'Direction',
-              'Frame',
-              'Portrait',
-              'Campaign',
-            ]
-
-            step.textContent = String(index + 1).padStart(
-              2,
-              '0',
-            )
-
-            phase.textContent = phases[index]
-          }
-
-          timeline.eventCallback(
-            'onUpdate',
-            updateChrome,
-          )
-
-          updateChrome()
+          // Once the frame is gone the photo lifts above it; nothing visible
+          // changes, but the fullscreen layer order is then true.
+          tl.set(screen, { zIndex: 10 }, SEQUENCE.layer)
+
+          // The carousel controls arrive with fullscreen, and on the way
+          // back are the first thing to go.
+          tl.fromTo(controls, { autoAlpha: 0 }, { autoAlpha: 1, duration: controlsSpan.duration }, controlsSpan.at)
+
+          // The fullscreen gallery holds before the page moves on.
+          tl.to({}, { duration: HOLD }, 1)
 
           return () => {
-            timeline.eventCallback('onUpdate', null)
-
-            timeline.scrollTrigger?.kill()
-            timeline.kill()
+            setGallery(false)
+            section.classList.remove('photo-gallery--zoom')
+            gsap.set([heading, camera, screen, frame, controls], { clearProps: 'all' })
           }
         },
       )
-
-      /*
-       * Refresh after fonts settle.
-       * Helps prevent pin calculations changing
-       * after typography loads.
-       */
-
-      if (document.fonts?.ready) {
-        document.fonts.ready.then(() => {
-          if (!disposed) {
-            ScrollTrigger.refresh()
-          }
-        })
-      }
-
-      return () => {
-        disposed = true
-        mm.revert()
-      }
     },
-    {
-      scope: sectionRef,
-      dependencies: [reduceMotion],
-    },
+    { scope: sectionRef, dependencies: [syncAutoplay] },
   )
+
+  // Autoplay pauses whenever the section is off screen.
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => {
+      visibleRef.current = entry.isIntersecting
+      syncAutoplay()
+    })
+    observer.observe(section)
+    return () => observer.disconnect()
+  }, [syncAutoplay])
+
+  // …and while the tab is hidden.
+  useEffect(() => {
+    document.addEventListener('visibilitychange', syncAutoplay)
+    return () => document.removeEventListener('visibilitychange', syncAutoplay)
+  }, [syncAutoplay])
+
+  useEffect(
+    () => () => {
+      timelineRef.current?.kill()
+      if (autoplayRef.current !== null) window.clearTimeout(autoplayRef.current)
+    },
+    [],
+  )
+
+  // Arrow keys, only while the gallery is the thing on screen.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+      const target = event.target as HTMLElement | null
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+
+      const section = sectionRef.current
+      if (!section) return
+      const { top, bottom } = section.getBoundingClientRect()
+      const vh = window.innerHeight
+      if (top > vh * 0.5 || bottom < vh * 0.5) return
+
+      event.preventDefault()
+      go(event.key === 'ArrowRight' ? 1 : -1)
+    }
+
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [go])
+
+  const onTouchStart = (event: TouchEvent) => {
+    const touch = event.touches[0]
+    touchRef.current = { x: touch.clientX, y: touch.clientY }
+  }
+
+  const onTouchEnd = (event: TouchEvent) => {
+    const start = touchRef.current
+    touchRef.current = null
+    if (!start) return
+    const touch = event.changedTouches[0]
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) go(dx < 0 ? 1 : -1)
+  }
 
   return (
     <section
       ref={sectionRef}
       id="photography"
-      aria-labelledby="photography-title"
-      className="relative isolate text-[#111]"
+      aria-roledescription="carousel"
+      aria-label="Photography"
+      className="photo-gallery relative w-full bg-white"
     >
-      <div
-        ref={stageRef}
-        className="relative h-svh w-full overflow-hidden"
+      <h2
+        ref={headingRef}
+        className="px-5 text-center text-[clamp(44px,6.5vw,96px)] font-bold uppercase leading-[0.82] tracking-[-0.055em] text-[#111]"
+        style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
       >
-        {/* ───────────────── INTRO ───────────────── */}
+        Photography
+      </h2>
 
-        <div
-          ref={introRef}
-          className="pointer-events-none absolute inset-0 z-10"
-        >
-          <div className="absolute inset-x-[5vw] top-[6vh] flex items-center justify-between">
-            <span className="font-primary text-[9px] uppercase tracking-[0.22em] text-black/40">
-              BrandWorks
-            </span>
-
-            <span className="font-primary text-[9px] uppercase tracking-[0.22em] text-black/40">
-              Visual Direction / 01
-            </span>
-          </div>
-
-          <div className="absolute inset-x-[4vw] top-1/2 -translate-y-1/2 md:inset-x-[5vw]">
-            <h2
-              ref={titleRef}
-              id="photography-title"
-              className="font-primary text-[clamp(4.2rem,12vw,6.5rem)] font-medium uppercase leading-[0.78] tracking-[-0.085em] text-[#111] will-change-[transform,opacity]"
-            >
-              Photography
-            </h2>
-          </div>
-
-          <div className="absolute bottom-[7vh] left-[5vw] right-[5vw] flex justify-end">
-            <p
-              ref={introCopyRef}
-              className="max-w-[470px] font-primary text-[13px] leading-[1.45] tracking-[-0.015em] text-black/55 md:text-[15px]"
-            >
-              Campaign photography, editorial portraits
-              and culture-led visual direction for brands
-              building a recognisable image language.
-            </p>
-          </div>
-        </div>
-
-        {/* ─────────────── CONTACT SHEET ─────────────── */}
-
-        <div
-          ref={collageRef}
-          className="pointer-events-none absolute inset-0 z-20"
-        >
-          {/* LEFT */}
-
-          <div
-            ref={leftCardRef}
-            className="absolute left-[4vw] top-[17vh] h-[24vh] w-[31vw] overflow-hidden bg-[#ddd] opacity-0 will-change-[transform,opacity] md:left-[6vw] md:top-[18vh] md:h-[32vh] md:w-[18vw]"
-          >
+      <div ref={cameraRef} className="photo-camera" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {/* The photographs, stacked and clipped to the display opening. Only
+           the active one is visible. */}
+        <div ref={screenRef} className="photo-camera__screen">
+          {photographyImages.map((image, index) => (
             <img
-              src={PHOTOS.portraitOne}
-              alt=""
-              aria-hidden="true"
-              draggable={false}
-              loading="eager"
-              decoding="async"
-              className="h-full w-full select-none object-cover"
-              style={{
-                objectPosition: '50% 38%',
+              key={image}
+              ref={(element) => {
+                slideRefs.current[index] = element
               }}
-            />
-          </div>
-
-          {/* CENTER */}
-
-          <div
-            ref={mainCardRef}
-            className="absolute left-1/2 top-1/2 z-20 h-[50vh] w-[72vw] -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-[#ddd] opacity-0 will-change-[transform,opacity,clip-path] md:h-[54vh] md:w-[42vw]"
-          >
-            <img
-              src={PHOTOS.hero}
-              alt=""
-              aria-hidden="true"
+              src={image}
+              alt={`BrandWorks photography project ${index + 1}`}
+              aria-hidden={index !== active}
               draggable={false}
-              loading="eager"
               decoding="async"
-              fetchPriority="high"
-              className="h-full w-full select-none object-cover"
-            />
-          </div>
-
-          {/* RIGHT */}
-
-          <div
-            ref={rightCardRef}
-            className="absolute right-[4vw] top-[17vh] h-[27vh] w-[29vw] overflow-hidden bg-[#ddd] opacity-0 will-change-[transform,opacity] md:right-[7vw] md:top-[15vh] md:h-[34vh] md:w-[17vw]"
-          >
-            <img
-              src={PHOTOS.portraitTwo}
-              alt=""
-              aria-hidden="true"
-              draggable={false}
-              loading="eager"
-              decoding="async"
-              className="h-full w-full select-none object-cover"
-              style={{
-                objectPosition: '50% 38%',
-              }}
-            />
-          </div>
-
-          {/* BOTTOM */}
-
-          <div
-            ref={bottomCardRef}
-            className="absolute bottom-[9vh] right-[8vw] h-[19vh] w-[37vw] overflow-hidden bg-[#ddd] opacity-0 will-change-[transform,opacity] md:bottom-[8vh] md:right-[12vw] md:h-[23vh] md:w-[25vw]"
-          >
-            <img
-              src={PHOTOS.final}
-              alt=""
-              aria-hidden="true"
-              draggable={false}
               loading="lazy"
-              decoding="async"
-              className="h-full w-full select-none object-cover"
+              className="photo-camera__slide"
             />
-          </div>
+          ))}
         </div>
 
-        {/* ────────────── HERO EXPANSION ────────────── */}
+        <img
+          ref={frameRef}
+          src={cameraFrame}
+          alt=""
+          aria-hidden="true"
+          width={1287}
+          height={984}
+          draggable={false}
+          decoding="async"
+          loading="lazy"
+          className="photo-camera__frame"
+        />
+      </div>
 
-        <div
-          ref={heroRef}
-          className="pointer-events-none absolute inset-0 z-30 overflow-hidden bg-[#111] opacity-0 will-change-[clip-path,opacity]"
-        >
-          <img
-            ref={heroImageRef}
-            src={PHOTOS.hero}
-            alt="BrandWorks campaign and culture photography"
-            draggable={false}
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-            className="h-full w-full select-none object-cover will-change-transform [backface-visibility:hidden]"
-          />
+      <div
+        ref={controlsRef}
+        className="photo-controls"
+        onPointerEnter={() => holdAutoplay(true)}
+        onPointerLeave={() => holdAutoplay(false)}
+        onFocus={() => holdAutoplay(true)}
+        onBlur={() => holdAutoplay(false)}
+      >
+        <button type="button" className="photo-nav photo-nav--prev" onClick={() => go(-1)}>
+          <span className="photo-nav__line" aria-hidden="true" />
+          <span className="site-ui">Previous</span>
+        </button>
 
-          <div
-            ref={heroCaptionRef}
-            className="absolute bottom-[5vh] left-[5vw] right-[5vw] flex items-end justify-between text-white opacity-0"
-          >
-            <p className="font-primary text-[10px] uppercase tracking-[0.2em] text-white/70">
-              Campaign / Editorial / Culture
-            </p>
+        <span className="photo-count site-ui tabular-nums" aria-live="polite">
+          <span className="sr-only">Photo </span>
+          <span className="photo-count__current">{pad(active + 1)}</span>
+          <span aria-hidden="true"> / </span>
+          <span className="sr-only"> of </span>
+          {pad(TOTAL)}
+        </span>
 
-            <p className="hidden max-w-[280px] text-right font-primary text-[12px] leading-[1.4] text-white/70 md:block">
-              Images designed to feel lived in,
-              deliberate and distinctly yours.
-            </p>
-          </div>
-        </div>
-
-        {/* ────────────── PORTRAIT SPLIT ────────────── */}
-
-        <div
-          ref={splitRef}
-          className="pointer-events-none absolute inset-0 z-40 opacity-0"
-        >
-          <div
-            ref={splitLeftRef}
-            className="absolute bottom-0 left-0 top-0 w-1/2 overflow-hidden bg-[#111] will-change-[transform,clip-path]"
-          >
-            <img
-              ref={splitLeftImageRef}
-              src={PHOTOS.portraitOne}
-              alt="Editorial portrait photography by BrandWorks"
-              draggable={false}
-              loading="eager"
-              decoding="async"
-              className="h-full w-full select-none object-cover will-change-transform [backface-visibility:hidden]"
-              style={{
-                objectPosition: '50% 38%',
-              }}
-            />
-          </div>
-
-          <div
-            ref={splitRightRef}
-            className="absolute bottom-0 right-0 top-0 w-1/2 overflow-hidden bg-[#111] will-change-[transform,clip-path]"
-          >
-            <img
-              ref={splitRightImageRef}
-              src={PHOTOS.portraitTwo}
-              alt="Creative portrait photography by BrandWorks"
-              draggable={false}
-              loading="eager"
-              decoding="async"
-              className="h-full w-full select-none object-cover will-change-transform [backface-visibility:hidden]"
-              style={{
-                objectPosition: '50% 38%',
-              }}
-            />
-          </div>
-
-          <div className="absolute bottom-0 left-1/2 top-0 z-20 w-px bg-white/30" />
-
-          <div
-            ref={splitCaptionRef}
-            className="absolute bottom-[5vh] left-1/2 z-30 -translate-x-1/2 whitespace-nowrap opacity-0"
-          >
-            <span className="font-primary text-[9px] uppercase tracking-[0.25em] text-white/80">
-              Portrait / Direction
-            </span>
-          </div>
-        </div>
-
-        {/* ─────────────── FINAL FRAME ─────────────── */}
-
-        <div
-          ref={finalRef}
-          className="pointer-events-none absolute inset-0 z-50 overflow-hidden bg-[#111] opacity-0 will-change-[clip-path,opacity]"
-        >
-          <img
-            ref={finalImageRef}
-            src={PHOTOS.final}
-            alt="BrandWorks campaign photography"
-            draggable={false}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full select-none object-cover will-change-transform [backface-visibility:hidden]"
-          />
-
-          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-
-          <div
-            ref={finalCaptionRef}
-            className="absolute bottom-[5vh] left-[5vw] right-[5vw] flex items-end justify-between opacity-0"
-          >
-            <div>
-              <span className="mb-3 block font-primary text-[9px] uppercase tracking-[0.22em] text-white/55">
-                Photography
-              </span>
-
-              <p className="max-w-[600px] font-primary text-[clamp(1.7rem,4vw,4rem)] font-medium leading-[0.95] tracking-[-0.045em] text-white">
-                Built to hold
-                <br />
-                attention.
-              </p>
-            </div>
-
-            <span className="hidden font-primary text-[9px] uppercase tracking-[0.2em] text-white/55 md:block">
-              BrandWorks / Visual Direction
-            </span>
-          </div>
-        </div>
-
-        {/* ─────────────── UI CHROME ─────────────── */}
-
-        <div
-          ref={chromeRef}
-          className="pointer-events-none absolute inset-0 z-[90] opacity-0"
-        >
-          {/* TOP */}
-
-          <div className="absolute left-[4vw] right-[4vw] top-[3vh] flex items-center gap-4 md:left-[5vw] md:right-[5vw]">
-            <span
-              ref={stepRef}
-              className="min-w-[20px] font-primary text-[9px] font-medium uppercase tracking-[0.18em] text-black/45 mix-blend-difference invert"
-            >
-              01
-            </span>
-
-            <div className="h-px flex-1 bg-current opacity-20 mix-blend-difference invert" />
-
-            <span
-              ref={phaseRef}
-              className="font-primary text-[9px] uppercase tracking-[0.18em] text-black/45 mix-blend-difference invert"
-            >
-              Direction
-            </span>
-          </div>
-
-          {/* BOTTOM */}
-
-          <div className="absolute bottom-[3vh] left-[4vw] right-[4vw] md:left-[5vw] md:right-[5vw]">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="font-primary text-[8px] uppercase tracking-[0.2em] text-black/40 mix-blend-difference invert md:text-[9px]">
-                Campaign / Editorial / Culture
-              </span>
-
-              <span className="font-primary text-[8px] uppercase tracking-[0.2em] text-black/40 mix-blend-difference invert md:text-[9px]">
-                BW / 01
-              </span>
-            </div>
-
-            <div className="h-px w-full overflow-hidden bg-current opacity-20 mix-blend-difference invert">
-              <div
-                ref={progressRef}
-                className="h-full w-full origin-left scale-x-0 bg-current"
-              />
-            </div>
-          </div>
-        </div>
+        <button type="button" className="photo-nav photo-nav--next" onClick={() => go(1)}>
+          <span className="site-ui">Next</span>
+          <span className="photo-nav__line" aria-hidden="true" />
+        </button>
       </div>
     </section>
   )
 }
+
+export default PhotographyGallery
