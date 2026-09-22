@@ -16,8 +16,9 @@
   color: var(--ink);
 }
 
-/* The supplied pattern, as supplied. The layer is taller than the section
-   so its slow parallax drift never shows an edge. */
+/* The supplied pattern, knocked back so it sits behind the copy and phone.
+   The layer is taller than the section so its slow parallax drift never
+   shows an edge. */
 .social-pattern {
   position: absolute;
   z-index: -1;
@@ -31,6 +32,7 @@
   inset: -7% 0;
   background: url('https://ik.imagekit.io/rxoyjxx4c/pattern%20@4x.png?updatedAt=1790058641375') 50% 50% / cover
     no-repeat;
+  opacity: 0.35;
   will-change: transform;
 }
 
