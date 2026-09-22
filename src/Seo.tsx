@@ -1215,7 +1215,7 @@ function Intro({ headingId }: { headingId: string }) {
       >
         <h2
           id={headingId}
-          className="max-w-5xl text-balance text-[2.55rem] font-semibold leading-[1.02] tracking-[-0.04em] text-neutral-950 sm:text-5xl lg:text-6xl"
+          className="site-display max-w-5xl text-balance text-neutral-950"
         >
           Being online isn&apos;t enough.
           <span className="block text-neutral-400">
@@ -1244,7 +1244,7 @@ function Closing({
   return (
     <RevealGroup className="pb-16 pt-12 sm:pb-20 sm:pt-16">
       <Reveal>
-        <h3 className="max-w-4xl text-balance text-[2rem] font-medium leading-[1.05] tracking-[-0.04em] text-neutral-950 sm:text-4xl lg:text-[2.6rem]">
+        <h3 className="site-heading max-w-4xl text-balance text-neutral-950">
           Better SEO isn&apos;t more traffic.
           <span className="block text-neutral-400">
             It&apos;s more of the right people finding you.

@@ -156,7 +156,7 @@ function ExpertQuoteSection({ quote }: { quote: ExpertQuote | null }) {
   if (!quote?.quote.trim()) return null
   return (
     <blockquote className="my-14 w-full border-l-2 border-neutral-900 py-2 pl-6">
-      <p className="text-[18px] leading-[1.5] font-medium text-neutral-900 italic">&ldquo;{quote.quote}&rdquo;</p>
+      <p className="text-[18px] leading-[1.5] font-medium text-neutral-900">&ldquo;{quote.quote}&rdquo;</p>
       <footer className="mt-3 text-[14px] text-neutral-600">
         <span className="font-medium text-neutral-900">{quote.personName}</span>
         {quote.role && <span>, {quote.role}</span>}

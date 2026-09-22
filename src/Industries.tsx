@@ -22,7 +22,7 @@ function Industries() {
 
   return (
     <section className="mx-auto flex w-full max-w-[1440px] flex-col overflow-hidden bg-white px-[18px] py-20 min-[900px]:px-12 min-[900px]:py-[clamp(72px,9vw,140px)]">
-      <h2 className="site-display max-w-[900px] text-neutral-900 uppercase">
+      <h2 className="site-display max-w-[900px] text-neutral-900">
         Industries We Work With
       </h2>
 

@@ -400,8 +400,8 @@ function PhotographyGallery() {
     >
       <h2
         ref={headingRef}
-        className="px-5 text-center text-[clamp(44px,6.5vw,96px)] font-bold uppercase leading-[0.82] tracking-[-0.055em] text-[#111]"
-        style={{ fontFamily: "'Google Sans Flex', 'Helvetica Neue', Arial, sans-serif" }}
+        className="px-5 text-center text-[clamp(44px,6.5vw,48px)] font-bold uppercase leading-[0.82] tracking-[-0.055em] text-[#111]"
+        
       >
         Photography
       </h2>

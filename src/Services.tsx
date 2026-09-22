@@ -457,12 +457,12 @@ function Services() {
 
         <FadeUp
           as="h2"
-          className="site-display mt-[22px] max-w-full text-neutral-900 uppercase"
+          className="site-display mt-[22px] max-w-full text-neutral-900"
           delay={0.1}
           duration={0.75}
           y={28}
         >
-          WHAT WE DO
+          What we do
         </FadeUp>
 
         <FadeUp

@@ -17,7 +17,7 @@ function Contact() {
       />
 
       <div className="flex w-full flex-col lg:w-1/2">
-        <h2 className="site-heading text-neutral-900 uppercase">
+        <h2 className="site-heading text-neutral-900">
           Let&apos;s Talk
         </h2>
 

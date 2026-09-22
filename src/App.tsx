@@ -9,7 +9,7 @@ import About from './About'
 import Photography from './Work'
 import Work from './WorkWithImpact'
 import SocialContent from './components/socialMedia/SocailMedia'
-import PhotographyTransition from './components/PhotographyTransition/PhotographyTransition'
+
 import Videography from './Videography'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
 import PRReputation from './PRReputation'

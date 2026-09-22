@@ -35,7 +35,7 @@ function FAQs() {
     <section className="mx-auto flex w-full max-w-[1280px] flex-col items-center px-4 py-20 text-center">
       <span className="site-kicker text-neutral-500">FAQs</span>
 
-      <h2 className="site-display mt-4 w-full max-w-[760px] text-neutral-900 uppercase">
+      <h2 className="site-display mt-4 w-full max-w-[760px] text-neutral-900">
         Questions, Answered
       </h2>
 

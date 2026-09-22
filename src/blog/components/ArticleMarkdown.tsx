@@ -106,10 +106,10 @@ function ArticleMarkdown({ content }: { content: string }) {
         [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-[26px] [&_h2]:leading-[1.2] [&_h2]:font-bold [&_h2]:text-neutral-900 [&_h2]:first:mt-0
         [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:text-[20px] [&_h3]:leading-[1.3] [&_h3]:font-semibold [&_h3]:text-neutral-900
         [&_h4]:mt-6 [&_h4]:mb-2 [&_h4]:text-[17px] [&_h4]:font-semibold [&_h4]:text-neutral-900
-        [&_p]:my-5 [&_strong]:font-semibold [&_strong]:text-neutral-900 [&_em]:italic
+        [&_p]:my-5 [&_strong]:font-semibold [&_strong]:text-neutral-900
         [&_ul]:my-5 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-5 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1.5
         [&_a]:text-neutral-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-neutral-400 [&_a:hover]:decoration-neutral-900
-        [&_blockquote]:my-6 [&_blockquote]:border-l-2 [&_blockquote]:border-neutral-300 [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-neutral-600
+        [&_blockquote]:my-6 [&_blockquote]:border-l-2 [&_blockquote]:border-neutral-300 [&_blockquote]:pl-5 [&_blockquote]:text-neutral-600
         [&_pre]:my-6 [&_pre]:overflow-x-auto [&_pre]:rounded-[8px] [&_pre]:bg-neutral-900 [&_pre]:p-4 [&_pre]:text-[14px] [&_pre]:leading-[1.6] [&_pre]:text-neutral-100
         [&_code]:rounded-[4px] [&_code]:bg-neutral-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[14px] [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit
         [&_table]:my-6 [&_table]:w-full [&_table]:border-collapse [&_table]:text-[14px]

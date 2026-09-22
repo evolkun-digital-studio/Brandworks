@@ -90,7 +90,7 @@ function Header() {
     <header className={containerClass} style={headerStyle}>
       {/* Desktop Layout */}
       <div 
-        className="hidden lg:grid w-full h-[88px] items-center px-[4vw] pl-[5vw]" 
+        className="hidden lg:grid w-full h-[65px] items-center px-[4vw] pl-[5vw]" 
         style={{ gridTemplateColumns: '1fr auto 1fr' }}
       >
         {/* Left */}

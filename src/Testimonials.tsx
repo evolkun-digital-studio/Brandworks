@@ -12,7 +12,7 @@ const testimonials = [testimonial, testimonial, testimonial]
 function Testimonials() {
   return (
     <section className="mx-auto flex w-full max-w-[1280px] flex-col px-4 py-20">
-      <h2 className="site-heading text-neutral-900 uppercase">
+      <h2 className="site-heading text-neutral-900">
         Testimonials
       </h2>
 

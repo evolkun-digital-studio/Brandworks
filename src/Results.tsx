@@ -122,7 +122,7 @@ function Header() {
         <sup className="text-[10px]">&reg;</sup>
       </span>
 
-      <h2 className="site-display mt-4 flex w-full max-w-[760px] flex-col items-center text-center uppercase">
+      <h2 className="site-display mt-4 flex w-full max-w-[760px] flex-col items-center text-center">
         <span className="text-neutral-500">How Brands Perform</span>
         <span className="text-neutral-900">With Brandworks</span>
       </h2>

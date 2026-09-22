@@ -6,6 +6,14 @@
   position: absolute;
   inset: 0;
   color: #fff;
+  /* Vertical swipes drive the reel; horizontal stays with the browser. */
+  touch-action: pan-x;
+  cursor: grab;
+  user-select: none;
+}
+
+.reel-feed:active {
+  cursor: grabbing;
 }
 
 .reel-feed:focus-visible {

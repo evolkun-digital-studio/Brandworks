@@ -3,10 +3,10 @@
 /* Site typography: Google Sans Flex is the primary family, with Inter Tight
    as the complementary secondary family for supporting/editorial text. */
 @theme {
-  --font-primary: 'Google Sans Flex', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-secondary: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-inter: 'Google Sans Flex', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-instrument: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-primary: 'BrandWorks', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-secondary: 'BrandWorks Body', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-inter: 'BrandWorks Body', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-instrument: 'BrandWorks', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* The single BrandWorks accent, sampled from the lime highlight in the
      PR & Founder Reputation artwork so a rule drawn next to that image
@@ -54,47 +54,31 @@
  */
 
 @font-face {
-  font-family: 'DEMO Picktea';
-  src: url('./Font/demo-picktea.regular.ttf') format('truetype');
+  font-family: 'BrandWorks';
+  src: url('./Font/Grimblade.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BrandWorks Body';
+  src: url('./Font/OpenSans-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
-/* Google Sans Flex (OFL, see Font/GoogleSansFlex-OFL.txt): Thin at the
-   72pt optical size for display type, Regular at 24pt for the service
-   index names and small text. */
 @font-face {
-  font-family: 'Google Sans Flex';
-  src: url('./Font/GoogleSansFlex_72pt-Thin.ttf') format('truetype');
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Google Sans Flex';
-  src: url('./Font/GoogleSansFlex_24pt-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Google Sans Flex at the same 72pt optical size as the Thin above, as a
-   variable font over weights 100–600 (instanced from Google's variable
-   release and subset to the Thin's character set). Its own family name so
-   the extra weights only reach the Our Services section — elsewhere bold
-   Google Sans Flex keeps rendering exactly as it did. */
-@font-face {
-  font-family: 'Google Sans Flex Display';
-  src: url('./Font/GoogleSansFlex_72pt-Display-wght100-600.woff2') format('woff2');
-  font-weight: 100 600;
+  font-family: 'BrandWorks Body';
+  src: url('./Font/OpenSans-SemiBold.woff2') format('woff2');
+  font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 .services-display {
-  font-family: 'Google Sans Flex Display', 'Google Sans Flex', 'Helvetica', sans-serif;
+  font-family: 'BrandWorks', 'Helvetica', sans-serif;
 }
 
 /* Our Services index: the row the arrow points at is SemiBold and full
@@ -114,7 +98,7 @@
 }
 
 body {
-  font-family: 'Google Sans Flex', ui-sans-serif, system-ui, -apple-system,
+  font-family: 'BrandWorks Body', ui-sans-serif, system-ui, -apple-system,
     'Helvetica Neue', Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
@@ -129,7 +113,7 @@ body {
  * still allowing headings to respond fluidly between phone and desktop.
  */
 .site-kicker {
-  font-size: 0.75rem;
+  font-size: clamp(9px, 1vw, 11px);
   line-height: 1.25;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -137,26 +121,26 @@ body {
 }
 
 .site-display {
-  font-size: clamp(2.5rem, 4.5vw, 3.5rem);
+  font-size: clamp(36px, 4vw, 48px);
   line-height: 0.98;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.04em;
 }
 
 .site-heading {
-  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  font-size: clamp(28px, 3.5vw, 40px);
   line-height: 1.05;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.035em;
 }
 
 .site-copy {
-  font-size: 1rem;
+  font-size: clamp(14px, 1.2vw, 16px);
   line-height: 1.5;
 }
 
 .site-ui {
-  font-size: 0.8125rem;
+  font-size: clamp(9px, 1vw, 11px);
   line-height: 1;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -184,8 +168,8 @@ body {
 
   /* P2 */
   .section-label {
-    font-family: var(--font-inter);
-    font-size: clamp(11px, 0.8vw, 13px);
+    font-family: var(--font-secondary);
+    font-size: clamp(9px, 0.8vw, 11px);
     font-weight: 500;
     line-height: 1.2;
     letter-spacing: 0.14em;
@@ -198,10 +182,10 @@ body {
      tight, and at -0.045em its letters visibly fuse. No measure of its
      own: a heading takes the width of the grid columns it is given. */
   .section-heading {
-    font-family: var(--font-instrument);
-    font-size: clamp(42px, 6vw, 96px);
-    font-weight: 400;
-    line-height: 0.94;
+    font-family: var(--font-primary);
+    font-size: clamp(28px, 3.5vw, 40px);
+    font-weight: 500;
+    line-height: 0.95;
     letter-spacing: -0.03em;
     text-wrap: balance;
     color: var(--ink);
@@ -210,8 +194,8 @@ body {
   /* P1 */
   .section-description {
     max-width: 58ch;
-    font-family: var(--font-inter);
-    font-size: clamp(16px, 1.35vw, 21px);
+    font-family: var(--font-secondary);
+    font-size: clamp(18px, 1.35vw, 20px);
     line-height: 1.5;
     letter-spacing: -0.015em;
     text-wrap: pretty;
@@ -278,8 +262,8 @@ body {
 }
 
 .pr-heading {
-  font-size: clamp(38px, 7vw, 56px);
-  line-height: 0.9;
+  font-size: clamp(36px, 4vw, 48px);
+  line-height: 0.95;
 }
 
 .pr-description {
@@ -346,7 +330,7 @@ body {
   }
 
   .pr-heading {
-    font-size: clamp(58px, 8vw, 84px);
+    font-size: clamp(36px, 4vw, 48px);
   }
 }
 
@@ -356,8 +340,8 @@ body {
   }
 
   .pr-heading {
-    font-size: clamp(46px, 14vw, 68px);
-    line-height: 0.94;
+    font-size: clamp(36px, 10vw, 48px);
+    line-height: 0.95;
   }
 
   /* One short line each, rather than a row that wraps unevenly. */
@@ -583,9 +567,9 @@ body {
   margin: 0;
   padding-inline: 7vw;
   font-family: var(--font-primary);
-  font-size: clamp(64px, 9vw, 150px);
-  font-weight: 600;
-  line-height: 0.86;
+  font-size: clamp(36px, 4vw, 48px);
+  font-weight: 500;
+  line-height: 0.95;
   letter-spacing: -0.05em;
   text-transform: uppercase;
   color: #fff;
@@ -619,7 +603,7 @@ body {
      down to a 320px screen. */
   .pt-copy {
     padding-inline: 18px;
-    font-size: clamp(40px, 13vw, 72px);
+    font-size: clamp(36px, 10vw, 48px);
   }
 }
 
@@ -669,9 +653,9 @@ body {
   max-width: 12ch;
   margin: var(--text-gap) 0 0;
   font-family: var(--font-primary);
-  font-size: clamp(52px, 6vw, 104px);
+  font-size: clamp(36px, 4vw, 48px);
   font-weight: 500;
-  line-height: 0.96;
+  line-height: 0.95;
   letter-spacing: -0.055em;
   text-wrap: balance;
   color: var(--ink);
@@ -727,7 +711,7 @@ body {
 
 .brand-signal-card__number {
   font-family: var(--font-primary);
-  font-size: clamp(13px, 1vw, 15px);
+  font-size: clamp(9px, 1vw, 11px);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
@@ -747,7 +731,7 @@ body {
 .brand-signal-card__label {
   margin-left: auto;
   font-family: var(--font-primary);
-  font-size: clamp(11px, 0.8vw, 13px);
+  font-size: clamp(9px, 0.8vw, 11px);
   line-height: 1.2;
   letter-spacing: 0.16em;
   color: var(--ink-muted);
@@ -763,11 +747,11 @@ body {
   margin: 0 0 -0.16em;
   font-family: var(--font-primary);
   font-size: min(
-    clamp(42px, 12.5cqi, 86px),
+    clamp(24px, 6cqi, 32px),
     calc((100cqi - 2 * var(--bi-card-pad)) / (var(--chars) * 0.52))
   );
   font-weight: 500;
-  line-height: 0.9;
+  line-height: 0.95;
   letter-spacing: -0.055em;
   white-space: nowrap;
   color: var(--ink);
@@ -781,7 +765,7 @@ body {
 
 @media (max-width: 767px) {
   .brand-intelligence__heading {
-    font-size: clamp(38px, 11vw, 52px);
+    font-size: clamp(36px, 10vw, 48px);
   }
 
   .brand-signal-card {

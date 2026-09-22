@@ -8,7 +8,7 @@ function CTA() {
           className="pointer-events-none absolute top-1/2 left-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/25 blur-[90px]"
         />
 
-        <h2 className="site-display relative z-0 max-w-[780px] text-neutral-700/60 uppercase">
+        <h2 className="site-display relative z-0 max-w-[780px] text-neutral-700/60">
           Let&apos;s Build What&apos;s Next
         </h2>
 

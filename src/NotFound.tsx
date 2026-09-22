@@ -22,7 +22,7 @@ function NotFound() {
 
   return (
     <main className="flex flex-col items-center gap-4 bg-white px-4 py-24 text-center">
-      <h1 className="text-[28px] font-bold tracking-tight text-neutral-900 uppercase">
+      <h1 className="text-[28px] font-bold tracking-tight text-neutral-900">
         Page Not Found
       </h1>
       <p className="max-w-[420px] text-[15px] text-neutral-600">

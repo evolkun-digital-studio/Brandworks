@@ -33,6 +33,10 @@ function ReelFeed({ reels, label }: { reels: SocialReel[]; label: string }) {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
   const shownRef = useRef(0)
   const directionRef = useRef<Direction>(1)
+  const wheelDeltaRef = useRef(0)
+  const wheelResetRef = useRef<number | null>(null)
+  const wheelUnlockRef = useRef<number | null>(null)
+  const wheelLockedRef = useRef(false)
 
   const [active, setActive] = useState(0)
   const [onScreen, setOnScreen] = useState(false)
@@ -100,6 +104,76 @@ function ReelFeed({ reels, label }: { reels: SocialReel[]; label: string }) {
 
   useEffect(() => () => gsap.killTweensOf(slideRefs.current.filter(Boolean)), [])
 
+  // Desktop wheel / trackpad browsing. This is installed natively with
+  // passive:false so the page's smooth-scroll handler does not consume the
+  // gesture while the pointer is over the phone. Small trackpad deltas are
+  // accumulated into one deliberate step and locked until the slide has
+  // nearly settled, preventing one wheel gesture from skipping reels.
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root || reels.length < 2) return
+
+    const resetWheel = () => {
+      wheelDeltaRef.current = 0
+      wheelResetRef.current = null
+    }
+
+    const onWheel = (event: WheelEvent) => {
+      const rawDelta =
+        Math.abs(event.deltaY) >= Math.abs(event.deltaX)
+          ? event.deltaY
+          : event.deltaX
+
+      if (rawDelta === 0) return
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (wheelLockedRef.current) return
+
+      const unit =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? 16
+          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? root.clientHeight
+            : 1
+
+      wheelDeltaRef.current += rawDelta * unit
+
+      if (wheelResetRef.current !== null) {
+        window.clearTimeout(wheelResetRef.current)
+      }
+
+      wheelResetRef.current = window.setTimeout(resetWheel, 160)
+
+      if (Math.abs(wheelDeltaRef.current) < 36) return
+
+      const direction: Direction = wheelDeltaRef.current > 0 ? 1 : -1
+      resetWheel()
+      wheelLockedRef.current = true
+      goTo(shownRef.current + direction, direction)
+
+      wheelUnlockRef.current = window.setTimeout(() => {
+        wheelLockedRef.current = false
+        wheelUnlockRef.current = null
+      }, SLIDE.duration * 900)
+    }
+
+    root.addEventListener('wheel', onWheel, { passive: false })
+
+    return () => {
+      root.removeEventListener('wheel', onWheel)
+      if (wheelResetRef.current !== null) {
+        window.clearTimeout(wheelResetRef.current)
+      }
+      if (wheelUnlockRef.current !== null) {
+        window.clearTimeout(wheelUnlockRef.current)
+      }
+      resetWheel()
+      wheelLockedRef.current = false
+    }
+  }, [goTo, reels.length])
+
   // Whether the phone is on the page's screen at all.
   useEffect(() => {
     const root = rootRef.current
@@ -138,6 +212,45 @@ function ReelFeed({ reels, label }: { reels: SocialReel[]; label: string }) {
     event.preventDefault()
   }
 
+  /* Pointer swipe: a vertical flick advances the reel (mouse & touch). */
+  const pointerStart = useRef<{ y: number } | null>(null)
+
+  const onPointerDown = (event: React.PointerEvent) => {
+    if (event.button !== 0 && event.pointerType === 'mouse') return
+    pointerStart.current = { y: event.clientY }
+    if (event.currentTarget.setPointerCapture) {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    }
+  }
+
+  const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!pointerStart.current) return
+    if (Math.abs(pointerStart.current.y - event.clientY) > 6) {
+      event.preventDefault()
+    }
+  }
+
+  const onPointerUp = (event: React.PointerEvent) => {
+    if (!pointerStart.current) return
+    const dy = pointerStart.current.y - event.clientY
+    pointerStart.current = null
+
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    if (Math.abs(dy) > 30) {
+      goTo(active + (dy > 0 ? 1 : -1), dy > 0 ? 1 : -1)
+    }
+  }
+
+  const onPointerCancel = (event: React.PointerEvent<HTMLDivElement>) => {
+    pointerStart.current = null
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
+
   return (
     <div
       ref={rootRef}
@@ -147,6 +260,10 @@ function ReelFeed({ reels, label }: { reels: SocialReel[]; label: string }) {
       aria-roledescription="carousel"
       aria-label={`Social media reels, ${reels.length} videos. Use the arrow keys to browse.`}
       onKeyDown={onKeyDown}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
     >
       <div className="reel-feed__slides" aria-live={playing ? 'off' : 'polite'}>
         {reels.map((reel, index) => (

@@ -165,8 +165,8 @@ function Footer() {
         </div>
       </div>
 
-      <div className="mt-16 w-full overflow-hidden">
-        <span className="block w-full translate-y-[0.08em] text-center text-[10vw] leading-[0.8] font-black tracking-tight whitespace-nowrap text-neutral-900 uppercase sm:text-[9vw]">
+      <div className="mt-16 w-full overflow-hidden text-center">
+        <span className="site-display block w-full whitespace-nowrap text-neutral-900">
           Brandworks
         </span>
       </div>

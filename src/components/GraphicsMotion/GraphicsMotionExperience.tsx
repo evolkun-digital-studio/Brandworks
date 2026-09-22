@@ -60,13 +60,13 @@ function TypographyArtwork() {
         </span>
       </div>
 
-      <div className="absolute inset-x-[7%] top-1/2 -translate-y-1/2">
-        <p className="font-primary text-[clamp(4.4rem,9.4vw,10.5rem)] font-medium uppercase leading-[0.72] tracking-[-0.09em] text-white">
+      <div className="absolute inset-x-[7%] top-1/2 -translate-y-1/2 text-[clamp(2.8rem,5.7vw,6.1rem)] font-primary">
+        <p className="site-display text-white ">
           Form
         </p>
 
         <div className="-mt-[0.015em] flex justify-end pr-[3%]">
-          <p className="font-primary text-[clamp(4.4rem,9.4vw,10.5rem)] font-medium uppercase leading-[0.72] tracking-[-0.09em] text-white">
+          <p className="site-display text-white">
             Voice
           </p>
         </div>
