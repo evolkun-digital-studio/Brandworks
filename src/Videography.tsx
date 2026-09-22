@@ -1,731 +1,1298 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { CSSProperties, RefObject } from 'react'
-import { clamp01, lerp, matches, smoothstep, write } from './lib/scrollMotion'
+import { forwardRef, useEffect, useRef, useState } from 'react'
+import gsap from 'gsap'
+import ScrollTrigger from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import { useReducedMotion } from 'motion/react'
 
-// ---------------------------------------------------------------------------
-// Content
-// ---------------------------------------------------------------------------
+gsap.registerPlugin(ScrollTrigger)
 
-/**
- * Where a film comes from. YouTube for now; switching a project to a
- * hosted MP4 (e.g. ImageKit) is just `type: 'video'` plus a `videoUrl`.
- */
-type MediaProject = {
-  type: 'youtube' | 'video'
-  /** YouTube video ID — the clean ID only, no `?si=` share parameters. */
-  videoId?: string
-  /** Direct MP4 (H.264) / WebM URL, web-optimised. */
-  videoUrl?: string
-  /** Shown until the film has loaded. Defaults to YouTube's thumbnail. */
-  poster?: string
-}
-
-type VideoProject = MediaProject & {
+type VideoProject = {
   id: string
   title: string
-  category: string
-  client?: string
-  year?: string
+  line: string
+  src: string
 }
 
 const VIDEO_PROJECTS: VideoProject[] = [
-  { id: '01', title: 'Brand Film', category: 'Videography', type: 'youtube', videoId: 'PJWHAiDARMQ' },
-  { id: '02', title: 'Campaign Film', category: 'Videography', type: 'youtube', videoId: '5EpyN_6dqyk' },
-  { id: '03', title: 'Visual Story', category: 'Videography', type: 'youtube', videoId: 'weeI1G46q0o' },
-  { id: '04', title: 'Creative Film', category: 'Videography', type: 'youtube', videoId: '_r-nPqWGG6c' },
+  {
+    id: '01',
+    title: 'Brand Film',
+    line: 'Ideas, given movement.',
+    src: '/video/CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4',
+  },
+  {
+    id: '02',
+    title: 'Campaign Film',
+    line: 'Rhythm becomes direction.',
+    src: '/video/Central Cee - Obsessed With You (Official Video).mp4',
+  },
+  {
+    id: '03',
+    title: 'Visual Story',
+    line: 'Every frame carries intent.',
+    src: '/video/Idea - Cinematic Video _ Shot on Canon EOS250D.mp4',
+  },
+  {
+    id: '04',
+    title: 'Creative Film',
+    line: 'The story keeps moving.',
+    src: '/video/CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4',
+  },
 ]
 
-// Scene order through the pinned sequence: the first film opens the
-// section, the second is revealed as it splits, the middle ones take over
-// the viewport one at a time, and the last carries the closing statement.
-const INTRO_PROJECT = VIDEO_PROJECTS[0]
-const REVEAL_PROJECT = VIDEO_PROJECTS[1]
-const SCENE_PROJECTS = VIDEO_PROJECTS.slice(2, -1)
-const CLOSING_PROJECT = VIDEO_PROJECTS[VIDEO_PROJECTS.length - 1]
-
-// ---------------------------------------------------------------------------
-// Media
-// ---------------------------------------------------------------------------
-
-const youtubeSrc = (videoId: string) =>
-  `https://www.youtube.com/embed/${videoId}` +
-  `?autoplay=1` +
-  `&mute=1` +
-  `&loop=1` +
-  `&playlist=${videoId}` + // required for a single video to loop
-  `&controls=0` +
-  `&rel=0` +
-  `&modestbranding=1` +
-  `&playsinline=1`
-
-const posterOf = (media: MediaProject) =>
-  media.poster ?? (media.type === 'youtube' && media.videoId ? `https://i.ytimg.com/vi/${media.videoId}/hqdefault.jpg` : undefined)
-
-type YouTubeVideoProps = {
-  videoId: string
+function Film({
+  project,
+  live,
+  className = '',
+}: {
+  project: VideoProject
+  live: boolean
   className?: string
-}
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-/** A muted, looping, chrome-free YouTube embed that can't be clicked into. */
-function YouTubeVideo({ videoId, className = '' }: YouTubeVideoProps) {
-  // Fade in once the player has loaded, so its black loading frame never
-  // flashes over the poster.
-  const [loaded, setLoaded] = useState(false)
-  return (
-    <iframe
-      src={youtubeSrc(videoId)}
-      title="BrandWorks videography project"
-      allow="autoplay; encrypted-media; picture-in-picture"
-      allowFullScreen
-      referrerPolicy="strict-origin-when-cross-origin"
-      tabIndex={-1}
-      aria-hidden="true"
-      onLoad={() => setLoaded(true)}
-      className={className}
-      style={{
-        border: 0,
-        pointerEvents: 'none',
-        opacity: loaded ? 1 : 0,
-        transition: 'opacity 700ms ease 300ms',
-      }}
-    />
-  )
-}
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
 
-/**
- * Renders a project's film inside a cover-fitted frame, over its poster.
- * `live` mounts the player; when false only the poster remains, so a scene
- * that is far from view costs nothing.
- */
-function Media({ media, live, crop }: { media: MediaProject; live: boolean; crop?: number }) {
-  const poster = posterOf(media)
+    if (live) {
+      video.play().catch(() => {
+        // Autoplay can still wait for the first user interaction.
+      })
+    } else {
+      video.pause()
+    }
+  }, [live])
+
   return (
-    <div aria-hidden="true" className="video-frame" style={crop ? ({ '--yt-crop': crop } as CSSProperties) : undefined}>
-      {poster && <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${poster})` }} />}
-      {live &&
-        (media.type === 'youtube' && media.videoId ? (
-          <YouTubeVideo videoId={media.videoId} className="youtube-cover" />
-        ) : media.videoUrl ? (
-          <video
-            src={media.videoUrl}
-            poster={poster}
-            autoPlay
-            muted
-            loop
-            playsInline
-            disablePictureInPicture
-            preload="metadata"
-            tabIndex={-1}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : null)}
+    <div
+      className={`absolute inset-0 overflow-hidden bg-[#0d0d0d] ${className}`}
+    >
+      <video
+        ref={videoRef}
+        src={project.src}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// Scroll choreography helpers
-// ---------------------------------------------------------------------------
+const SceneCaption = forwardRef<
+  HTMLDivElement,
+  { project: VideoProject }
+>(({ project }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className="
+        absolute
+        bottom-[4.5vh]
+        left-[4vw]
+        right-[4vw]
 
-/** 0→1 across [a, b], smoothstepped (the brief's segment helper). */
-const seg = (p: number, a: number, b: number) => smoothstep(clamp01((p - a) / (b - a)))
-/** Rises over [a, b], holds, falls over [c, d]. */
-const segmentInOut = (p: number, a: number, b: number, c: number, d: number) => seg(p, a, b) * (1 - seg(p, c, d))
-/** Close to cubic-bezier(0.22, 1, 0.36, 1): a long, soft landing. */
-const easeOutQuint = (t: number) => 1 - Math.pow(1 - t, 5)
+        flex
+        items-end
+        justify-between
+        gap-6
 
-const filterOf = (blur: number, brightness: number) =>
-  blur < 0.05 && brightness > 0.995 ? 'none' : `blur(${blur.toFixed(2)}px) brightness(${brightness.toFixed(3)})`
+        text-white
+        opacity-0
 
-/** clip-path window: [top, right, bottom, left] % scaled by t, with rounded corners. */
-const insetOf = (t: number, [a, b, c, d]: [number, number, number, number], radius: number) =>
-  t < 0.001 ? 'none' : `inset(${(a * t).toFixed(2)}% ${(b * t).toFixed(2)}% ${(c * t).toFixed(2)}% ${(d * t).toFixed(2)}% round ${(radius * t).toFixed(1)}px)`
+        md:left-[5vw]
+        md:right-[5vw]
+      "
+    >
+      <p
+        className="
+          max-w-[13ch]
+          font-primary
+          text-[clamp(1.35rem,2.1vw,2.5rem)]
+          font-medium
+          leading-[0.98]
+          tracking-[-0.035em]
+        "
+      >
+        {project.line}
+      </p>
 
-/**
- * The frame with a vertical opening of ±gap% around its centre: the two
- * halves stay, the middle is cut away. One film, so no seam to keep in sync.
- */
-const splitOf = (gap: number) => {
-  if (gap < 0.01) return 'none'
-  const l = (50 - gap).toFixed(3)
-  const r = (50 + gap).toFixed(3)
-  return `polygon(0 0, ${l}% 0, ${l}% 100%, ${r}% 100%, ${r}% 0, 100% 0, 100% 100%, 0 100%)`
-}
+      <span className="shrink-0 font-primary text-[8px] uppercase tracking-[0.18em] text-white/60 md:text-[9px]">
+        {project.id} / {project.title}
+      </span>
+    </div>
+  )
+})
 
-const CAT_START = 0.6
-const CAT_STEP = 0.225 / Math.max(1, SCENE_PROJECTS.length)
-const CLOSING_START = CAT_START + SCENE_PROJECTS.length * CAT_STEP
+SceneCaption.displayName = 'SceneCaption'
 
-type Mode = 'desktop' | 'mobile'
+function GalleryFilm({
+  project,
+  live,
+}: {
+  project: VideoProject
+  live: boolean
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-function useMode(): { mode: Mode; reduce: boolean } {
-  const read = () => ({
-    mode: (matches('(min-width: 768px)') ? 'desktop' : 'mobile') as Mode,
-    reduce: matches('(prefers-reduced-motion: reduce)'),
-  })
-  const [state, setState] = useState(read)
   useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return
-    const queries = ['(min-width: 768px)', '(prefers-reduced-motion: reduce)'].map((q) => window.matchMedia(q))
-    const onChange = () => setState(read())
-    queries.forEach((q) => q.addEventListener('change', onChange))
-    return () => queries.forEach((q) => q.removeEventListener('change', onChange))
-  }, [])
-  return state
+    const video = videoRef.current
+    if (!video) return
+
+    if (live) {
+      video.play().catch(() => {})
+    } else {
+      video.pause()
+    }
+  }, [live])
+
+  return (
+    <div className="relative aspect-[4/5] overflow-hidden bg-[#111] md:aspect-[3/4]">
+      <video
+        ref={videoRef}
+        src={project.src}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+
+      <div className="absolute inset-0 bg-black/[0.06]" />
+
+      <div className="absolute inset-x-3 bottom-3 flex items-end justify-between gap-3 text-white md:inset-x-4 md:bottom-4">
+        <span className="font-primary text-[10px] font-medium tracking-[-0.01em]">
+          {project.title}
+        </span>
+
+        <span className="font-primary text-[8px] uppercase tracking-[0.16em] text-white/65">
+          {project.id}
+        </span>
+      </div>
+    </div>
+  )
 }
 
-/** When each scene's film is on screen, as [from, to] progress. */
-function sceneWindows(split: boolean, reduce: boolean): Record<string, [number, number]> {
-  const windows: Record<string, [number, number]> = {
-    intro: [0, split ? 0.53 : reduce ? 0.45 : 0.52],
-    reveal: [0.33, CAT_START + 0.04],
-    closing: [CLOSING_START, 0.95],
-  }
-  SCENE_PROJECTS.forEach((_, k) => {
-    const start = CAT_START + k * CAT_STEP
-    windows[`c${k}`] = [start, start + CAT_STEP + 0.03]
-  })
-  return windows
-}
+export default function Videography() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
 
-// ---------------------------------------------------------------------------
-// The scroll engine: one requestAnimationFrame loop eases its own copy of
-// the scroll position and publishes everything as CSS custom properties
-// on the stage. Film wrappers read those variables in their own
-// transforms, so React never re-renders while scrolling and the players
-// themselves are never touched by the animation — they just play.
-//
-// The only thing React hears about is which scenes are near enough to
-// mount their player (current, and the previous/next where they overlap):
-// a string that changes a handful of times across the whole sequence.
-// ---------------------------------------------------------------------------
+  const introRef = useRef<HTMLDivElement>(null)
+  const wordTopRef = useRef<HTMLDivElement>(null)
+  const wordBottomRef = useRef<HTMLDivElement>(null)
+  const introMetaRef = useRef<HTMLDivElement>(null)
 
-function useVideographyEngine(
-  runwayRef: RefObject<HTMLDivElement | null>,
-  stageRef: RefObject<HTMLDivElement | null>,
-  galleryRef: RefObject<HTMLDivElement | null>,
-  mode: Mode,
-  reduce: boolean,
-  setMounted: (key: string) => void,
-) {
-  useLayoutEffect(() => {
-    const runway = runwayRef.current
-    const stage = stageRef.current
-    const gallery = galleryRef.current
-    if (!runway || !stage || !gallery) return
+  const scene0Ref = useRef<HTMLDivElement>(null)
+  const scene1Ref = useRef<HTMLDivElement>(null)
+  const scene2Ref = useRef<HTMLDivElement>(null)
+  const scene3Ref = useRef<HTMLDivElement>(null)
 
-    const desktop = mode === 'desktop'
-    const split = desktop && !reduce
-    const motion = reduce ? 0 : desktop ? 1 : 0.5 // scale/travel amount
-    const pointerOn = desktop && !reduce && matches('(hover: hover) and (pointer: fine)')
-    const cache: Record<string, string> = {}
-    const set = (name: string, value: string) => write(stage, cache, name, name, value)
+  const media0Ref = useRef<HTMLDivElement>(null)
+  const media1Ref = useRef<HTMLDivElement>(null)
+  const media2Ref = useRef<HTMLDivElement>(null)
+  const media3Ref = useRef<HTMLDivElement>(null)
 
-    // A player mounts a little before its scene appears (embeds take a
-    // moment to start) and unmounts just after it has gone.
-    const windows = sceneWindows(split, reduce)
-    const sceneIds = Object.keys(windows)
-    const lead = desktop ? 0.08 : 0.05
-    const trail = 0.01
-    let mountedKey: string | null = null
-    const updateMounted = (p: number | null) => {
-      let key = ''
-      if (p !== null) {
-        for (const id of sceneIds) {
-          const [a, b] = windows[id]
-          if (p >= a - lead && p <= b + trail) key += `${id} `
-        }
-      }
-      if (key === mountedKey) return
-      mountedKey = key
-      setMounted(key)
-    }
+  const line0Ref = useRef<HTMLDivElement>(null)
+  const line1Ref = useRef<HTMLDivElement>(null)
+  const line2Ref = useRef<HTMLDivElement>(null)
+  const line3Ref = useRef<HTMLDivElement>(null)
 
-    let target = 0
-    let smooth = 0
-    let initialised = false
-    const ptr = { tx: 0, ty: 0, x: 0, y: 0 }
-    let galleryLive: boolean | null = null
+  const circlePortalRef = useRef<HTMLDivElement>(null)
+  const circleMediaRef = useRef<HTMLDivElement>(null)
 
-    const onPointer = (ev: PointerEvent) => {
-      ptr.tx = ev.clientX / window.innerWidth - 0.5
-      ptr.ty = ev.clientY / window.innerHeight - 0.5
-    }
-    const resetPointer = () => {
-      ptr.tx = 0
-      ptr.ty = 0
-    }
-    if (pointerOn) {
-      window.addEventListener('pointermove', onPointer, { passive: true })
-      document.documentElement.addEventListener('mouseleave', resetPointer)
-      window.addEventListener('blur', resetPointer)
-    }
+  const sweepRef = useRef<HTMLDivElement>(null)
+  const galleryRef = useRef<HTMLDivElement>(null)
+  const galleryCardRefs = useRef<(HTMLDivElement | null)[]>([])
 
-    let raf = 0
-    let last = performance.now()
+  const progressRef = useRef<HTMLDivElement>(null)
 
-    const render = (now: number) => {
-      raf = requestAnimationFrame(render)
-      const dt = Math.min(64, now - last)
-      last = now
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [galleryLive, setGalleryLive] = useState(false)
 
-      const rect = runway.getBoundingClientRect()
-      const vh = window.innerHeight
-      const travel = rect.height - vh
-      target = travel > 0 ? clamp01(-rect.top / travel) : 0
+  const reduceMotion = useReducedMotion()
 
-      if (rect.bottom < -vh || rect.top > vh * 2) {
-        smooth = target
-        updateMounted(null)
-        if (cache.wc !== 'auto') {
-          cache.wc = 'auto'
-          stage.style.setProperty('--wc', 'auto')
-        }
+  useGSAP(
+    () => {
+      if (
+        !sectionRef.current ||
+        !stageRef.current ||
+        !introRef.current ||
+        !wordTopRef.current ||
+        !wordBottomRef.current ||
+        !introMetaRef.current ||
+        !scene0Ref.current ||
+        !scene1Ref.current ||
+        !scene2Ref.current ||
+        !scene3Ref.current ||
+        !media0Ref.current ||
+        !media1Ref.current ||
+        !media2Ref.current ||
+        !media3Ref.current ||
+        !line0Ref.current ||
+        !line1Ref.current ||
+        !line2Ref.current ||
+        !line3Ref.current ||
+        !circlePortalRef.current ||
+        !circleMediaRef.current ||
+        !sweepRef.current ||
+        !galleryRef.current ||
+        !progressRef.current
+      ) {
         return
       }
-      if (cache.wc !== 'transform, opacity, filter') {
-        cache.wc = 'transform, opacity, filter'
-        stage.style.setProperty('--wc', 'transform, opacity, filter')
+
+      const section = sectionRef.current
+      const stage = stageRef.current
+
+      const intro = introRef.current
+      const wordTop = wordTopRef.current
+      const wordBottom = wordBottomRef.current
+      const introMeta = introMetaRef.current
+
+      const scene0 = scene0Ref.current
+      const scene1 = scene1Ref.current
+      const scene2 = scene2Ref.current
+      const scene3 = scene3Ref.current
+
+      const media0 = media0Ref.current
+      const media1 = media1Ref.current
+      const media2 = media2Ref.current
+      const media3 = media3Ref.current
+
+      const line0 = line0Ref.current
+      const line1 = line1Ref.current
+      const line2 = line2Ref.current
+      const line3 = line3Ref.current
+
+      const circlePortal = circlePortalRef.current
+      const circleMedia = circleMediaRef.current
+
+      const sweep = sweepRef.current
+      const gallery = galleryRef.current
+      const galleryCards = galleryCardRefs.current.filter(
+        Boolean,
+      ) as HTMLDivElement[]
+
+      const progress = progressRef.current
+
+      if (reduceMotion) {
+        gsap.set(intro, { display: 'none' })
+
+        gsap.set(scene0, {
+          autoAlpha: 1,
+          clipPath: 'inset(0% 0% 0% 0% round 0px)',
+        })
+
+        gsap.set(media0, {
+          scale: 1,
+          yPercent: 0,
+        })
+
+        gsap.set([scene1, scene2, scene3], {
+          display: 'none',
+        })
+
+        gsap.set(line0, {
+          autoAlpha: 1,
+          y: 0,
+        })
+
+        gsap.set(circlePortal, {
+          display: 'none',
+        })
+
+        gsap.set(sweep, {
+          clipPath: 'inset(0% 0% 0% 100%)',
+        })
+
+        return
       }
 
-      // targetScroll → smoothScroll (0.12 per 60fps frame); none in reduced motion.
-      if (!initialised || reduce) {
-        smooth = target
-        initialised = true
-      } else {
-        smooth = lerp(smooth, target, 1 - Math.pow(1 - 0.12, dt / 16.67))
-        if (Math.abs(target - smooth) < 0.00005) smooth = target
+      const mm = gsap.matchMedia()
+
+      mm.add(
+        {
+          desktop: '(min-width: 768px)',
+          mobile: '(max-width: 767px)',
+        },
+        (context) => {
+          const desktop = Boolean(context.conditions?.desktop)
+
+          // The first BOOGA frame opens from a centered 400px square.
+          // max() keeps it usable on short or narrow screens.
+          const firstFrame =
+            'inset(max(12px, calc(50% - 200px)) max(12px, calc(50% - 200px)) max(12px, calc(50% - 200px)) max(12px, calc(50% - 200px)) round 26px)'
+
+          const firstFullFrame =
+            'inset(0% 0% 0% 0% round 0px)'
+
+          /* --------------------------------------------------------
+             INITIAL STATES
+          -------------------------------------------------------- */
+
+          gsap.set([scene0, scene1, scene2, scene3], {
+            force3D: true,
+          })
+
+          gsap.set(scene0, {
+            autoAlpha: 0,
+            clipPath: firstFrame,
+            xPercent: 0,
+            yPercent: 0,
+            scale: 1,
+          })
+
+          /*
+           * Scene 2 is mounted from the beginning.
+           * It stays in its final position and only its mask changes.
+           * This removes the feeling of the whole scene shifting.
+           */
+          gsap.set(scene1, {
+            autoAlpha: 1,
+            xPercent: 0,
+            yPercent: 0,
+            scale: 1,
+            clipPath: 'inset(0% 100% 0% 0% round 0px)',
+          })
+
+          /*
+           * Scene 3 also stays anchored and only reveals bottom -> top.
+           */
+          gsap.set(scene2, {
+            autoAlpha: 1,
+            xPercent: 0,
+            yPercent: 0,
+            scale: 1,
+            clipPath: 'inset(100% 0% 0% 0% round 0px)',
+          })
+
+          /*
+           * Scene 4 starts closed at the centre without a rectangle.
+           */
+          gsap.set(scene3, {
+            autoAlpha: 1,
+            xPercent: 0,
+            yPercent: 0,
+            scale: 1,
+            clipPath: 'circle(0% at 50% 50%)',
+          })
+
+          gsap.set(circlePortal, {
+            autoAlpha: 1,
+            clipPath: 'circle(0% at 50% 50%)',
+          })
+
+          gsap.set(circleMedia, {
+            scale: desktop ? 1.08 : 1.05,
+            yPercent: 0,
+            force3D: true,
+          })
+
+          gsap.set(
+            [media0, media1, media2, media3],
+            {
+              scale: desktop ? 1.055 : 1.035,
+              yPercent: 1.5,
+              force3D: true,
+            },
+          )
+
+          gsap.set(
+            [line0, line1, line2, line3],
+            {
+              autoAlpha: 0,
+              y: 14,
+            },
+          )
+
+          gsap.set(wordTop, {
+            yPercent: 108,
+          })
+
+          gsap.set(wordBottom, {
+            yPercent: 108,
+          })
+
+          gsap.set(introMeta, {
+            autoAlpha: 0,
+            y: 10,
+          })
+
+          gsap.set(sweep, {
+            clipPath: 'inset(0% 100% 0% 0%)',
+          })
+
+          gsap.set(gallery, {
+            autoAlpha: 0,
+          })
+
+          gsap.set(galleryCards, {
+            autoAlpha: 0,
+            xPercent: desktop ? 55 : 32,
+          })
+
+          gsap.set(progress, {
+            scaleX: 0,
+            transformOrigin: 'left center',
+          })
+
+          /* --------------------------------------------------------
+             MASTER TIMELINE
+          -------------------------------------------------------- */
+
+          const tl = gsap.timeline({
+            defaults: {
+              ease: 'none',
+            },
+
+            scrollTrigger: {
+              trigger: section,
+              start: 'top top',
+              end: () =>
+                `+=${window.innerHeight * (desktop ? 4.75 : 4.05)}`,
+              pin: stage,
+              scrub: desktop ? 1.08 : 0.82,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+
+              onUpdate: (self) => {
+                gsap.set(progress, {
+                  scaleX: self.progress,
+                })
+
+                const p = self.progress
+
+                const nextIndex =
+                  p < 0.25
+                    ? 0
+                    : p < 0.43
+                      ? 1
+                      : p < 0.61
+                        ? 2
+                        : 3
+
+                setActiveIndex((current) =>
+                  current === nextIndex
+                    ? current
+                    : nextIndex,
+                )
+
+                const shouldPlayGallery = p > 0.79
+
+                setGalleryLive((current) =>
+                  current === shouldPlayGallery
+                    ? current
+                    : shouldPlayGallery,
+                )
+              },
+            },
+          })
+
+          /* 
+             01 — INTRO + FIRST REVEAL
+           */
+
+          tl.to(
+            wordTop,
+            {
+              yPercent: 0,
+              duration: 0.55,
+              ease: 'power3.out',
+            },
+            0,
+          )
+
+          tl.to(
+            wordBottom,
+            {
+              yPercent: 0,
+              duration: 0.55,
+              ease: 'power3.out',
+            },
+            0.05,
+          )
+
+          tl.to(
+            introMeta,
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.3,
+              ease: 'power2.out',
+            },
+            0.14,
+          )
+
+          tl.to(
+            scene0,
+            {
+              autoAlpha: 1,
+              duration: 0.72,
+              ease: 'power3.out',
+            },
+            0.3,
+          )
+
+          tl.to(
+            media0,
+            {
+              scale: 1.02,
+              yPercent: 0,
+              duration: 1.02,
+              ease: 'none',
+            },
+            0.32,
+          )
+
+          tl.to(
+            wordTop,
+            {
+              yPercent: -108,
+              duration: 0.65,
+              ease: 'power3.inOut',
+            },
+            0.95,
+          )
+
+          tl.to(
+            wordBottom,
+            {
+              yPercent: 108,
+              duration: 0.65,
+              ease: 'power3.inOut',
+            },
+            0.95,
+          )
+
+          tl.to(
+            introMeta,
+            {
+              autoAlpha: 0,
+              y: -7,
+              duration: 0.25,
+            },
+            0.98,
+          )
+
+          /*
+           * First scene progression:
+           * restore the centred BOOGA reveal, but use one continuous
+           * mask interpolation so scrolling cannot jump in width.
+           */
+          tl.to(
+            scene0,
+            {
+              autoAlpha: 1,
+              clipPath: firstFullFrame,
+              duration: 1.35,
+              ease: 'power2.inOut',
+            },
+            0.3,
+          )
+
+          tl.to(
+            media0,
+            {
+              scale: 1.025,
+              yPercent: -0.6,
+              duration: 1.18,
+              ease: 'none',
+            },
+            1.0,
+          )
+
+          tl.to(
+            line0,
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.3,
+              ease: 'power2.out',
+            },
+            1.55,
+          )
+
+          /* 
+             02 — SCENE 1 -> SCENE 2
+             REVEAL ONLY. NO POSITION JUMP.
+
+             Scene 2 starts revealing before Scene 1 changes at all.
+             Scene 1 stays anchored; it only fades/scales subtly
+             underneath the incoming wipe.
+           */
+
+          const secondStart = 2.04
+          const secondRevealStart = secondStart - 0.18
+
+          /*
+           * Incoming scene starts first.
+           */
+          tl.to(
+            scene1,
+            {
+              clipPath:
+                'inset(0% 0% 0% 0% round 0px)',
+              duration: 1.28,
+              ease: 'power3.inOut',
+            },
+            secondRevealStart,
+          )
+
+          tl.fromTo(
+            media1,
+            {
+              scale: desktop ? 1.055 : 1.035,
+              yPercent: 1.8,
+            },
+            {
+              scale: 1.015,
+              yPercent: -0.6,
+              duration: 1.26,
+              ease: 'none',
+            },
+            secondRevealStart,
+          )
+
+          /*
+           * Outgoing scene does not shift left/right/up/down.
+           * It remains locked in place while the reveal crosses it.
+           */
+          tl.to(
+            line0,
+            {
+              autoAlpha: 0,
+              y: -8,
+              duration: 0.26,
+            },
+            secondStart - 0.05,
+          )
+
+          tl.to(
+            scene0,
+            {
+              scale: 1.01,
+              opacity: 0.26,
+              duration: 1.06,
+              ease: 'sine.inOut',
+            },
+            secondStart,
+          )
+
+          tl.to(
+            line1,
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.32,
+              ease: 'power2.out',
+            },
+            secondRevealStart + 0.72,
+          )
+
+          /* 
+             03 — SCENE 2 -> SCENE 3
+             BOTTOM -> TOP REVEAL.
+             Again, outgoing scene stays anchored.
+           */
+
+          const thirdStart = 3.1
+          const thirdRevealStart = thirdStart - 0.12
+
+          /*
+           * Start the incoming reveal before fading the outgoing film.
+           */
+          tl.to(
+            scene2,
+            {
+              clipPath:
+                'inset(0% 0% 0% 0% round 0px)',
+              duration: 1.08,
+              ease: 'power3.inOut',
+            },
+            thirdRevealStart,
+          )
+
+          tl.fromTo(
+            media2,
+            {
+              scale: desktop ? 1.06 : 1.04,
+              yPercent: 2.5,
+            },
+            {
+              scale: 1.015,
+              yPercent: -0.8,
+              duration: 1.12,
+              ease: 'none',
+            },
+            thirdRevealStart,
+          )
+
+          tl.to(
+            line1,
+            {
+              autoAlpha: 0,
+              y: -8,
+              duration: 0.24,
+            },
+            thirdStart,
+          )
+
+          tl.to(
+            scene1,
+            {
+              scale: 1.008,
+              opacity: 0.24,
+              duration: 0.96,
+              ease: 'sine.inOut',
+            },
+            thirdStart,
+          )
+
+          tl.to(
+            line2,
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.3,
+              ease: 'power2.out',
+            },
+            thirdRevealStart + 0.68,
+          )
+
+          /* 
+             04 — SCENE 3 -> SCENE 4
+             SOFT CIRCLE FROM CENTRE.
+             No rectangle. No reposition jump.
+           */
+
+          const rectStart = 4.26
+
+          tl.to(
+            line2,
+            {
+              autoAlpha: 0,
+              y: -8,
+              duration: 0.22,
+            },
+            rectStart,
+          )
+
+          tl.to(
+            scene3,
+            {
+              clipPath: 'circle(110% at 50% 50%)',
+              duration: 1.1,
+              ease: 'power3.inOut',
+            },
+            rectStart + 0.02,
+          )
+
+          tl.fromTo(
+            media3,
+            {
+              scale: desktop ? 1.065 : 1.045,
+              yPercent: 1.2,
+            },
+            {
+              scale: 1.01,
+              yPercent: -0.6,
+              duration: 1.2,
+              ease: 'none',
+            },
+            rectStart + 0.04,
+          )
+
+          /*
+           * Outgoing scene remains centred in the same position.
+           */
+          tl.to(
+            scene2,
+            {
+              scale: 1.008,
+              opacity: 0.26,
+              duration: 1.02,
+              ease: 'sine.inOut',
+            },
+            rectStart,
+          )
+
+          tl.to(
+            line3,
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.3,
+              ease: 'power2.out',
+            },
+            rectStart + 0.9,
+          )
+
+          /* 
+             05 — CENTRE CIRCLE 0 -> 100 -> 0
+             UNCHANGED
+           */
+
+          const circleStart = 5.42
+
+          tl.to(
+            line3,
+            {
+              autoAlpha: 0,
+              y: -8,
+              duration: 0.22,
+            },
+            circleStart,
+          )
+
+          tl.to(
+            circlePortal,
+            {
+              clipPath: 'circle(110% at 50% 50%)',
+              duration: 0.94,
+              ease: 'power3.inOut',
+            },
+            circleStart + 0.02,
+          )
+
+          tl.to(
+            circleMedia,
+            {
+              scale: 1.015,
+              duration: 1.0,
+              ease: 'none',
+            },
+            circleStart + 0.02,
+          )
+
+          tl.to(
+            circleMedia,
+            {
+              scale: 1.01,
+              duration: 0.22,
+              ease: 'none',
+            },
+            circleStart + 0.96,
+          )
+
+          tl.to(
+            circlePortal,
+            {
+              clipPath: 'circle(0% at 50% 50%)',
+              duration: 0.94,
+              ease: 'power3.inOut',
+            },
+            circleStart + 1.12,
+          )
+
+          /* 
+             06 — LEFT -> RIGHT SWEEP
+             UNCHANGED
+           */
+
+          const sweepStart = 7.58
+
+          tl.to(
+            line3,
+            {
+              autoAlpha: 0,
+              y: -8,
+              duration: 0.22,
+            },
+            sweepStart,
+          )
+
+          tl.to(
+            sweep,
+            {
+              clipPath:
+                'inset(0% 0% 0% 0%)',
+              duration: 1.0,
+              ease: 'power3.inOut',
+            },
+            sweepStart,
+          )
+
+          /*
+           * This position change is intentionally animated underneath
+           * the visible sweep, so there is no unexplained jump.
+           */
+          tl.to(
+            scene3,
+            {
+              xPercent: desktop ? -3 : -1.5,
+              scale: 1.018,
+              duration: 1.0,
+              ease: 'none',
+            },
+            sweepStart,
+          )
+
+          /* 
+             07 — ALL FILMS ENTER RIGHT -> LEFT
+             UNCHANGED
+           */
+
+          tl.to(
+            gallery,
+            {
+              autoAlpha: 1,
+              duration: 0.28,
+            },
+            sweepStart + 0.48,
+          )
+
+          tl.to(
+            galleryCards,
+            {
+              autoAlpha: 1,
+              xPercent: 0,
+              duration: 0.78,
+              stagger: {
+                each: 0.075,
+                from: 'start',
+              },
+              ease: 'power3.out',
+            },
+            sweepStart + 0.5,
+          )
+
+          tl.fromTo(
+            gallery,
+            {
+              xPercent: desktop ? 4 : 2,
+            },
+            {
+              xPercent: 0,
+              duration: 0.9,
+              ease: 'power2.out',
+            },
+            sweepStart + 0.42,
+          )
+
+          return () => {
+            tl.scrollTrigger?.kill()
+            tl.kill()
+          }
+        },
+      )
+
+      return () => {
+        mm.revert()
       }
-      if (pointerOn) {
-        ptr.x = lerp(ptr.x, ptr.tx, 0.1)
-        ptr.y = lerp(ptr.y, ptr.ty, 0.1)
-        set('--ptr-x', ptr.x.toFixed(4))
-        set('--ptr-y', ptr.y.toFixed(4))
-      }
-
-      const p = smooth
-      updateMounted(p)
-
-      // --- Scene 1: the opening film -----------------------------------
-      const drift = seg(p, 0, 0.35) * motion
-      set('--video-bg-scale', (1 + 0.08 * drift).toFixed(4))
-      set('--video-bg-y', `${(-30 * drift).toFixed(1)}px`)
-      set('--video-bg-dim', (0.14 * drift).toFixed(3))
-      set('--video-mid-scale', (1 + 0.12 * drift).toFixed(4))
-      set('--video-mid-y', `${(-50 * drift).toFixed(1)}px`)
-      set('--video-edge', clamp01(drift * 4).toFixed(3))
-      set('--video-lift-opacity', (1 - seg(p, 0.3, 0.42)).toFixed(3))
-
-      const title = seg(p, 0.15, 0.32)
-      set('--title-y', `${(-160 * title * (reduce ? 0 : 1)).toFixed(1)}px`)
-      set('--title-scale', (1 - 0.06 * title * (reduce ? 0 : 1)).toFixed(4))
-      set('--title-opacity', (1 - title).toFixed(3))
-      const desc = seg(p, 0.12, 0.28)
-      set('--desc-y', `${(60 * desc * (reduce ? 0 : 1)).toFixed(1)}px`)
-      set('--desc-opacity', (1 - desc).toFixed(3))
-
-      // --- Scene 2: the film splits open over the next one --------------
-      if (split) {
-        // The halves open outward from the centre while the frame pushes
-        // toward camera, carrying each half's picture outward with it.
-        const opening = seg(p, 0.35, 0.52)
-        set('--intro-clip', splitOf(50 * opening))
-        set('--intro-scale', (1 + 0.35 * opening).toFixed(4))
-        set('--intro-y', `${(-40 * opening).toFixed(1)}px`)
-        set('--intro-filter', filterOf(8 * opening, 1 - 0.18 * opening))
-        set('--intro-opacity', (1 - seg(p, 0.46, 0.53)).toFixed(3))
-      } else {
-        // Mobile / reduced motion: it closes into a rounded frame and fades.
-        const exit = seg(p, 0.35, 0.5)
-        set('--intro-clip', reduce ? 'none' : insetOf(exit, [10, 6, 10, 6], 20))
-        set('--intro-filter', reduce ? 'none' : filterOf(4 * exit, 1 - 0.12 * exit))
-        set('--intro-opacity', (1 - seg(p, reduce ? 0.35 : 0.44, reduce ? 0.45 : 0.52)).toFixed(3))
-      }
-
-      // Film revealed underneath; later it departs with a blur.
-      const bIn = seg(p, 0.33, 0.45)
-      const bOut = seg(p, CAT_START, CAT_START + 0.04)
-      set('--b-opacity', (bIn * (1 - bOut)).toFixed(3))
-      set('--b-scale', (1 + 0.05 * (1 - seg(p, 0.35, 0.55)) * (reduce ? 0 : 1)).toFixed(4))
-      set('--b-filter', reduce ? 'none' : filterOf((desktop ? 8 : 4) * bOut, 1 - 0.18 * bOut))
-
-      const p1 = segmentInOut(p, 0.47, 0.52, 0.58, 0.62)
-      set('--panel-opacity', p1.toFixed(3))
-      set('--panel-y', `${((50 * (1 - seg(p, 0.47, 0.52)) - 70 * seg(p, 0.58, 0.62)) * (reduce ? 0 : 1)).toFixed(1)}px`)
-
-      // --- Scene 3: one film takes over the viewport at a time ---------
-      for (let k = 0; k < SCENE_PROJECTS.length; k++) {
-        const start = CAT_START + k * CAT_STEP
-        const enter = seg(p, start, start + 0.03)
-        const leave = seg(p, start + CAT_STEP, start + CAT_STEP + 0.03)
-        const local = clamp01((p - start) / (CAT_STEP + 0.03))
-        set(`--c${k}-opacity`, (enter * (1 - leave)).toFixed(3))
-        // Opens from a rounded window to the full frame as it arrives.
-        set(`--c${k}-clip`, reduce ? 'none' : insetOf(1 - enter, desktop ? [12, 8, 12, 8] : [6, 4, 6, 4], 24))
-        set(`--c${k}-scale`, (1 + (0.05 * (1 - enter) + 0.06 * local) * (reduce ? 0 : desktop ? 1 : 0.5)).toFixed(4))
-        set(`--c${k}-filter`, reduce ? 'none' : filterOf((desktop ? 8 : 4) * leave, 1 - 0.18 * leave))
-      }
-
-      // --- Scene 4: closing statement over the last film ---------------
-      const dIn = seg(p, CLOSING_START, CLOSING_START + 0.03)
-      set('--d-opacity', dIn.toFixed(3))
-      set('--d-scale', (1 + 0.06 * (1 - dIn) * motion + 0.05 * seg(p, CLOSING_START, 0.95) * motion).toFixed(4))
-      const p2 = segmentInOut(p, CLOSING_START + 0.015, CLOSING_START + 0.045, 0.885, 0.915)
-      set('--panel2-opacity', p2.toFixed(3))
-      set('--panel2-y', `${((50 * (1 - seg(p, CLOSING_START + 0.015, CLOSING_START + 0.045)) - 70 * seg(p, 0.885, 0.915)) * (reduce ? 0 : 1)).toFixed(1)}px`)
-
-      // --- Resolve to white, then the reel flies in --------------------
-      set('--veil', seg(p, 0.89, 0.95).toFixed(3))
-      const g = clamp01((p - 0.88) / 0.12)
-      const gx = reduce ? 0 : 400 * (1 - easeOutQuint(g))
-      set('--gallery-x', `${gx.toFixed(3)}vw`)
-      set('--gallery-opacity', reduce ? seg(p, 0.9, 0.97).toFixed(3) : '1')
-      const live = g > 0.85
-      if (live !== galleryLive) {
-        galleryLive = live
-        gallery.style.pointerEvents = live ? 'auto' : 'none'
-        gallery.inert = !live
-      }
-    }
-
-    render(performance.now())
-
-    return () => {
-      cancelAnimationFrame(raf)
-      if (pointerOn) {
-        window.removeEventListener('pointermove', onPointer)
-        document.documentElement.removeEventListener('mouseleave', resetPointer)
-        window.removeEventListener('blur', resetPointer)
-      }
-    }
-  }, [runwayRef, stageRef, galleryRef, mode, reduce, setMounted])
-}
-
-// ---------------------------------------------------------------------------
-// Layers
-// ---------------------------------------------------------------------------
-
-const WC: CSSProperties = { willChange: 'var(--wc)' as CSSProperties['willChange'] }
-
-/** Pointer parallax of ±amp px horizontally (half that vertically). */
-const ptrX = (amp: number) => `calc(var(--ptr-x, 0) * ${amp * 2}px)`
-const ptrY = (amp: number) => `calc(var(--ptr-y, 0) * ${amp}px)`
-
-/** A full-frame film on its own depth plane, driven entirely by CSS variables. */
-function VideoLayer({
-  media,
-  live,
-  scale,
-  y = '0px',
-  ptr = 0,
-}: {
-  media: MediaProject
-  live: boolean
-  scale: string
-  y?: string
-  /** Pointer parallax amplitude in px. */
-  ptr?: number
-}) {
-  return (
-    <div
-      aria-hidden="true"
-      // Bleeds past the frame so pointer parallax never exposes an edge.
-      className={ptr ? 'absolute -inset-5' : 'absolute inset-0'}
-      style={{
-        ...WC,
-        transform: `translate3d(${ptrX(ptr)}, calc(${y} + ${ptrY(ptr)}), 0) scale(var(${scale}))`,
-      }}
-    >
-      <Media media={media} live={live} />
-    </div>
+    },
+    {
+      scope: sectionRef,
+      dependencies: [reduceMotion],
+    },
   )
-}
 
-/** Just enough tone for white type — the film stays the hero. */
-const INTRO_SHADE = 'linear-gradient(to bottom, rgba(0,0,0,0.12), rgba(0,0,0,0.28))'
+  const isLive = (index: number) =>
+    Math.abs(index - activeIndex) <= 1
 
-/**
- * The opening film. Desktop: it splits open from the centre over the next
- * film. Mobile / reduced motion: it closes into a rounded frame and fades.
- */
-function IntroFilm({ live }: { live: boolean }) {
   return (
-    <div
-      aria-hidden="true"
-      className="absolute inset-0"
-      style={{
-        ...WC,
-        clipPath: 'var(--intro-clip)',
-        transform: 'translate3d(0, var(--intro-y, 0), 0) scale(var(--intro-scale, 1))',
-        filter: 'var(--intro-filter)',
-        opacity: 'var(--intro-opacity, 1)',
-      }}
+    <section
+      ref={sectionRef}
+      id="videography"
+      aria-labelledby="videography-heading"
+      className="relative bg-white text-[#111]"
     >
-      <VideoLayer media={INTRO_PROJECT} live={live} scale="--video-bg-scale" y="var(--video-bg-y)" ptr={5} />
-      <div className="absolute inset-0 bg-black" style={{ opacity: 'var(--video-bg-dim, 0)' }} />
-      <div className="absolute inset-0" style={{ background: INTRO_SHADE }} />
-    </div>
-  )
-}
-
-/**
- * Desktop midground: a hairline frame that lifts off the opening film at
- * its own depth and dissolves just before the split.
- */
-function IntroDepth() {
-  return (
-    <div aria-hidden="true" className="absolute inset-0" style={{ ...WC, opacity: 'var(--video-lift-opacity, 1)' }}>
       <div
-        className="absolute inset-0"
-        style={{ ...WC, transform: `translate3d(${ptrX(10)}, calc(var(--video-mid-y) + ${ptrY(10)}), 0) scale(var(--video-mid-scale))` }}
+        ref={stageRef}
+        className="relative h-svh w-full overflow-hidden"
       >
+        {/*  */}
+        {/* INTRO                                                  */}
+        {/*  */}
+
         <div
-          className="absolute top-[14%] right-[20%] bottom-[14%] left-[20%] rounded-[4px] border border-white/30"
-          style={{ opacity: 'var(--video-edge, 0)' }}
-        />
-      </div>
-    </div>
-  )
-}
+          ref={introRef}
+          className="pointer-events-none absolute inset-0 z-10"
+        >
+          <div className="absolute left-[4vw] right-[4vw] top-[4vh] flex items-center justify-between md:left-[5vw] md:right-[5vw]">
+            <span className="font-primary text-[9px] uppercase tracking-[0.2em] text-black/45">
+              BrandWorks / Motion
+            </span>
 
-function SceneLabel({ project }: { project: VideoProject }) {
-  return (
-    <p className="font-inter absolute bottom-[8vh] left-5 text-[11px] font-medium tracking-[0.12em] text-white/85 uppercase md:left-12 md:text-xs">
-      {project.id} / {project.title}
-    </p>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Final reel — native horizontal scrolling (swipe / trackpad / arrows).
-// Each card shows its poster and mounts its player only while it is in
-// view, so the reel never holds more players than are on screen.
-// ---------------------------------------------------------------------------
-
-function ReelCard({ project }: { project: VideoProject }) {
-  const ref = useRef<HTMLElement>(null)
-  const [live, setLive] = useState(false)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver(([entry]) => setLive(entry.isIntersecting), { threshold: 0.1 })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-
-  return (
-    <figure
-      ref={ref}
-      data-gallery-card
-      className="m-0 shrink-0"
-      style={{ width: 'min(clamp(320px, 28vw, 520px), calc((100vh - 280px) * 1.7778), 84vw)' }}
-    >
-      <div className="relative aspect-video overflow-hidden rounded-[20px] bg-neutral-900">
-        <div className="absolute inset-0">
-          <Media media={project} live={live} crop={1.2} />
-        </div>
-      </div>
-      <figcaption className="font-inter mt-3 flex items-baseline gap-3 text-[11px] tracking-[0.12em] text-[rgba(17,17,17,0.55)] uppercase md:text-xs">
-        <span>
-          {project.id} / {project.title}
-        </span>
-        {(project.client || project.year) && (
-          <span className="tracking-normal text-[#111] normal-case">{[project.client, project.year].filter(Boolean).join(', ')}</span>
-        )}
-      </figcaption>
-    </figure>
-  )
-}
-
-function Gallery({ galleryRef }: { galleryRef: RefObject<HTMLDivElement | null> }) {
-  const scrollerRef = useRef<HTMLDivElement>(null)
-
-  const step = (dir: 1 | -1) => {
-    const el = scrollerRef.current
-    const card = el?.querySelector<HTMLElement>('[data-gallery-card]')
-    if (!el || !card) return
-    el.scrollBy({ left: dir * (card.offsetWidth + 20), behavior: 'smooth' })
-  }
-
-  return (
-    <div
-      ref={galleryRef}
-      className="absolute inset-0 z-40 flex flex-col justify-center"
-      style={{ ...WC, transform: 'translate3d(var(--gallery-x), 0, 0)', opacity: 'var(--gallery-opacity)', pointerEvents: 'none' }}
-    >
-      <div className="mx-auto flex w-full max-w-[1440px] items-end justify-between px-5 md:px-12">
-        <p className="font-inter text-[11px] font-medium tracking-[0.14em] text-[rgba(17,17,17,0.55)] uppercase md:text-xs">
-          Videography — selected films
-        </p>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            aria-label="Previous films"
-            onClick={() => step(-1)}
-            className="font-inter flex size-11 items-center justify-center rounded-full border border-black/15 text-[#111] transition-colors hover:border-black/40"
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            aria-label="Next films"
-            onClick={() => step(1)}
-            className="font-inter flex size-11 items-center justify-center rounded-full border border-black/15 text-[#111] transition-colors hover:border-black/40"
-          >
-            →
-          </button>
-        </div>
-      </div>
-
-      <div
-        ref={scrollerRef}
-        className="mt-6 flex gap-5 overflow-x-auto px-5 [scrollbar-width:none] md:mt-8 md:px-12 [&::-webkit-scrollbar]:hidden"
-      >
-        {VIDEO_PROJECTS.map((project) => (
-          <ReelCard key={project.id} project={project} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Section
-// ---------------------------------------------------------------------------
-
-function Videography() {
-  const { mode, reduce } = useMode()
-  const runwayRef = useRef<HTMLDivElement>(null)
-  const stageRef = useRef<HTMLDivElement>(null)
-  const galleryRef = useRef<HTMLDivElement>(null)
-  // Space-separated ids of the scenes whose players are mounted.
-  const [mounted, setMounted] = useState('')
-  useVideographyEngine(runwayRef, stageRef, galleryRef, mode, reduce, setMounted)
-
-  const isLive = (scene: string) => mounted.split(' ').includes(scene)
-  const desktop = mode === 'desktop'
-  const split = desktop && !reduce
-
-  return (
-    <section aria-labelledby="videography-heading" className="bg-white">
-      <div
-        ref={runwayRef}
-        className="relative"
-        style={{ height: desktop ? 'calc(100vh + 3200px)' : 'calc(100vh + 2000px)' }}
-      >
-        <div ref={stageRef} className="sticky top-0 h-screen overflow-hidden bg-[#111] [isolation:isolate]">
-          {/* Scene 2 film, revealed beneath the split. */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0"
-            style={{ ...WC, opacity: 'var(--b-opacity, 0)', filter: 'var(--b-filter)', transform: 'scale(var(--b-scale, 1.05))' }}
-          >
-            <Media media={REVEAL_PROJECT} live={isLive('reveal')} />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.38), rgba(0,0,0,0) 65%)' }} />
+            <span className="font-primary text-[9px] uppercase tracking-[0.2em] text-black/35">
+              01 — 04
+            </span>
           </div>
 
-          {/* Scene 1: the opening film. */}
-          <IntroFilm live={isLive('intro')} />
-          {split && <IntroDepth />}
-
-          {/* Scene 3: one film per sequence takes over the viewport. */}
-          {SCENE_PROJECTS.map((project, k) => (
-            <div
-              key={project.id}
-              className="absolute inset-0"
-              style={{ ...WC, opacity: `var(--c${k}-opacity, 0)`, clipPath: `var(--c${k}-clip)`, filter: `var(--c${k}-filter)` }}
+          <div className="absolute inset-x-[4vw] top-1/2 -translate-y-1/2 md:inset-x-[5vw]">
+            <h2
+              id="videography-heading"
+              className="sr-only"
             >
-              <VideoLayer media={project} live={isLive(`c${k}`)} scale={`--c${k}-scale`} ptr={desktop && !reduce ? 5 : 0} />
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0) 45%)' }} />
-              <SceneLabel project={project} />
-            </div>
-          ))}
+              Videography
+            </h2>
 
-          {/* Scene 4: closing statement over the last film. */}
-          <div
-            className="absolute inset-0"
-            style={{ ...WC, opacity: 'var(--d-opacity, 0)', transform: 'scale(var(--d-scale, 1))' }}
-          >
-            <Media media={CLOSING_PROJECT} live={isLive('closing')} />
-            <div
-              className="absolute inset-0"
-              style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.38), rgba(0,0,0,0) 55%), linear-gradient(to top, rgba(0,0,0,0.35), rgba(0,0,0,0) 40%)' }}
-            />
-            <SceneLabel project={CLOSING_PROJECT} />
-          </div>
-
-          {/* Intro typography. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 mx-auto w-full max-w-[1440px] px-5 pb-[10vh] md:px-12">
-            <div
-              style={{ ...WC, transform: 'translate3d(0, var(--title-y, 0), 0) scale(var(--title-scale, 1))', opacity: 'var(--title-opacity, 1)', transformOrigin: 'left bottom' }}
-            >
-              <p className="font-inter text-[11px] font-medium tracking-[0.14em] text-white/80 uppercase md:text-xs">
-                Videography
-              </p>
-              <h2
-                id="videography-heading"
-                className="font-instrument mt-5 text-[clamp(52px,8vw,140px)] leading-[0.92] font-normal tracking-[-0.03em] text-white"
+            <div className="overflow-hidden">
+              <div
+                ref={wordTopRef}
+                className="
+                  font-primary
+                  text-[clamp(3.8rem,10.4vw,10.4rem)]
+                  font-medium
+                  uppercase
+                  leading-[0.8]
+                  tracking-[-0.075em]
+                "
               >
-                Motion that carries
-                <br />
-                <em>the idea forward.</em>
-              </h2>
+                Video
+              </div>
             </div>
-            <p
-              className="font-inter mt-8 max-w-[460px] text-base leading-[1.45] text-white/80 md:text-lg"
-              style={{ ...WC, transform: 'translate3d(0, var(--desc-y, 0), 0)', opacity: 'var(--desc-opacity, 1)' }}
-            >
-              From campaign films to branded stories, product motion and founder-led narratives, we use film to give ideas rhythm, atmosphere and emotional weight.
+
+            <div className="flex justify-end overflow-hidden">
+              <div
+                ref={wordBottomRef}
+                className="
+                  font-primary
+                  text-[clamp(3.8rem,10.4vw,10.4rem)]
+                  font-medium
+                  uppercase
+                  leading-[0.8]
+                  tracking-[-0.075em]
+                "
+              >
+                graphy
+              </div>
+            </div>
+          </div>
+
+          <div
+            ref={introMetaRef}
+            className="absolute bottom-[5vh] left-[4vw] right-[4vw] flex items-end justify-between md:left-[5vw] md:right-[5vw]"
+          >
+            <p className="max-w-[390px] font-primary text-[11px] leading-[1.5] tracking-[-0.01em] text-black/55 md:text-[13px]">
+              Campaign films, branded stories and moving images
+              built around one clear idea.
             </p>
-          </div>
 
-          {/* Story panel 1 — over the revealed film. */}
+            <span className="hidden font-primary text-[9px] uppercase tracking-[0.18em] text-black/35 md:block">
+              Scroll to reveal
+            </span>
+          </div>
+        </div>
+
+        {/*  */}
+        {/* SCENE 01                                               */}
+        {/*  */}
+
+        <div
+          ref={scene0Ref}
+          className="absolute inset-0 z-20 overflow-hidden bg-[#111] will-change-[transform,clip-path,opacity]"
+        >
           <div
-            className="pointer-events-none absolute inset-y-0 left-0 z-20 flex w-full max-w-[1440px] items-center px-5 md:left-1/2 md:-translate-x-1/2 md:px-12"
-            style={{ ...WC, opacity: 'var(--panel-opacity, 0)' }}
+            ref={media0Ref}
+            className="absolute inset-0 will-change-transform"
           >
-            <div style={{ transform: 'translate3d(0, var(--panel-y, 0), 0)' }}>
-              <p className="font-instrument text-[clamp(40px,5.4vw,92px)] leading-[0.95] tracking-[-0.03em] text-white">
-                Film is where the concept
-                <br />
-                <em>learns to move.</em>
-              </p>
-              <p className="font-inter mt-6 max-w-[380px] text-base leading-[1.45] text-white/75 md:text-lg">
-                Rhythm, performance, sound and pacing turn an idea into something people can feel.
-              </p>
-            </div>
+            <Film
+              project={VIDEO_PROJECTS[0]}
+              live={isLive(0)}
+            />
           </div>
 
-          {/* Story panel 2 — over the shaded top of the last film. */}
-          <div
-            className="pointer-events-none absolute inset-x-0 top-[16vh] z-20 mx-auto w-full max-w-[1440px] px-5 md:px-12"
-            style={{ ...WC, opacity: 'var(--panel2-opacity, 0)' }}
-          >
-            <div style={{ transform: 'translate3d(0, var(--panel2-y, 0), 0)' }}>
-              <p className="font-instrument text-[clamp(40px,5.4vw,92px)] leading-[0.95] tracking-[-0.03em] text-white">
-                Every cut should carry
-                <br />
-                <em>the story forward.</em>
-              </p>
-              <p className="font-inter mt-6 max-w-[420px] text-base leading-[1.45] text-white/75 md:text-lg">
-                From the first frame to the final transition, every decision should serve the concept.
-              </p>
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-black/[0.08]" />
 
-          {/* Resolve to the page's white before the reel arrives. */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-30 bg-white"
-            style={{ opacity: 'var(--veil, 0)' }}
+          <SceneCaption
+            ref={line0Ref}
+            project={VIDEO_PROJECTS[0]}
           />
+        </div>
 
-          <Gallery galleryRef={galleryRef} />
+        {/*  */}
+        {/* SCENE 02                                               */}
+        {/*  */}
+
+        <div
+          ref={scene1Ref}
+          className="absolute inset-0 z-30 overflow-hidden bg-[#111] will-change-[transform,clip-path,opacity]"
+        >
+          <div
+            ref={media1Ref}
+            className="absolute inset-0 will-change-transform"
+          >
+            <Film
+              project={VIDEO_PROJECTS[1]}
+              live={isLive(1)}
+            />
+          </div>
+
+          <div className="absolute inset-0 bg-black/[0.08]" />
+
+          <SceneCaption
+            ref={line1Ref}
+            project={VIDEO_PROJECTS[1]}
+          />
+        </div>
+
+        {/*  */}
+        {/* SCENE 03                                               */}
+        {/*  */}
+
+        <div
+          ref={scene2Ref}
+          className="absolute inset-0 z-40 overflow-hidden bg-[#111] will-change-[transform,clip-path,opacity]"
+        >
+          <div
+            ref={media2Ref}
+            className="absolute inset-0 will-change-transform"
+          >
+            <Film
+              project={VIDEO_PROJECTS[2]}
+              live={isLive(2)}
+            />
+          </div>
+
+          <div className="absolute inset-0 bg-black/[0.06]" />
+
+          <SceneCaption
+            ref={line2Ref}
+            project={VIDEO_PROJECTS[2]}
+          />
+        </div>
+
+        {/*  */}
+        {/* SCENE 04 / CENTRE RECTANGLE -> FULL                   */}
+        {/*  */}
+
+        <div
+          ref={scene3Ref}
+          className="absolute inset-0 z-50 overflow-hidden bg-[#111] will-change-[transform,clip-path,opacity]"
+        >
+          <div
+            ref={media3Ref}
+            className="absolute inset-0 will-change-transform"
+          >
+            <Film
+              project={VIDEO_PROJECTS[3]}
+              live={isLive(3)}
+            />
+          </div>
+
+          <div className="absolute inset-0 bg-black/[0.06]" />
+
+          <SceneCaption
+            ref={line3Ref}
+            project={VIDEO_PROJECTS[3]}
+          />
+        </div>
+
+        {/*  */}
+        {/* CENTRE CIRCLE PORTAL                                   */}
+        {/*  */}
+
+        <div
+          ref={circlePortalRef}
+          className="
+            pointer-events-none
+            absolute
+            inset-0
+            z-[55]
+            overflow-hidden
+            bg-[#111]
+            will-change-[clip-path]
+          "
+        >
+          <div
+            ref={circleMediaRef}
+            className="absolute inset-0 will-change-transform"
+          >
+            <Film
+              project={VIDEO_PROJECTS[0]}
+              live={activeIndex === 3}
+            />
+          </div>
+
+          <div className="absolute inset-0 bg-black/[0.05]" />
+        </div>
+
+        {/*  */}
+        {/* LEFT -> RIGHT SWEEP + FINAL VIDEO GRID                 */}
+        {/*  */}
+
+        <div
+          ref={sweepRef}
+          className="
+            absolute
+            inset-0
+            z-[60]
+
+            bg-white
+
+            will-change-[clip-path]
+          "
+        >
+          <div
+            ref={galleryRef}
+            className="
+              flex
+              h-full
+              flex-col
+              justify-center
+
+              px-5
+              py-12
+
+              opacity-0
+
+              sm:px-7
+              md:px-[5vw]
+            "
+          >
+            <div className="mb-7 flex items-end justify-between gap-8 pb-4 md:mb-9">
+              <div>
+                <p className="font-primary text-[9px] uppercase tracking-[0.2em] text-black/40">
+                  Selected Motion
+                </p>
+
+                <p className="mt-2 font-primary text-[clamp(1.6rem,2.7vw,3rem)] font-medium leading-[0.98] tracking-[-0.04em]">
+                  One idea.
+                  <span className="text-black/38">
+                    {' '}Different frames.
+                  </span>
+                </p>
+              </div>
+
+              <span className="hidden font-primary text-[9px] uppercase tracking-[0.18em] text-black/30 md:block">
+                01 — 04
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
+              {VIDEO_PROJECTS.map((project, index) => (
+                <div
+                  key={`${project.id}-gallery`}
+                  ref={(node) => {
+                    galleryCardRefs.current[index] = node
+                  }}
+                  className="opacity-0 will-change-transform"
+                >
+                  <GalleryFilm
+                    project={project}
+                    live={galleryLive}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/*  */}
+        {/* PROGRESS                                               */}
+        {/*  */}
+
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[90] h-px bg-black/10">
+          <div
+            ref={progressRef}
+            className="h-full w-full origin-left scale-x-0 bg-black/50"
+          />
         </div>
       </div>
     </section>
   )
 }
-
-export default Videography

@@ -8,6 +8,10 @@ import Services from './Services'
 import About from './About'
 import Photography from './Work'
 import Work from './WorkWithImpact'
+import SocialContent from './components/socialMedia/SocailMedia'
+import PhotographyTransition from './components/PhotographyTransition/PhotographyTransition'
+import BrandIntelligence from './components/BrandIntelligence/BrandIntelligence'
+import TrustedBy from "./TrustedBy";
 import Videography from './Videography'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
 import PRReputation from './PRReputation'
@@ -75,13 +79,16 @@ export function Home() {
       <Hero />
       <HumanLedBrandIntelligence />
       <Services />
+      {/* <BrandIntelligence /> */}
       <About />
       <Work />
+      <PhotographyTransition />
       <Photography/>
       <Videography />
       <GraphicsMotionExperience />
       <PRReputation />
       {/* <Photography /> */}
+      <SocialContent/>
       <WebsiteSectionProps />
       <Capabilities />
       <Results />
