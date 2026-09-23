@@ -3,9 +3,6 @@ import type { TouchEvent } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
-// Cropped WebP copy of the hosted Canon frame (transparent background and
-// screen). Screen insets in index.css are measured from it.
-import cameraFrame from './assets/canon-camera-frame.webp'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -19,168 +16,115 @@ const photographyImages = [
 ]
 
 const TOTAL = photographyImages.length
-const pad = (n: number) => String(n).padStart(2, '0')
+const AUTO_CHANGE_DELAY = 3200
+const pad = (value: number) => String(value).padStart(2, '0')
 
 type Direction = 1 | -1
 type Viewport = 'desktop' | 'tablet' | 'mobile'
 
-/** How long each photograph stays up in the fullscreen gallery. */
-const AUTO_CHANGE_DELAY = 2000
+const HOLD_SCROLL_SCREENS = 2
 
-/**
- * The display opening inside the camera frame, as fractions of the frame's
- * width and height. Mirrors .photo-camera__screen in index.css.
- */
-const SCREEN = { left: 0.13831, top: 0.43496, width: 0.48718, height: 0.43191 }
-
-/**
- * The scroll sequence, as [start, end] positions on one timeline whose
- * transition runs 0 → 1 (then holds on the fullscreen gallery for HOLD).
- * The tracks overlap so they read as a single motion:
- *   zoom      the camera grows about its display, which travels to centre
- *   frameOut  the camera body fades once the zoom is clearly under way
- *   expand    the display box itself grows out to cover the whole section
- *   layer     the photo lifts above the (by then invisible) frame
- *   controls  the carousel controls arrive as fullscreen is reached
- * Scrolling back up plays the same timeline in reverse.
- */
-const SEQUENCE = {
-  heading: [0.04, 0.24],
-  zoom: [0.15, 0.8],
-  frameOut: [0.35, 0.8],
-  expand: [0.55, 1],
-  layer: 0.8,
-  controls: [0.84, 1],
-} as const
-const HOLD = 0.4
-
-/**
- * Per viewport: how much of the section the display may fill at the end of
- * the zoom, before it expands to cover, and how far the section stays
- * pinned. Phones zoom less and expand more, avoiding extreme scale.
- */
-const ZOOM_LAYOUT: Record<Viewport, { fit: number; end: string }> = {
-  desktop: { fit: 0.9, end: '+=220%' },
-  tablet: { fit: 0.92, end: '+=190%' },
-  mobile: { fit: 0.92, end: '+=160%' },
+type RevealLayout = {
+  startScale: number
+  startY: number
+  revealScreens: number
+  exitScreens: number
+  scrub: number
 }
 
-/**
- * Works out the zoom from the camera's layout box. Layout offsets are used
- * rather than getBoundingClientRect() because ScrollTrigger re-measures on
- * refresh while the camera may already be mid-zoom, and offsets ignore
- * transforms. The transform origin is the centre of the display opening,
- * so scaling grows the screen in place, and x/y carry that point to the
- * centre of the section.
- *
- * `cover` is the display box, in the camera's own (pre-scale) pixels, that
- * exactly covers the section once the zoom has finished, centred on the
- * same point, with a few pixels of bleed so no edge ever shows.
- */
-const BLEED = 4
-
-function measureZoom(section: HTMLElement, camera: HTMLElement, viewport: Viewport) {
-  const width = section.clientWidth
-  const height = section.clientHeight
-
-  // Fractional layout size: offsetWidth rounds, and the zoom magnifies it.
-  const style = getComputedStyle(camera)
-  const cameraW = parseFloat(style.width)
-  const cameraH = parseFloat(style.height)
-
-  const originX = cameraW * (SCREEN.left + SCREEN.width / 2)
-  const originY = cameraH * (SCREEN.top + SCREEN.height / 2)
-  const screenW = cameraW * SCREEN.width
-  const screenH = cameraH * SCREEN.height
-
-  const { fit } = ZOOM_LAYOUT[viewport]
-  const scale = Math.min((width * fit) / screenW, (height * fit) / screenH)
-  const coverW = (width + BLEED * 2) / scale
-  const coverH = (height + BLEED * 2) / scale
-
-  return {
-    origin: `${originX}px ${originY}px`,
-    scale,
-    x: width / 2 - (camera.offsetLeft + originX),
-    y: height / 2 - (camera.offsetTop + originY),
-    screen: {
-      left: cameraW * SCREEN.left,
-      top: cameraH * SCREEN.top,
-      width: screenW,
-      height: screenH,
-    },
-    cover: { left: originX - coverW / 2, top: originY - coverH / 2, width: coverW, height: coverH },
-  }
+const REVEAL_LAYOUT: Record<Viewport, RevealLayout> = {
+  desktop: { startScale: 0.56, startY: 0.78, revealScreens: 1.3, exitScreens: 0.45, scrub: 0.95 },
+  tablet: { startScale: 0.64, startY: 0.72, revealScreens: 1.15, exitScreens: 0.42, scrub: 0.78 },
+  mobile: { startScale: 0.74, startY: 0.64, revealScreens: 1, exitScreens: 0.38, scrub: 0.62 },
 }
 
-const span = ([start, end]: readonly [number, number]) => ({ at: start, duration: end - start })
-
-function PhotographyGallery() {
+export default function PhotographyGallery() {
   const sectionRef = useRef<HTMLElement>(null)
-  const headingRef = useRef<HTMLHeadingElement>(null)
-  const cameraRef = useRef<HTMLDivElement>(null)
-  const screenRef = useRef<HTMLDivElement>(null)
-  const frameRef = useRef<HTMLImageElement>(null)
+  const introRef = useRef<HTMLDivElement>(null)
+  const ipadRef = useRef<HTMLDivElement>(null)
   const controlsRef = useRef<HTMLDivElement>(null)
   const slideRefs = useRef<(HTMLImageElement | null)[]>([])
 
   const currentRef = useRef(0)
-  const timelineRef = useRef<gsap.core.Timeline | null>(null)
-  const touchRef = useRef<{ x: number; y: number } | null>(null)
-
-  // Autoplay runs only in the fullscreen gallery, while the section is on
-  // screen, the tab is visible and nobody is on the controls.
+  const transitionRef = useRef<gsap.core.Timeline | null>(null)
   const autoplayRef = useRef<number | null>(null)
-  const inGalleryRef = useRef(false)
+  const touchRef = useRef<{ x: number; y: number } | null>(null)
+  const galleryReadyRef = useRef(false)
   const visibleRef = useRef(false)
-  const holdRef = useRef(false)
+  const interactingRef = useRef(false)
 
   const [active, setActive] = useState(0)
 
   const { contextSafe } = useGSAP({ scope: sectionRef })
 
-  // Only the photograph on the display changes, as a soft crossfade with a
-  // slight breath in scale.
-  const show = useCallback(
-    (dir: Direction) =>
+  const transitionTo = useCallback(
+    (index: number, direction: Direction) =>
       contextSafe(() => {
-        // A click mid-fade finishes the current one first, so the display
-        // never shows more than the two photos being exchanged.
-        timelineRef.current?.progress(1)
+        if (index === currentRef.current) return
+
+        transitionRef.current?.progress(1)
 
         const from = currentRef.current
-        const to = (from + dir + TOTAL) % TOTAL
         const outgoing = slideRefs.current[from]
-        const incoming = slideRefs.current[to]
+        const incoming = slideRefs.current[index]
         if (!outgoing || !incoming) return
 
-        currentRef.current = to
-        setActive(to)
-
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        const duration = reduced ? 0.4 : 0.8
+        currentRef.current = index
+        setActive(index)
 
         const tl = gsap.timeline({
-          defaults: { duration, ease: 'power2.inOut' },
+          defaults: { duration: reduced ? 0.25 : 0.78, ease: 'power3.inOut' },
           onComplete: () => {
-            gsap.set(outgoing, { opacity: 0, scale: 1, zIndex: 0 })
-            gsap.set(incoming, { zIndex: 0 })
-            timelineRef.current = null
+            gsap.set(outgoing, { opacity: 0, scale: 1, xPercent: 0, zIndex: 0 })
+            gsap.set(incoming, { opacity: 1, scale: 1, xPercent: 0, zIndex: 1 })
+            transitionRef.current = null
           },
         })
-        timelineRef.current = tl
 
-        tl.set(incoming, { zIndex: 1 })
-        tl.fromTo(outgoing, { opacity: 1, scale: 1 }, { opacity: 0, scale: reduced ? 1 : 1.02 }, 0)
-        tl.fromTo(incoming, { opacity: 0, scale: reduced ? 1 : 0.98 }, { opacity: 1, scale: 1 }, 0)
+        transitionRef.current = tl
+        tl.set(incoming, { zIndex: 2 })
+        tl.fromTo(
+          outgoing,
+          { opacity: 1, scale: 1, xPercent: 0 },
+          { opacity: 0, scale: reduced ? 1 : 1.022, xPercent: reduced ? 0 : direction * -2 },
+          0,
+        )
+        tl.fromTo(
+          incoming,
+          { opacity: 0, scale: reduced ? 1 : 0.986, xPercent: reduced ? 0 : direction * 2 },
+          { opacity: 1, scale: 1, xPercent: 0 },
+          0,
+        )
       })(),
     [contextSafe],
+  )
+
+  const show = useCallback(
+    (direction: Direction) => {
+      const index = (currentRef.current + direction + TOTAL) % TOTAL
+      transitionTo(index, direction)
+    },
+    [transitionTo],
+  )
+
+  const jumpTo = useCallback(
+    (index: number) => {
+      const current = currentRef.current
+      if (index === current) return
+
+      const forward = (index - current + TOTAL) % TOTAL
+      const backward = (current - index + TOTAL) % TOTAL
+      transitionTo(index, forward <= backward ? 1 : -1)
+    },
+    [transitionTo],
   )
 
   const syncAutoplay = useCallback(() => {
     if (autoplayRef.current !== null) window.clearTimeout(autoplayRef.current)
     autoplayRef.current = null
-    if (!inGalleryRef.current || !visibleRef.current || holdRef.current || document.hidden) return
+
+    if (!galleryReadyRef.current || !visibleRef.current || interactingRef.current || document.hidden) return
 
     autoplayRef.current = window.setTimeout(() => {
       show(1)
@@ -188,205 +132,291 @@ function PhotographyGallery() {
     }, AUTO_CHANGE_DELAY)
   }, [show])
 
-  /** A manual step: changes the photo and restarts the autoplay countdown. */
   const go = useCallback(
-    (dir: Direction) => {
-      show(dir)
+    (direction: Direction) => {
+      show(direction)
       syncAutoplay()
     },
     [show, syncAutoplay],
   )
 
-  const holdAutoplay = (hold: boolean) => {
-    holdRef.current = hold
-    syncAutoplay()
-  }
+  const goTo = useCallback(
+    (index: number) => {
+      jumpTo(index)
+      syncAutoplay()
+    },
+    [jumpTo, syncAutoplay],
+  )
 
-  // Scroll-driven entry: the pinned section scrubs one timeline from the
-  // whole camera, into its display, out to a fullscreen photograph — and
-  // scrolling up scrubs the same timeline back.
   useGSAP(
     () => {
       const section = sectionRef.current
-      const heading = headingRef.current
-      const camera = cameraRef.current
-      const screen = screenRef.current
-      const frame = frameRef.current
+      const intro = introRef.current
+      const ipad = ipadRef.current
       const controls = controlsRef.current
-      if (!section || !heading || !camera || !screen || !frame || !controls) return
+      const slides = slideRefs.current.filter(Boolean) as HTMLImageElement[]
+
+      if (!section || !intro || !ipad || !controls || slides.length === 0) return
 
       const mm = gsap.matchMedia()
+
       mm.add(
         {
-          motion: '(prefers-reduced-motion: no-preference)',
+          desktop: '(min-width: 1024px)',
           tablet: '(min-width: 768px) and (max-width: 1023px)',
           mobile: '(max-width: 767px)',
+          reduce: '(prefers-reduced-motion: reduce)',
         },
         (context) => {
-          const { motion, tablet, mobile } = context.conditions as Record<string, boolean>
-          if (!motion) return
-
+          const conditions = context.conditions as Record<string, boolean>
+          const mobile = Boolean(conditions.mobile)
+          const tablet = Boolean(conditions.tablet)
+          const reduce = Boolean(conditions.reduce)
           const viewport: Viewport = mobile ? 'mobile' : tablet ? 'tablet' : 'desktop'
-          let zoom = measureZoom(section, camera, viewport)
-          // Switches the controls to their fullscreen overlay layout.
-          section.classList.add('photo-gallery--zoom')
+          const layout = REVEAL_LAYOUT[viewport]
 
-          const setGallery = (inGallery: boolean) => {
-            if (inGallery === inGalleryRef.current) return
-            inGalleryRef.current = inGallery
+          if (reduce) {
+            gsap.set(intro, { autoAlpha: 0 })
+            gsap.set(ipad, { xPercent: -50, yPercent: -50, y: 0, scale: 1, autoAlpha: 1 })
+            gsap.set(controls, { autoAlpha: 1, y: 0, scale: 1, pointerEvents: 'auto' })
+            gsap.set(slides, { scale: 1 })
+            galleryReadyRef.current = true
             syncAutoplay()
+            return
           }
+
+          const startY = () => section.clientHeight * layout.startY
+          const exitY = () => -section.clientHeight * (mobile ? 0.035 : 0.065)
+
+          // Timeline units intentionally map to viewport-height scroll units.
+          // The device reveal finishes first, then the centred iPad is held
+          // completely still for exactly two viewport scroll lengths.
+          const revealEnd = layout.revealScreens
+          const holdStart = revealEnd
+          const holdEnd = holdStart + HOLD_SCROLL_SCREENS
+          const exitEnd = holdEnd + layout.exitScreens
+          const totalScrollScreens = exitEnd
+
+          gsap.set(intro, { autoAlpha: 1, y: 0, filter: 'blur(0px)' })
+          gsap.set(ipad, {
+            xPercent: -50,
+            yPercent: -50,
+            y: startY,
+            scale: layout.startScale,
+            autoAlpha: 1,
+            transformOrigin: '50% 50%',
+            force3D: true,
+          })
+          gsap.set(slides, { scale: 1.065, transformOrigin: '50% 50%' })
+          gsap.set(controls, { autoAlpha: 0, y: 14, scale: 0.96, pointerEvents: 'none' })
 
           const tl = gsap.timeline({
             defaults: { ease: 'none' },
             scrollTrigger: {
               trigger: section,
               start: 'top top',
-              end: ZOOM_LAYOUT[viewport].end,
+              end: () => `+=${window.innerHeight * totalScrollScreens}`,
               pin: true,
-              scrub: mobile ? 0.6 : 0.8,
+              scrub: layout.scrub,
               anticipatePin: 1,
               invalidateOnRefresh: true,
-              onRefreshInit: () => {
-                zoom = measureZoom(section, camera, viewport)
+              onUpdate: () => {
+                const time = tl.time()
+                const ready = time >= revealEnd * 0.82 && time < holdEnd
+
+                if (ready !== galleryReadyRef.current) {
+                  galleryReadyRef.current = ready
+                  syncAutoplay()
+                }
               },
             },
-            // Fullscreen is reached at 1; the hold follows.
-            onUpdate: () => setGallery(tl.time() >= 0.999),
           })
 
-          const headingSpan = span(SEQUENCE.heading)
-          const zoomSpan = span(SEQUENCE.zoom)
-          const frameSpan = span(SEQUENCE.frameOut)
-          const expandSpan = span(SEQUENCE.expand)
-          const controlsSpan = span(SEQUENCE.controls)
-
-          // The title makes way as the zoom begins.
-          tl.fromTo(heading, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -32, duration: headingSpan.duration }, headingSpan.at)
-
-          // The camera grows about its display and carries it to the centre.
-          tl.fromTo(
-            camera,
-            { x: 0, y: 0, scale: 1, transformOrigin: () => zoom.origin },
+          // 01 — Intro leaves while the iPad begins entering.
+          tl.to(
+            intro,
             {
-              x: () => zoom.x,
-              y: () => zoom.y,
-              scale: () => zoom.scale,
-              duration: zoomSpan.duration,
-              ease: 'sine.inOut',
-              force3D: false,
+              autoAlpha: 0,
+              y: -32,
+              filter: 'blur(5px)',
+              duration: revealEnd * 0.18,
+              ease: 'power2.in',
             },
-            zoomSpan.at,
+            revealEnd * 0.02,
           )
 
-          // The body fades out while the zoom carries it past the edges.
-          tl.fromTo(frame, { opacity: 1 }, { opacity: 0, duration: frameSpan.duration }, frameSpan.at)
-
-          // The same display box — same photo layer — grows out of the bezel
-          // until it covers the section, losing its rounded corners.
-          tl.fromTo(
-            screen,
+          // 02 — iPad reaches its exact final centered pose.
+          tl.to(
+            ipad,
             {
-              left: () => zoom.screen.left,
-              top: () => zoom.screen.top,
-              width: () => zoom.screen.width,
-              height: () => zoom.screen.height,
-              borderRadius: () => getComputedStyle(screen).borderTopLeftRadius,
+              y: 0,
+              scale: 1,
+              duration: revealEnd * 0.72,
+              ease: 'power3.inOut',
             },
-            {
-              left: () => zoom.cover.left,
-              top: () => zoom.cover.top,
-              width: () => zoom.cover.width,
-              height: () => zoom.cover.height,
-              borderRadius: 0,
-              duration: expandSpan.duration,
-              ease: 'sine.inOut',
-            },
-            expandSpan.at,
+            revealEnd * 0.04,
           )
 
-          // Once the frame is gone the photo lifts above it; nothing visible
-          // changes, but the fullscreen layer order is then true.
-          tl.set(screen, { zIndex: 10 }, SEQUENCE.layer)
+          // 03 — Photo settles inside the screen while the device approaches.
+          tl.to(
+            slides,
+            {
+              scale: 1,
+              duration: revealEnd * 0.6,
+              ease: 'sine.out',
+            },
+            revealEnd * 0.12,
+          )
 
-          // The carousel controls arrive with fullscreen, and on the way
-          // back are the first thing to go.
-          tl.fromTo(controls, { autoAlpha: 0 }, { autoAlpha: 1, duration: controlsSpan.duration }, controlsSpan.at)
+          // 04 — Tiny physical settle before the hold starts.
+          tl.to(
+            ipad,
+            {
+              scale: 1.008,
+              duration: revealEnd * 0.045,
+              ease: 'sine.out',
+            },
+            revealEnd * 0.78,
+          )
 
-          // The fullscreen gallery holds before the page moves on.
-          tl.to({}, { duration: HOLD }, 1)
+          tl.to(
+            ipad,
+            {
+              scale: 1,
+              duration: revealEnd * 0.065,
+              ease: 'sine.inOut',
+            },
+            revealEnd * 0.825,
+          )
+
+          // 05 — Controller appears before the centre hold.
+          tl.to(
+            controls,
+            {
+              autoAlpha: 1,
+              y: 0,
+              scale: 1,
+              pointerEvents: 'auto',
+              duration: revealEnd * 0.12,
+              ease: 'power3.out',
+            },
+            revealEnd * 0.82,
+          )
+
+          // 06 — EXACT TWO-SCREEN HOLD.
+          // Nothing on the iPad moves here. The section remains pinned,
+          // so Videography / the next section cannot start yet.
+          tl.to({}, { duration: HOLD_SCROLL_SCREENS }, holdStart)
+
+          // 07 — Only after those two full scroll screens do we begin exit.
+          tl.to(
+            controls,
+            {
+              autoAlpha: 0,
+              y: 10,
+              scale: 0.97,
+              pointerEvents: 'none',
+              duration: layout.exitScreens * 0.24,
+              ease: 'power2.in',
+            },
+            holdEnd,
+          )
+
+          tl.to(
+            ipad,
+            {
+              y: exitY,
+              scale: 0.94,
+              autoAlpha: 0,
+              duration: layout.exitScreens * 0.92,
+              ease: 'power2.in',
+            },
+            holdEnd + layout.exitScreens * 0.08,
+          )
+
+          // Guarantees the pin lasts through the entire exit distance.
+          tl.to({}, { duration: 0.001 }, exitEnd)
 
           return () => {
-            setGallery(false)
-            section.classList.remove('photo-gallery--zoom')
-            gsap.set([heading, camera, screen, frame, controls], { clearProps: 'all' })
+            galleryReadyRef.current = false
+            syncAutoplay()
+            gsap.set([intro, ipad, controls, ...slides], { clearProps: 'all' })
           }
         },
       )
+
+      return () => mm.revert()
     },
     { scope: sectionRef, dependencies: [syncAutoplay] },
   )
 
-  // Autoplay pauses whenever the section is off screen.
   useEffect(() => {
     const section = sectionRef.current
     if (!section || typeof IntersectionObserver === 'undefined') return
-    const observer = new IntersectionObserver(([entry]) => {
-      visibleRef.current = entry.isIntersecting
-      syncAutoplay()
-    })
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visibleRef.current = entry.isIntersecting
+        syncAutoplay()
+      },
+      { threshold: 0.1 },
+    )
+
     observer.observe(section)
     return () => observer.disconnect()
   }, [syncAutoplay])
 
-  // …and while the tab is hidden.
   useEffect(() => {
-    document.addEventListener('visibilitychange', syncAutoplay)
-    return () => document.removeEventListener('visibilitychange', syncAutoplay)
+    const onVisibility = () => syncAutoplay()
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [syncAutoplay])
 
   useEffect(
     () => () => {
-      timelineRef.current?.kill()
+      transitionRef.current?.kill()
       if (autoplayRef.current !== null) window.clearTimeout(autoplayRef.current)
     },
     [],
   )
 
-  // Arrow keys, only while the gallery is the thing on screen.
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!galleryReadyRef.current) return
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+
       const target = event.target as HTMLElement | null
       if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
 
-      const section = sectionRef.current
-      if (!section) return
-      const { top, bottom } = section.getBoundingClientRect()
-      const vh = window.innerHeight
-      if (top > vh * 0.5 || bottom < vh * 0.5) return
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        go(-1)
+      }
 
-      event.preventDefault()
-      go(event.key === 'ArrowRight' ? 1 : -1)
+      if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        go(1)
+      }
     }
 
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [go])
 
-  const onTouchStart = (event: TouchEvent) => {
+  const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     const touch = event.touches[0]
     touchRef.current = { x: touch.clientX, y: touch.clientY }
   }
 
-  const onTouchEnd = (event: TouchEvent) => {
+  const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
     const start = touchRef.current
     touchRef.current = null
     if (!start) return
+
     const touch = event.changedTouches[0]
     const dx = touch.clientX - start.x
     const dy = touch.clientY - start.y
+
     if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) go(dx < 0 ? 1 : -1)
   }
 
@@ -396,79 +426,115 @@ function PhotographyGallery() {
       id="photography"
       aria-roledescription="carousel"
       aria-label="Photography"
-      className="photo-gallery relative w-full bg-white"
+      className="relative h-svh min-h-[560px] w-full overflow-hidden bg-white text-[#111] sm:min-h-[600px] lg:min-h-[620px]"
     >
-      <h2
-        ref={headingRef}
-        className="px-5 text-center text-[clamp(44px,6.5vw,48px)] font-bold uppercase leading-[0.82] tracking-[0.100em] text-[#111] font-primary"
-        
-      >
-        Photography
-      </h2>
-
-      <div ref={cameraRef} className="photo-camera" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        {/* The photographs, stacked and clipped to the display opening. Only
-           the active one is visible. */}
-        <div ref={screenRef} className="photo-camera__screen">
-          {photographyImages.map((image, index) => (
-            <img
-              key={image}
-              ref={(element) => {
-                slideRefs.current[index] = element
-              }}
-              src={image}
-              alt={`BrandWorks photography project ${index + 1}`}
-              aria-hidden={index !== active}
-              draggable={false}
-              decoding="async"
-              loading="lazy"
-              className="photo-camera__slide"
-            />
-          ))}
-        </div>
-
-        <img
-          ref={frameRef}
-          src={cameraFrame}
-          alt=""
-          aria-hidden="true"
-          width={1287}
-          height={984}
-          draggable={false}
-          decoding="async"
-          loading="lazy"
-          className="photo-camera__frame"
-        />
+      {/* INTRO */}
+      <div ref={introRef} className="pointer-events-none absolute inset-x-0 top-[clamp(42px,8vh,88px)] z-10 flex flex-col items-center px-5 text-center">
+        <span className="font-primary text-[9px] uppercase tracking-[0.18em] text-black/40 sm:text-[10px]">BrandWorks / Stills</span>
+        <h2 className="mt-3 font-primary text-[clamp(34px,4vw,48px)] font-medium leading-[0.96] tracking-[-0.045em]">Photography</h2>
+        <p className="mt-3 max-w-[420px] font-secondary text-[12px] leading-[1.5] text-black/45 sm:text-[13px]">Still images built with the same intent as moving ones.</p>
       </div>
 
+      {/* CSS IPAD — no fake checkerboard PNG */}
       <div
-        ref={controlsRef}
-        className="photo-controls"
-        onPointerEnter={() => holdAutoplay(true)}
-        onPointerLeave={() => holdAutoplay(false)}
-        onFocus={() => holdAutoplay(true)}
-        onBlur={() => holdAutoplay(false)}
+        ref={ipadRef}
+        className="absolute left-1/2 top-1/2 z-20 aspect-[4/3] w-[min(94vw,112svh,1280px)] opacity-0 will-change-transform"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
       >
-        <button type="button" className="photo-nav photo-nav--prev" onClick={() => go(-1)}>
-          <span className="photo-nav__line" aria-hidden="true" />
-          <span className="site-ui">Previous</span>
-        </button>
+        <div className="relative h-full w-full rounded-[clamp(20px,2.4vw,38px)] bg-[#0b0b0b] p-[clamp(8px,1.1vw,16px)] shadow-[0_30px_90px_rgba(0,0,0,0.16)] ring-1 ring-black/20">
+          <span className="pointer-events-none absolute left-[5px] top-1/2 z-30 h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[#171717] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] sm:left-[7px]" aria-hidden="true" />
 
-        <span className="photo-count site-ui tabular-nums" aria-live="polite">
-          <span className="sr-only">Photo </span>
-          <span className="photo-count__current">{pad(active + 1)}</span>
-          <span aria-hidden="true"> / </span>
-          <span className="sr-only"> of </span>
-          {pad(TOTAL)}
-        </span>
+          <div className="relative h-full w-full overflow-hidden rounded-[clamp(13px,1.7vw,27px)] bg-[#111] touch-pan-y">
+            {photographyImages.map((image, index) => (
+              <img
+                key={image}
+                ref={(element) => {
+                  slideRefs.current[index] = element
+                }}
+                src={image}
+                alt={`BrandWorks photography project ${index + 1}`}
+                aria-hidden={index !== active}
+                draggable={false}
+                decoding="async"
+                loading={index <= 1 ? 'eager' : 'lazy'}
+                className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center will-change-[transform,opacity]"
+                style={{ opacity: index === 0 ? 1 : 0, zIndex: index === 0 ? 1 : 0 }}
+              />
+            ))}
 
-        <button type="button" className="photo-nav photo-nav--next" onClick={() => go(1)}>
-          <span className="site-ui">Next</span>
-          <span className="photo-nav__line" aria-hidden="true" />
-        </button>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[32%] bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
+
+            {/* CONTROLLER */}
+            <div
+              ref={controlsRef}
+              className="absolute bottom-[clamp(12px,3%,28px)] left-1/2 z-30 flex max-w-[calc(100%-18px)] -translate-x-1/2 items-center gap-1.5 opacity-0 md:gap-2"
+              onPointerEnter={() => {
+                interactingRef.current = true
+                syncAutoplay()
+              }}
+              onPointerLeave={() => {
+                interactingRef.current = false
+                syncAutoplay()
+              }}
+              onFocus={() => {
+                interactingRef.current = true
+                syncAutoplay()
+              }}
+              onBlur={() => {
+                interactingRef.current = false
+                syncAutoplay()
+              }}
+            >
+              <button
+                type="button"
+                aria-label="Previous photograph"
+                onClick={() => go(-1)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/70 text-white backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
+              >
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              <div className="flex h-10 items-center gap-[3px] rounded-[12px] border border-white/10 bg-black/65 p-[3px] backdrop-blur-xl sm:h-12 sm:gap-1 sm:rounded-[15px] sm:p-1">
+                {photographyImages.map((image, index) => (
+                  <button
+                    key={`${image}-thumb`}
+                    type="button"
+                    aria-label={`View photograph ${index + 1}`}
+                    aria-current={index === active ? 'true' : undefined}
+                    onClick={() => goTo(index)}
+                    className={`relative h-[32px] w-[26px] overflow-hidden rounded-[7px] border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-10 sm:w-[46px] sm:rounded-[9px] ${index === active ? 'scale-[1.02] border-white/90 opacity-100' : 'border-transparent opacity-55 hover:scale-[1.02] hover:opacity-90'}`}
+                  >
+                    <img src={image} alt="" aria-hidden="true" draggable={false} className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+
+              <div className="hidden h-12 min-w-[76px] items-center justify-center gap-1.5 rounded-[15px] border border-white/10 bg-black/70 px-3 font-primary text-[9px] font-medium tracking-[0.08em] text-white backdrop-blur-xl min-[390px]:flex sm:min-w-[88px] sm:text-[10px]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#9c9c38]" aria-hidden="true" />
+                <span>{pad(active + 1)}</span>
+                <span className="text-white/30">/</span>
+                <span className="text-white/55">{pad(TOTAL)}</span>
+              </div>
+
+              <button
+                type="button"
+                aria-label="Next photograph"
+                onClick={() => go(1)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/70 text-white backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
+              >
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <span className="pointer-events-none absolute bottom-[5px] left-1/2 z-30 h-[3px] w-[12%] -translate-x-1/2 rounded-full bg-white/35 sm:bottom-[7px]" aria-hidden="true" />
+        </div>
       </div>
     </section>
   )
 }
-
-export default PhotographyGallery

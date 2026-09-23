@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { useReducedMotion } from 'motion/react'
+import { Icon } from '@iconify/react'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -40,38 +41,59 @@ const VIDEO_PROJECTS: VideoProject[] = [
   },
 ]
 
+const SCENE_SCROLL_PROGRESS = [0.18, 0.34, 0.52, 0.7] as const
+const VIDEO_FPS = 30
+
+const formatTimecode = (seconds: number) => {
+  const safe = Number.isFinite(seconds) && seconds > 0 ? seconds : 0
+  const minutes = Math.floor(safe / 60)
+  const secs = Math.floor(safe % 60)
+  const frames = Math.floor((safe % 1) * VIDEO_FPS)
+  return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}:${String(frames).padStart(2, '0')}`
+}
+
+
 function Film({
   project,
   live,
+  muted = true,
+  paused = false,
+  videoRef,
   className = '',
 }: {
   project: VideoProject
   live: boolean
+  muted?: boolean
+  paused?: boolean
+  videoRef?: (node: HTMLVideoElement | null) => void
   className?: string
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const localRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
-    const video = videoRef.current
+    const video = localRef.current
     if (!video) return
 
-    if (live) {
+    video.muted = muted
+
+    if (live && !paused) {
       video.play().catch(() => {
-        // Autoplay can still wait for the first user interaction.
+        // Autoplay can still wait for the first explicit user interaction.
       })
     } else {
       video.pause()
     }
-  }, [live])
+  }, [live, muted, paused])
 
   return (
-    <div
-      className={`absolute inset-0 overflow-hidden bg-[#0d0d0d] ${className}`}
-    >
+    <div className={`absolute inset-0 overflow-hidden bg-[#0d0d0d] ${className}`}>
       <video
-        ref={videoRef}
+        ref={(node) => {
+          localRef.current = node
+          videoRef?.(node)
+        }}
         src={project.src}
-        muted
+        muted={muted}
         loop
         playsInline
         preload="metadata"
@@ -89,23 +111,7 @@ const SceneCaption = forwardRef<
   return (
     <div
       ref={ref}
-      className="
-        absolute
-        bottom-[4.5vh]
-        left-[4vw]
-        right-[4vw]
-
-        flex
-        items-end
-        justify-between
-        gap-6
-
-        text-white
-        opacity-0
-
-        md:left-[5vw]
-        md:right-[5vw]
-      "
+      className="absolute bottom-[clamp(96px,13vh,132px)] left-[4vw] right-[4vw] flex items-end justify-between gap-6 text-white opacity-0 md:left-[5vw] md:right-[5vw]"
     >
       <p
         className="
@@ -209,9 +215,15 @@ export default function Videography() {
   const galleryCardRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const progressRef = useRef<HTMLDivElement>(null)
+  const controllerRef = useRef<HTMLDivElement>(null)
+  const timecodeRef = useRef<HTMLSpanElement>(null)
+  const masterTimelineRef = useRef<gsap.core.Timeline | null>(null)
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [galleryLive, setGalleryLive] = useState(false)
+  const [userPaused, setUserPaused] = useState(false)
+  const [muted, setMuted] = useState(true)
 
   const reduceMotion = useReducedMotion()
 
@@ -240,7 +252,8 @@ export default function Videography() {
         !circleMediaRef.current ||
         !sweepRef.current ||
         !galleryRef.current ||
-        !progressRef.current
+        !progressRef.current ||
+        !controllerRef.current
       ) {
         return
       }
@@ -278,6 +291,7 @@ export default function Videography() {
       ) as HTMLDivElement[]
 
       const progress = progressRef.current
+      const controller = controllerRef.current
 
       if (reduceMotion) {
         gsap.set(intro, { display: 'none' })
@@ -307,6 +321,12 @@ export default function Videography() {
 
         gsap.set(sweep, {
           clipPath: 'inset(0% 0% 0% 100%)',
+        })
+
+        gsap.set(controller, {
+          autoAlpha: 1,
+          y: 0,
+          scale: 1,
         })
 
         return
@@ -440,6 +460,13 @@ export default function Videography() {
             transformOrigin: 'left center',
           })
 
+          gsap.set(controller, {
+            autoAlpha: 0,
+            y: 14,
+            scale: 0.96,
+            transformOrigin: 'center bottom',
+          })
+
           /* --------------------------------------------------------
              MASTER TIMELINE
           -------------------------------------------------------- */
@@ -491,6 +518,8 @@ export default function Videography() {
               },
             },
           })
+
+          masterTimelineRef.current = tl
 
           /* 
              01 — INTRO + FIRST REVEAL
@@ -614,6 +643,18 @@ export default function Videography() {
               ease: 'power2.out',
             },
             1.55,
+          )
+
+          tl.to(
+            controller,
+            {
+              autoAlpha: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.36,
+              ease: 'power3.out',
+            },
+            1.72,
           )
 
           /* 
@@ -896,6 +937,18 @@ export default function Videography() {
           const sweepStart = 7.58
 
           tl.to(
+            controller,
+            {
+              autoAlpha: 0,
+              y: 12,
+              scale: 0.97,
+              duration: 0.28,
+              ease: 'power2.inOut',
+            },
+            sweepStart - 0.34,
+          )
+
+          tl.to(
             line3,
             {
               autoAlpha: 0,
@@ -974,6 +1027,7 @@ export default function Videography() {
           )
 
           return () => {
+            if (masterTimelineRef.current === tl) masterTimelineRef.current = null
             tl.scrollTrigger?.kill()
             tl.kill()
           }
@@ -992,6 +1046,74 @@ export default function Videography() {
 
   const isLive = (index: number) =>
     Math.abs(index - activeIndex) <= 1
+
+  const registerVideo = (index: number) => (node: HTMLVideoElement | null) => {
+    videoRefs.current[index] = node
+  }
+
+  const togglePlayback = () => {
+    const nextPaused = !userPaused
+    setUserPaused(nextPaused)
+
+    const video = videoRefs.current[activeIndex]
+    if (!video) return
+
+    if (nextPaused) {
+      video.pause()
+    } else {
+      video.play().catch(() => {})
+    }
+  }
+
+  const toggleMuted = () => {
+    const nextMuted = !muted
+    setMuted(nextMuted)
+
+    const video = videoRefs.current[activeIndex]
+    if (video) video.muted = nextMuted
+  }
+
+  const jumpToScene = (index: number) => {
+    const scrollTrigger = masterTimelineRef.current?.scrollTrigger
+    if (!scrollTrigger) return
+
+    const progress = SCENE_SCROLL_PROGRESS[index] ?? SCENE_SCROLL_PROGRESS[0]
+    const target = scrollTrigger.start + (scrollTrigger.end - scrollTrigger.start) * progress
+
+    setUserPaused(false)
+    window.scrollTo({ top: target, behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    let raf = 0
+    let previous = ''
+
+    const update = () => {
+      const video = videoRefs.current[activeIndex]
+      const timecode = timecodeRef.current
+
+      if (video && timecode) {
+        const next = formatTimecode(video.currentTime)
+        if (next !== previous) {
+          previous = next
+          timecode.textContent = next
+        }
+      }
+
+      raf = window.requestAnimationFrame(update)
+    }
+
+    raf = window.requestAnimationFrame(update)
+
+    return () => window.cancelAnimationFrame(raf)
+  }, [activeIndex])
+
+  useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return
+      video.muted = muted || index !== activeIndex
+    })
+  }, [activeIndex, muted])
 
   return (
     <section
@@ -1093,6 +1215,9 @@ export default function Videography() {
             <Film
               project={VIDEO_PROJECTS[0]}
               live={isLive(0)}
+              muted={muted || activeIndex !== 0}
+              paused={userPaused && activeIndex === 0}
+              videoRef={registerVideo(0)}
             />
           </div>
 
@@ -1119,6 +1244,9 @@ export default function Videography() {
             <Film
               project={VIDEO_PROJECTS[1]}
               live={isLive(1)}
+              muted={muted || activeIndex !== 1}
+              paused={userPaused && activeIndex === 1}
+              videoRef={registerVideo(1)}
             />
           </div>
 
@@ -1145,6 +1273,9 @@ export default function Videography() {
             <Film
               project={VIDEO_PROJECTS[2]}
               live={isLive(2)}
+              muted={muted || activeIndex !== 2}
+              paused={userPaused && activeIndex === 2}
+              videoRef={registerVideo(2)}
             />
           </div>
 
@@ -1171,6 +1302,9 @@ export default function Videography() {
             <Film
               project={VIDEO_PROJECTS[3]}
               live={isLive(3)}
+              muted={muted || activeIndex !== 3}
+              paused={userPaused && activeIndex === 3}
+              videoRef={registerVideo(3)}
             />
           </div>
 
@@ -1209,6 +1343,69 @@ export default function Videography() {
           </div>
 
           <div className="absolute inset-0 bg-black/[0.05]" />
+        </div>
+
+        {/*  */}
+        {/* EDITORIAL VIDEO CONTROLLER                              */}
+        {/*  */}
+
+        <div
+          ref={controllerRef}
+          className="absolute bottom-[clamp(20px,4vh,42px)] left-1/2 z-[58] flex max-w-[calc(100vw-24px)] -translate-x-1/2 items-center gap-2 opacity-0"
+        >
+          <button
+            type="button"
+            onClick={togglePlayback}
+            aria-label={userPaused ? 'Play video' : 'Pause video'}
+            className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/65 text-white backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.04] active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:h-14 sm:w-14 max-[430px]:h-10 max-[430px]:w-10"
+          >
+            <Icon icon={userPaused ? 'lucide:play' : 'lucide:pause'} className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px]" />
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleMuted}
+            aria-label={muted ? 'Unmute video' : 'Mute video'}
+            className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/65 text-white backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.04] active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:h-14 sm:w-14 max-[430px]:h-10 max-[430px]:w-10"
+          >
+            <Icon icon={muted ? 'lucide:volume-x' : 'lucide:volume-2'} className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px]" />
+          </button>
+
+          <div className="flex h-12 shrink-0 items-center gap-1 rounded-[16px] border border-white/10 bg-black/55 p-1 backdrop-blur-xl sm:h-14 sm:gap-1.5 sm:rounded-[18px] max-[430px]:h-10 max-[430px]:gap-0.5 max-[430px]:rounded-[13px]">
+            {VIDEO_PROJECTS.map((project, index) => (
+              <button
+                key={`${project.id}-controller`}
+                type="button"
+                onClick={() => jumpToScene(index)}
+                aria-label={`View ${project.title}`}
+                aria-current={activeIndex === index ? 'true' : undefined}
+                className={`relative h-full w-12 overflow-hidden rounded-[12px] border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.025] hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:w-14 md:w-16 max-[430px]:w-9 max-[430px]:rounded-[10px] ${activeIndex === index ? 'border-white/80 opacity-100' : 'border-white/0 opacity-60'}`}
+              >
+                <video
+                  src={project.src}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  onLoadedMetadata={(event) => {
+                    const video = event.currentTarget
+                    if (Number.isFinite(video.duration) && video.duration > 0.4) {
+                      video.currentTime = Math.min(0.35, video.duration * 0.04)
+                    }
+                  }}
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+                />
+                <span className={`pointer-events-none absolute inset-0 transition-colors duration-300 ${activeIndex === index ? 'bg-black/0' : 'bg-black/25'}`} />
+              </button>
+            ))}
+          </div>
+
+          <div className="flex h-12 shrink-0 items-center gap-2.5 rounded-[16px] border border-white/10 bg-[rgba(42,28,23,0.72)] px-4 text-white shadow-[0_10px_34px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:h-14 sm:gap-3 sm:rounded-[18px] sm:px-5 max-[430px]:h-10 max-[430px]:gap-1.5 max-[430px]:rounded-[13px] max-[430px]:px-2.5">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-[#8f8a16] shadow-[0_0_10px_rgba(143,138,22,0.32)] max-[430px]:h-1.5 max-[430px]:w-1.5" aria-hidden="true" />
+            <span className="font-primary text-[11px] font-medium tracking-[-0.01em] sm:text-[13px] max-[430px]:text-[9px]">30FPS</span>
+            <span ref={timecodeRef} className="min-w-[68px] font-primary text-[11px] font-medium tabular-nums tracking-[0.02em] text-white/90 sm:min-w-[78px] sm:text-[13px] max-[430px]:min-w-[56px] max-[430px]:text-[9px]">00:00:00</span>
+          </div>
         </div>
 
         {/*  */}
