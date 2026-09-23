@@ -73,7 +73,7 @@ export function Home() {
   }, []);
 
   return (
-    <>
+    <main>
       <Hero />
       <HumanLedBrandIntelligence />
       <Services />
@@ -96,7 +96,7 @@ export function Home() {
       <Testimonials />
       <Contact />
       <CTA />
-    </>
+    </main>
   );
 }
 

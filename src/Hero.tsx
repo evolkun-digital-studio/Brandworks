@@ -1,51 +1,105 @@
-import titleVideo from './assets/ForWebsite.mp4'
-import LazyBackgroundVideo from './LazyBackgroundVideo'
-import { trackEvent } from './analytics/analytics'
-import { AnalyticsEvents } from './analytics/events'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useReducedMotion } from 'motion/react'
+import HeroMedia from './components/Hero/HeroMedia'
+import HeroCaption from './components/Hero/HeroCaption'
+import ServiceSwitcher from './components/Hero/ServiceSwitcher'
+import type { HeroServiceId } from './data/heroServices'
+import {
+  DEFAULT_HERO_SERVICE,
+  HERO_DESCRIPTION,
+  HERO_HEADLINE,
+  HERO_SERVICE_ORDER,
+} from './data/heroServices'
+import './components/Hero/Hero.css'
 
+type IdleWindow = Window & {
+  requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number
+  cancelIdleCallback?: (handle: number) => void
+}
+
+/**
+ * Full-viewport cinematic hero. The service capsules switch the
+ * photography behind the copy in place; Photography (the default) shows
+ * an interactive two-level editorial gallery, while the other services
+ * show a single full-bleed frame or film.
+ * The site Header floats over it from PublicLayout.
+ */
 function Hero() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const reducedMotion = useReducedMotion() ?? false
+  const [activeId, setActiveId] = useState<HeroServiceId>(DEFAULT_HERO_SERVICE)
+  const [mounted, setMounted] = useState<ReadonlySet<HeroServiceId>>(() => new Set([DEFAULT_HERO_SERVICE]))
+  const [inView, setInView] = useState(true)
+
+  const warm = useCallback((id: HeroServiceId) => {
+    setMounted((current) => (current.has(id) ? current : new Set(current).add(id)))
+  }, [])
+
+  const select = useCallback(
+    (id: HeroServiceId) => {
+      warm(id)
+      setActiveId(id)
+    },
+    [warm],
+  )
+
+  // Once the page has finished loading and gone quiet, fetch the other
+  // services' stills in the background (never the film — that waits for
+  // a click). Skipped when the visitor has asked to save data.
+  useEffect(() => {
+    const win = window as IdleWindow
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+    if (connection?.saveData) return
+
+    let idleHandle: number | undefined
+    let timer: number | undefined
+    const warmAll = () => setMounted((current) => new Set([...current, ...HERO_SERVICE_ORDER]))
+    const schedule = () => {
+      if (win.requestIdleCallback) idleHandle = win.requestIdleCallback(warmAll, { timeout: 3000 })
+      else timer = window.setTimeout(warmAll, 1500)
+    }
+
+    if (document.readyState === 'complete') schedule()
+    else window.addEventListener('load', schedule, { once: true })
+
+    return () => {
+      window.removeEventListener('load', schedule)
+      if (idleHandle !== undefined) win.cancelIdleCallback?.(idleHandle)
+      if (timer !== undefined) window.clearTimeout(timer)
+    }
+  }, [])
+
+  // The film only plays while the hero is actually on screen.
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <main className="flex flex-col items-center bg-white px-4 pt-10 pb-6 text-center sm:pt-14 sm:pb-8 lg:pt-20 lg:pb-10">
-      <h1 className="sr-only">BRANDWORKS</h1>
+    <section ref={sectionRef} className="hero" aria-labelledby="hero-heading">
+      <HeroMedia activeId={activeId} mounted={mounted} inView={inView} reducedMotion={reducedMotion} />
+      <div className="hero-overlay" aria-hidden="true" />
 
-      {/* Visible the instant the page paints — the only video loaded
-         eagerly (Phase 11, Part 3). Smallest of the three files
-         (~1.8MB) and decorative, so it's still not treated as LCP
-         (no poster is set, which keeps it outside the LCP element
-         candidates entirely — see the Phase 11 report). */}
-      <div className="-mx-4 h-[420px] w-[calc(100%+2rem)] overflow-hidden rounded-[8px] bg-neutral-100">
-        <LazyBackgroundVideo
-          src={titleVideo}
-          priority
-          className="h-full w-full scale-100 object-cover invert brightness-70 contrast-125"
-        />
+      <div className="hero-content">
+        <div className="hero-copy">
+          <h1 id="hero-heading" className="hero-title">
+            <span className="sr-only">BrandWorks: </span>
+            {HERO_HEADLINE[0]}
+            <br />
+            {HERO_HEADLINE[1]}
+          </h1>
+          <p className="hero-description">{HERO_DESCRIPTION}</p>
+        </div>
+
+        <div className="hero-aside">
+          <HeroCaption activeId={activeId} reducedMotion={reducedMotion} />
+          <ServiceSwitcher activeId={activeId} onSelect={select} onIntent={warm} />
+        </div>
       </div>
-
-      <p className="site-copy mt-4 w-[620px] max-w-full text-center text-neutral-500 sm:mt-6">
-        We help brands build a stronger presence through strategic brand
-        identity, social media, content, marketing, development and SEO.
-      </p>
-
-      <a
-        href="#"
-        onClick={() => trackEvent({ name: AnalyticsEvents.contactCtaClick, params: { source: 'hero' } })}
-        className="mt-5 flex h-[40px] min-w-[156px] items-center justify-center gap-[8px] rounded-[2px] border border-neutral-900 bg-neutral-900 p-[12px] opacity-100 transition-opacity hover:opacity-85 sm:mt-5"
-      >
-        <span className="site-ui flex items-center justify-center whitespace-nowrap text-white uppercase">
-          Start a project
-        </span>
-      </a>
-
-      {/* Straddles the fold on most viewports and is the largest
-         video on the homepage after Brand2 (~12.9MB) — deferred until
-         it's about to scroll into view rather than loaded eagerly
-         (Phase 11, Part 3/4). */}
-      {/* <div className="mt-15 h-[806px] w-[1417px] max-w-[calc(100%-24px)] overflow-hidden rounded-[8px] bg-neutral-100 sm:mt-16">
-        <LazyBackgroundVideo
-          src={brandVideo}
-          className="h-full w-full object-cover opacity-100" />
-      </div> */}
-    </main>
+    </section>
   )
 }
 

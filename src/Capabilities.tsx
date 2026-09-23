@@ -400,7 +400,7 @@ function ServiceRow({
     <motion.li
       ref={itemRef}
       style={{ opacity, filter, scale, transformOrigin: 'left center' }}
-      className={`services-display service-row${active ? ' is-active' : ''} text-[clamp(38px,4.6vw,52px)] leading-[1.1] tracking-[-0.035em] lg:text-[clamp(44px,4.4vw,76px)]`}
+      className={`services-display service-row${active ? ' is-active' : ''} max-w-[400px] text-[clamp(36px,3.3vw,48px)] leading-[1.08] tracking-[-0.035em]`}
     >
       {firstLine && (
         <>

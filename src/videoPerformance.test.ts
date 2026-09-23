@@ -20,30 +20,39 @@ function read(relativePath: string): string {
   return readFileSync(path.join(srcDir, relativePath), 'utf8')
 }
 
-describe('Hero.tsx — video sources and loading strategy', () => {
-  const source = read('Hero.tsx')
+describe('Hero — service media loading strategy', () => {
+  const hero = read('Hero.tsx')
+  const media = read('components/Hero/HeroMedia.tsx')
+  const data = read('data/heroServices.ts')
 
-  it('still imports the same two video assets, unchanged', () => {
-    expect(source).toContain("from './assets/Brand1.mp4'")
-    expect(source).toContain("from './assets/ForWebsite.mp4'")
+  it('starts with only the default (Photography) layer mounted', () => {
+    expect(hero).toContain('new Set([DEFAULT_HERO_SERVICE])')
+    expect(data).toContain("DEFAULT_HERO_SERVICE: HeroServiceId = 'photography'")
   })
 
-  it('uses LazyBackgroundVideo, not a raw <video> element, for both', () => {
-    expect(source).toContain('LazyBackgroundVideo')
-    expect(source).not.toMatch(/<video/)
+  it('warms the other services only after load, when the page is idle', () => {
+    expect(hero).toContain("addEventListener('load'")
+    expect(hero).toContain('requestIdleCallback')
   })
 
-  it('marks only the first (ForWebsite) video as priority — Brand1 is deferred', () => {
-    const titleBlock = source.slice(source.indexOf('titleVideo'), source.indexOf('brandVideo', source.indexOf('titleVideo') + 1))
-    expect(titleBlock).toMatch(/src=\{titleVideo\}[\s\S]*priority/)
-
-    const brandBlock = source.slice(source.indexOf('src={brandVideo}'))
-    expect(brandBlock.slice(0, 200)).not.toContain('priority')
+  it('attaches the film only once Videography is actually selected, muted, looping, inline, without controls', () => {
+    expect(media).toMatch(/\{requested && \(\s*<video/)
+    const video = media.slice(media.indexOf('<video'), media.indexOf('/>', media.indexOf('<video')))
+    for (const attr of ['muted', 'loop', 'playsInline']) expect(video).toContain(attr)
+    expect(video).not.toContain('controls')
   })
 
-  it('reserves layout space for both videos via a fixed-dimension container', () => {
-    expect(source).toContain('h-[420px]')
-    expect(source).toContain('h-[806px]')
+  it('pauses the film whenever it is not the active, on-screen service', () => {
+    expect(media).toContain('video.pause()')
+    expect(media).toContain('playing={isActive && inView}')
+  })
+
+  it('serves the photography grid as small WebP files, not the multi-MB source PNGs', () => {
+    expect(data).not.toMatch(/Photo\/Photo\d+\.(png|jpg)/)
+    const heroDir = path.join(srcDir, 'assets/hero')
+    for (const file of ['photo-01.webp', 'photo-02.webp', 'photo-03.webp', 'photo-04.webp']) {
+      expect(statSync(path.join(heroDir, file)).size).toBeLessThan(200 * 1024)
+    }
   })
 })
 

@@ -1,690 +1,411 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { CSSProperties, KeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
-import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-} from 'motion/react'
+import { useReducedMotion } from 'motion/react'
+import { GRAPHICS_PROJECTS, GRAPHICS_SECTION } from '../../data/graphicsMotion'
+import { matches } from '../../lib/scrollMotion'
+import './GraphicsMotion.css'
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger, useGSAP)
 
-type Scene = {
-  id: string
-  label: string
-  title: string
-  description: string
+const TOTAL = GRAPHICS_PROJECTS.length
+const pad = (n: number) => String(n).padStart(2, '0')
+
+/** Arrow moves: one card, with a slow start and settle. */
+const STEP = { duration: 0.9, ease: 'power3.inOut' }
+/** After a drag: carry the throw, then settle on the nearest card. */
+const GLIDE = { duration: 0.8, ease: 'power3.out' }
+/** How far (ms of travel) a released drag is thrown before settling. */
+const THROW = 260
+
+type Drag = {
+  pointerId: number
+  startX: number
+  startLeft: number
+  lastX: number
+  lastTime: number
+  velocity: number
+  moved: boolean
 }
 
-const SCENES: Scene[] = [
-  {
-    id: '01',
-    label: 'Typography',
-    title: 'Give the idea a voice.',
-    description:
-      'Type, hierarchy and composition built to make the brand immediately recognisable.',
-  },
-  {
-    id: '02',
-    label: 'Identity',
-    title: 'Build one visual language.',
-    description:
-      'Marks, grids, colour and layout rules designed to stay coherent across every touchpoint.',
-  },
-  {
-    id: '03',
-    label: 'Motion',
-    title: 'Make the system move.',
-    description:
-      'Motion principles that add rhythm and energy without losing the identity underneath.',
-  },
-  {
-    id: '04',
-    label: 'Campaign',
-    title: 'Stretch the idea further.',
-    description:
-      'Campaign graphics and flexible visual assets created to work across digital, social and launch moments.',
-  },
-]
-
-function TypographyArtwork() {
+function Arrow({ direction }: { direction: 'prev' | 'next' }) {
   return (
-    <div className="relative h-full w-full overflow-hidden text-[#111]">
-      <div className="absolute inset-x-[6%] top-[8%] flex items-center justify-between border-b border-black/10 pb-3">
-        <span className="font-primary text-[8px] uppercase tracking-[0.2em] text-black/35">
-          BrandWorks / Type
-        </span>
-        <span className="font-primary text-[8px] uppercase tracking-[0.2em] text-black/35">
-          01
-        </span>
-      </div>
-
-      <div className="absolute inset-x-[7%] top-1/2 -translate-y-1/2 text-[clamp(2.8rem,5.7vw,6.1rem)] font-primary">
-        <p className="site-display text-white ">
-          Form
-        </p>
-
-        <div className="-mt-[0.015em] flex justify-end pr-[3%]">
-          <p className="site-display text-white">
-            Voice
-          </p>
-        </div>
-      </div>
-
-      <div className="absolute bottom-[8%] left-[7%] max-w-[240px] font-primary text-[10px] leading-[1.45] text-black/38">
-        Editorial hierarchy / expressive type / visual rhythm
-      </div>
-    </div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {direction === 'prev' ? (
+        <>
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="11 6 5 12 11 18" />
+        </>
+      ) : (
+        <>
+          <line x1="5" y1="12" x2="19" y2="12" />
+          <polyline points="13 6 19 12 13 18" />
+        </>
+      )}
+    </svg>
   )
 }
 
-function IdentityArtwork() {
-  return (
-    <div className="relative h-full w-full overflow-hidden bg-[#101010] text-white">
-      <div className="absolute inset-0 grid grid-cols-6 opacity-25">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div key={index} className="border-r border-white/20" />
-        ))}
-      </div>
-
-      <div className="absolute inset-0 grid grid-rows-4 opacity-15">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="border-b border-white/20" />
-        ))}
-      </div>
-
-      <div className="absolute left-[8%] top-[12%] flex size-14 items-center justify-center rounded-full border border-white/30 md:size-[72px]">
-        <span className="font-primary text-[11px] font-medium">
-          BW
-        </span>
-      </div>
-
-      <div className="absolute right-[9%] top-1/2 size-[100px] -translate-y-1/2 rounded-full bg-[#baff42] md:size-[150px]" />
-
-      <div className="absolute bottom-[10%] left-[8%]">
-        <p className="font-primary text-[8px] uppercase tracking-[0.2em] text-white/45">
-          Identity System
-        </p>
-
-        <p className="mt-3 max-w-[7ch] font-primary text-[clamp(2.8rem,5.7vw,6.1rem)] font-medium leading-[0.84] tracking-[-0.067em]">
-          Built to stay together.
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function MotionArtwork({
-  reduceMotion,
-}: {
-  reduceMotion: boolean
-}) {
-  return (
-    <div className="relative h-full w-full overflow-hidden bg-[#d8ff8d] text-[#111]">
-      <div className="absolute inset-x-[6%] top-[8%] flex items-center justify-between">
-        <span className="font-primary text-[8px] uppercase tracking-[0.2em] text-black/40">
-          Motion Language
-        </span>
-        <span className="font-primary text-[8px] uppercase tracking-[0.2em] text-black/40">
-          03
-        </span>
-      </div>
-
-      <motion.div
-        animate={reduceMotion ? undefined : { rotate: 360 }}
-        transition={
-          reduceMotion
-            ? undefined
-            : {
-                duration: 18,
-                repeat: Infinity,
-                ease: 'linear',
-              }
-        }
-        className="absolute left-1/2 top-1/2 size-[64%] -translate-x-1/2 -translate-y-1/2"
-      >
-        <div className="absolute left-1/2 top-1/2 h-[13%] w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#111]" />
-        <div className="absolute left-1/2 top-1/2 h-full w-[13%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#111]" />
-        <div className="absolute left-1/2 top-1/2 size-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full border-[18px] border-white md:border-[28px]" />
-      </motion.div>
-
-      <div className="absolute bottom-[9%] left-[7%] flex items-end gap-3">
-        <span className="size-2 rounded-full bg-[#111]" />
-        <p className="font-primary text-[clamp(2rem,4vw,4.4rem)] font-medium leading-[0.88] tracking-[-0.058em]">
-          Still.
-          <span className="ml-2 text-black/30">
-            Then alive.
-          </span>
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function CampaignArtwork() {
-  return (
-    <div className="relative h-full w-full overflow-hidden bg-gray-100">
-      <div className="absolute left-[6%] top-[8%] h-[84%] w-[34%] overflow-hidden bg-[#111] text-white">
-        <div className="absolute inset-x-4 top-4 flex items-center justify-between md:inset-x-5 md:top-5">
-          <span className="font-primary text-[8px] uppercase tracking-[0.18em] text-white/50">
-            Campaign
-          </span>
-          <span className="font-primary text-[8px] uppercase tracking-[0.18em] text-white/50">
-            04
-          </span>
-        </div>
-
-        <p className="absolute bottom-5 left-4 max-w-[5ch] font-primary text-[clamp(2.1rem,4.3vw,3.8rem)] font-medium uppercase leading-[0.82] tracking-[-0.065em] md:left-5">
-          Make it clear.
-        </p>
-      </div>
-
-      <div className="absolute right-[6%] top-[16%] h-[68%] w-[50%] overflow-hidden bg-[#c5b9ff]">
-        <div className="absolute left-[8%] top-[10%] size-10 rounded-full bg-[#111]" />
-
-        <p className="absolute bottom-[10%] right-[8%] max-w-[8ch] text-right font-primary text-[clamp(2.2rem,4.7vw,5rem)] font-medium leading-[0.84] tracking-[-0.065em]">
-          Then make it memorable.
-        </p>
-      </div>
-
-      <div className="absolute bottom-[8%] right-[6%] font-primary text-[8px] uppercase tracking-[0.2em] text-black/35">
-        Graphic system / Digital / Social
-      </div>
-    </div>
-  )
-}
-
-export default function GraphicsMotionStage() {
+/**
+ * Graphic & Motion — an oversized horizontal gallery. The track is a real
+ * horizontal scroller, so trackpads and touch scroll it natively; the
+ * arrows, a click on a card and the end of a mouse drag glide it with GSAP.
+ * Each card keeps its project details out of sight until that card is
+ * hovered or focused (or, on touch, until it's the card in front).
+ */
+function GraphicsMotionExperience() {
   const sectionRef = useRef<HTMLElement>(null)
-  const stageRef = useRef<HTMLDivElement>(null)
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const cursorRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<Drag | null>(null)
+  const suppressClickRef = useRef(false)
+  const targetRef = useRef<number | null>(null)
+  const reduceMotion = Boolean(useReducedMotion())
 
-  const canvasRef = useRef<HTMLDivElement>(null)
-  const sceneRefs = useRef<(HTMLDivElement | null)[]>([])
-  const sceneInnerRefs = useRef<(HTMLDivElement | null)[]>([])
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const [active, setActive] = useState(0)
+  const [atStart, setAtStart] = useState(true)
+  const [atEnd, setAtEnd] = useState(false)
 
-  const progressRef = useRef<HTMLDivElement>(null)
+  // ---------------------------------------------------------------- geometry
 
-  const [activeIndex, setActiveIndex] = useState(0)
-  const reduceMotion = useReducedMotion()
+  const cardsOf = (scroller: HTMLElement) =>
+    Array.from(scroller.querySelectorAll<HTMLElement>('[data-gm-card]'))
+
+  /** The scroll position that lines card `i` up with the section's left edge. */
+  const leftFor = useCallback((scroller: HTMLElement, i: number) => {
+    const card = cardsOf(scroller)[i]
+    if (!card) return 0
+    const inset = parseFloat(getComputedStyle(scroller).paddingLeft) || 0
+    const max = scroller.scrollWidth - scroller.clientWidth
+    return Math.min(Math.max(card.offsetLeft - inset, 0), max)
+  }, [])
+
+  const nearestTo = useCallback(
+    (scroller: HTMLElement, left: number) => {
+      let best = 0
+      let bestDistance = Infinity
+      for (let i = 0; i < TOTAL; i++) {
+        const distance = Math.abs(leftFor(scroller, i) - left)
+        if (distance < bestDistance - 1) {
+          best = i
+          bestDistance = distance
+        }
+      }
+      return best
+    },
+    [leftFor],
+  )
+
+  const sync = useCallback(() => {
+    const scroller = scrollerRef.current
+    if (!scroller) return
+    const left = scroller.scrollLeft
+    const max = scroller.scrollWidth - scroller.clientWidth
+    setAtStart(left <= 2)
+    setAtEnd(left >= max - 2)
+    setActive(targetRef.current ?? nearestTo(scroller, left))
+  }, [nearestTo])
+
+  // --------------------------------------------------------------- movement
+
+  const glideTo = useCallback(
+    (index: number, motion: { duration: number; ease: string } = STEP) => {
+      const scroller = scrollerRef.current
+      if (!scroller) return
+      const i = Math.min(Math.max(index, 0), TOTAL - 1)
+      const left = leftFor(scroller, i)
+      gsap.killTweensOf(scroller)
+
+      if (reduceMotion) {
+        scroller.scrollLeft = left
+        return
+      }
+      // Touch screens keep native scroll-snap on the track, which would
+      // fight a frame-by-frame tween — let the browser do the smooth scroll.
+      if (matches('(pointer: coarse)')) {
+        scroller.scrollTo({ left, behavior: 'smooth' })
+        return
+      }
+      targetRef.current = i
+      setActive(i)
+      gsap.to(scroller, {
+        scrollLeft: left,
+        ...motion,
+        onComplete: () => {
+          targetRef.current = null
+          sync()
+        },
+      })
+    },
+    [leftFor, reduceMotion, sync],
+  )
+
+  const step = (delta: number) => glideTo((targetRef.current ?? active) + delta)
+
+  const stopGlide = () => {
+    const scroller = scrollerRef.current
+    if (scroller) gsap.killTweensOf(scroller)
+    targetRef.current = null
+  }
+
+  useEffect(() => {
+    sync()
+    window.addEventListener('resize', sync)
+    return () => window.removeEventListener('resize', sync)
+  }, [sync])
+
+  // ------------------------------------------------------ mouse drag (desktop)
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return
+    // A captured drag doesn't always produce a click to consume the flag.
+    suppressClickRef.current = false
+    stopGlide()
+    const now = performance.now()
+    dragRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startLeft: e.currentTarget.scrollLeft,
+      lastX: e.clientX,
+      lastTime: now,
+      velocity: 0,
+      moved: false,
+    }
+  }
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== e.pointerId) return
+    const scroller = e.currentTarget
+    const dx = e.clientX - drag.startX
+
+    if (!drag.moved) {
+      if (Math.abs(dx) < 5) return
+      // Captured only once it's clearly a drag, so a plain click still
+      // lands on the card underneath.
+      drag.moved = true
+      scroller.setPointerCapture(e.pointerId)
+      scroller.classList.add('is-dragging')
+    }
+
+    const now = performance.now()
+    const dt = Math.max(now - drag.lastTime, 1)
+    // Lightly smoothed px/ms, so the throw reflects the last few moves.
+    drag.velocity = drag.velocity * 0.6 + ((e.clientX - drag.lastX) / dt) * 0.4
+    drag.lastX = e.clientX
+    drag.lastTime = now
+    scroller.scrollLeft = drag.startLeft - dx
+  }
+
+  const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== e.pointerId) return
+    dragRef.current = null
+    const scroller = e.currentTarget
+    if (!drag.moved) return
+
+    scroller.classList.remove('is-dragging')
+    if (scroller.hasPointerCapture(e.pointerId)) scroller.releasePointerCapture(e.pointerId)
+    suppressClickRef.current = true
+    const thrown = scroller.scrollLeft - drag.velocity * THROW
+    glideTo(nearestTo(scroller, thrown), GLIDE)
+  }
+
+  const onCardClick = (i: number) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false
+      return
+    }
+    glideTo(i)
+  }
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      step(1)
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      step(-1)
+    }
+  }
+
+  // ------------------------------------------------------------ view cursor
+
+  useEffect(() => {
+    const section = sectionRef.current
+    const cursor = cursorRef.current
+    if (!section || !cursor || !matches('(hover: hover) and (pointer: fine)')) return
+
+    section.classList.add('has-view-cursor')
+    const follow = reduceMotion ? 0.01 : 0.35
+    const toX = gsap.quickTo(cursor, 'x', { duration: follow, ease: 'power3.out' })
+    const toY = gsap.quickTo(cursor, 'y', { duration: follow, ease: 'power3.out' })
+    let visible = false
+
+    const show = (next: boolean) => {
+      if (next === visible) return
+      visible = next
+      cursor.classList.toggle('is-visible', next)
+    }
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return
+      const overCard = e.target instanceof Element && e.target.closest('[data-gm-card]') !== null
+      if (overCard && !visible) {
+        // Appear where the pointer is rather than sliding in from the last spot.
+        gsap.set(cursor, { x: e.clientX, y: e.clientY })
+      }
+      toX(e.clientX)
+      toY(e.clientY)
+      show(overCard)
+    }
+    const hide = () => show(false)
+
+    section.addEventListener('pointermove', onMove)
+    section.addEventListener('pointerleave', hide)
+    window.addEventListener('scroll', hide, { passive: true })
+    return () => {
+      section.classList.remove('has-view-cursor')
+      section.removeEventListener('pointermove', onMove)
+      section.removeEventListener('pointerleave', hide)
+      window.removeEventListener('scroll', hide)
+    }
+  }, [reduceMotion])
+
+  // ---------------------------------------------------------- scroll entrance
 
   useGSAP(
     () => {
-      if (
-        !sectionRef.current ||
-        !stageRef.current ||
-        !canvasRef.current ||
-        !progressRef.current
-      ) {
-        return
-      }
-
-      const scenes = sceneRefs.current.filter(
-        Boolean,
-      ) as HTMLDivElement[]
-
-      const inners = sceneInnerRefs.current.filter(
-        Boolean,
-      ) as HTMLDivElement[]
-
-      const tabs = tabRefs.current.filter(
-        Boolean,
-      ) as HTMLButtonElement[]
-
-      if (
-        scenes.length !== SCENES.length ||
-        inners.length !== SCENES.length
-      ) {
-        return
-      }
-
-      if (reduceMotion) {
-        gsap.set(scenes, {
-          autoAlpha: 0,
-          clipPath: 'inset(0% 0% 0% 0%)',
-        })
-
-        gsap.set(scenes[0], {
-          autoAlpha: 1,
-        })
-
-        gsap.set(inners, {
-          scale: 1,
-          xPercent: 0,
-          yPercent: 0,
-        })
-
-        return
-      }
-
       const mm = gsap.matchMedia()
-
-      mm.add(
-        {
-          desktop: '(min-width: 768px)',
-          mobile: '(max-width: 767px)',
-        },
-        (context) => {
-          const desktop = Boolean(
-            context.conditions?.desktop,
-          )
-
-          gsap.set(progressRef.current, {
-            scaleX: 0,
-            transformOrigin: 'left center',
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap
+          .timeline({
+            defaults: { ease: 'power3.out' },
+            scrollTrigger: { trigger: sectionRef.current, start: 'top 72%', once: true },
           })
-
-          gsap.set(scenes, {
-            autoAlpha: 1,
-            force3D: true,
-          })
-
-          gsap.set(scenes[0], {
-            clipPath:
-              'inset(0% 0% 0% 0% round 0px)',
-          })
-
-          gsap.set(scenes[1], {
-            clipPath:
-              'inset(0% 100% 0% 0% round 0px)',
-          })
-
-          gsap.set(scenes[2], {
-            clipPath:
-              'inset(100% 0% 0% 0% round 0px)',
-          })
-
-          gsap.set(scenes[3], {
-            clipPath:
-              'inset(0% 0% 100% 0% round 0px)',
-          })
-
-          gsap.set(inners, {
-            scale: desktop ? 1.035 : 1.02,
-            xPercent: 0,
-            yPercent: 0,
-            force3D: true,
-          })
-
-          gsap.set(inners[0], {
-            scale: 1,
-          })
-
-          gsap.set(tabs, {
-            opacity: 0.35,
-          })
-
-          gsap.set(tabs[0], {
-            opacity: 1,
-          })
-
-          const tl = gsap.timeline({
-            defaults: {
-              ease: 'none',
-            },
-
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top top',
-              end: () =>
-                `+=${window.innerHeight * (desktop ? 3.2 : 2.75)}`,
-              pin: stageRef.current,
-              scrub: desktop ? 1.05 : 0.8,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-
-              onUpdate: (self) => {
-                gsap.set(progressRef.current, {
-                  scaleX: self.progress,
-                })
-
-                const p = self.progress
-
-                const nextIndex =
-                  p < 0.25
-                    ? 0
-                    : p < 0.5
-                      ? 1
-                      : p < 0.75
-                        ? 2
-                        : 3
-
-                setActiveIndex((current) =>
-                  current === nextIndex
-                    ? current
-                    : nextIndex,
-                )
-              },
-            },
-          })
-
-          const revealScene = (
-            incoming: number,
-            outgoing: number,
-            at: number,
-            direction:
-              | 'left'
-              | 'bottom'
-              | 'top',
-          ) => {
-            const hiddenClip =
-              direction === 'left'
-                ? 'inset(0% 100% 0% 0% round 0px)'
-                : direction === 'bottom'
-                  ? 'inset(100% 0% 0% 0% round 0px)'
-                  : 'inset(0% 0% 100% 0% round 0px)'
-
-            gsap.set(scenes[incoming], {
-              clipPath: hiddenClip,
-            })
-
-            tl.to(
-              scenes[incoming],
-              {
-                clipPath:
-                  'inset(0% 0% 0% 0% round 0px)',
-                duration: 0.9,
-                ease: 'power3.inOut',
-              },
-              at,
-            )
-
-            tl.fromTo(
-              inners[incoming],
-              {
-                scale: desktop ? 1.045 : 1.025,
-              },
-              {
-                scale: 1,
-                duration: 1.0,
-                ease: 'none',
-              },
-              at,
-            )
-
-            tl.to(
-              inners[outgoing],
-              {
-                scale: desktop ? 1.018 : 1.01,
-                duration: 0.88,
-                ease: 'none',
-              },
-              at,
-            )
-
-            tl.to(
-              tabs[outgoing],
-              {
-                opacity: 0.35,
-                duration: 0.28,
-              },
-              at,
-            )
-
-            tl.to(
-              tabs[incoming],
-              {
-                opacity: 1,
-                duration: 0.28,
-              },
-              at + 0.42,
-            )
-          }
-
-          revealScene(1, 0, 0.8, 'left')
-          revealScene(2, 1, 1.75, 'bottom')
-          revealScene(3, 2, 2.7, 'top')
-
-          return () => {
-            tl.scrollTrigger?.kill()
-            tl.kill()
-          }
-        },
-      )
-
-      return () => {
-        mm.revert()
-      }
+          .from('[data-gm-label]', { autoAlpha: 0, y: 12, duration: 0.6 })
+          .from('[data-gm-heading-line]', { yPercent: 105, duration: 0.95, ease: 'power4.out' }, '-=0.35')
+          .from('[data-gm-description]', { autoAlpha: 0, y: 16, duration: 0.8 }, '-=0.6')
+          .from('[data-gm-controls]', { autoAlpha: 0, duration: 0.6 }, '<')
+          .from('[data-gm-track]', { y: 40, duration: 1.1 }, '-=0.55')
+          .from('[data-gm-card-inner]', { autoAlpha: 0, duration: 0.9, stagger: 0.08, ease: 'power2.out' }, '<')
+      })
+      return () => mm.revert()
     },
-    {
-      scope: sectionRef,
-      dependencies: [reduceMotion],
-    },
+    { scope: sectionRef },
   )
 
-  const active = SCENES[activeIndex]
+  const shown = atEnd ? TOTAL : active + 1
 
   return (
-    <section
-      ref={sectionRef}
-      id="graphics-motion"
-      aria-labelledby="graphics-motion-heading"
-      className="relative text-[#111]"
-    >
-      <div
-        ref={stageRef}
-        className="relative h-svh w-full overflow-hidden"
-      >
-        {/* TOP BAR */}
-        <div className="absolute left-[4vw] right-[4vw] top-[4vh] z-[80] flex items-center justify-between md:left-[5vw] md:right-[5vw]">
-          <span className="font-primary text-[9px] uppercase tracking-[0.2em] text-black/40">
-            BrandWorks / Graphic & Motion
-          </span>
-
-          <span className="font-primary text-[9px] uppercase tracking-[0.2em] text-black/30">
-            Visual Systems / 01—04
-          </span>
+    <section ref={sectionRef} id="graphics-motion" aria-labelledby="graphics-motion-heading" className="gm-section">
+      <div className="section-container gm-head">
+        <div className="gm-intro">
+          <p data-gm-label className="section-label gm-label">
+            <span className="gm-dot" aria-hidden="true" />
+            {GRAPHICS_SECTION.label}
+          </p>
+          <h2 id="graphics-motion-heading" className="section-heading gm-heading">
+            <span className="gm-mask">
+              <span data-gm-heading-line className="gm-heading__line">
+                {GRAPHICS_SECTION.heading}
+              </span>
+            </span>
+          </h2>
+          <p data-gm-description className="section-description gm-description">
+            {GRAPHICS_SECTION.description}
+          </p>
         </div>
 
-        {/* MAIN GRID */}
-        <div className="absolute left-[4vw] right-[4vw] top-[12vh] bottom-[13vh] grid grid-cols-1 gap-5 md:left-[5vw] md:right-[5vw] md:grid-cols-[18%_64%_18%] md:gap-0">
-          {/* LEFT INDEX */}
-          <div className="hidden border-r border-black/10 pr-[2vw] md:flex md:flex-col md:justify-between">
-            <div>
-              <h2
-                id="graphics-motion-heading"
-                className="mt-6 max-w-[7ch] font-primary text-[clamp(2.4rem,3.5vw,3.1rem)] font-medium leading-[0.9] tracking-[-0.06em]"
-              >
-                One visual language.
-              </h2>
-            </div>
+        <div data-gm-controls className="gm-controls">
+          <span className="gm-count" aria-hidden="true">
+            {pad(shown)} <span className="gm-count__total">/ {pad(TOTAL)}</span>
+          </span>
+          <button type="button" className="gm-arrow" onClick={() => step(-1)} disabled={atStart} aria-label="Previous project">
+            <Arrow direction="prev" />
+          </button>
+          <button type="button" className="gm-arrow" onClick={() => step(1)} disabled={atEnd} aria-label="Next project">
+            <Arrow direction="next" />
+          </button>
+        </div>
+      </div>
 
-            <div>
-              <p className="font-primary text-[9px] uppercase tracking-[0.18em] text-black/30">
-                Scroll through
-              </p>
-
-              <p className="mt-2 font-primary text-[11px] leading-[1.5] text-black/45">
-                Type / Identity
-                <br />
-                Motion / Campaign
-              </p>
-            </div>
-          </div>
-
-          {/* CENTRAL ARTBOARD */}
-          <div
-            ref={canvasRef}
-            className="relative overflow-hidden bg-[#111] md:mx-[2.2vw]"
+      <div
+        ref={scrollerRef}
+        data-gm-track
+        // Horizontal gestures scroll this track natively; vertical ones
+        // still go to Lenis for the page.
+        data-lenis-prevent-horizontal
+        className="gm-track"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Graphic and motion projects"
+        tabIndex={0}
+        onScroll={() => {
+          if (targetRef.current === null) sync()
+        }}
+        onKeyDown={onKeyDown}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onWheel={stopGlide}
+        onTouchStart={stopGlide}
+      >
+        {GRAPHICS_PROJECTS.map((project, i) => (
+          <article
+            key={project.id}
+            data-gm-card
+            className={`gm-card ${i === active ? 'is-active' : ''}`}
+            style={{ '--gm-ratio': `${project.width} / ${project.height}` } as CSSProperties}
+            aria-roledescription="slide"
+            aria-label={`${i + 1} of ${TOTAL}: ${project.category}`}
+            tabIndex={0}
+            onClick={() => onCardClick(i)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') glideTo(i)
+            }}
           >
-            <div
-              ref={(node) => {
-                sceneRefs.current[0] = node
-              }}
-              className="absolute inset-0 z-10 will-change-[clip-path,transform]"
-            >
-              <div
-                ref={(node) => {
-                  sceneInnerRefs.current[0] = node
-                }}
-                className="absolute inset-0 will-change-transform"
-              >
-                <TypographyArtwork />
-              </div>
-            </div>
-
-            <div
-              ref={(node) => {
-                sceneRefs.current[1] = node
-              }}
-              className="absolute inset-0 z-20 will-change-[clip-path,transform]"
-            >
-              <div
-                ref={(node) => {
-                  sceneInnerRefs.current[1] = node
-                }}
-                className="absolute inset-0 will-change-transform"
-              >
-                <IdentityArtwork />
-              </div>
-            </div>
-
-            <div
-              ref={(node) => {
-                sceneRefs.current[2] = node
-              }}
-              className="absolute inset-0 z-30 will-change-[clip-path,transform]"
-            >
-              <div
-                ref={(node) => {
-                  sceneInnerRefs.current[2] = node
-                }}
-                className="absolute inset-0 will-change-transform"
-              >
-                <MotionArtwork
-                  reduceMotion={Boolean(reduceMotion)}
+            <div data-gm-card-inner className="gm-card__inner">
+              <div className="gm-card__media">
+                <img
+                  src={project.image}
+                  srcSet={project.srcSet}
+                  sizes="(max-width: 639px) 84vw, (max-width: 1023px) 70vw, 60vw"
+                  width={project.width}
+                  height={project.height}
+                  alt={project.alt}
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                  className="gm-card__img"
                 />
               </div>
-            </div>
-
-            <div
-              ref={(node) => {
-                sceneRefs.current[3] = node
-              }}
-              className="absolute inset-0 z-40 will-change-[clip-path,transform]"
-            >
-              <div
-                ref={(node) => {
-                  sceneInnerRefs.current[3] = node
-                }}
-                className="absolute inset-0 will-change-transform"
-              >
-                <CampaignArtwork />
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT COPY */}
-          <div className="hidden border-l border-black/10 pl-[2vw] md:flex md:flex-col md:justify-between">
-            <AnimatePresence
-              mode="wait"
-              initial={false}
-            >
-              <motion.div
-                key={active.id}
-                initial={{
-                  opacity: 0,
-                  y: 10,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  y: -10,
-                }}
-                transition={{
-                  duration: 0.3,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-primary text-[9px] uppercase tracking-[0.18em] text-black/35">
-                    {active.id}
+              <div className="gm-card__shade" aria-hidden="true" />
+              <div className="gm-card__info">
+                <span className="gm-mask">
+                  <span className="gm-line gm-card__category">
+                    {project.id} — {project.category}
                   </span>
-
-                  <span className="font-primary text-[9px] uppercase tracking-[0.18em] text-black/35">
-                    {active.label}
-                  </span>
-                </div>
-
-                <h3 className="mt-7 max-w-[9ch] font-primary text-[clamp(1.7rem,2.4vw,2.9rem)] font-medium leading-[0.94] tracking-[-0.05em]">
-                  {active.title}
+                </span>
+                <h3 className="gm-mask">
+                  <span className="gm-line gm-card__title">{project.title}</span>
                 </h3>
-
-                <p className="mt-4 max-w-[260px] font-primary text-[12px] leading-[1.55] text-black/48">
-                  {active.description}
-                </p>
-              </motion.div>
-            </AnimatePresence>
-
-          </div>
-        </div>
-
-        {/* MOBILE COPY */}
-        <div className="absolute inset-x-[4vw] bottom-[5vh] z-[70] md:hidden">
-          <AnimatePresence
-            mode="wait"
-            initial={false}
-          >
-            <motion.div
-              key={active.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{
-                duration: 0.28,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="flex items-end justify-between gap-6"
-            >
-              <div>
-                <p className="font-primary text-[20px] uppercase tracking-[0.18em] text-black/35">
-                  {active.id} / {active.label}
-                </p>
-
-                <p className="mt-2 max-w-[12ch] font-primary text-[1.45rem] font-medium leading-[0.95] tracking-[-0.045em]">
-                  {active.title}
-                </p>
+                <span className="gm-mask">
+                  <span className="gm-line gm-card__meta">{project.meta}</span>
+                </span>
               </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+            </div>
+          </article>
+        ))}
+      </div>
 
-        {/* BOTTOM NAV */}
-        <div className="absolute bottom-[4vh] left-[5vw] right-[5vw] z-[80] hidden items-center gap-6 md:flex">
-          {SCENES.map((scene, index) => (
-            <button
-              key={scene.id}
-              ref={(node) => {
-                tabRefs.current[index] = node
-              }}
-              type="button"
-              tabIndex={-1}
-              aria-hidden="true"
-              className="flex flex-1 items-center gap-3 border-t border-black/15 pt-3 text-left"
-            >
-              <span className="font-primary text-[8px] uppercase tracking-[0.18em] text-black/45">
-                {scene.id}
-              </span>
-
-              <span className="font-primary text-[9px] uppercase tracking-[0.18em] text-black">
-                {scene.label}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* PROGRESS */}
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[90] h-px bg-black/10">
-          <div
-            ref={progressRef}
-            className="h-full w-full origin-left scale-x-0 bg-black/45"
-          />
-        </div>
+      <div ref={cursorRef} className="gm-cursor" aria-hidden="true">
+        <span className="gm-cursor__dot">View</span>
       </div>
     </section>
   )
 }
+
+export default GraphicsMotionExperience

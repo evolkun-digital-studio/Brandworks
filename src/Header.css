@@ -1,0 +1,142 @@
+/*
+ * Header capsules. The page determines the tone once; scrolling only toggles
+ * the header's visibility and never changes these visual styles:
+ *   .is-on-dark   floating over the homepage hero photography
+ *   .is-on-light  floating over white page introductions
+ */
+
+.site-header {
+  --nav-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  will-change: transform, opacity;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease;
+}
+
+.site-header.is-hidden {
+  transform: translateY(-120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.site-header__surface.is-on-dark {
+  --pill-ink: #fff;
+  --pill-bg: rgba(255, 255, 255, 0.08);
+  --pill-bg-hover: rgba(255, 255, 255, 0.18);
+  --pill-border: rgba(255, 255, 255, 0.2);
+  --pill-border-hover: rgba(255, 255, 255, 0.42);
+  --cta-ink: #fff;
+  --cta-ink-hover: #111;
+  --cta-bg: rgba(255, 255, 255, 0.14);
+  --cta-bg-hover: rgba(255, 255, 255, 0.94);
+  --cta-border: rgba(255, 255, 255, 0.45);
+}
+
+.site-header__surface.is-on-light {
+  --pill-ink: #111;
+  --pill-bg: rgba(17, 17, 17, 0.03);
+  --pill-bg-hover: rgba(17, 17, 17, 0.07);
+  --pill-border: rgba(17, 17, 17, 0.1);
+  --pill-border-hover: rgba(17, 17, 17, 0.22);
+  --cta-ink: #fff;
+  --cta-ink-hover: #fff;
+  --cta-bg: #111;
+  --cta-bg-hover: #2a2a2a;
+  --cta-border: #111;
+}
+
+/* Always preserve the supplied BrandWorks artwork's original colors. */
+.site-header__logo {
+  filter: none;
+}
+
+.nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 50px;
+  padding: 0 18px;
+  border: 1px solid var(--pill-border);
+  border-radius: 999px;
+  background: var(--pill-bg);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--pill-ink);
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.45s var(--nav-ease),
+    border-color 0.45s var(--nav-ease),
+    color 0.45s var(--nav-ease);
+}
+
+.nav-pill:hover {
+  border-color: var(--pill-border-hover);
+  background: var(--pill-bg-hover);
+}
+
+.nav-pill--cta {
+  padding: 0 20px;
+  border-color: var(--cta-border);
+  background: var(--cta-bg);
+  color: var(--cta-ink);
+}
+
+.nav-pill--cta:hover {
+  border-color: var(--cta-bg-hover);
+  background: var(--cta-bg-hover);
+  color: var(--cta-ink-hover);
+}
+
+.nav-pill:focus-visible {
+  outline: 2px solid var(--pill-ink);
+  outline-offset: 3px;
+}
+
+/* Hover: the label rolls up to an identical copy. */
+.nav-roll {
+  display: block;
+  height: 1.25em;
+  overflow: hidden;
+  line-height: 1.25;
+}
+
+.nav-roll__track {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.55s var(--nav-ease);
+}
+
+.nav-pill:hover .nav-roll__track,
+.nav-pill:focus-visible .nav-roll__track {
+  transform: translateY(-50%);
+}
+
+.nav-pill__arrow {
+  transition: transform 0.45s var(--nav-ease);
+}
+
+.nav-pill:hover .nav-pill__arrow {
+  transform: translate(2px, -2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header {
+    transition-duration: 0.01ms;
+  }
+
+  .nav-pill:hover .nav-roll__track,
+  .nav-pill:focus-visible .nav-roll__track,
+  .nav-pill:hover .nav-pill__arrow {
+    transform: none;
+  }
+}

@@ -218,17 +218,7 @@ export default function PhotographyGallery() {
               end: () => `+=${window.innerHeight * totalScrollScreens}`,
               pin: true,
               scrub: layout.scrub,
-              anticipatePin: 1,
               invalidateOnRefresh: true,
-              onUpdate: () => {
-                const time = tl.time()
-                const ready = time >= revealEnd * 0.82 && time < holdEnd
-
-                if (ready !== galleryReadyRef.current) {
-                  galleryReadyRef.current = ready
-                  syncAutoplay()
-                }
-              },
             },
           })
 
