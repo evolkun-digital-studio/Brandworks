@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
-/* Site typography: Google Sans Flex is the primary family, with Inter Tight
-   as the complementary secondary family for supporting/editorial text. */
+/* Brand typography: Grimblade is reserved for headings/display type, while
+   Open Sans handles body copy, navigation, forms, and UI text. */
 @theme {
-  --font-primary: 'BrandWorks', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-secondary: 'BrandWorks Body', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-inter: 'BrandWorks Body', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-instrument: 'BrandWorks', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-primary: 'Grimblade', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-secondary: 'Open Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-inter: 'Open Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-instrument: 'Grimblade', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* The single BrandWorks accent, sampled from the lime highlight in the
      PR & Founder Reputation artwork so a rule drawn next to that image
@@ -44,41 +44,77 @@
 }
 
 /*
- * Inter Tight / Playfair Display are loaded via a non-render-blocking
- * <link rel="stylesheet"> in index.html instead of an @import here
- * (Phase 10) — @import forces the browser to fetch and parse this
- * file first before it can even discover the Google Fonts request;
- * a <link> in the document head is discoverable immediately by the
- * browser's preload scanner. See index.html for the actual request
- * and the reasoning comment next to it.
+ * The brand fonts are self-hosted so typography is consistent across every
+ * route, including the admin and blog areas.
  */
 
 @font-face {
-  font-family: 'BrandWorks';
-  src: url('./Font/Grimblade.woff2') format('woff2');
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'BrandWorks Body';
-  src: url('./Font/OpenSans-Regular.woff2') format('woff2');
+  font-family: 'Grimblade';
+  src: url('../brandWorkFONT/creative-agency-font-grimblade-2026-04-07-06-20-57-utc/Grimblade.woff') format('woff');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'BrandWorks Body';
-  src: url('./Font/OpenSans-SemiBold.woff2') format('woff2');
+  font-family: 'Open Sans';
+  src: url('../brandWorkFONT/open-sans/OpenSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('../brandWorkFONT/open-sans/OpenSans-Semibold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
+/* The remaining weights/styles live in the supplied brandWorkFONT folder. */
+@font-face {
+  font-family: 'Open Sans';
+  src: url('../brandWorkFONT/open-sans/OpenSans-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('../brandWorkFONT/open-sans/OpenSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('../brandWorkFONT/open-sans/OpenSans-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('../brandWorkFONT/open-sans/OpenSans-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('../brandWorkFONT/open-sans/OpenSans-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 .services-display {
-  font-family: 'BrandWorks', 'Helvetica', sans-serif;
+  font-family: 'Grimblade', 'Helvetica', sans-serif;
 }
 
 /* Our Services index: the row the arrow points at is SemiBold and full
@@ -98,12 +134,30 @@
 }
 
 body {
-  font-family: 'BrandWorks Body', ui-sans-serif, system-ui, -apple-system,
+  font-family: 'Open Sans', ui-sans-serif, system-ui, -apple-system,
     'Helvetica Neue', Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Keep semantic headings on the display face even when a component uses
+   only Tailwind sizing/weight utilities. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-primary);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 /*
@@ -839,7 +893,6 @@ body {
 .photo-gallery {
   --camera-w: min(64vw, 1180px, calc((100svh - 330px) * 1.3079));
   --photo-gap: clamp(20px, 3.2vh, 40px);
-
   display: flex;
   height: 100vh;
   height: 100svh;

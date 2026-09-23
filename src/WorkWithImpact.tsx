@@ -159,8 +159,8 @@ function Kicker() {
   )
 }
 
-const HEADING_CLASS = 'site-display max-w-full text-neutral-900'
-const COPY_CLASS = 'site-copy mt-5 w-[540px] max-w-full text-center text-neutral-600'
+const HEADING_CLASS = 'site-display max-w-full text-neutral-900 font-primary'
+const COPY_CLASS = 'site-copy mt-5 w-[540px] max-w-full text-center text-neutral-600 font-secondary'
 const COPY =
   'A selection of projects created to build stronger brands, meaningful experiences and measurable results.'
 

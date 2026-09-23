@@ -457,7 +457,7 @@ function Services() {
 
         <FadeUp
           as="h2"
-          className="site-display mt-[22px] max-w-full text-neutral-900"
+          className="site-display mt-[22px] max-w-full text-neutral-900 font-primary"
           delay={0.1}
           duration={0.75}
           y={28}
@@ -467,7 +467,7 @@ function Services() {
 
         <FadeUp
           as="p"
-          className="site-copy mt-6 w-[440px] max-w-full text-center text-neutral-600"
+          className="site-copy mt-6 w-[440px] max-w-full text-center text-neutral-600 font-secondary"
           delay={0.2}
           duration={0.75}
           y={28}

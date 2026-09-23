@@ -7,8 +7,7 @@ import HumanLedBrandIntelligence from './HumanLedBrandIntelligence'
 import Services from './Services'
 import About from './About'
 import Photography from './Work'
-import Work from './WorkWithImpact'
-import SocialContent from './components/socialMedia/SocailMedia'
+import Work from './WorkWithImpact' 
 
 import Videography from './Videography'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
@@ -87,8 +86,7 @@ export function Home() {
       <GraphicsMotionExperience />
       <PRReputation />
       <SocialMedia />
-      {/* <Photography /> */}
-      <SocialContent/>
+      {/* <Photography /> */} 
       <WebsiteSectionProps />
       <Capabilities />
       <Results />

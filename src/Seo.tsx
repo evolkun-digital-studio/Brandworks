@@ -1058,7 +1058,7 @@ const EYEBROW_BASE =
 const EYEBROW = `${EYEBROW_BASE} text-neutral-500`
 
 const CHAPTER_HEADING =
-  'text-balance text-[1.7rem] font-semibold leading-[1.12] tracking-[-0.03em] text-neutral-950 sm:text-3xl lg:text-[2rem]'
+  'text-balance text-[1.7rem] leading-[1.12] tracking-[-0.03em] text-neutral-950 sm:text-3xl lg:text-[2rem]'
 
 const BODY =
   'space-y-4 text-base leading-relaxed text-neutral-600 sm:text-[17px]'
@@ -1204,8 +1204,7 @@ function Intro({ headingId }: { headingId: string }) {
       <Reveal
         as="p"
         className={`flex items-center gap-2.5 ${EYEBROW}`}
-      >
-        <Dot className="bg-blue-600" />
+      > 
         SEO / ORGANIC GROWTH
       </Reveal>
 
@@ -1292,7 +1291,7 @@ export default function WebsiteSection({
       <div className="mx-auto max-w-7xl">
         <Intro headingId={headingId} />
 
-        <div className="mt-2 lg:mt-5">
+        <div className="mt-2 lg:mt-2">
           {/* ESSENTIAL 01 */}
           <Chapter
             number="01"
@@ -1329,7 +1328,7 @@ export default function WebsiteSection({
             title={
               <>
                 SEO isn&apos;t a launch.
-                <span className="block text-neutral-400">
+                <span className="block ">
                   It&apos;s a feedback loop.
                 </span>
               </>

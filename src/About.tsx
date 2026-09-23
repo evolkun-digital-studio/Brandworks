@@ -77,7 +77,7 @@ function About() {
   return (
     <section className="mx-auto grid w-full max-w-[1279px] grid-cols-1 items-center gap-[32px] bg-white px-4 pt-8 pb-20 opacity-100 lg:grid-cols-2">
       <div className="flex flex-col items-start text-left">
-        <span className="site-kicker text-neutral-500">
+        <span className="site-kicker font-primary text-neutral-500">
           About
         </span>
 

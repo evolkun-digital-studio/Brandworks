@@ -641,7 +641,7 @@ export default function GraphicsMotionStage() {
               className="flex items-end justify-between gap-6"
             >
               <div>
-                <p className="font-primary text-[8px] uppercase tracking-[0.18em] text-black/35">
+                <p className="font-primary text-[20px] uppercase tracking-[0.18em] text-black/35">
                   {active.id} / {active.label}
                 </p>
 

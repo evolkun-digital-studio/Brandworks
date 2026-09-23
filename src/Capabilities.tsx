@@ -127,7 +127,7 @@ function Capabilities() {
   return (
     <section aria-labelledby="our-services-heading" className="bg-white">
       <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-8 md:px-[7vw]">
-        <div className="grid grid-cols-1 gap-y-6 border-t border-black/[0.08] pt-20 pb-10 sm:pt-28 md:grid-cols-12 md:gap-x-6 md:pb-12 lg:pt-36">
+        <div className="grid grid-cols-1 gap-y-6 border-t border-black/[0.08] pt-20 pb-5 sm:pt-28 md:grid-cols-12 md:gap-x-6 md:pb-12 lg:pt-36">
           {animated ? (
             <IntroHeading />
           ) : (
@@ -138,11 +138,11 @@ function Capabilities() {
             </h2>
           )}
 
-          <p className={`${GROTESK} site-copy font-normal max-w-[440px] self-end text-[#777] md:col-span-5 md:col-start-8`}>
+          {/* <p className={`${GROTESK} site-copy font-normal max-w-[440px] self-end text-[#777] md:col-span-5 md:col-start-8`}>
             From the first concept to the way it reaches people,
             <br className="hidden lg:block" /> Brandworks carries one thought
             across every discipline.
-          </p>
+          </p> */}
         </div>
       </div>
 
