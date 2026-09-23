@@ -1,192 +1,353 @@
-const columns = [
-  {
-    title: 'Company',
-    links: ['About', 'Services', 'Our Work', 'Industries'],
-  },
-  {
-    title: 'Services',
-    links: [
-      'Brand Strategy',
-      'Brand Identity',
-      'Graphic Design',
-      'Content Creation',
-      'UI/UX Designing',
-      'SMM',
-      'SEO',
-    ],
-  },
-  {
-    title: 'Industries',
-    links: [
-      'Fashion & Lifestyle',
-      'Real Estate',
-      'Technology',
-      'Hospitality',
-      'Healthcare',
-      'Automotive',
-      'Food & Beverage',
-      'E-commerce',
-    ],
-  },
+import { useCallback, useEffect, useRef } from 'react'
+import type { PointerEvent as ReactPointerEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { useGSAP } from '@gsap/react'
+import gsap from 'gsap'
+import { useReducedMotion } from 'motion/react'
+import showreelPoster from './assets/footer-showreel-poster.webp'
+import { matches } from './lib/scrollMotion'
+import './Footer.css'
+
+gsap.registerPlugin(useGSAP)
+
+const LOGO_SRC = 'https://ik.imagekit.io/rxoyjxx4c/ChatGPT%20Image%20Sep%2023,%202026,%2003_32_46%20PM.png'
+
+// Web copies of Pexels video 4488715 (the original download is a 56 MB 4K
+// file). Phones get the lighter encode; the choice is made once, when the
+// video is first attached.
+const SHOWREEL = {
+  desktop: '/video/footer-showreel-1080.mp4',
+  mobile: '/video/footer-showreel-540.mp4',
+}
+
+/** Where the "Play fullscreen" cursor follows the pointer instead of a button. */
+const CURSOR_QUERY = '(hover: hover) and (pointer: fine) and (min-width: 1024px)'
+
+type FullscreenVideo = HTMLVideoElement & {
+  webkitEnterFullscreen?: () => void
+  webkitRequestFullscreen?: () => Promise<void> | void
+}
+
+const mainLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'Work', href: '#work' },
+  { label: 'Services', href: '#services' },
+  { label: 'About', href: '#about' },
+  { label: 'Insights', href: '/blog' },
 ]
 
-const socialIcons = [
-  {
-    label: 'Instagram',
-    path: 'M12 2c-2.72 0-3.06.01-4.12.06-1.06.05-1.79.22-2.43.47-.66.26-1.22.6-1.77 1.16a4.9 4.9 0 0 0-1.16 1.77c-.25.64-.42 1.37-.47 2.43C2 8.94 2 9.28 2 12s.01 3.06.06 4.12c.05 1.06.22 1.79.47 2.43.26.66.6 1.22 1.16 1.77a4.9 4.9 0 0 0 1.77 1.16c.64.25 1.37.42 2.43.47C8.94 22 9.28 22 12 22s3.06-.01 4.12-.06c1.06-.05 1.79-.22 2.43-.47a4.9 4.9 0 0 0 1.77-1.16 4.9 4.9 0 0 0 1.16-1.77c.25-.64.42-1.37.47-2.43.05-1.06.06-1.4.06-4.12s-.01-3.06-.06-4.12c-.05-1.06-.22-1.79-.47-2.43a4.9 4.9 0 0 0-1.16-1.77 4.9 4.9 0 0 0-1.77-1.16c-.64-.25-1.37-.42-2.43-.47C15.06 2.01 14.72 2 12 2m0 1.8c2.67 0 2.99.01 4.04.06.98.04 1.5.2 1.85.34.47.18.8.4 1.15.75s.57.68.75 1.15c.14.36.3.87.34 1.85.05 1.05.06 1.37.06 4.04s-.01 2.99-.06 4.04c-.04.98-.2 1.5-.34 1.85-.18.47-.4.8-.75 1.15s-.68.57-1.15.75c-.36.14-.87.3-1.85.34-1.05.05-1.37.06-4.04.06s-2.99-.01-4.04-.06c-.98-.04-1.5-.2-1.85-.34a3.1 3.1 0 0 1-1.15-.75 3.1 3.1 0 0 1-.75-1.15c-.14-.36-.3-.87-.34-1.85C3.81 15 3.8 14.67 3.8 12s.01-2.99.06-4.04c.04-.98.2-1.5.34-1.85.18-.47.4-.8.75-1.15s.68-.57 1.15-.75c.36-.14.87-.3 1.85-.34C8.99 3.81 9.33 3.8 12 3.8m0 3.06a5.14 5.14 0 1 0 0 10.28 5.14 5.14 0 0 0 0-10.28m0 8.48a3.34 3.34 0 1 1 0-6.68 3.34 3.34 0 0 1 0 6.68m6.54-8.68a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0',
-  },
-  {
-    label: 'X',
-    path: 'M18.9 3H21.7l-6.06 6.93L22.8 21h-5.58l-4.37-5.72L7.83 21H5.02l6.48-7.41L4.2 3h5.72l3.95 5.23zm-.98 16.2h1.5L7.14 4.7H5.53z',
-  },
-  {
-    label: 'LinkedIn',
-    path: 'M6.94 8.44H3.56V20.5h3.38zM5.25 3.1a1.96 1.96 0 1 0 0 3.92 1.96 1.96 0 0 0 0-3.92M20.44 20.5v-6.63c0-3.56-1.9-5.22-4.44-5.22-2.05 0-2.96 1.13-3.47 1.92V8.44H9.15c.05 1 0 12.06 0 12.06h3.38v-6.74c0-.36.03-.72.13-.98.29-.72.95-1.47 2.05-1.47 1.45 0 2.03 1.1 2.03 2.72v6.47z',
-  },
-  {
-    label: 'TikTok',
-    path: 'M14.5 2h2.9c.16 1.36.85 2.55 1.87 3.36 1.02.8 2.3 1.23 3.63 1.23v2.93a7.6 7.6 0 0 1-4.4-1.42v6.4c0 3.24-2.62 5.86-5.86 5.86A5.87 5.87 0 0 1 6.7 12.4c1.2-1.2 2.9-1.83 4.66-1.66v2.98a2.9 2.9 0 0 0-2.03.28 2.94 2.94 0 0 0-1.4 3.36 2.94 2.94 0 0 0 3.79 1.98 2.94 2.94 0 0 0 1.98-2.78z',
-  },
+const socials = [
+  { label: 'Instagram', href: '#' },
+  { label: 'LinkedIn', href: '#' },
+  { label: 'X', href: '#' },
 ]
+
+function Arrow() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M5 15 15 5M7 5h8v8" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
 
 function Footer() {
+  const rootRef = useRef<HTMLElement>(null)
+  const videoRef = useRef<FullscreenVideo>(null)
+  const cursorRef = useRef<HTMLDivElement>(null)
+  const cursorApiRef = useRef<{ move: (x: number, y: number) => void; show: (next: boolean, x?: number, y?: number) => void } | null>(null)
+  const inViewRef = useRef(false)
+  const fullscreenRef = useRef(false)
+  const reducedMotion = useReducedMotion() ?? false
+
+  /** The silent background loop: muted, no controls, playing only while on screen. */
+  const resumeBackground = useCallback(() => {
+    const video = videoRef.current
+    if (!video) return
+    video.controls = false
+    video.muted = true
+    if (inViewRef.current && !reducedMotion) void video.play().catch(() => undefined)
+    else video.pause()
+  }, [reducedMotion])
+
+  // Attach the film only as the footer approaches, then play it while it's
+  // visible. Kept on refs, not state, so the <video> never re-renders.
+  useEffect(() => {
+    const root = rootRef.current
+    const video = videoRef.current
+    if (!root || !video) return
+
+    const attach = () => {
+      if (video.getAttribute('src')) return
+      video.src = matches('(max-width: 767px)') ? SHOWREEL.mobile : SHOWREEL.desktop
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      attach()
+      return
+    }
+
+    const nearby = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        attach()
+        nearby.disconnect()
+      },
+      { rootMargin: '600px 0px' },
+    )
+    const visible = new IntersectionObserver(([entry]) => {
+      inViewRef.current = entry.isIntersecting
+      if (!fullscreenRef.current) resumeBackground()
+    })
+
+    nearby.observe(root)
+    visible.observe(root)
+    return () => {
+      nearby.disconnect()
+      visible.disconnect()
+    }
+  }, [resumeBackground])
+
+  // Leaving fullscreen (Esc, the browser's own control, or iOS's Done)
+  // hands the same element back to the silent loop.
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const onExit = () => {
+      fullscreenRef.current = false
+      resumeBackground()
+    }
+    const onFullscreenChange = () => {
+      if (document.fullscreenElement !== video && fullscreenRef.current) onExit()
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange)
+    video.addEventListener('webkitendfullscreen', onExit)
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange)
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange)
+      video.removeEventListener('webkitendfullscreen', onExit)
+    }
+  }, [resumeBackground])
+
+  /** Same element, same playback position: controls on, sound allowed, full screen. */
+  const openFullscreen = useCallback(async () => {
+    const video = videoRef.current
+    if (!video) return
+    if (!video.getAttribute('src')) {
+      video.src = matches('(max-width: 767px)') ? SHOWREEL.mobile : SHOWREEL.desktop
+    }
+
+    fullscreenRef.current = true
+    video.controls = true
+    video.muted = false
+    void video.play().catch(() => undefined)
+
+    try {
+      if (video.requestFullscreen) await video.requestFullscreen()
+      else if (video.webkitRequestFullscreen) await video.webkitRequestFullscreen()
+      // iPhone Safari only allows fullscreen through the native player.
+      else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen()
+      else throw new Error('Fullscreen unavailable')
+    } catch {
+      fullscreenRef.current = false
+      resumeBackground()
+    }
+  }, [resumeBackground])
+
+  // "Play fullscreen" cursor — desktop pointers only. It is driven solely by
+  // the upper video zone's own pointer events, never by the footer itself.
+  useEffect(() => {
+    const cursor = cursorRef.current
+    if (!cursor || !matches(CURSOR_QUERY)) return
+
+    const follow = reducedMotion ? 0.01 : 0.28
+    const toX = gsap.quickTo(cursor, 'x', { duration: follow, ease: 'power3.out' })
+    const toY = gsap.quickTo(cursor, 'y', { duration: follow, ease: 'power3.out' })
+    let shown = false
+
+    gsap.set(cursor, { autoAlpha: 0, scale: 0.8 })
+    cursorApiRef.current = {
+      move: (x, y) => {
+        toX(x)
+        toY(y)
+      },
+      show: (next, x, y) => {
+        if (next === shown) return
+        shown = next
+        // Appear where the pointer is rather than sliding in from the last spot.
+        if (next && x !== undefined && y !== undefined) gsap.set(cursor, { x, y })
+        gsap.to(cursor, {
+          autoAlpha: next ? 1 : 0,
+          scale: next ? 1 : 0.8,
+          duration: next ? 0.35 : 0.2,
+          ease: 'power3.out',
+          overwrite: 'auto',
+        })
+      },
+    }
+
+    const hide = () => cursorApiRef.current?.show(false)
+    window.addEventListener('scroll', hide, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', hide)
+      cursorApiRef.current = null
+    }
+  }, [reducedMotion])
+
+  const onZoneEnter = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse') cursorApiRef.current?.show(true, e.clientX, e.clientY)
+  }
+
+  const onZoneMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse') return
+    cursorApiRef.current?.show(true, e.clientX, e.clientY)
+    cursorApiRef.current?.move(e.clientX, e.clientY)
+  }
+
+  const onZoneLeave = () => cursorApiRef.current?.show(false)
+
+  const onZoneClick = () => {
+    if (matches(CURSOR_QUERY)) void openFullscreen()
+  }
+
+  useGSAP(
+    () => {
+      const root = rootRef.current
+      if (!root || reducedMotion || typeof IntersectionObserver === 'undefined') return
+
+      // Started by an IntersectionObserver rather than a ScrollTrigger: the
+      // footer is the last thing on the page, and a trigger position measured
+      // before content above it settles (a late-loading section, say) can end
+      // up past the page's maximum scroll — leaving the footer invisible.
+      const timeline = gsap.timeline({ paused: true })
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return
+          timeline.play()
+          observer.disconnect()
+        },
+        { rootMargin: '0px 0px -18% 0px' },
+      )
+      observer.observe(root)
+
+      timeline
+        .fromTo('.footer-background', { scale: 1.08 }, { scale: 1, duration: 1.3, ease: 'power3.out' }, 0)
+        .fromTo(
+          '.footer-brand-strip',
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.9, ease: 'power3.inOut', transformOrigin: 'left center' },
+          0.05,
+        )
+        .fromTo(
+          '.footer-logo, .footer-cta',
+          { autoAlpha: 0, y: 20 },
+          { autoAlpha: 1, y: 0, duration: 0.68, stagger: 0.08, ease: 'power3.out' },
+          0.38,
+        )
+        .fromTo(
+          '.footer-content',
+          { autoAlpha: 0, y: 24 },
+          { autoAlpha: 1, y: 0, duration: 0.72, ease: 'power3.out' },
+          0.5,
+        )
+        .fromTo(
+          '.footer-meta',
+          { autoAlpha: 0, y: 14 },
+          { autoAlpha: 1, y: 0, duration: 0.62, ease: 'power3.out' },
+          0.62,
+        )
+
+      return () => observer.disconnect()
+    },
+    { scope: rootRef, dependencies: [reducedMotion] },
+  )
+
   return (
-    <footer className="w-full bg-white pt-20">
-      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-12 px-4 sm:flex-row sm:justify-between">
-        {columns.map((column) => (
-          <div key={column.title} className="flex flex-col gap-4">
-            <h3 className="text-[16px] font-semibold text-neutral-900">
-              {column.title}
-            </h3>
-            <ul className="flex flex-col gap-3">
-              {column.links.map((link) => (
-                <li key={link}>
-                  <a
-                    href="#"
-                    className="text-[14px] text-neutral-700 transition-colors hover:text-neutral-900"
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            {column.title === 'Company' && (
-              <ul className="mt-1 flex flex-col gap-3">
-                <li>
-                  <span className="site-kicker text-neutral-400">
-                    Resources
-                  </span>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="text-[14px] text-neutral-700 transition-colors hover:text-neutral-900"
-                  >
-                    FAQs
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="text-[14px] text-neutral-700 transition-colors hover:text-neutral-900"
-                  >
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            )}
-          </div>
-        ))}
+    <footer id="footer" ref={rootRef} className="brandworks-footer">
+      <div className="footer-background" aria-hidden="true">
+        <video
+          ref={videoRef}
+          className="footer-video"
+          poster={showreelPoster}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          disablePictureInPicture
+        />
+        <div className="footer-video-overlay" />
+      </div>
 
-        <div className="flex flex-col gap-4 sm:max-w-[280px]">
-          <h3 className="text-[16px] font-semibold text-neutral-900">
-            Subscribe
-          </h3>
-          <form
-            onSubmit={(e) => e.preventDefault()}
-            className="flex items-center justify-between gap-2 border-b border-neutral-300 pb-2"
-          >
-            <input
-              type="email"
-              placeholder="Enter your email address"
-              className="w-full text-[14px] text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
-            />
-            <button
-              type="submit"
-              aria-label="Subscribe"
-              className="shrink-0 text-neutral-900"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5"
-                aria-hidden="true"
-              >
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
-          </form>
+      {/* The only place fullscreen hover/click lives: the band of film above
+         the lime strip. Nothing clickable sits inside it. */}
+      <div
+        className="footer-video-zone"
+        aria-hidden="true"
+        onPointerEnter={onZoneEnter}
+        onPointerMove={onZoneMove}
+        onPointerLeave={onZoneLeave}
+        onClick={onZoneClick}
+      />
 
-          <p className="text-[14px] leading-[1.5] text-neutral-500">
-            By subscribing, you agree to our{' '}
-            <a href="#" className="underline underline-offset-2">
-              Privacy Policy
-            </a>
-            . You can unsubscribe at any time.
-          </p>
+      <button type="button" className="footer-fullscreen-button" onClick={() => void openFullscreen()}>
+        View fullscreen <span aria-hidden="true">↗</span>
+      </button>
 
-          <h4 className="mt-2 text-[14px] text-neutral-900">
-            Follow <span className="font-semibold">BRANDWORKS</span>:
-          </h4>
-          <div className="flex items-center gap-3">
-            {socialIcons.map((icon) => (
-              <a
-                key={icon.label}
-                href="#"
-                aria-label={icon.label}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 text-neutral-700 transition-colors hover:border-neutral-900 hover:text-neutral-900"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="h-4 w-4"
-                  aria-hidden="true"
-                >
-                  <path d={icon.path} />
-                </svg>
-              </a>
+      <div className="footer-brand-strip">
+        <Link to="/" className="footer-logo" aria-label="BrandWorks home">
+          <img src={LOGO_SRC} alt="BrandWorks" />
+        </Link>
+
+        <a href="mailto:hello@brandworks.com" className="footer-cta">
+          <span>Start a project</span>
+          <Arrow />
+        </a>
+      </div>
+
+      <div className="footer-content">
+        <nav className="footer-main-nav" aria-label="Footer navigation">
+          <ul>
+            {mainLinks.map((link) => (
+              <li key={link.label}>
+                {link.href.startsWith('/') ? (
+                  <Link to={link.href}>{link.label}</Link>
+                ) : (
+                  <a href={link.href}>{link.label}</a>
+                )}
+              </li>
             ))}
-          </div>
+          </ul>
+        </nav>
+
+        <div className="footer-contact">
+          <ul className="footer-socials">
+            {socials.map((social) => (
+              <li key={social.label}>
+                <a href={social.href}>
+                  {social.label} <span aria-hidden="true">↗</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <a className="footer-email" href="mailto:hello@brandworks.com">
+            hello@brandworks.com
+          </a>
         </div>
       </div>
 
-      <div className="mt-16 w-full overflow-hidden text-center">
-        <span className="site-display block w-full whitespace-nowrap text-neutral-900">
-          Brandworks
-        </span>
+      <div className="footer-meta">
+        <span>Based in India, working worldwide.</span>
+        <div>
+          <a href="#">©2026 Kinkh - Legal Notice</a>
+        </div>
+        <span>India / Worldwide</span>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[1280px] flex-col items-center gap-3 border-t border-neutral-200 px-4 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
-        <span className="flex items-center gap-1 text-[16px] font-semibold tracking-[-0.02em] text-neutral-900">
-          BRANDWORKS
-          <sup className="text-[10px]">&reg;</sup>
-        </span>
-        <span className="text-[14px] text-neutral-500">
-          &copy; 2026 BRANDWORKS. All rights reserved.
-        </span>
-        <span className="flex items-center gap-2 text-[14px] text-neutral-500">
-          <a href="#" className="hover:text-neutral-900">
-            Privacy Policy
-          </a>
-          &middot;
-          <a href="#" className="hover:text-neutral-900">
-            Terms &amp; Conditions
-          </a>
+      <div ref={cursorRef} className="footer-cursor" aria-hidden="true">
+        <span>
+          Play fullscreen <span className="footer-cursor__arrow">↗</span>
         </span>
       </div>
     </footer>

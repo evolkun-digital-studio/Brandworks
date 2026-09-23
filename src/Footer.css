@@ -1,0 +1,396 @@
+.brandworks-footer {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 100vh;
+  min-height: 100svh;
+  flex-direction: column;
+  overflow: hidden;
+  /* The band of film above the lime strip — also the fullscreen zone. */
+  --footer-video-top: clamp(112px, 17vh, 180px);
+  padding-top: var(--footer-video-top);
+  background: #151713;
+  color: #fff;
+}
+
+.footer-background,
+.footer-video,
+.footer-video-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.footer-background {
+  z-index: 0;
+  overflow: hidden;
+  transform-origin: center;
+}
+
+.footer-video {
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  background: #151713;
+}
+
+/* In the viewer the whole frame shows, letterboxed on black. */
+.footer-video:fullscreen {
+  object-fit: contain;
+  background: #000;
+}
+
+.footer-video:-webkit-full-screen {
+  object-fit: contain;
+  background: #000;
+}
+
+/* Enough shade for the white type; the film stays the hero. */
+.footer-video-overlay {
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+/* The only fullscreen hover/click area: the film band above the lime strip.
+   Touch screens use the visible button instead, so it's inert there. */
+.footer-video-zone {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: var(--footer-video-top);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .footer-video-zone {
+    cursor: none;
+    pointer-events: auto;
+  }
+}
+
+.footer-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.footer-cursor > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  font-family: var(--font-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  /* centre the pill on the pointer */
+  transform: translate(-50%, -50%);
+}
+
+.footer-cursor__arrow {
+  letter-spacing: 0;
+}
+
+/* Touch and tablet: a small, always-visible button over the film. On a
+   desktop pointer it stays out of sight until reached by keyboard. */
+.footer-fullscreen-button {
+  position: absolute;
+  top: clamp(20px, 3vh, 32px);
+  right: var(--hero-gutter);
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  font-family: var(--font-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.footer-fullscreen-button:focus-visible {
+  outline: 2px solid var(--color-bw-lime);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .footer-fullscreen-button:not(:focus-visible) {
+    clip-path: inset(50%);
+    opacity: 0;
+  }
+}
+
+.footer-brand-strip {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  width: 100%;
+  min-height: clamp(130px, 10.5vw, 165px);
+  align-items: center;
+  padding: 18px var(--hero-gutter);
+  background: var(--color-bw-lime);
+  color: #171914;
+  transform-origin: left center;
+  transition:
+    background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* On hover the strip turns black; the CTA (which inherits this colour)
+   flips to white, and the logo's white wordmark reads as is. */
+.footer-brand-strip:hover {
+  background: #000;
+  color: #fff;
+}
+
+.footer-logo {
+  display: block;
+  width: clamp(250px, 23vw, 360px);
+}
+
+.footer-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: none;
+}
+
+.footer-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 0;
+  font-family: var(--font-secondary);
+  font-size: clamp(14px, 1.1vw, 17px);
+  line-height: 1;
+}
+
+.footer-cta span,
+.footer-cta svg {
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.footer-cta svg {
+  width: 18px;
+  height: 18px;
+}
+
+.footer-cta:hover span,
+.footer-cta:focus-visible span {
+  transform: translateX(4px);
+}
+
+.footer-cta:hover svg,
+.footer-cta:focus-visible svg {
+  transform: translate(3px, -3px);
+}
+
+.footer-content {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--grid-gap);
+  width: 100%;
+  padding: clamp(48px, 7vh, 80px) var(--hero-gutter) 32px;
+  pointer-events: auto;
+}
+
+.footer-content ul {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer-content a {
+  font-family: var(--font-secondary);
+  color: rgba(255, 255, 255, 0.9);
+  transition: color 0.3s ease;
+}
+
+.footer-content a:hover,
+.footer-content a:focus-visible {
+  color: var(--color-bw-lime);
+}
+
+/* Primary footer navigation: one column, large and airy. */
+.footer-main-nav ul {
+  gap: clamp(18px, 2.6vh, 28px);
+}
+
+.footer-main-nav a {
+  font-size: clamp(22px, 2vw, 32px);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+/* Socials and email start at the second column, a step smaller. */
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-self: start;
+}
+
+.footer-socials {
+  gap: 14px;
+}
+
+.footer-socials a {
+  font-size: clamp(15px, 1.1vw, 17px);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.footer-email {
+  margin-top: 50px;
+  font-size: clamp(15px, 1.1vw, 17px);
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.footer-meta {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  margin-top: auto;
+  padding: 20px var(--hero-gutter) 24px;
+  font-family: var(--font-secondary);
+  /* 16px at 1440px wide, 18px from ~1640px up */
+  font-size: clamp(16px, 1.1vw, 18px);
+  font-weight: 400;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.footer-meta > div {
+  display: flex;
+  gap: 22px;
+}
+
+.footer-meta > :last-child {
+  justify-self: end;
+}
+
+.footer-meta a {
+  transition: color 0.3s ease;
+}
+
+.footer-meta a:hover,
+.footer-meta a:focus-visible {
+  color: #fff;
+}
+
+@media (max-width: 1023px) {
+  .brandworks-footer {
+    --footer-video-top: clamp(88px, 12vh, 128px);
+  }
+
+  /* Equal thirds are too narrow for the longer line at this size; keep the
+     three pieces anchored left, middle and right on one line instead, and
+     let the last one drop to its own line at the narrowest widths. */
+  .footer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    row-gap: 8px;
+    font-size: clamp(15px, 1.6vw, 16px);
+    white-space: nowrap;
+  }
+
+  .footer-brand-strip {
+    padding-block: 24px;
+  }
+
+}
+
+@media (max-width: 639px) {
+  .brandworks-footer {
+    min-height: 100svh;
+    --footer-video-top: 76px;
+  }
+
+  .footer-brand-strip {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 28px var(--page-gutter) 24px;
+  }
+
+  .footer-logo {
+    width: min(250px, 78vw);
+  }
+
+  .footer-fullscreen-button {
+    right: var(--page-gutter);
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding: 40px var(--page-gutter) 32px;
+  }
+
+  .footer-main-nav a {
+    font-size: 26px;
+  }
+
+  .footer-email {
+    margin-top: 36px;
+  }
+
+  .footer-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 22px;
+    padding: 28px var(--page-gutter) 24px;
+    font-size: 14px;
+  }
+
+  .footer-meta > :last-child {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-brand-strip,
+  .footer-cta span,
+  .footer-cta svg,
+  .footer-content a,
+  .footer-meta a {
+    transition: none;
+  }
+}
