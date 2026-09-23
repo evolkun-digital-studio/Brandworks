@@ -75,7 +75,10 @@ const ZOOM_LAYOUT: Record<Viewport, { fit: number; end: string }> = {
  *
  * `cover` is the display box, in the camera's own (pre-scale) pixels, that
  * exactly covers the section once the zoom has finished, centred on the
- * same point, with a few pixels of bleed so no edge ever shows.
+ * same point, with a few pixels of bleed so no edge ever shows. The screen
+ * is laid out at `cover` once per measure and `clip` insets it back to the
+ * display opening, so the expand animates clip-path only: no layout, and
+ * the photo's object-fit crop never changes mid-animation.
  */
 const BLEED = 4
 
@@ -98,20 +101,22 @@ function measureZoom(section: HTMLElement, camera: HTMLElement, viewport: Viewpo
   const coverW = (width + BLEED * 2) / scale
   const coverH = (height + BLEED * 2) / scale
 
+  // Centred on the display, so the inset is symmetric. Radius matches
+  // .photo-camera__screen's 0.2cqw corners.
+  const insetX = (coverW - screenW) / 2
+  const insetY = (coverH - screenH) / 2
+
   return {
     origin: `${originX}px ${originY}px`,
     scale,
     x: width / 2 - (camera.offsetLeft + originX),
     y: height / 2 - (camera.offsetTop + originY),
-    screen: {
-      left: cameraW * SCREEN.left,
-      top: cameraH * SCREEN.top,
-      width: screenW,
-      height: screenH,
-    },
     cover: { left: originX - coverW / 2, top: originY - coverH / 2, width: coverW, height: coverH },
+    clip: `inset(${insetY}px ${insetX}px ${insetY}px ${insetX}px round ${cameraW * 0.002}px)`,
   }
 }
+
+const FULL_CLIP = 'inset(0px 0px 0px 0px round 0px)'
 
 const span = ([start, end]: readonly [number, number]) => ({ at: start, duration: end - start })
 
@@ -227,9 +232,17 @@ function PhotographyGallery() {
           if (!motion) return
 
           const viewport: Viewport = mobile ? 'mobile' : tablet ? 'tablet' : 'desktop'
-          let zoom = measureZoom(section, camera, viewport)
-          // Switches the controls to their fullscreen overlay layout.
+          // Switches the controls to their fullscreen overlay layout. It also
+          // resizes the camera (--camera-w), so it must land before measuring.
           section.classList.add('photo-gallery--zoom')
+          // The screen's layout is written here, once per measure — never
+          // per frame.
+          let zoom: ReturnType<typeof measureZoom>
+          const layoutScreen = () => {
+            zoom = measureZoom(section, camera, viewport)
+            gsap.set(screen, { ...zoom.cover, borderRadius: 0 })
+          }
+          layoutScreen()
 
           const setGallery = (inGallery: boolean) => {
             if (inGallery === inGalleryRef.current) return
@@ -247,9 +260,7 @@ function PhotographyGallery() {
               scrub: mobile ? 0.6 : 0.8,
               anticipatePin: 1,
               invalidateOnRefresh: true,
-              onRefreshInit: () => {
-                zoom = measureZoom(section, camera, viewport)
-              },
+              onRefreshInit: layoutScreen,
             },
             // Fullscreen is reached at 1; the hold follows.
             onUpdate: () => setGallery(tl.time() >= 0.999),
@@ -282,26 +293,13 @@ function PhotographyGallery() {
           // The body fades out while the zoom carries it past the edges.
           tl.fromTo(frame, { opacity: 1 }, { opacity: 0, duration: frameSpan.duration }, frameSpan.at)
 
-          // The same display box — same photo layer — grows out of the bezel
-          // until it covers the section, losing its rounded corners.
+          // The same photo layer opens out of the bezel until it covers the
+          // section, losing its rounded corners. Only the clip moves; the box
+          // and the photo in it stay put.
           tl.fromTo(
             screen,
-            {
-              left: () => zoom.screen.left,
-              top: () => zoom.screen.top,
-              width: () => zoom.screen.width,
-              height: () => zoom.screen.height,
-              borderRadius: () => getComputedStyle(screen).borderTopLeftRadius,
-            },
-            {
-              left: () => zoom.cover.left,
-              top: () => zoom.cover.top,
-              width: () => zoom.cover.width,
-              height: () => zoom.cover.height,
-              borderRadius: 0,
-              duration: expandSpan.duration,
-              ease: 'sine.inOut',
-            },
+            { clipPath: () => zoom.clip },
+            { clipPath: FULL_CLIP, duration: expandSpan.duration, ease: 'sine.inOut' },
             expandSpan.at,
           )
 

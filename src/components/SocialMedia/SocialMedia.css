@@ -4,14 +4,22 @@
  * holds the centre of the composition, slightly right of the page's middle.
  */
 .social-section {
+  /* Top of the section: clears the fixed navbar (65–68px) with a little
+     air, rather than the full --section-space rhythm, so the copy and
+     phone start near the top instead of below an empty band. */
+  --social-space-top: clamp(88px, 8vw, 128px);
   /* The phone is sized here, from the section's layout: 360–430px on
-     desktop, but never taller than the viewport can show whole. */
-  --social-phone-width: min(clamp(20rem, 28vw, 26.875rem), calc(86svh / 2.006));
+     desktop, but never taller than the viewport can show whole below the
+     section's top padding (with 24px of air under it). */
+  --social-phone-width: min(
+    clamp(20rem, 28vw, 26.875rem),
+    calc((100svh - var(--social-space-top) - 24px) / 2.006)
+  );
 
   position: relative;
   isolation: isolate;
   overflow: clip;
-  padding-block: var(--section-space);
+  padding-block: var(--social-space-top) var(--section-space);
   background: #fff;
   color: var(--ink);
 }
@@ -50,7 +58,6 @@
   justify-items: start;
   gap: var(--text-gap);
   max-width: 32rem;
-  padding-top: clamp(0px, 7vw, 120px);
 }
 
 .social-heading {
@@ -71,10 +78,11 @@
   margin-bottom: -0.1em;
 }
 
+/* No padding of its own: the section's padding already frames the phone,
+   and the bottom padding leaves room for its float shadow. */
 .social-stage {
   display: grid;
   justify-items: center;
-  padding-block: clamp(24px, 3vw, 48px);
 }
 
 .social-stage__phone {
@@ -101,6 +109,5 @@
 
   .social-copy {
     max-width: 36rem;
-    padding-top: 0;
   }
 }

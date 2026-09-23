@@ -28,6 +28,9 @@
   --content-gap: clamp(24px, 4vw, 64px);
   --text-gap: clamp(20px, 2vw, 32px);
   --media-gap: clamp(48px, 6vw, 96px);
+  /* Side margin shared by the Header and the homepage hero, so the logo,
+     headline and capsules all sit on the same edges. */
+  --hero-gutter: clamp(20px, 7vw, 140px);
 
   --ink: #111;
   /* 5.66:1 on white. The site's older 0.55 tint measures 4.17:1, under
