@@ -384,17 +384,17 @@ function GraphicsMotionExperience() {
               </div>
               <div className="gm-card__shade" aria-hidden="true" />
               <div className="gm-card__info">
-                <span className="gm-mask">
+                {/* <span className="gm-mask">
                   <span className="gm-line gm-card__category">
                     {project.id} — {project.category}
                   </span>
-                </span>
+                </span> */}
                 <h3 className="gm-mask">
                   <span className="gm-line gm-card__title">{project.title}</span>
                 </h3>
-                <span className="gm-mask">
+                {/* <span className="gm-mask">
                   <span className="gm-line gm-card__meta">{project.meta}</span>
-                </span>
+                </span> */}
               </div>
             </div>
           </article>

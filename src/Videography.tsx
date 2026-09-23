@@ -41,7 +41,7 @@ const VIDEO_PROJECTS: VideoProject[] = [
   },
 ]
 
-const SCENE_SCROLL_PROGRESS = [0.18, 0.34, 0.52, 0.7] as const
+const SCENE_SCROLL_PROGRESS = [0.2, 0.39, 0.56, 0.72] as const
 const VIDEO_FPS = 30
 
 const formatTimecode = (seconds: number) => {
@@ -223,6 +223,7 @@ export default function Videography() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [galleryLive, setGalleryLive] = useState(false)
   const [userPaused, setUserPaused] = useState(false)
+  const [isCurrentVideoPlaying, setIsCurrentVideoPlaying] = useState(true)
   const [muted, setMuted] = useState(true)
 
   const reduceMotion = useReducedMotion()
@@ -480,7 +481,7 @@ export default function Videography() {
               trigger: section,
               start: 'top top',
               end: () =>
-                `+=${window.innerHeight * (desktop ? 4.75 : 4.05)}`,
+                `+=${window.innerHeight * (desktop ? 5.45 : 4.65)}`,
               pin: stage,
               scrub: desktop ? 1.08 : 0.82,
               anticipatePin: 1,
@@ -494,11 +495,11 @@ export default function Videography() {
                 const p = self.progress
 
                 const nextIndex =
-                  p < 0.25
+                  p < 0.3
                     ? 0
-                    : p < 0.43
+                    : p < 0.48
                       ? 1
-                      : p < 0.61
+                      : p < 0.66
                         ? 2
                         : 3
 
@@ -560,8 +561,8 @@ export default function Videography() {
             scene0,
             {
               autoAlpha: 1,
-              duration: 0.72,
-              ease: 'power3.out',
+              duration: 0.92,
+              ease: 'power2.out',
             },
             0.3,
           )
@@ -571,8 +572,8 @@ export default function Videography() {
             {
               scale: 1.02,
               yPercent: 0,
-              duration: 1.02,
-              ease: 'none',
+              duration: 1.42,
+              ease: 'sine.out',
             },
             0.32,
           )
@@ -617,8 +618,8 @@ export default function Videography() {
             {
               autoAlpha: 1,
               clipPath: firstFullFrame,
-              duration: 1.35,
-              ease: 'power2.inOut',
+              duration: 1.9,
+              ease: 'sine.inOut',
             },
             0.3,
           )
@@ -628,8 +629,8 @@ export default function Videography() {
             {
               scale: 1.025,
               yPercent: -0.6,
-              duration: 1.18,
-              ease: 'none',
+              duration: 1.55,
+              ease: 'sine.inOut',
             },
             1.0,
           )
@@ -642,7 +643,7 @@ export default function Videography() {
               duration: 0.3,
               ease: 'power2.out',
             },
-            1.55,
+            1.82,
           )
 
           tl.to(
@@ -654,7 +655,21 @@ export default function Videography() {
               duration: 0.36,
               ease: 'power3.out',
             },
-            1.72,
+            2.02,
+          )
+
+          // Give Scene 01 a real breathing moment after the square has fully opened.
+          // The frame stays completely stable while the user keeps scrolling, so the
+          // first film reads as a scene instead of immediately becoming a transition.
+          tl.to(
+            scene0,
+            {
+              scale: 1,
+              opacity: 1,
+              duration: 0.46,
+              ease: 'none',
+            },
+            2.1,
           )
 
           /* 
@@ -666,8 +681,8 @@ export default function Videography() {
              underneath the incoming wipe.
            */
 
-          const secondStart = 2.04
-          const secondRevealStart = secondStart - 0.18
+          const secondStart = 2.62
+          const secondRevealStart = secondStart - 0.24
 
           /*
            * Incoming scene starts first.
@@ -740,7 +755,7 @@ export default function Videography() {
              Again, outgoing scene stays anchored.
            */
 
-          const thirdStart = 3.1
+          const thirdStart = 3.68
           const thirdRevealStart = thirdStart - 0.12
 
           /*
@@ -810,7 +825,7 @@ export default function Videography() {
              No rectangle. No reposition jump.
            */
 
-          const rectStart = 4.26
+          const rectStart = 4.84
 
           tl.to(
             line2,
@@ -877,7 +892,7 @@ export default function Videography() {
              UNCHANGED
            */
 
-          const circleStart = 5.42
+          const circleStart = 6.0
 
           tl.to(
             line3,
@@ -934,7 +949,7 @@ export default function Videography() {
              UNCHANGED
            */
 
-          const sweepStart = 7.58
+          const sweepStart = 8.16
 
           tl.to(
             controller,
@@ -1052,16 +1067,27 @@ export default function Videography() {
   }
 
   const togglePlayback = () => {
-    const nextPaused = !userPaused
-    setUserPaused(nextPaused)
-
     const video = videoRefs.current[activeIndex]
     if (!video) return
 
-    if (nextPaused) {
-      video.pause()
+    // Control the video that is actually active on screen.
+    // Do not infer playback from the button state because ScrollTrigger can
+    // change the active film independently while the section is moving.
+    if (video.paused || video.ended) {
+      setUserPaused(false)
+
+      video
+        .play()
+        .then(() => {
+          setIsCurrentVideoPlaying(true)
+        })
+        .catch(() => {
+          setIsCurrentVideoPlaying(false)
+        })
     } else {
-      video.play().catch(() => {})
+      video.pause()
+      setUserPaused(true)
+      setIsCurrentVideoPlaying(false)
     }
   }
 
@@ -1081,8 +1107,46 @@ export default function Videography() {
     const target = scrollTrigger.start + (scrollTrigger.end - scrollTrigger.start) * progress
 
     setUserPaused(false)
+    setIsCurrentVideoPlaying(true)
     window.scrollTo({ top: target, behavior: 'smooth' })
   }
+
+  // Keep the controller icon synchronized with the REAL playback state of
+  // whichever scene is currently active. A new scene starts playing by
+  // default; pausing only applies to the current scene.
+  useEffect(() => {
+    setUserPaused(false)
+
+    const video = videoRefs.current[activeIndex]
+    if (!video) {
+      setIsCurrentVideoPlaying(false)
+      return
+    }
+
+    const syncPlaybackState = () => {
+      setIsCurrentVideoPlaying(!video.paused && !video.ended)
+    }
+
+    video.addEventListener('play', syncPlaybackState)
+    video.addEventListener('playing', syncPlaybackState)
+    video.addEventListener('pause', syncPlaybackState)
+    video.addEventListener('ended', syncPlaybackState)
+
+    if (video.paused) {
+      video.play().catch(() => {
+        syncPlaybackState()
+      })
+    } else {
+      syncPlaybackState()
+    }
+
+    return () => {
+      video.removeEventListener('play', syncPlaybackState)
+      video.removeEventListener('playing', syncPlaybackState)
+      video.removeEventListener('pause', syncPlaybackState)
+      video.removeEventListener('ended', syncPlaybackState)
+    }
+  }, [activeIndex])
 
   useEffect(() => {
     let raf = 0
@@ -1149,7 +1213,7 @@ export default function Videography() {
               id="videography-heading"
               className="sr-only"
             >
-              Videography
+              Cinematic graphy
             </h2>
 
             <div className="overflow-hidden">
@@ -1164,7 +1228,7 @@ export default function Videography() {
                   tracking-[-0.075em]
                 "
               >
-                Video
+                Cinematic
               </div>
             </div>
 
@@ -1356,10 +1420,10 @@ export default function Videography() {
           <button
             type="button"
             onClick={togglePlayback}
-            aria-label={userPaused ? 'Play video' : 'Pause video'}
+            aria-label={isCurrentVideoPlaying ? 'Pause current video' : 'Play current video'}
             className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/65 text-white backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.04] active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:h-14 sm:w-14 max-[430px]:h-10 max-[430px]:w-10"
           >
-            <Icon icon={userPaused ? 'lucide:play' : 'lucide:pause'} className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px]" />
+            <Icon icon={isCurrentVideoPlaying ? 'lucide:pause' : 'lucide:play'} className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px]" />
           </button>
 
           <button

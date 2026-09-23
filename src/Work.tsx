@@ -17,25 +17,23 @@ const photographyImages = [
 
 const TOTAL = photographyImages.length
 const AUTO_CHANGE_DELAY = 3200
+const HOLD_SCROLL_SCREENS = 2
 const pad = (value: number) => String(value).padStart(2, '0')
 
 type Direction = 1 | -1
 type Viewport = 'desktop' | 'tablet' | 'mobile'
-
-const HOLD_SCROLL_SCREENS = 2
 
 type RevealLayout = {
   startScale: number
   startY: number
   revealScreens: number
   exitScreens: number
-  scrub: number
 }
 
 const REVEAL_LAYOUT: Record<Viewport, RevealLayout> = {
-  desktop: { startScale: 0.56, startY: 0.78, revealScreens: 1.3, exitScreens: 0.45, scrub: 0.95 },
-  tablet: { startScale: 0.64, startY: 0.72, revealScreens: 1.15, exitScreens: 0.42, scrub: 0.78 },
-  mobile: { startScale: 0.74, startY: 0.64, revealScreens: 1, exitScreens: 0.38, scrub: 0.62 },
+  desktop: { startScale: 0.7, startY: 0.52, revealScreens: 0.72, exitScreens: 0.38 },
+  tablet: { startScale: 0.74, startY: 0.55, revealScreens: 0.78, exitScreens: 0.36 },
+  mobile: { startScale: 0.78, startY: 0.54, revealScreens: 0.84, exitScreens: 0.34 },
 }
 
 export default function PhotographyGallery() {
@@ -67,14 +65,16 @@ export default function PhotographyGallery() {
         const from = currentRef.current
         const outgoing = slideRefs.current[from]
         const incoming = slideRefs.current[index]
+
         if (!outgoing || !incoming) return
 
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
         currentRef.current = index
         setActive(index)
 
         const tl = gsap.timeline({
-          defaults: { duration: reduced ? 0.25 : 0.78, ease: 'power3.inOut' },
+          defaults: { duration: reduced ? 0.24 : 0.72, ease: 'power3.inOut' },
           onComplete: () => {
             gsap.set(outgoing, { opacity: 0, scale: 1, xPercent: 0, zIndex: 0 })
             gsap.set(incoming, { opacity: 1, scale: 1, xPercent: 0, zIndex: 1 })
@@ -83,16 +83,19 @@ export default function PhotographyGallery() {
         })
 
         transitionRef.current = tl
+
         tl.set(incoming, { zIndex: 2 })
+
         tl.fromTo(
           outgoing,
           { opacity: 1, scale: 1, xPercent: 0 },
-          { opacity: 0, scale: reduced ? 1 : 1.022, xPercent: reduced ? 0 : direction * -2 },
+          { opacity: 0, scale: reduced ? 1 : 1.018, xPercent: reduced ? 0 : direction * -1.8 },
           0,
         )
+
         tl.fromTo(
           incoming,
-          { opacity: 0, scale: reduced ? 1 : 0.986, xPercent: reduced ? 0 : direction * 2 },
+          { opacity: 0, scale: reduced ? 1 : 0.988, xPercent: reduced ? 0 : direction * 1.8 },
           { opacity: 1, scale: 1, xPercent: 0 },
           0,
         )
@@ -172,6 +175,7 @@ export default function PhotographyGallery() {
           const mobile = Boolean(conditions.mobile)
           const tablet = Boolean(conditions.tablet)
           const reduce = Boolean(conditions.reduce)
+
           const viewport: Viewport = mobile ? 'mobile' : tablet ? 'tablet' : 'desktop'
           const layout = REVEAL_LAYOUT[viewport]
 
@@ -186,11 +190,8 @@ export default function PhotographyGallery() {
           }
 
           const startY = () => section.clientHeight * layout.startY
-          const exitY = () => -section.clientHeight * (mobile ? 0.035 : 0.065)
+          const exitY = () => -section.clientHeight * (mobile ? 0.035 : 0.055)
 
-          // Timeline units intentionally map to viewport-height scroll units.
-          // The device reveal finishes first, then the centred iPad is held
-          // completely still for exactly two viewport scroll lengths.
           const revealEnd = layout.revealScreens
           const holdStart = revealEnd
           const holdEnd = holdStart + HOLD_SCROLL_SCREENS
@@ -198,17 +199,21 @@ export default function PhotographyGallery() {
           const totalScrollScreens = exitEnd
 
           gsap.set(intro, { autoAlpha: 1, y: 0, filter: 'blur(0px)' })
+
           gsap.set(ipad, {
             xPercent: -50,
             yPercent: -50,
             y: startY,
             scale: layout.startScale,
             autoAlpha: 1,
+            rotationX: mobile ? 0 : 3,
+            transformPerspective: 1500,
             transformOrigin: '50% 50%',
             force3D: true,
           })
-          gsap.set(slides, { scale: 1.065, transformOrigin: '50% 50%' })
-          gsap.set(controls, { autoAlpha: 0, y: 14, scale: 0.96, pointerEvents: 'none' })
+
+          gsap.set(slides, { scale: 1.055, yPercent: 1.2, transformOrigin: '50% 50%' })
+          gsap.set(controls, { autoAlpha: 0, y: 12, scale: 0.96, pointerEvents: 'none' })
 
           const tl = gsap.timeline({
             defaults: { ease: 'none' },
@@ -217,53 +222,68 @@ export default function PhotographyGallery() {
               start: 'top top',
               end: () => `+=${window.innerHeight * totalScrollScreens}`,
               pin: true,
-              scrub: layout.scrub,
+              pinSpacing: true,
+
+              // No delayed scrub. This tracks scroll immediately.
+              scrub: true,
+
+              anticipatePin: 1,
               invalidateOnRefresh: true,
+
+              onUpdate: (self) => {
+                const scrollScreens = self.progress * totalScrollScreens
+                const ready = scrollScreens >= revealEnd * 0.78 && scrollScreens < holdEnd
+
+                if (ready !== galleryReadyRef.current) {
+                  galleryReadyRef.current = ready
+                  syncAutoplay()
+                }
+              },
             },
           })
 
-          // 01 — Intro leaves while the iPad begins entering.
+          // Intro disappears almost immediately so the device arrives sooner.
           tl.to(
             intro,
             {
               autoAlpha: 0,
-              y: -32,
-              filter: 'blur(5px)',
+              y: -26,
+              filter: 'blur(4px)',
               duration: revealEnd * 0.18,
               ease: 'power2.in',
             },
-            revealEnd * 0.02,
+            0,
           )
 
-          // 02 — iPad reaches its exact final centered pose.
+          // iPad begins moving from the very first scroll movement.
           tl.to(
             ipad,
             {
               y: 0,
               scale: 1,
-              duration: revealEnd * 0.72,
+              rotationX: 0,
+              duration: revealEnd * 0.78,
               ease: 'power3.inOut',
             },
-            revealEnd * 0.04,
+            0,
           )
 
-          // 03 — Photo settles inside the screen while the device approaches.
           tl.to(
             slides,
             {
               scale: 1,
-              duration: revealEnd * 0.6,
+              yPercent: 0,
+              duration: revealEnd * 0.66,
               ease: 'sine.out',
             },
-            revealEnd * 0.12,
+            revealEnd * 0.08,
           )
 
-          // 04 — Tiny physical settle before the hold starts.
           tl.to(
             ipad,
             {
-              scale: 1.008,
-              duration: revealEnd * 0.045,
+              scale: 1.006,
+              duration: revealEnd * 0.04,
               ease: 'sine.out',
             },
             revealEnd * 0.78,
@@ -273,13 +293,13 @@ export default function PhotographyGallery() {
             ipad,
             {
               scale: 1,
-              duration: revealEnd * 0.065,
+              y: 0,
+              duration: revealEnd * 0.055,
               ease: 'sine.inOut',
             },
-            revealEnd * 0.825,
+            revealEnd * 0.82,
           )
 
-          // 05 — Controller appears before the centre hold.
           tl.to(
             controls,
             {
@@ -287,18 +307,28 @@ export default function PhotographyGallery() {
               y: 0,
               scale: 1,
               pointerEvents: 'auto',
-              duration: revealEnd * 0.12,
+              duration: revealEnd * 0.1,
               ease: 'power3.out',
             },
-            revealEnd * 0.82,
+            revealEnd * 0.79,
           )
 
-          // 06 — EXACT TWO-SCREEN HOLD.
-          // Nothing on the iPad moves here. The section remains pinned,
-          // so Videography / the next section cannot start yet.
-          tl.to({}, { duration: HOLD_SCROLL_SCREENS }, holdStart)
+          // Exact centered hold.
+          tl.set(ipad, { y: 0, scale: 1, autoAlpha: 1 }, holdStart)
+          tl.set(controls, { autoAlpha: 1, y: 0, scale: 1, pointerEvents: 'auto' }, holdStart)
 
-          // 07 — Only after those two full scroll screens do we begin exit.
+          tl.to(
+            ipad,
+            {
+              y: 0,
+              scale: 1,
+              autoAlpha: 1,
+              duration: HOLD_SCROLL_SCREENS,
+              ease: 'none',
+            },
+            holdStart,
+          )
+
           tl.to(
             controls,
             {
@@ -306,7 +336,7 @@ export default function PhotographyGallery() {
               y: 10,
               scale: 0.97,
               pointerEvents: 'none',
-              duration: layout.exitScreens * 0.24,
+              duration: layout.exitScreens * 0.22,
               ease: 'power2.in',
             },
             holdEnd,
@@ -316,16 +346,16 @@ export default function PhotographyGallery() {
             ipad,
             {
               y: exitY,
-              scale: 0.94,
+              scale: 0.95,
+              rotationX: mobile ? 0 : -2,
               autoAlpha: 0,
-              duration: layout.exitScreens * 0.92,
+              duration: layout.exitScreens * 0.9,
               ease: 'power2.in',
             },
-            holdEnd + layout.exitScreens * 0.08,
+            holdEnd + layout.exitScreens * 0.06,
           )
 
-          // Guarantees the pin lasts through the entire exit distance.
-          tl.to({}, { duration: 0.001 }, exitEnd)
+          tl.set({}, {}, exitEnd)
 
           return () => {
             galleryReadyRef.current = false
@@ -342,6 +372,7 @@ export default function PhotographyGallery() {
 
   useEffect(() => {
     const section = sectionRef.current
+
     if (!section || typeof IntersectionObserver === 'undefined') return
 
     const observer = new IntersectionObserver(
@@ -353,19 +384,27 @@ export default function PhotographyGallery() {
     )
 
     observer.observe(section)
+
     return () => observer.disconnect()
   }, [syncAutoplay])
 
   useEffect(() => {
     const onVisibility = () => syncAutoplay()
+
     document.addEventListener('visibilitychange', onVisibility)
-    return () => document.removeEventListener('visibilitychange', onVisibility)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
   }, [syncAutoplay])
 
   useEffect(
     () => () => {
       transitionRef.current?.kill()
-      if (autoplayRef.current !== null) window.clearTimeout(autoplayRef.current)
+
+      if (autoplayRef.current !== null) {
+        window.clearTimeout(autoplayRef.current)
+      }
     },
     [],
   )
@@ -376,6 +415,7 @@ export default function PhotographyGallery() {
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
 
       const target = event.target as HTMLElement | null
+
       if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
 
       if (event.key === 'ArrowLeft') {
@@ -390,7 +430,10 @@ export default function PhotographyGallery() {
     }
 
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+    }
   }, [go])
 
   const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
@@ -401,128 +444,129 @@ export default function PhotographyGallery() {
   const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
     const start = touchRef.current
     touchRef.current = null
+
     if (!start) return
 
     const touch = event.changedTouches[0]
     const dx = touch.clientX - start.x
     const dy = touch.clientY - start.y
 
-    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) go(dx < 0 ? 1 : -1)
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      go(dx < 0 ? 1 : -1)
+    }
   }
 
   return (
-    <section
-      ref={sectionRef}
-      id="photography"
-      aria-roledescription="carousel"
-      aria-label="Photography"
-      className="relative h-svh min-h-[560px] w-full overflow-hidden bg-white text-[#111] sm:min-h-[600px] lg:min-h-[620px]"
-    >
+    <section ref={sectionRef} id="photography" aria-roledescription="carousel" aria-label="Photography" className="relative h-svh min-h-[560px] w-full overflow-hidden bg-white text-[#111] sm:min-h-[600px] lg:min-h-[620px]">
       {/* INTRO */}
-      <div ref={introRef} className="pointer-events-none absolute inset-x-0 top-[clamp(42px,8vh,88px)] z-10 flex flex-col items-center px-5 text-center">
-        <span className="font-primary text-[9px] uppercase tracking-[0.18em] text-black/40 sm:text-[10px]">BrandWorks / Stills</span>
-        <h2 className="mt-3 font-primary text-[clamp(34px,4vw,48px)] font-medium leading-[0.96] tracking-[-0.045em]">Photography</h2>
-        <p className="mt-3 max-w-[420px] font-secondary text-[12px] leading-[1.5] text-black/45 sm:text-[13px]">Still images built with the same intent as moving ones.</p>
+      <div ref={introRef} className="pointer-events-none absolute inset-x-0 top-[clamp(34px,6vh,72px)] z-10 flex flex-col items-center px-5 text-center">
+        <h2 className="mt-3 font-primary text-[clamp(32px,4.5vw,58px)] font-medium leading-[0.96] tracking-[-0.045em]">Photography</h2>
       </div>
 
-      {/* CSS IPAD — no fake checkerboard PNG */}
+      {/* REALISTIC CSS IPAD */}
       <div
         ref={ipadRef}
-        className="absolute left-1/2 top-1/2 z-20 aspect-[4/3] w-[min(94vw,112svh,1280px)] opacity-0 will-change-transform"
+        className="absolute left-1/2 top-1/2 z-20 aspect-[4/3] w-[min(96vw,86svh)] opacity-0 [transform-style:preserve-3d] will-change-transform md:w-[min(96vw,108svh,1180px)] lg:w-[min(98vw,120svh,1440px)]"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        <div className="relative h-full w-full rounded-[clamp(20px,2.4vw,38px)] bg-[#0b0b0b] p-[clamp(8px,1.1vw,16px)] shadow-[0_30px_90px_rgba(0,0,0,0.16)] ring-1 ring-black/20">
-          <span className="pointer-events-none absolute left-[5px] top-1/2 z-30 h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[#171717] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] sm:left-[7px]" aria-hidden="true" />
+        {/* POWER / ACTION BUTTON */}
+        <span className="pointer-events-none absolute -top-[4px] right-[12%] z-0 h-[5px] w-[64px] rounded-t-[3px] bg-gradient-to-b from-[#626262] to-[#2c2c2c] shadow-[0_-1px_0_rgba(255,255,255,0.18),0_1px_2px_rgba(0,0,0,0.35)] sm:w-[82px]" aria-hidden="true" />
 
-          <div className="relative h-full w-full overflow-hidden rounded-[clamp(13px,1.7vw,27px)] bg-[#111] touch-pan-y">
-            {photographyImages.map((image, index) => (
-              <img
-                key={image}
-                ref={(element) => {
-                  slideRefs.current[index] = element
+        {/* VOLUME BUTTONS */}
+        <span className="pointer-events-none absolute -right-[4px] top-[17%] z-0 h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] shadow-[1px_0_2px_rgba(0,0,0,0.34)] sm:h-[70px]" aria-hidden="true" />
+        <span className="pointer-events-none absolute -right-[4px] top-[29%] z-0 h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] shadow-[1px_0_2px_rgba(0,0,0,0.34)] sm:h-[70px]" aria-hidden="true" />
+
+        {/* ALUMINIUM OUTER SHELL */}
+        <div className="relative h-full w-full rounded-[clamp(22px,2.5vw,42px)] bg-gradient-to-br from-[#4a4a4a] via-[#242424] to-[#0f0f0f] p-[clamp(5px,0.5vw,8px)] shadow-[0_42px_110px_rgba(0,0,0,0.22),0_10px_35px_rgba(0,0,0,0.12)] ring-1 ring-black/30">
+          {/* INNER BLACK BEZEL */}
+          <div className="relative h-full w-full rounded-[clamp(18px,2.15vw,36px)] bg-[#050505] p-[clamp(8px,0.85vw,13px)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.055)]">
+            {/* CAMERA */}
+            <span className="pointer-events-none absolute left-[6px] top-1/2 z-40 h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[#0b0f13] ring-1 ring-white/[0.06] sm:left-[8px] sm:h-[6px] sm:w-[6px]" aria-hidden="true">
+              <span className="absolute left-1/2 top-1/2 h-[2px] w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1b3548]/75" />
+            </span>
+
+            {/* SCREEN */}
+            <div className="relative h-full w-full overflow-hidden rounded-[clamp(13px,1.7vw,28px)] bg-[#111] touch-pan-y">
+              {photographyImages.map((image, index) => (
+                <img
+                  key={image}
+                  ref={(element) => {
+                    slideRefs.current[index] = element
+                  }}
+                  src={image}
+                  alt={`BrandWorks photography project ${index + 1}`}
+                  aria-hidden={index !== active}
+                  draggable={false}
+                  decoding="async"
+                  loading={index <= 1 ? 'eager' : 'lazy'}
+                  className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center will-change-[transform,opacity]"
+                  style={{ opacity: index === 0 ? 1 : 0, zIndex: index === 0 ? 1 : 0 }}
+                />
+              ))}
+
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[28%] bg-gradient-to-t from-black/28 via-black/[0.04] to-transparent" />
+
+              {/* CONTROLLER */}
+              <div
+                ref={controlsRef}
+                className="absolute bottom-[clamp(12px,3%,28px)] left-1/2 z-30 flex max-w-[calc(100%-18px)] -translate-x-1/2 items-center gap-1.5 opacity-0 md:gap-2"
+                onPointerEnter={() => {
+                  interactingRef.current = true
+                  syncAutoplay()
                 }}
-                src={image}
-                alt={`BrandWorks photography project ${index + 1}`}
-                aria-hidden={index !== active}
-                draggable={false}
-                decoding="async"
-                loading={index <= 1 ? 'eager' : 'lazy'}
-                className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center will-change-[transform,opacity]"
-                style={{ opacity: index === 0 ? 1 : 0, zIndex: index === 0 ? 1 : 0 }}
-              />
-            ))}
-
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[32%] bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
-
-            {/* CONTROLLER */}
-            <div
-              ref={controlsRef}
-              className="absolute bottom-[clamp(12px,3%,28px)] left-1/2 z-30 flex max-w-[calc(100%-18px)] -translate-x-1/2 items-center gap-1.5 opacity-0 md:gap-2"
-              onPointerEnter={() => {
-                interactingRef.current = true
-                syncAutoplay()
-              }}
-              onPointerLeave={() => {
-                interactingRef.current = false
-                syncAutoplay()
-              }}
-              onFocus={() => {
-                interactingRef.current = true
-                syncAutoplay()
-              }}
-              onBlur={() => {
-                interactingRef.current = false
-                syncAutoplay()
-              }}
-            >
-              <button
-                type="button"
-                aria-label="Previous photograph"
-                onClick={() => go(-1)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/70 text-white backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
+                onPointerLeave={() => {
+                  interactingRef.current = false
+                  syncAutoplay()
+                }}
+                onFocus={() => {
+                  interactingRef.current = true
+                  syncAutoplay()
+                }}
+                onBlur={() => {
+                  interactingRef.current = false
+                  syncAutoplay()
+                }}
               >
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
+                <button type="button" aria-label="Previous photograph" onClick={() => go(-1)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11">
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
 
-              <div className="flex h-10 items-center gap-[3px] rounded-[12px] border border-white/10 bg-black/65 p-[3px] backdrop-blur-xl sm:h-12 sm:gap-1 sm:rounded-[15px] sm:p-1">
-                {photographyImages.map((image, index) => (
-                  <button
-                    key={`${image}-thumb`}
-                    type="button"
-                    aria-label={`View photograph ${index + 1}`}
-                    aria-current={index === active ? 'true' : undefined}
-                    onClick={() => goTo(index)}
-                    className={`relative h-[32px] w-[26px] overflow-hidden rounded-[7px] border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-10 sm:w-[46px] sm:rounded-[9px] ${index === active ? 'scale-[1.02] border-white/90 opacity-100' : 'border-transparent opacity-55 hover:scale-[1.02] hover:opacity-90'}`}
-                  >
-                    <img src={image} alt="" aria-hidden="true" draggable={false} className="h-full w-full object-cover" />
-                  </button>
-                ))}
+                <div className="flex h-10 items-center gap-[3px] rounded-[12px] border border-white/10 bg-black/62 p-[3px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] backdrop-blur-xl sm:h-12 sm:gap-1 sm:rounded-[15px] sm:p-1">
+                  {photographyImages.map((image, index) => (
+                    <button
+                      key={`${image}-thumb`}
+                      type="button"
+                      aria-label={`View photograph ${index + 1}`}
+                      aria-current={index === active ? 'true' : undefined}
+                      onClick={() => goTo(index)}
+                      className={`relative h-[32px] w-[26px] overflow-hidden rounded-[7px] border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-10 sm:w-[46px] sm:rounded-[9px] ${index === active ? 'scale-[1.02] border-white/90 opacity-100' : 'border-transparent opacity-55 hover:scale-[1.02] hover:opacity-90'}`}
+                    >
+                      <img src={image} alt="" aria-hidden="true" draggable={false} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+
+                <div className="hidden h-12 min-w-[78px] items-center justify-center gap-1.5 rounded-[15px] border border-white/10 bg-[rgba(42,28,23,0.72)] px-3 font-primary text-[9px] font-medium tracking-[0.06em] text-white shadow-[0_8px_24px_rgba(0,0,0,0.14)] backdrop-blur-xl min-[390px]:flex sm:min-w-[92px] sm:text-[10px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#8f8a16]" aria-hidden="true" />
+                  <span>{pad(active + 1)}</span>
+                  <span className="text-white/30">/</span>
+                  <span className="text-white/55">{pad(TOTAL)}</span>
+                </div>
+
+                <button type="button" aria-label="Next photograph" onClick={() => go(1)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11">
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
               </div>
-
-              <div className="hidden h-12 min-w-[76px] items-center justify-center gap-1.5 rounded-[15px] border border-white/10 bg-black/70 px-3 font-primary text-[9px] font-medium tracking-[0.08em] text-white backdrop-blur-xl min-[390px]:flex sm:min-w-[88px] sm:text-[10px]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#9c9c38]" aria-hidden="true" />
-                <span>{pad(active + 1)}</span>
-                <span className="text-white/30">/</span>
-                <span className="text-white/55">{pad(TOTAL)}</span>
-              </div>
-
-              <button
-                type="button"
-                aria-label="Next photograph"
-                onClick={() => go(1)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/70 text-white backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
-              >
-                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
             </div>
-          </div>
 
-          <span className="pointer-events-none absolute bottom-[5px] left-1/2 z-30 h-[3px] w-[12%] -translate-x-1/2 rounded-full bg-white/35 sm:bottom-[7px]" aria-hidden="true" />
+            {/* HOME INDICATOR */}
+            <span className="pointer-events-none absolute bottom-[4px] left-1/2 z-40 h-[3px] w-[10%] -translate-x-1/2 rounded-full bg-white/30 sm:bottom-[6px]" aria-hidden="true" />
+          </div>
         </div>
       </div>
     </section>

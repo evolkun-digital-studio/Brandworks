@@ -446,8 +446,8 @@ function Delta({
 }
 
 const METRIC_SIZE = {
-  xl: 'text-[52px] sm:text-[60px]',
-  md: 'text-[30px]',
+  xl: 'text-[40px] min-[420px]:text-[44px] sm:text-[50px] md:text-[56px] xl:text-[60px]',
+  md: 'text-[26px] sm:text-[28px] md:text-[30px]',
 } as const
 
 function Metric({
@@ -468,7 +468,7 @@ function Metric({
   )
 }
 
-const SUBLABEL = 'text-[13px] text-neutral-500'
+const SUBLABEL = 'text-[12px] leading-snug text-neutral-500 sm:text-[13px]'
 const NUMERIC = 'font-mono text-xs tabular-nums'
 
 function StatRow({
@@ -479,7 +479,7 @@ function StatRow({
   children: ReactNode
 }) {
   return (
-    <div className="flex h-9 items-center justify-between gap-3 border-t border-neutral-100 text-[13px]">
+    <div className="flex min-h-9 items-center justify-between gap-3 border-t border-neutral-100 py-2 text-[12px] sm:text-[13px]">
       <dt className="text-neutral-500">{label}</dt>
 
       <dd
@@ -647,7 +647,7 @@ function ChartLegend({
   dashed: string
 }) {
   return (
-    <ul className="mt-3 flex items-center gap-4 text-[11px] text-neutral-500">
+    <ul className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] text-neutral-500 sm:text-[11px]">
       <li className="flex items-center gap-1.5">
         <span
           aria-hidden="true"
@@ -683,13 +683,13 @@ function Figure({
       as="figure"
       distance={24}
       duration={1000}
-      className="w-full sm:w-[92%] sm:max-w-[44rem] lg:w-full lg:max-w-[34rem]"
+      className="w-full min-w-0 max-w-full sm:max-w-[46rem] lg:max-w-[52rem] xl:max-w-[34rem]"
     >
-      <div className="@container rounded-sm border border-neutral-200 bg-white p-5 sm:p-6">
+      <div className="@container overflow-hidden rounded-sm border border-neutral-200 bg-white p-4 min-[420px]:p-5 sm:p-6">
         {children}
       </div>
 
-      <figcaption className="mt-3 flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.1em] text-neutral-500">
+      <figcaption className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[9px] uppercase tracking-[0.08em] text-neutral-500 min-[420px]:text-[10px] sm:gap-2.5 sm:text-[11px] sm:tracking-[0.1em]">
         <span
           aria-hidden="true"
           className="h-px w-5 bg-neutral-300"
@@ -708,13 +708,13 @@ function FigureHeader({
   meta?: ReactNode
 }) {
   return (
-    <header className="mb-4 flex items-center justify-between gap-3">
-      <h4 className="text-[13px] font-semibold text-neutral-900">
+    <header className="mb-4 flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
+      <h4 className="text-[12px] font-semibold text-neutral-900 sm:text-[13px]">
         {title}
       </h4>
 
       {meta && (
-        <div className="text-[11px] text-neutral-500">
+        <div className="text-[10px] text-neutral-500 sm:text-[11px]">
           {meta}
         </div>
       )}
@@ -767,7 +767,7 @@ function SearchFigure() {
         xLabels={['Oct', 'Jan', 'Apr', 'Jul', 'Sep']}
         delay={350}
         className="mt-2 text-blue-600"
-        plotClassName="min-h-32 sm:min-h-40"
+        plotClassName="min-h-28 min-[420px]:min-h-32 sm:min-h-40"
       />
 
       <ChartLegend
@@ -807,7 +807,7 @@ function SearchFigure() {
           </div>
         </Wipe>
 
-        <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 @md:grid-cols-4">
+        <ul className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 sm:gap-x-4 @md:grid-cols-4">
           {INTENT_SPLIT.map(
             ({ intent, share, swatch }) => (
               <li key={intent}>
@@ -883,7 +883,7 @@ function AuditFigure() {
           ({ label, count, bar }) => (
             <div
               key={label}
-              className="flex h-8 items-center justify-between gap-3 text-[13px]"
+              className="flex min-h-8 items-center justify-between gap-3 py-1 text-[12px] sm:text-[13px]"
             >
               <dt className="flex items-center gap-2.5 text-neutral-500">
                 <Dot className={bar} />
@@ -935,7 +935,7 @@ function LoopFigure() {
           ({ label, page, value, bar, reach }, i) => (
             <li
               key={label}
-              className="grid grid-cols-[3rem_minmax(0,1fr)_2rem] items-center gap-x-3 gap-y-0.5 @md:grid-cols-[3rem_minmax(0,1fr)_2rem_9.5rem]"
+              className="grid grid-cols-[2.6rem_minmax(0,1fr)_2rem] items-center gap-x-2 gap-y-1 sm:grid-cols-[3rem_minmax(0,1fr)_2rem] sm:gap-x-3 @md:grid-cols-[3rem_minmax(0,1fr)_2rem_9.5rem]"
             >
               <span className="text-[13px] text-neutral-800">
                 {label}
@@ -986,7 +986,7 @@ function LoopFigure() {
         meta="vs. previous period"
       />
 
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 @md:grid-cols-4 @md:gap-x-4">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-4 sm:gap-x-6 @lg:grid-cols-4 @lg:gap-x-4">
         {PERFORMANCE.map(
           ({
             label,
@@ -1002,7 +1002,7 @@ function LoopFigure() {
               </dt>
 
               <dd className="mt-1.5">
-                <span className="block text-[26px] font-normal leading-none tracking-tight text-neutral-900">
+                <span className="block text-[22px] font-normal leading-none tracking-tight text-neutral-900 min-[420px]:text-[24px] sm:text-[26px]">
                   <CountUp
                     to={to}
                     decimals={decimals}
@@ -1037,7 +1037,7 @@ function LoopFigure() {
         ]}
         delay={700}
         className="mt-5 text-blue-600"
-        plotClassName="min-h-24"
+        plotClassName="min-h-20 min-[420px]:min-h-24 sm:min-h-28"
       />
 
       <ChartLegend
@@ -1053,15 +1053,15 @@ function LoopFigure() {
 /* -------------------------------------------------------------------------- */
 
 const EYEBROW_BASE =
-  'font-mono text-xs uppercase tracking-[0.16em]'
+  'font-mono text-[10px] uppercase tracking-[0.12em] sm:text-[11px] sm:tracking-[0.14em] md:text-xs md:tracking-[0.16em]'
 
 const EYEBROW = `${EYEBROW_BASE} text-neutral-500`
 
 const CHAPTER_HEADING =
-  'text-balance text-[1.7rem] leading-[1.12] tracking-[-0.03em] text-neutral-950 sm:text-3xl lg:text-[2rem]'
+  'text-balance text-[clamp(1.65rem,4.8vw,2.25rem)] leading-[1.1] tracking-[-0.035em] text-neutral-950 sm:leading-[1.08] xl:text-[2.15rem]'
 
 const BODY =
-  'space-y-4 text-base leading-relaxed text-neutral-600 sm:text-[17px]'
+  'space-y-4 text-[15px] leading-[1.65] text-neutral-600 sm:text-base md:text-[17px]'
 
 function Rail({ number }: { number: string }) {
   const revealed = useContext(RevealContext)
@@ -1069,7 +1069,7 @@ function Rail({ number }: { number: string }) {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-y-0 left-4 hidden w-px lg:block"
+      className="pointer-events-none absolute inset-y-0 left-4 hidden w-px xl:block"
     >
       <span
         className="absolute inset-0 origin-top bg-neutral-200 transition-[scale] duration-[1400ms] motion-reduce:transition-none"
@@ -1080,7 +1080,7 @@ function Rail({ number }: { number: string }) {
       />
 
       <span
-        className={`absolute left-1/2 top-12 -translate-x-1/2 bg-(--seo-bg) px-1.5 py-1 font-mono text-[11px] tabular-nums text-neutral-500 transition-opacity duration-700 motion-reduce:transition-none ${
+        className={`absolute left-1/2 top-10 -translate-x-1/2 bg-(--seo-bg) px-1.5 py-1 font-mono text-[10px] tabular-nums text-neutral-500 transition-opacity duration-700 motion-reduce:transition-none xl:top-12 xl:text-[11px] ${
           revealed ? 'opacity-100' : 'opacity-0'
         }`}
         style={{ transitionDelay: '300ms' }}
@@ -1101,15 +1101,15 @@ function ChapterEyebrow({
   return (
     <Reveal
       as="p"
-      className={`flex items-center gap-2.5 whitespace-nowrap sm:gap-3 ${EYEBROW} text-[11px] tracking-[0.1em] sm:text-xs sm:tracking-[0.16em]`}
+      className={`flex min-w-0 flex-wrap items-center gap-2 sm:gap-3 ${EYEBROW}`}
     >
-      <span className="tabular-nums text-neutral-900 lg:hidden">
+      <span className="tabular-nums text-neutral-900 xl:hidden">
         {number}
       </span>
 
       <span
         aria-hidden="true"
-        className="h-px w-4 shrink-0 bg-neutral-300 sm:w-6 lg:hidden"
+        className="h-px w-4 shrink-0 bg-neutral-300 sm:w-6 xl:hidden"
       />
 
       {label}
@@ -1138,21 +1138,21 @@ function Chapter({
     <RevealGroup
       as="article"
       threshold={0.05}
-      className="relative py-8 sm:py-10 lg:py-12 lg:pl-16"
+      className="relative py-10 sm:py-12 md:py-14 lg:py-16 xl:py-[72px] xl:pl-16"
     >
       <Rail number={number} />
 
       <div
         aria-labelledby={titleId}
         role="group"
-        className={`grid items-center gap-8 sm:gap-10 lg:gap-x-16 xl:gap-x-20 ${
+        className={`grid min-w-0 items-center gap-8 sm:gap-10 md:gap-12 xl:gap-x-14 2xl:gap-x-20 ${
           figureFirst
-            ? 'lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]'
-            : 'lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]'
+            ? 'xl:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]'
+            : 'xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]'
         }`}
       >
         <RevealGroup
-          className={figureFirst ? 'lg:order-2' : ''}
+          className={`min-w-0 ${figureFirst ? 'xl:order-2' : ''}`}
         >
           <ChapterEyebrow
             number={number}
@@ -1161,7 +1161,7 @@ function Chapter({
 
           <Reveal
             delay={80}
-            className="mt-4 sm:mt-5"
+            className="mt-4 sm:mt-5 md:mt-6"
           >
             <h3
               id={titleId}
@@ -1173,7 +1173,7 @@ function Chapter({
 
           <Reveal
             delay={160}
-            className={`mt-4 max-w-md sm:mt-5 sm:max-w-xl lg:max-w-md ${BODY}`}
+            className={`mt-4 max-w-[42rem] sm:mt-5 md:mt-6 xl:max-w-md ${BODY}`}
           >
             {children}
           </Reveal>
@@ -1181,10 +1181,10 @@ function Chapter({
 
         <RevealGroup
           threshold={0.2}
-          className={`flex ${
+          className={`flex min-w-0 justify-center sm:justify-start ${
             figureFirst
-              ? 'lg:order-1 lg:justify-start'
-              : 'lg:justify-end'
+              ? 'xl:order-1 xl:justify-start'
+              : 'xl:justify-end'
           }`}
         >
           {figure}
@@ -1200,7 +1200,7 @@ function Chapter({
 
 function Intro({ headingId }: { headingId: string }) {
   return (
-    <RevealGroup className="pb-2 pt-14 sm:pt-18 lg:pt-20">
+    <RevealGroup className="pb-2 pt-12 sm:pt-14 md:pt-16 lg:pt-20 xl:pt-24">
       <Reveal
         as="p"
         className={`flex items-center gap-2.5 ${EYEBROW}`}
@@ -1210,14 +1210,14 @@ function Intro({ headingId }: { headingId: string }) {
 
       <Reveal
         delay={80}
-        className="mt-5 sm:mt-6"
+        className="mt-4 sm:mt-5 md:mt-6"
       >
         <h2
           id={headingId}
-          className="site-display max-w-5xl text-balance text-neutral-950"
+          className="site-display max-w-[1100px] text-balance text-[clamp(2.4rem,7vw,5.8rem)] leading-[0.94] tracking-[-0.05em] text-neutral-950 sm:leading-[0.92] md:tracking-[-0.055em]"
         >
           Being online isn&apos;t enough.
-          <span className="block text-neutral-400">
+          <span className="block">
             You need to be findable.
           </span>
         </h2>
@@ -1226,7 +1226,7 @@ function Intro({ headingId }: { headingId: string }) {
       <Reveal
         as="p"
         delay={180}
-        className="mt-6 max-w-xl text-lg leading-relaxed text-neutral-600 sm:text-xl"
+        className="mt-5 max-w-[42rem] text-[15px] leading-[1.65] text-neutral-600 sm:mt-6 sm:text-[17px] md:text-lg lg:text-xl"
       >
         Your customers are already searching. SEO makes sure your
         website appears when their intent is highest.
@@ -1241,9 +1241,9 @@ function Closing({
   ctaHref: string
 }) {
   return (
-    <RevealGroup className="pb-16 pt-12 sm:pb-20 sm:pt-16">
+    <RevealGroup className="pb-14 pt-10 sm:pb-16 sm:pt-12 md:pb-20 md:pt-16 lg:pb-24 lg:pt-20">
       <Reveal>
-        <h3 className="site-heading max-w-4xl text-balance text-neutral-950">
+        <h3 className="site-heading max-w-[1000px] text-balance text-[clamp(2rem,5vw,4.5rem)] leading-[0.98] tracking-[-0.045em] text-neutral-950">
           Better SEO isn&apos;t more traffic.
           <span className="block text-neutral-400">
             It&apos;s more of the right people finding you.
@@ -1253,11 +1253,11 @@ function Closing({
 
       <Reveal
         delay={260}
-        className="mt-7"
+        className="mt-6 sm:mt-7 md:mt-8"
       >
         <a
           href={ctaHref}
-          className="group inline-flex items-center gap-2 border-b border-neutral-900 pb-1 text-base font-medium text-neutral-900"
+          className="group inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 border-b border-neutral-900 pb-1 text-[14px] font-medium text-neutral-900 sm:text-base"
         >
           Let&apos;s find your search opportunities
 
@@ -1286,12 +1286,12 @@ export default function WebsiteSection({
   return (
     <section
       aria-labelledby={headingId}
-      className={`relative w-full overflow-x-clip bg-white px-4 text-neutral-900 [--seo-bg:#ffffff] sm:px-6 lg:px-8 ${className}`}
+      className={`relative w-full overflow-x-clip bg-white px-4 text-neutral-900 [--seo-bg:#ffffff] min-[420px]:px-5 sm:px-6 md:px-8 lg:px-10 xl:px-12 2xl:px-16 ${className}`}
     >
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto w-full max-w-[1440px]">
         <Intro headingId={headingId} />
 
-        <div className="mt-2 lg:mt-2">
+        <div className="mt-4 sm:mt-6 md:mt-8 lg:mt-10">
           {/* ESSENTIAL 01 */}
           <Chapter
             number="01"
