@@ -180,6 +180,7 @@ function HeroMedia({
                 />
               ) : media.kind === 'showcase' ? (
                 <HeroSocialShowcase
+                  grid={media.grid}
                   image={media.image}
                   video={media.video}
                   active={isActive}

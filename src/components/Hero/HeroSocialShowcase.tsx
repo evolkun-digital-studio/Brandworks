@@ -5,6 +5,7 @@ import type { HeroImage } from '../../data/heroServices'
 import { HeroImg } from './HeroImg'
 import type { ImagePriority } from './HeroImg'
 import HeroSocialLine from './HeroSocialLine'
+import HeroSocialGrid from './HeroSocialGrid'
 
 // Same curve as --hero-ease in Hero.css.
 const EASE = [0.22, 1, 0.36, 1] as const
@@ -86,6 +87,7 @@ function ShowcaseVideo({
  * with a single lime line drawn through the whole composition behind them.
  */
 function HeroSocialShowcase({
+  grid,
   image,
   video,
   active,
@@ -93,6 +95,7 @@ function HeroSocialShowcase({
   priority,
   reducedMotion,
 }: {
+  grid: HeroImage[]
   image: HeroImage
   video: { src: string; poster: string; label: string }
   active: boolean
@@ -105,6 +108,8 @@ function HeroSocialShowcase({
       <HeroSocialLine active={active} reducedMotion={reducedMotion} />
 
       <div className="social-showcase__stage">
+        <HeroSocialGrid images={grid} priority={priority} reducedMotion={reducedMotion} />
+
         <div className="media-showcase">
           <motion.figure
             className="social-card social-image"

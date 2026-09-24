@@ -16,10 +16,9 @@ import type { Variants } from 'motion/react'
  * every size and is rebuilt whenever any of them move.
  */
 
-// The line starts once the cards have begun to rise (HeroSocialShowcase
-// holds them ~0.34s so the caption can swap first).
-const DRAW_DELAY = 0.45
-const DRAW_DURATION = 3.2
+// The contact sheet starts first; the line follows just behind it.
+const DRAW_DELAY = 0.24
+const DRAW_DURATION = 3.6
 const DRAW_EASE = [0.65, 0, 0.35, 1] as const
 // Matches the showcase's reset: wait until HeroMedia has faded the layer out.
 const FADE_OUT = 0.4
@@ -29,6 +28,7 @@ type Box = { x: number; y: number; w: number; h: number }
 type Geometry = {
   W: number
   H: number
+  grid: Box
   image: Box
   video: Box
   /** Top of the "Brandworks" heading, and the right edge of its ink. */
@@ -100,13 +100,14 @@ function inkX(el: Element, originX: number) {
 }
 
 function measure(hero: HTMLElement, showcase: HTMLElement): Geometry | null {
+  const grid = showcase.querySelector<HTMLElement>('.social-contact-sheet')
   const image = showcase.querySelector<HTMLElement>('.social-image')
   const video = showcase.querySelector<HTMLElement>('.social-video')
   const title = hero.querySelector<HTMLElement>('.hero-title')
   const description = hero.querySelector<HTMLElement>('.hero-description')
   const caption = hero.querySelector<HTMLElement>('.hero-caption')
   const switcher = hero.querySelector<HTMLElement>('.hero-switcher')
-  if (!image || !video || !title || !caption || !switcher) return null
+  if (!grid || !image || !video || !title || !caption || !switcher) return null
 
   const heroRect = hero.getBoundingClientRect()
   const originX = heroRect.left
@@ -129,6 +130,7 @@ function measure(hero: HTMLElement, showcase: HTMLElement): Geometry | null {
   return {
     W: hero.clientWidth,
     H: hero.clientHeight,
+    grid: layoutBox(grid, hero),
     image: layoutBox(image, hero),
     video: layoutBox(video, hero),
     titleTop: layoutBox(title, hero).y,
@@ -143,63 +145,34 @@ function measure(hero: HTMLElement, showcase: HTMLElement): Geometry | null {
 }
 
 /**
- * Side-by-side layout. In almost level from the left edge, a steep fall into
- * one long, low, flat-bottomed sweep across the empty half, a slow rise that
- * vanishes behind the still, out over its top into a shallow arc that crests
- * early and runs long over the reel, a narrow drop down the far side with a
- * slight outward bow, in behind the reel, back out beneath the still, a small
- * tight bend beside the copy, under the capsules and away off the
- * bottom-right corner. No two curves share a size.
+ * Desktop layout. Long cubic segments travel behind the contact sheet, make
+ * one broad centre sweep, rise behind the still, arc over both primary cards,
+ * then fall around the right edge and return below the service capsules.
  */
 function sideBySidePath(g: Geometry): string {
-  const { W, H, image: I, video: V, pills: P, caption: C } = g
-  // The crest keeps clear of the header's pills and stays just above the still.
-  const crestY = Math.min(I.y - 16, Math.max(g.navBottom + 12, 36))
-  const lowY = Math.min(H * 0.55, g.titleTop - 110)
-  const lowX = Math.min(W * 0.32, I.x - 300)
-  const xR = right(V) + Math.min(50, (W - right(V)) * 0.4)
-  const turnY = Math.min(H * 0.63, bottom(V) - 28)
-  const below = (gap: number) => Math.min(bottom(P) + gap, H - 10)
+  const { W, H, grid: G, image: I, video: V, pills: P } = g
+  const crestY = Math.min(I.y - 18, Math.max(g.navBottom + 14, 42))
+  const xR = right(V) + Math.min(52, Math.max(24, (W - right(V)) * 0.42))
+  const underPills = Math.min(bottom(P) + 28, H - 10)
 
-  const approach: Segment[] = [
-    // Level for a long stretch, then a late, steep fall into the flat of the sweep.
-    { c2: [lowX - W * 0.075, lowY], to: [lowX, lowY], k: 2.4 },
-    // One long, gradual rise, vanishing behind the still.
-    { c2: [I.x - W * 0.03, I.y + I.h * 0.56], to: [I.x + I.w * 0.28, I.y + I.h * 0.34], k: 0.9 },
-    // Out over its top edge, cresting early, above the gap between the cards.
-    { c2: [I.x + I.w * 0.72, crestY], to: [V.x + V.w * 0.1, crestY], k: 2.1 },
-    // The long, shallow run over the reel, clear of its far corner.
-    { c2: [xR, V.y - 6], to: [xR, V.y + V.h * 0.28] },
-  ]
-
-  // The return runs out beneath the still, between it and the caption, then
-  // down beside the copy; without room for both, the line keeps to the far
-  // margin instead.
-  if (C.x - g.copyRight < 110 || C.y - bottom(I) < 40) {
-    return smoothPath([-60, H * 0.2], [Math.min(W * 0.21, lowX * 0.68), H * 0.205], [
-      ...approach,
-      { c2: [xR + 8, H * 0.55], to: [xR + 2, bottom(P) - 40] },
-      // Out through the bottom edge, drifting right.
-      { c2: [xR - 2, H - 20], to: [xR + 26, H + 50] },
-    ])
-  }
-
-  // Where the return clears the still's lower edge and the caption's first line.
-  const gapY = Math.min(bottom(I) + 16, (bottom(I) + C.y) / 2)
-  const passY = Math.max(gapY + 20, Math.min((bottom(I) + C.y) / 2 + 8, C.y - 20))
-
-  return smoothPath([-60, H * 0.2], [Math.min(W * 0.21, lowX * 0.68), H * 0.205], [
-    ...approach,
-    // A narrow drop with a slight outward bow, turning in behind the reel.
-    { c2: [xR + 6, turnY - 40], to: [right(V) - 18, turnY], k: 0.5 },
-    // Across behind it and out beneath the still, toward the copy.
-    { c2: [V.x - 10, gapY], to: [C.x - 34, passY], k: 0.5 },
-    // A small, tight bend beside the copy...
-    { c2: [C.x - 66, C.y + 40], to: [C.x - 62, C.y + (bottom(P) - C.y) * 0.55], k: 1.3 },
-    // ...under the capsules, well clear of the first...
-    { c2: [P.x + P.w * 0.05, below(30)], to: [P.x + P.w * 0.32, below(30)], k: 1.4 },
-    // ...and on, long and open, out of the bottom-right corner.
-    { c2: [W - 70, H - 4], to: [W + 60, H + 26] },
+  return smoothPath([-70, G.y - 34], [W * 0.08, G.y - 38], [
+    // Drift into the upper-left of the grid, fully behind its clipped cells.
+    { c2: [G.x - 64, G.y + G.h * 0.08], to: [G.x + G.w * 0.16, G.y + G.h * 0.28], k: 0.82 },
+    // One broad, liquid sweep through the grid and the open centre.
+    { c2: [G.x + G.w * 0.48, G.y + G.h * 0.96], to: [I.x - 86, I.y + I.h * 0.72], k: 0.76 },
+    // Rise gradually behind the primary Social Media still.
+    { c2: [I.x - 18, I.y + I.h * 0.52], to: [I.x + I.w * 0.26, I.y + I.h * 0.34], k: 0.9 },
+    // Clear its top edge and begin one shallow arc across the pair.
+    { c2: [I.x + I.w * 0.72, crestY], to: [V.x + V.w * 0.14, crestY], k: 1.35 },
+    // Let that arc run long before falling around the reel's far side.
+    { c2: [xR, V.y - 2], to: [xR, V.y + V.h * 0.34], k: 0.86 },
+    { c2: [xR + 4, bottom(V) - 24], to: [right(V) - 18, bottom(V) - 12], k: 0.72 },
+    // Continue down the free right margin before turning under the copy.
+    { c2: [xR - 4, underPills - 44], to: [xR - 8, underPills], k: 0.8 },
+    // Sweep back beneath the capsules without cutting through their text.
+    { c2: [P.x + P.w * 0.58, underPills], to: [P.x + P.w * 0.12, underPills], k: 0.22 },
+    // Leave in one long open gesture toward the bottom-right edge.
+    { c2: [W - 36, H + 84], to: [W + 80, H + 150] },
   ])
 }
 
@@ -209,33 +182,19 @@ function sideBySidePath(g: Geometry): string {
  * the bottom-right corner.
  */
 function stackedPath(g: Geometry): string {
-  const { W, H, image: I, video: V, pills: P } = g
+  const { W, H, grid: G, image: I, video: V, pills: P } = g
   const pairBottom = Math.max(bottom(I), bottom(V))
-  // Tucked close under the pair: the heading follows only a little lower.
-  const underY = pairBottom + Math.min(12, (g.titleTop - pairBottom) * 0.35)
   const yIn = I.y + I.h * 0.42
-  const xs = g.textRight + (W - g.textRight) / 2
+  const between = pairBottom + Math.max(12, (G.y - pairBottom) * 0.42)
+  const underGrid = bottom(G) + 14
 
-  const entry: Segment[] = [
-    { c2: [I.x * 0.85, yIn - 2], to: [I.x + 22, yIn + 6], k: 1.6 },
-    // Behind the still, out beneath the pair.
-    { c2: [I.x + I.w * 0.4, underY], to: [Math.max(I.x + I.w * 0.72, g.titleRight + 16), underY] },
-  ]
-
-  // Phones leave no strip beside the copy: the line runs on beneath the pair
-  // and out of the right edge.
-  if (W - g.textRight < 48) {
-    return smoothPath([-40, yIn - 12], [Math.max(I.x, 1) * 0.5, yIn - 10], [
-      ...entry,
-      { c2: [W - 30, underY + 2], to: [W + 60, underY + 26] },
-    ])
-  }
-
-  return smoothPath([-40, yIn - 12], [Math.max(I.x, 1) * 0.5, yIn - 10], [
-    ...entry,
-    { c2: [xs - 30, underY], to: [xs, underY + 50], k: 1.4 },
-    { c2: [xs + 2, bottom(P) - 30], to: [xs + 10, bottom(P) + 6] },
-    { c2: [W + 10, H - 2], to: [W + 60, H + 40] },
+  return smoothPath([-48, yIn - 18], [Math.max(I.x, 1) * 0.54, yIn - 16], [
+    { c2: [I.x + I.w * 0.16, yIn], to: [I.x + I.w * 0.38, yIn + 8], k: 1.05 },
+    { c2: [V.x + V.w * 0.72, between], to: [G.x + G.w * 0.12, G.y + G.h * 0.18], k: 0.82 },
+    // The mobile-specific gesture runs behind the 2 × 3 sheet.
+    { c2: [G.x + G.w * 0.42, G.y + G.h * 0.88], to: [G.x + G.w * 0.76, underGrid], k: 0.9 },
+    { c2: [W * 0.78, bottom(P) + 8], to: [W * 0.82, Math.min(bottom(P) + 18, H - 8)], k: 1.15 },
+    { c2: [W + 12, H - 4], to: [W + 64, H + 34] },
   ])
 }
 
@@ -243,7 +202,6 @@ function HeroSocialLine({ active, reducedMotion }: { active: boolean; reducedMot
   const svgRef = useRef<SVGSVGElement>(null)
   const [size, setSize] = useState({ w: 0, h: 0 })
   const [d, setD] = useState<string | null>(null)
-  const [drawn, setDrawn] = useState(false)
 
   useLayoutEffect(() => {
     const svg = svgRef.current
@@ -268,6 +226,7 @@ function HeroSocialLine({ active, reducedMotion }: { active: boolean; reducedMot
       hero.querySelector('.hero-content'),
       hero.querySelector('.hero-aside'),
       showcase.querySelector('.social-showcase__stage'),
+      showcase.querySelector('.social-contact-sheet'),
       showcase.querySelector('.media-showcase'),
     ].filter((el): el is Element => Boolean(el))
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
@@ -305,17 +264,16 @@ function HeroSocialLine({ active, reducedMotion }: { active: boolean; reducedMot
   return (
     <svg
       ref={svgRef}
-      className={`social-line ${drawn && active && !reducedMotion ? 'is-drawn' : ''}`}
+      className="social-line"
       viewBox={`0 0 ${Math.max(size.w, 1)} ${Math.max(size.h, 1)}`}
       preserveAspectRatio="none"
       aria-hidden="true"
+      data-active={active ? '' : undefined}
     >
       <motion.path
         className="social-line__path"
         d={d ?? 'M 0 0'}
         variants={variants}
-        onAnimationComplete={(definition) => setDrawn(definition === 'shown')}
-        onAnimationStart={() => setDrawn(false)}
       />
     </svg>
   )

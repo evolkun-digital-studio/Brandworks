@@ -248,7 +248,7 @@
   --showcase-rise: 14px;
   --showcase-drop: 22px;
   /* Share of the stage width the pair may take; the rest is left open. */
-  --main-max: 54cqw;
+  --main-max: 52cqw;
   position: absolute;
   top: clamp(92px, 11.5vh, 132px);
   right: var(--hero-gutter);
@@ -258,7 +258,43 @@
   container-type: size;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: clamp(28px, 3vw, 52px);
+}
+
+.social-contact-sheet {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  flex: none;
+  width: clamp(500px, 42cqw, 560px);
+  aspect-ratio: 5 / 3;
+  gap: 2px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #111;
+}
+
+.social-contact-sheet__cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  background: #171717;
+}
+
+.social-contact-sheet__cell .hero-img {
+  object-fit: cover;
+  transition: transform 0.54s var(--hero-ease), opacity 0.4s var(--hero-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .social-contact-sheet__cell:hover .hero-img {
+    transform: scale(1.035);
+  }
 }
 
 .media-showcase {
@@ -267,6 +303,7 @@
   display: flex;
   align-items: center;
   gap: var(--showcase-gap);
+  flex: none;
 }
 
 .social-card {
@@ -328,21 +365,6 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   filter: drop-shadow(0 0 4px rgba(206, 253, 16, 0.12));
-}
-
-/* Once drawn it holds still; only its strength breathes, very slowly. */
-.social-line.is-drawn {
-  animation: social-line-breathe 7s ease-in-out infinite;
-}
-
-@keyframes social-line-breathe {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.85;
-  }
 }
 
 /* The shade exists for type over photographs; the showcase sits on flat
@@ -407,7 +429,7 @@
   align-items: flex-start;
   gap: 22px;
   justify-self: end;
-  max-width: 640px;
+  max-width: 720px;
 }
 
 /* Service caption — the only text that animates. Each line reveals
@@ -417,6 +439,14 @@
   flex-direction: column;
   gap: 8px;
   max-width: 440px;
+}
+
+.hero[data-service='social'] .hero-caption {
+  gap: 12px;
+}
+
+.hero[data-service='social'] .hero-aside {
+  gap: 24px;
 }
 
 .hero-mask {
@@ -459,14 +489,14 @@
 
 .hero-switcher {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
   pointer-events: auto;
 }
 
 .hero-capsule {
   min-height: 44px;
-  padding: 13px 24px;
+  padding: 13px 20px;
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
   background: rgba(30, 30, 30, 0.25);
@@ -508,7 +538,12 @@
     --showcase-gap: 14px;
     --showcase-rise: 10px;
     --showcase-drop: 16px;
-    --main-max: 58cqw;
+    --main-max: 52cqw;
+    gap: 20px;
+  }
+
+  .social-contact-sheet {
+    width: clamp(360px, 42cqw, 500px);
   }
 
   .social-card {
@@ -521,7 +556,10 @@
 @media (max-width: 1023px) {
   .hero {
     --social-card-w: min(40vw, 300px);
-    --social-stage-h: calc(var(--social-card-w) * 4 / 3 + 32px);
+    --social-pair-h: calc(var(--social-card-w) * 4 / 3 + 32px);
+    --social-sheet-w: min(64vw, 540px);
+    --social-sheet-h: calc(var(--social-sheet-w) * 3 / 5);
+    --social-stage-h: calc(var(--social-pair-h) + var(--social-sheet-h) + 20px);
   }
 
   .hero[data-service='social'] {
@@ -536,16 +574,24 @@
     height: var(--social-stage-h);
     container-type: normal;
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     justify-content: flex-start;
-    gap: 16px;
+    gap: 20px;
   }
 
   .media-showcase {
+    order: 1;
     flex: none;
-    height: var(--social-stage-h);
+    height: var(--social-pair-h);
     justify-content: safe center;
     padding-inline: var(--hero-gutter);
+  }
+
+  .social-contact-sheet {
+    order: 2;
+    width: var(--social-sheet-w);
+    height: var(--social-sheet-h);
+    aspect-ratio: auto;
   }
 
   .social-card {
@@ -580,6 +626,10 @@
     justify-self: start;
   }
 
+  .hero-switcher {
+    flex-wrap: wrap;
+  }
+
 }
 
 /* --------------------------------------------------------------- mobile */
@@ -587,6 +637,8 @@
 @media (max-width: 767px) {
   .hero {
     --social-card-w: min(60vw, 300px);
+    --social-sheet-w: calc(100vw - var(--hero-gutter) * 2);
+    --social-sheet-h: calc(var(--social-sheet-w) * 9 / 8);
   }
 
   .social-showcase__stage {
@@ -610,6 +662,12 @@
   .social-card {
     border-radius: 16px;
     scroll-snap-align: start;
+  }
+
+  .social-contact-sheet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 3px;
   }
 
   .social-line__path {
@@ -681,13 +739,24 @@
   }
 
   .hero-switcher {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: nowrap;
     gap: 8px;
     width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    white-space: nowrap;
+    padding: 3px;
+    margin: -3px;
+  }
+
+  .hero-switcher::-webkit-scrollbar {
+    display: none;
   }
 
   .hero-capsule {
+    flex: 0 0 auto;
     padding: 13px 14px;
     font-size: 14px;
   }
@@ -696,6 +765,7 @@
 @media (prefers-reduced-motion: reduce) {
   .thumbnail .hero-img,
   .featured-image .hero-img,
+  .social-contact-sheet__cell .hero-img,
   .hero-overlay {
     transition: none;
   }
