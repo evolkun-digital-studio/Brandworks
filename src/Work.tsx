@@ -17,7 +17,8 @@ const photographyImages = [
 
 const TOTAL = photographyImages.length
 const AUTO_CHANGE_DELAY = 3200
-const HOLD_SCROLL_SCREENS = 2
+const HOLD_SCROLL_SCREENS = 1
+const EXIT_SCROLL_SCREENS = 0.5
 const pad = (value: number) => String(value).padStart(2, '0')
 
 type Direction = 1 | -1
@@ -27,13 +28,12 @@ type RevealLayout = {
   startScale: number
   startY: number
   revealScreens: number
-  exitScreens: number
 }
 
 const REVEAL_LAYOUT: Record<Viewport, RevealLayout> = {
-  desktop: { startScale: 0.7, startY: 0.52, revealScreens: 0.72, exitScreens: 0.38 },
-  tablet: { startScale: 0.74, startY: 0.55, revealScreens: 0.78, exitScreens: 0.36 },
-  mobile: { startScale: 0.78, startY: 0.54, revealScreens: 0.84, exitScreens: 0.34 },
+  desktop: { startScale: 0.7, startY: 0.1, revealScreens: 0.72 },
+  tablet: { startScale: 0.74, startY: 0.15, revealScreens: 0.78 },
+  mobile: { startScale: 0.78, startY: 0.15, revealScreens: 0.84 },
 }
 
 export default function PhotographyGallery() {
@@ -65,7 +65,6 @@ export default function PhotographyGallery() {
         const from = currentRef.current
         const outgoing = slideRefs.current[from]
         const incoming = slideRefs.current[index]
-
         if (!outgoing || !incoming) return
 
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -83,19 +82,26 @@ export default function PhotographyGallery() {
         })
 
         transitionRef.current = tl
-
         tl.set(incoming, { zIndex: 2 })
 
         tl.fromTo(
           outgoing,
           { opacity: 1, scale: 1, xPercent: 0 },
-          { opacity: 0, scale: reduced ? 1 : 1.018, xPercent: reduced ? 0 : direction * -1.8 },
+          {
+            opacity: 0,
+            scale: reduced ? 1 : 1.018,
+            xPercent: reduced ? 0 : direction * -1.8,
+          },
           0,
         )
 
         tl.fromTo(
           incoming,
-          { opacity: 0, scale: reduced ? 1 : 0.988, xPercent: reduced ? 0 : direction * 1.8 },
+          {
+            opacity: 0,
+            scale: reduced ? 1 : 0.988,
+            xPercent: reduced ? 0 : direction * 1.8,
+          },
           { opacity: 1, scale: 1, xPercent: 0 },
           0,
         )
@@ -181,21 +187,32 @@ export default function PhotographyGallery() {
 
           if (reduce) {
             gsap.set(intro, { autoAlpha: 0 })
-            gsap.set(ipad, { xPercent: -50, yPercent: -50, y: 0, scale: 1, autoAlpha: 1 })
-            gsap.set(controls, { autoAlpha: 1, y: 0, scale: 1, pointerEvents: 'auto' })
-            gsap.set(slides, { scale: 1 })
+            gsap.set(ipad, {
+              xPercent: -50,
+              yPercent: -50,
+              y: 0,
+              scale: 1,
+              rotationX: 0,
+              autoAlpha: 1,
+            })
+            gsap.set(controls, {
+              autoAlpha: 1,
+              y: 0,
+              scale: 1,
+              pointerEvents: 'auto',
+            })
+            gsap.set(slides, { scale: 1, yPercent: 0 })
+
             galleryReadyRef.current = true
             syncAutoplay()
             return
           }
 
           const startY = () => section.clientHeight * layout.startY
-          const exitY = () => -section.clientHeight * (mobile ? 0.035 : 0.055)
-
           const revealEnd = layout.revealScreens
           const holdStart = revealEnd
           const holdEnd = holdStart + HOLD_SCROLL_SCREENS
-          const exitEnd = holdEnd + layout.exitScreens
+          const exitEnd = holdEnd + EXIT_SCROLL_SCREENS
           const totalScrollScreens = exitEnd
 
           gsap.set(intro, { autoAlpha: 1, y: 0, filter: 'blur(0px)' })
@@ -212,8 +229,18 @@ export default function PhotographyGallery() {
             force3D: true,
           })
 
-          gsap.set(slides, { scale: 1.055, yPercent: 1.2, transformOrigin: '50% 50%' })
-          gsap.set(controls, { autoAlpha: 0, y: 12, scale: 0.96, pointerEvents: 'none' })
+          gsap.set(slides, {
+            scale: 1.055,
+            yPercent: 1.2,
+            transformOrigin: '50% 50%',
+          })
+
+          gsap.set(controls, {
+            autoAlpha: 0,
+            y: 12,
+            scale: 0.96,
+            pointerEvents: 'none',
+          })
 
           const tl = gsap.timeline({
             defaults: { ease: 'none' },
@@ -223,26 +250,27 @@ export default function PhotographyGallery() {
               end: () => `+=${window.innerHeight * totalScrollScreens}`,
               pin: true,
               pinSpacing: true,
-
-              // No delayed scrub. This tracks scroll immediately.
               scrub: true,
-
               anticipatePin: 1,
               invalidateOnRefresh: true,
 
               onUpdate: (self) => {
                 const scrollScreens = self.progress * totalScrollScreens
-                const ready = scrollScreens >= revealEnd * 0.78 && scrollScreens < holdEnd
+                const ready = scrollScreens >= revealEnd * 0.78 && scrollScreens <= holdEnd
 
                 if (ready !== galleryReadyRef.current) {
                   galleryReadyRef.current = ready
                   syncAutoplay()
                 }
               },
+
+              onLeave: () => {
+                galleryReadyRef.current = false
+                syncAutoplay()
+              },
             },
           })
 
-          // Intro disappears almost immediately so the device arrives sooner.
           tl.to(
             intro,
             {
@@ -255,7 +283,6 @@ export default function PhotographyGallery() {
             0,
           )
 
-          // iPad begins moving from the very first scroll movement.
           tl.to(
             ipad,
             {
@@ -294,6 +321,7 @@ export default function PhotographyGallery() {
             {
               scale: 1,
               y: 0,
+              rotationX: 0,
               duration: revealEnd * 0.055,
               ease: 'sine.inOut',
             },
@@ -313,15 +341,36 @@ export default function PhotographyGallery() {
             revealEnd * 0.79,
           )
 
-          // Exact centered hold.
-          tl.set(ipad, { y: 0, scale: 1, autoAlpha: 1 }, holdStart)
-          tl.set(controls, { autoAlpha: 1, y: 0, scale: 1, pointerEvents: 'auto' }, holdStart)
+          // Lock the final normal iPad pose before the hold.
+          tl.set(
+            ipad,
+            {
+              y: 0,
+              scale: 1,
+              rotationX: 0,
+              autoAlpha: 1,
+            },
+            holdStart,
+          )
 
+          tl.set(
+            controls,
+            {
+              autoAlpha: 1,
+              y: 0,
+              scale: 1,
+              pointerEvents: 'auto',
+            },
+            holdStart,
+          )
+
+          // Hold the iPad exactly as-is.
           tl.to(
             ipad,
             {
               y: 0,
               scale: 1,
+              rotationX: 0,
               autoAlpha: 1,
               duration: HOLD_SCROLL_SCREENS,
               ease: 'none',
@@ -332,12 +381,29 @@ export default function PhotographyGallery() {
           tl.to(
             controls,
             {
+              autoAlpha: 1,
+              y: 0,
+              scale: 1,
+              pointerEvents: 'auto',
+              duration: HOLD_SCROLL_SCREENS,
+              ease: 'none',
+            },
+            holdStart,
+          )
+
+          // Premium recede exit:
+          // slight upward movement + subtle shrink + tiny tilt.
+          // The iPad never fully fades, so it still feels physical when
+          // the pin releases and the next section takes over naturally.
+          tl.to(
+            controls,
+            {
               autoAlpha: 0,
-              y: 10,
+              y: -8,
               scale: 0.97,
               pointerEvents: 'none',
-              duration: layout.exitScreens * 0.22,
-              ease: 'power2.in',
+              duration: EXIT_SCROLL_SCREENS * 0.45,
+              ease: 'power2.inOut',
             },
             holdEnd,
           )
@@ -345,16 +411,17 @@ export default function PhotographyGallery() {
           tl.to(
             ipad,
             {
-              y: exitY,
-              scale: 0.95,
-              rotationX: mobile ? 0 : -2,
-              autoAlpha: 0,
-              duration: layout.exitScreens * 0.9,
-              ease: 'power2.in',
+              y: mobile ? -36 : -70,
+              scale: mobile ? 0.96 : 0.94,
+              rotationX: mobile ? -0.5 : -1.25,
+              autoAlpha: 0.82,
+              duration: EXIT_SCROLL_SCREENS,
+              ease: 'power2.inOut',
             },
-            holdEnd + layout.exitScreens * 0.06,
+            holdEnd,
           )
 
+          // Keep the timeline/pin alive through the complete recede.
           tl.set({}, {}, exitEnd)
 
           return () => {
@@ -372,7 +439,6 @@ export default function PhotographyGallery() {
 
   useEffect(() => {
     const section = sectionRef.current
-
     if (!section || typeof IntersectionObserver === 'undefined') return
 
     const observer = new IntersectionObserver(
@@ -384,27 +450,19 @@ export default function PhotographyGallery() {
     )
 
     observer.observe(section)
-
     return () => observer.disconnect()
   }, [syncAutoplay])
 
   useEffect(() => {
     const onVisibility = () => syncAutoplay()
-
     document.addEventListener('visibilitychange', onVisibility)
-
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibility)
-    }
+    return () => document.removeEventListener('visibilitychange', onVisibility)
   }, [syncAutoplay])
 
   useEffect(
     () => () => {
       transitionRef.current?.kill()
-
-      if (autoplayRef.current !== null) {
-        window.clearTimeout(autoplayRef.current)
-      }
+      if (autoplayRef.current !== null) window.clearTimeout(autoplayRef.current)
     },
     [],
   )
@@ -415,7 +473,6 @@ export default function PhotographyGallery() {
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
 
       const target = event.target as HTMLElement | null
-
       if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
 
       if (event.key === 'ArrowLeft') {
@@ -430,10 +487,7 @@ export default function PhotographyGallery() {
     }
 
     window.addEventListener('keydown', onKeyDown)
-
-    return () => {
-      window.removeEventListener('keydown', onKeyDown)
-    }
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [go])
 
   const onTouchStart = (event: TouchEvent<HTMLDivElement>) => {
@@ -444,7 +498,6 @@ export default function PhotographyGallery() {
   const onTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
     const start = touchRef.current
     touchRef.current = null
-
     if (!start) return
 
     const touch = event.changedTouches[0]
@@ -457,36 +510,52 @@ export default function PhotographyGallery() {
   }
 
   return (
-    <section ref={sectionRef} id="photography" aria-roledescription="carousel" aria-label="Photography" className="relative h-svh min-h-[560px] w-full overflow-hidden bg-white text-[#111] sm:min-h-[600px] lg:min-h-[620px]">
-      {/* INTRO */}
-      <div ref={introRef} className="pointer-events-none absolute inset-x-0 top-[clamp(34px,6vh,72px)] z-10 flex flex-col items-center px-5 text-center">
-        <h2 className="mt-3 font-primary text-[clamp(32px,4.5vw,58px)] font-medium leading-[0.96] tracking-[-0.045em]">Photography</h2>
+    <section
+      ref={sectionRef}
+      id="photography"
+      aria-roledescription="carousel"
+      aria-label="Photography"
+      className="relative h-svh min-h-[560px] w-full overflow-hidden bg-white text-[#111] sm:min-h-[600px] lg:min-h-[620px]"
+    >
+      <div
+        ref={introRef}
+        className="pointer-events-none absolute inset-x-0 top-[clamp(34px,6vh,72px)] z-10 flex flex-col items-center px-5 text-center"
+      >
+        <h2 className="mt-3 font-primary text-[clamp(32px,4.5vw,68px)] font-medium leading-[0.96] tracking-[-0.045em]">
+          Photography
+        </h2>
       </div>
 
-      {/* REALISTIC CSS IPAD */}
       <div
         ref={ipadRef}
         className="absolute left-1/2 top-1/2 z-20 aspect-[4/3] w-[min(96vw,86svh)] opacity-0 [transform-style:preserve-3d] will-change-transform md:w-[min(96vw,108svh,1180px)] lg:w-[min(98vw,120svh,1440px)]"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {/* POWER / ACTION BUTTON */}
-        <span className="pointer-events-none absolute -top-[4px] right-[12%] z-0 h-[5px] w-[64px] rounded-t-[3px] bg-gradient-to-b from-[#626262] to-[#2c2c2c] shadow-[0_-1px_0_rgba(255,255,255,0.18),0_1px_2px_rgba(0,0,0,0.35)] sm:w-[82px]" aria-hidden="true" />
+        <span
+          className="pointer-events-none absolute -top-[4px] right-[12%] z-0 h-[5px] w-[64px] rounded-t-[3px] bg-gradient-to-b from-[#626262] to-[#2c2c2c] sm:w-[82px]"
+          aria-hidden="true"
+        />
 
-        {/* VOLUME BUTTONS */}
-        <span className="pointer-events-none absolute -right-[4px] top-[17%] z-0 h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] shadow-[1px_0_2px_rgba(0,0,0,0.34)] sm:h-[70px]" aria-hidden="true" />
-        <span className="pointer-events-none absolute -right-[4px] top-[29%] z-0 h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] shadow-[1px_0_2px_rgba(0,0,0,0.34)] sm:h-[70px]" aria-hidden="true" />
+        <span
+          className="pointer-events-none absolute -right-[4px] top-[17%] z-0 h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959]  sm:h-[70px]"
+          aria-hidden="true"
+        />
 
-        {/* ALUMINIUM OUTER SHELL */}
-        <div className="relative h-full w-full rounded-[clamp(22px,2.5vw,42px)] bg-gradient-to-br from-[#4a4a4a] via-[#242424] to-[#0f0f0f] p-[clamp(5px,0.5vw,8px)] shadow-[0_42px_110px_rgba(0,0,0,0.22),0_10px_35px_rgba(0,0,0,0.12)] ring-1 ring-black/30">
-          {/* INNER BLACK BEZEL */}
-          <div className="relative h-full w-full rounded-[clamp(18px,2.15vw,36px)] bg-[#050505] p-[clamp(8px,0.85vw,13px)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.055)]">
-            {/* CAMERA */}
-            <span className="pointer-events-none absolute left-[6px] top-1/2 z-40 h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[#0b0f13] ring-1 ring-white/[0.06] sm:left-[8px] sm:h-[6px] sm:w-[6px]" aria-hidden="true">
+        <span
+          className="pointer-events-none absolute -right-[4px] top-[29%] z-0 h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] sm:h-[70px]"
+          aria-hidden="true"
+        />
+
+        <div className="relative h-full w-full rounded-[clamp(22px,2.5vw,42px)] bg-gradient-to-br from-[#4a4a4a] via-[#242424] to-[#0f0f0f] p-[clamp(5px,0.5vw,8px)]  ring-1 ring-black/30">
+          <div className="relative h-full w-full rounded-[clamp(18px,2.15vw,36px)] bg-[#050505] p-[clamp(8px,0.85vw,13px)] ">
+            <span
+              className="pointer-events-none absolute left-[6px] top-1/2 z-40 h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[#0b0f13] ring-1 ring-white/[0.06] sm:left-[8px] sm:h-[6px] sm:w-[6px]"
+              aria-hidden="true"
+            >
               <span className="absolute left-1/2 top-1/2 h-[2px] w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1b3548]/75" />
             </span>
 
-            {/* SCREEN */}
             <div className="relative h-full w-full overflow-hidden rounded-[clamp(13px,1.7vw,28px)] bg-[#111] touch-pan-y">
               {photographyImages.map((image, index) => (
                 <img
@@ -507,10 +576,9 @@ export default function PhotographyGallery() {
 
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[28%] bg-gradient-to-t from-black/28 via-black/[0.04] to-transparent" />
 
-              {/* CONTROLLER */}
               <div
                 ref={controlsRef}
-                className="absolute bottom-[clamp(12px,3%,28px)] left-1/2 z-30 flex max-w-[calc(100%-18px)] -translate-x-1/2 items-center gap-1.5 opacity-0 md:gap-2"
+                className="absolute bottom-[clamp(12px,3%,28px)] left-1/2 z-30 flex max-w-[calc(100%_-_18px)] -translate-x-1/2 items-center gap-1.5 opacity-0 md:gap-2"
                 onPointerEnter={() => {
                   interactingRef.current = true
                   syncAutoplay()
@@ -528,7 +596,12 @@ export default function PhotographyGallery() {
                   syncAutoplay()
                 }}
               >
-                <button type="button" aria-label="Previous photograph" onClick={() => go(-1)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11">
+                <button
+                  type="button"
+                  aria-label="Previous photograph"
+                  onClick={() => go(-1)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
+                >
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -542,9 +615,19 @@ export default function PhotographyGallery() {
                       aria-label={`View photograph ${index + 1}`}
                       aria-current={index === active ? 'true' : undefined}
                       onClick={() => goTo(index)}
-                      className={`relative h-[32px] w-[26px] overflow-hidden rounded-[7px] border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-10 sm:w-[46px] sm:rounded-[9px] ${index === active ? 'scale-[1.02] border-white/90 opacity-100' : 'border-transparent opacity-55 hover:scale-[1.02] hover:opacity-90'}`}
+                      className={`relative h-[32px] w-[26px] overflow-hidden rounded-[7px] border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-10 sm:w-[46px] sm:rounded-[9px] ${
+                        index === active
+                          ? 'scale-[1.02] border-white/90 opacity-100'
+                          : 'border-transparent opacity-55 hover:scale-[1.02] hover:opacity-90'
+                      }`}
                     >
-                      <img src={image} alt="" aria-hidden="true" draggable={false} className="h-full w-full object-cover" />
+                      <img
+                        src={image}
+                        alt=""
+                        aria-hidden="true"
+                        draggable={false}
+                        className="h-full w-full object-cover"
+                      />
                     </button>
                   ))}
                 </div>
@@ -556,7 +639,12 @@ export default function PhotographyGallery() {
                   <span className="text-white/55">{pad(TOTAL)}</span>
                 </div>
 
-                <button type="button" aria-label="Next photograph" onClick={() => go(1)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11">
+                <button
+                  type="button"
+                  aria-label="Next photograph"
+                  onClick={() => go(1)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
+                >
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -564,8 +652,10 @@ export default function PhotographyGallery() {
               </div>
             </div>
 
-            {/* HOME INDICATOR */}
-            <span className="pointer-events-none absolute bottom-[4px] left-1/2 z-40 h-[3px] w-[10%] -translate-x-1/2 rounded-full bg-white/30 sm:bottom-[6px]" aria-hidden="true" />
+            <span
+              className="pointer-events-none absolute bottom-[4px] left-1/2 z-40 h-[3px] w-[10%] -translate-x-1/2 rounded-full bg-white/30 sm:bottom-[6px]"
+              aria-hidden="true"
+            />
           </div>
         </div>
       </div>

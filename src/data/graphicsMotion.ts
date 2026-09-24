@@ -30,7 +30,6 @@ export type GraphicsProject = {
 }
 
 export const GRAPHICS_SECTION = {
-  label: 'Visual Systems',
   heading: 'Graphic & Motion',
   description:
     'Visual systems built to communicate, move and stay memorable. From campaign graphics and brand assets to animation and motion-led content.',

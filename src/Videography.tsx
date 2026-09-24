@@ -1202,10 +1202,6 @@ export default function Videography() {
             <span className="font-primary text-[9px] uppercase tracking-[0.2em] text-black/45">
               BrandWorks / Motion
             </span>
-
-            <span className="font-primary text-[9px] uppercase tracking-[0.2em] text-black/35">
-              01 — 04
-            </span>
           </div>
 
           <div className="absolute inset-x-[4vw] top-1/2 -translate-y-1/2 md:inset-x-[5vw]">
@@ -1213,7 +1209,7 @@ export default function Videography() {
               id="videography-heading"
               className="sr-only"
             >
-              Cinematic graphy
+              Cinemato graphy
             </h2>
 
             <div className="overflow-hidden">
@@ -1228,7 +1224,7 @@ export default function Videography() {
                   tracking-[-0.075em]
                 "
               >
-                Cinematic
+                cinematography
               </div>
             </div>
 
@@ -1244,7 +1240,7 @@ export default function Videography() {
                   tracking-[-0.075em]
                 "
               >
-                graphy
+                {/* graphy */}
               </div>
             </div>
           </div>
@@ -1253,10 +1249,10 @@ export default function Videography() {
             ref={introMetaRef}
             className="absolute bottom-[5vh] left-[4vw] right-[4vw] flex items-end justify-between md:left-[5vw] md:right-[5vw]"
           >
-            <p className="max-w-[390px] font-primary text-[11px] leading-[1.5] tracking-[-0.01em] text-black/55 md:text-[13px]">
+            {/* <p className="max-w-[390px] font-primary text-[11px] leading-[1.5] tracking-[-0.01em] text-black/55 md:text-[13px]">
               Campaign films, branded stories and moving images
               built around one clear idea.
-            </p>
+            </p> */}
 
             <span className="hidden font-primary text-[9px] uppercase tracking-[0.18em] text-black/35 md:block">
               Scroll to reveal
@@ -1506,10 +1502,7 @@ export default function Videography() {
             "
           >
             <div className="mb-7 flex items-end justify-between gap-8 pb-4 md:mb-9">
-              <div>
-                <p className="font-primary text-[9px] uppercase tracking-[0.2em] text-black/40">
-                  Selected Motion
-                </p>
+              <div> 
 
                 <p className="mt-2 font-primary text-[clamp(1.6rem,2.7vw,3rem)] font-medium leading-[0.98] tracking-[-0.04em]">
                   One idea.
@@ -1517,11 +1510,7 @@ export default function Videography() {
                     {' '}Different frames.
                   </span>
                 </p>
-              </div>
-
-              <span className="hidden font-primary text-[9px] uppercase tracking-[0.18em] text-black/30 md:block">
-                01 — 04
-              </span>
+              </div> 
             </div>
 
             <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">

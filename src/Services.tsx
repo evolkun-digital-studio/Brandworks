@@ -1079,7 +1079,7 @@ function Services() {
       </motion.div>
 
       {/* CTA */}
-      <motion.div
+      {/* <motion.div
         className="mx-auto mt-9 flex w-full max-w-[1280px] justify-center px-[18px] sm:mt-10 sm:px-6 min-[701px]:mt-12 lg:mt-14"
         initial={
           reduce
@@ -1128,7 +1128,7 @@ function Services() {
             />
           </span>
         </a>
-      </motion.div>
+      </motion.div> */}
 
       {/* Hide native cursor only for real mouse / trackpad devices */}
       <style>{`

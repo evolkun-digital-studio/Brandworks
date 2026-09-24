@@ -671,11 +671,9 @@ function ChartLegend({
 /*  Figure                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function Figure({
-  caption,
+function Figure({ 
   children,
-}: {
-  caption: string
+}: { 
   children: ReactNode
 }) {
   return (
@@ -694,7 +692,7 @@ function Figure({
           aria-hidden="true"
           className="h-px w-5 bg-neutral-300"
         />
-        {caption}
+        {/* {caption} */}
       </figcaption>
     </Reveal>
   )
@@ -744,7 +742,7 @@ function FigurePart({
 
 function SearchFigure() {
   return (
-    <Figure caption="Example analysis · search demand & intent">
+    <Figure  >
       <FigureHeader
         title="Search Demand"
         meta="Last 12 months"
@@ -840,7 +838,7 @@ function AuditFigure() {
   )
 
   return (
-    <Figure caption="Example analysis · technical crawl">
+    <Figure  >
       <FigureHeader
         title="Technical Audit"
         meta="Site crawl"
@@ -916,7 +914,7 @@ function AuditFigure() {
 
 function LoopFigure() {
   return (
-    <Figure caption="Example performance view">
+    <Figure  >
       <FigureHeader
         title="Ranking Distribution"
         meta={
@@ -1201,12 +1199,12 @@ function Chapter({
 function Intro({ headingId }: { headingId: string }) {
   return (
     <RevealGroup className="pb-2 pt-12 sm:pt-14 md:pt-16 lg:pt-20 xl:pt-24">
-      <Reveal
+      {/* <Reveal
         as="p"
         className={`flex items-center gap-2.5 ${EYEBROW}`}
       > 
         SEO / ORGANIC GROWTH
-      </Reveal>
+      </Reveal> */}
 
       <Reveal
         delay={80}
@@ -1243,9 +1241,9 @@ function Closing({
   return (
     <RevealGroup className="pb-14 pt-10 sm:pb-16 sm:pt-12 md:pb-20 md:pt-16 lg:pb-24 lg:pt-20">
       <Reveal>
-        <h3 className="site-heading max-w-[1000px] text-balance text-[clamp(2rem,5vw,4.5rem)] leading-[0.98] tracking-[-0.045em] text-neutral-950">
+        <h3 className="site-heading max-w-[1000px] text-balance text-[clamp(2rem,4vw,2rem)] leading-[0.98] tracking-[-0.045em] text-neutral-950">
           Better SEO isn&apos;t more traffic.
-          <span className="block text-neutral-400">
+          <span className="block">
             It&apos;s more of the right people finding you.
           </span>
         </h3>
@@ -1295,7 +1293,7 @@ export default function WebsiteSection({
           {/* ESSENTIAL 01 */}
           <Chapter
             number="01"
-            label="Understand search"
+            label=""
             title="We start with what people are actually looking for."
             figure={<SearchFigure />}
           >
@@ -1309,7 +1307,7 @@ export default function WebsiteSection({
           {/* ESSENTIAL 02 */}
           <Chapter
             number="02"
-            label="Technical SEO"
+            label=""
             title="Strong content can’t perform on a weak foundation."
             figureFirst
             figure={<AuditFigure />}
@@ -1324,7 +1322,7 @@ export default function WebsiteSection({
           {/* ESSENTIAL 03 */}
           <Chapter
             number="03"
-            label="Improve. Measure. Repeat."
+            label=""
             title={
               <>
                 SEO isn&apos;t a launch.

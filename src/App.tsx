@@ -91,7 +91,7 @@ export function Home() {
       <Capabilities />
       <Results />
       <FAQs />
-      <Blog />
+      {/* <Blog /> */}
       <Industries />
       <Testimonials />
       <Contact />

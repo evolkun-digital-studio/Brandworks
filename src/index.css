@@ -132,7 +132,8 @@
 }
 
 .service-row.is-active {
-  font-weight: 600;
+  font-weight: 400;
+  font-size: 38px;
   color: #111;
 }
 

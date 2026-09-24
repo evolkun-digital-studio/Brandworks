@@ -87,21 +87,7 @@ export default function PRReputation() {
     >
       <SectionContainer>
         {/* SECTION META */}
-        <motion.div
-          {...reveal}
-          variants={rise(10)}
-          className="flex items-center gap-3 border-t border-black/15 pt-3 sm:gap-4 sm:pt-4"
-        >
-          <span className="h-px w-7 shrink-0 bg-bw-lime sm:w-9" />
-
-          <p className="font-primary text-[8px] font-medium uppercase tracking-[0.18em] text-black/45 sm:text-[9px] sm:tracking-[0.2em] md:text-[10px]">
-            PR & Founder Reputation
-          </p>
-
-          <span className="ml-auto font-primary text-[8px] uppercase tracking-[0.16em] text-black/30 sm:text-[9px] md:text-[10px]">
-            02
-          </span>
-        </motion.div>
+         
 
         {/* MANIFESTO */}
         <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:gap-8 md:mt-14 md:grid-cols-12 md:items-end md:gap-6 lg:mt-16 lg:gap-8 xl:mt-20 xl:gap-10">
@@ -112,7 +98,7 @@ export default function PRReputation() {
           >
             <h2
               id="pr-reputation-heading"
-              className="max-w-[1050px] font-primary text-[clamp(2.5rem,6.2vw,3rem)] font-medium leading-[0.9] tracking-[-0.055em] sm:leading-[0.88] md:tracking-[-0.06em] lg:leading-[0.86]"
+              className="max-w-[1050px] font-primary text-[clamp(2.5rem,6.2vw,3rem)] leading-[0.9] tracking-[-0.055em] sm:leading-[0.88] md:tracking-[-0.06em] lg:leading-[0.86]"
             >
               People don&apos;t trust logos.
               <br />
@@ -120,18 +106,7 @@ export default function PRReputation() {
                 They trust meaning.
               </span>
             </h2>
-          </motion.div>
-
-          <motion.div
-            {...reveal}
-            variants={rise(18, 0.12)}
-            className="md:col-span-4 md:flex md:justify-end md:pb-1 lg:pb-2"
-          >
-            <p className="max-w-[420px] font-primary text-[13px] leading-[1.55] tracking-[-0.01em] text-black/55 sm:text-[14px] md:max-w-[340px] md:text-[15px] lg:max-w-[390px] lg:text-[16px] xl:text-[17px]">
-              A business becomes memorable because people connect with
-              something real.
-            </p>
-          </motion.div>
+          </motion.div> 
         </div>
 
         {/* EDITORIAL MEDIA */}
@@ -166,7 +141,7 @@ export default function PRReputation() {
               variants={rise(22, 0.08)}
               className="flex min-w-0 flex-col justify-end md:col-span-4 lg:col-span-3"
             >
-              <div className="border-t border-black/15">
+              <div className="">
                 {POINTS.map((point, index) => (
                   <motion.div
                     key={point}
@@ -198,20 +173,14 @@ export default function PRReputation() {
         <motion.div
           {...reveal}
           variants={rise(22, 0.05)}
-          className="mt-12 grid grid-cols-1 gap-6 border-t border-black/15 pt-5 sm:mt-14 sm:pt-6 md:mt-16 md:grid-cols-12 md:gap-6 lg:mt-20 lg:gap-8 xl:mt-24"
-        >
-          <div className="md:col-span-3">
-            <p className="font-primary text-[8px] font-medium uppercase tracking-[0.17em] text-black/38 sm:text-[9px] md:text-[10px] md:tracking-[0.18em]">
-              Reputation is built
-            </p>
-          </div>
+          className="mt-5 grid grid-cols-1 gap-6 pt-5 sm:mt-14 sm:pt-6 md:mt-16 md:grid-cols-12 md:gap-6 lg:mt-18 lg:gap-8 xl:mt-18" > 
 
           <div className="md:col-span-9">
-            <p className="max-w-[1050px] text-[clamp(2rem,4.4vw,2rem)] font-medium leading-[0.96] tracking-[-0.045em] sm:leading-[0.94] md:tracking-[-0.05em]">
+            <p className="max-w-[1050px] text-[clamp(1.2rem,4.4vw,1.5rem)] font-medium leading-[0.96] tracking-[-0.045em] sm:leading-[0.94] md:tracking-[-0.05em]">
               Technology can distribute content.
               <br className="hidden sm:block" />
               <span className="sm:hidden"> </span>
-              <span className="text-black/48">
+              <span className="">
                 Only people create meaning.
               </span>
             </p>

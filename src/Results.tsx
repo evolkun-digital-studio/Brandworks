@@ -117,14 +117,9 @@ function ringOffset(i: number, active: number) {
 function Header() {
   return (
     <>
-      <span className="site-kicker flex w-fit max-w-full items-center justify-center gap-1 text-center whitespace-nowrap text-neutral-500">
-        Results & Impact
-        <sup className="text-[10px]">&reg;</sup>
-      </span>
-
-      <h2 className="site-display mt-4 flex w-full max-w-[760px] flex-col items-center text-center">
-        <span className="text-neutral-500">How Brands Perform</span>
-        <span className="text-neutral-900">With Brandworks</span>
+        <h2 className="site-display mt-4 flex w-full max-w-[760px] flex-col items-center text-center">
+        <span className="">How Brands Perform</span>
+        <span className=" ">With Brandworks</span>
       </h2>
 
       <p className="site-copy mt-5 w-full max-w-[760px] text-center text-neutral-600">

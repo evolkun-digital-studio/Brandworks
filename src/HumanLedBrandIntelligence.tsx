@@ -265,11 +265,9 @@ export default function HumanLedBrandIntelligence() {
       <div className="mx-auto w-full max-w-[1800px] px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 2xl:px-14">
         <div
           ref={metaRef}
-          className="flex items-start justify-between border-b border-black/10 pb-4 pt-14 sm:pb-5 sm:pt-16 md:pt-20 lg:pt-24 xl:pt-28"
+          className="flex items-start justify-between pb-4 pt-14 sm:pb-5 sm:pt-16 md:pt-20 lg:pt-24 xl:pt-28"
         >
-          <p className="font-primary text-[9px] font-medium uppercase tracking-[0.2em] text-black/50 sm:text-[10px] sm:tracking-[0.22em]">
-            Brand intelligence
-          </p>
+
         </div>
 
         <div className="relative z-10 flex justify-center py-10 sm:py-12 md:py-14 lg:py-16 xl:py-18">

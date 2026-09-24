@@ -53,7 +53,7 @@ const GROTESK = "font-['Google_Sans_Flex','Helvetica',sans-serif]"
 const DISPLAY = `${GROTESK} font-thin`
 
 // The title is SemiBold, from the variable display cut (see .services-display).
-const TITLE_CLASS = `services-display font-semibold text-[clamp(44px,12vw,64px)] leading-[0.96] tracking-[-0.04em] text-[#111] md:text-[clamp(46px,4.7vw,78px)]`
+const TITLE_CLASS = `services-display  text-[clamp(44px,12vw,48px)] leading-[0.96] tracking-[-0.04em] text-[#111] md:text-[clamp(46px,4.7vw,58px)]`
 const LABEL_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.14em] text-[#777] uppercase`
 const COUNTER_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.08em] text-[#888] tabular-nums`
 
@@ -277,12 +277,7 @@ function ServiceScrollIndex() {
           {/* Left: label + counter, title on the focus line, active detail. */}
           <div className="relative h-full">
             <div className="absolute top-1/2 left-0 w-full -translate-y-1/2">
-              <div className="absolute bottom-full left-0 mb-[clamp(20px,2.6vh,32px)] flex items-baseline gap-6">
-                <span className={LABEL_CLASS}>What we do</span>
-                <span aria-hidden="true" className={COUNTER_CLASS}>
-                  {pad(active + 1)} / {pad(TOTAL)}
-                </span>
-              </div>
+               
 
               <h2 id="our-services-heading" className={TITLE_CLASS}>
                 Our Services.
@@ -327,7 +322,7 @@ function ServiceScrollIndex() {
             <motion.ul
               ref={listRef}
               style={{ y }}
-              className="relative m-0 flex list-none flex-col gap-[clamp(34px,4.6vh,64px)] p-0 will-change-transform"
+              className="relative m-0 flex list-none flex-col gap-[clamp(38px,4.6vh,38px)] p-0 will-change-transform"
             >
               {services.map((service, i) => (
                 <ServiceRow
@@ -400,7 +395,7 @@ function ServiceRow({
     <motion.li
       ref={itemRef}
       style={{ opacity, filter, scale, transformOrigin: 'left center' }}
-      className={`services-display service-row${active ? ' is-active' : ''} max-w-[400px] text-[clamp(36px,3.3vw,48px)] leading-[1.08] tracking-[-0.035em]`}
+      className={`services-display service-row${active ? ' is-active' : ''} max-w-[400px] text-[clamp(36px,3.3vw,38px)] leading-[1.08] tracking-[-0.035em]`}
     >
       {firstLine && (
         <>

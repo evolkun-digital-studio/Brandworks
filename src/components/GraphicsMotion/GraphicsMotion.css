@@ -1,80 +1,214 @@
 /*
- * Graphic & Motion. The intro sits in the page container; the gallery
- * bleeds to the right edge of the viewport, its first card lined up with
- * the intro and the next one running off-screen.
+ * Graphic & Motion
+ *
+ * Intro stays inside the normal page container.
+ *
+ * Navigation is positioned directly above the gallery.
+ *
+ * Gallery bleeds horizontally while keeping its first card aligned
+ * with the content grid.
  */
 
 .gm-section {
-  --gm-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  /* Where the container's content starts, so the track's first card lines
-     up with the heading at every width. */
-  --gm-inset: max(var(--page-gutter), calc((100% - var(--page-max-width)) / 2 + var(--page-gutter)));
-  /* Shared card height; widths follow each artwork's own ratio. */
-  --gm-height: min(46vw, 74vh, 820px);
-  --gm-gap: clamp(10px, 1.1vw, 18px);
+  --gm-ease: cubic-bezier(
+    0.22,
+    1,
+    0.36,
+    1
+  );
+
+  /*
+   * Align gallery with normal page content.
+   */
+  --gm-inset: max(
+    var(--page-gutter),
+    calc(
+      (100% - var(--page-max-width)) /
+        2 +
+        var(--page-gutter)
+    )
+  );
+
+  /*
+   * Shared card height.
+   */
+  --gm-height: min(
+    46vw,
+    74vh,
+    820px
+  );
+
+  --gm-gap: clamp(
+    10px,
+    1.1vw,
+    18px
+  );
+
   position: relative;
-  padding-block: var(--section-space);
+
+  padding-block: var(
+    --section-space
+  );
+
   overflow-x: clip;
+
   background: #fff;
+
   color: var(--ink);
 }
 
-/* ------------------------------------------------------------------ intro */
+/* =========================================================
+   INTRO
+========================================================= */
 
 .gm-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--content-gap);
-  margin-bottom: clamp(40px, 5vw, 72px);
+  display: block;
+
+  /*
+   * Space between intro and
+   * gallery navigation.
+   */
+  margin-bottom: clamp(
+    34px,
+    4vw,
+    60px
+  );
 }
 
 .gm-intro {
   max-width: 560px;
 }
 
+/* ---------------------------------------------------------
+   LABEL
+--------------------------------------------------------- */
+
 .gm-label {
   display: flex;
+
   align-items: center;
+
   gap: 10px;
 }
 
-/* The one BrandWorks lime accent in the section. */
 .gm-dot {
   width: 7px;
+
   height: 7px;
+
+  flex: 0 0 auto;
+
   border-radius: 50%;
-  background: var(--color-bw-lime);
+
+  background: var(
+    --color-bw-lime
+  );
 }
 
+/* ---------------------------------------------------------
+   HEADING
+--------------------------------------------------------- */
+
 .gm-heading {
-  margin-top: var(--text-gap);
-  font-size: clamp(36px, 4vw, 48px);
+  margin-top: var(
+    --text-gap
+  );
+
+  font-size: clamp(
+    36px,
+    4vw,
+    48px
+  );
 }
 
 .gm-heading__line {
   display: block;
 }
 
+/* ---------------------------------------------------------
+   DESCRIPTION
+--------------------------------------------------------- */
+
 .gm-description {
-  margin-top: var(--text-gap);
-  font-size: clamp(16px, 1.2vw, 18px);
+  margin-top: var(
+    --text-gap
+  );
+
+  max-width: 560px;
+
+  font-size: clamp(
+    16px,
+    1.2vw,
+    18px
+  );
+}
+
+/* =========================================================
+   GALLERY NAVIGATION
+========================================================= */
+
+/*
+ * IMPORTANT:
+ *
+ * This wrapper follows the same left/right inset as the gallery.
+ * Therefore the arrows align directly with the right edge of
+ * the gallery.
+ */
+
+.gm-gallery-controls {
+  display: flex;
+
+  justify-content: flex-end;
+
+  align-items: center;
+
+  width: 100%;
+
+  padding-inline: var(
+    --gm-inset
+  );
+
+  /*
+   * Keep navigation visually attached
+   * to the images.
+   */
+  margin-bottom: clamp(
+    12px,
+    1.2vw,
+    18px
+  );
 }
 
 .gm-controls {
   display: flex;
+
   flex-shrink: 0;
+
   align-items: center;
+
+  justify-content: flex-end;
+
   gap: 10px;
-  padding-top: 2px;
 }
 
+/* ---------------------------------------------------------
+   COUNT
+--------------------------------------------------------- */
+
 .gm-count {
-  margin-right: 14px;
-  font-family: var(--font-secondary);
+  margin-right: 10px;
+
+  font-family: var(
+    --font-secondary
+  );
+
   font-size: 12px;
-  font-variant-numeric: tabular-nums;
+
+  font-variant-numeric:
+    tabular-nums;
+
   letter-spacing: 0.08em;
+
   color: var(--ink);
 }
 
@@ -82,57 +216,120 @@
   color: var(--ink-muted);
 }
 
+/* ---------------------------------------------------------
+   ARROW BUTTON
+--------------------------------------------------------- */
+
 .gm-arrow {
   display: grid;
+
   place-items: center;
+
   width: 48px;
+
   height: 48px;
-  border: 1px solid rgba(17, 17, 17, 0.16);
+
+  flex: 0 0 48px;
+
+  padding: 0;
+
+  border: 1px solid
+    rgba(17, 17, 17, 0.16);
+
   border-radius: 50%;
+
   background: transparent;
+
   color: var(--ink);
+
   cursor: pointer;
+
   transition:
-    border-color 0.4s var(--gm-ease),
-    background-color 0.4s var(--gm-ease),
-    color 0.4s var(--gm-ease),
-    opacity 0.4s var(--gm-ease);
+    border-color
+      0.4s
+      var(--gm-ease),
+    background-color
+      0.4s
+      var(--gm-ease),
+    color
+      0.4s
+      var(--gm-ease),
+    opacity
+      0.4s
+      var(--gm-ease),
+    transform
+      0.4s
+      var(--gm-ease);
 }
 
 .gm-arrow svg {
   width: 18px;
+
   height: 18px;
 }
 
-.gm-arrow:hover:not(:disabled) {
+.gm-arrow:hover:not(
+    :disabled
+  ) {
   border-color: var(--ink);
+
   background: var(--ink);
+
   color: #fff;
+
+  transform: scale(1.04);
+}
+
+.gm-arrow:active:not(
+    :disabled
+  ) {
+  transform: scale(0.97);
 }
 
 .gm-arrow:disabled {
   opacity: 0.3;
+
   cursor: default;
 }
 
 .gm-arrow:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid
+    var(--ink);
+
   outline-offset: 3px;
 }
 
-/* ------------------------------------------------------------------ track */
+/* =========================================================
+   TRACK
+========================================================= */
 
 .gm-track {
   display: flex;
+
   gap: var(--gm-gap);
-  padding-inline: var(--gm-inset);
-  scroll-padding-inline: var(--gm-inset);
+
+  padding-inline: var(
+    --gm-inset
+  );
+
+  scroll-padding-inline: var(
+    --gm-inset
+  );
+
   overflow-x: auto;
+
   overflow-y: hidden;
-  overscroll-behavior-x: contain;
+
+  overscroll-behavior-x:
+    contain;
+
   scrollbar-width: none;
+
   user-select: none;
+
   -webkit-user-select: none;
+
+  cursor: grab;
 }
 
 .gm-track::-webkit-scrollbar {
@@ -140,7 +337,9 @@
 }
 
 .gm-track:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid
+    var(--ink);
+
   outline-offset: 6px;
 }
 
@@ -148,261 +347,549 @@
   cursor: grabbing;
 }
 
-/* Native, momentum-friendly snapping for touch only. Mouse and trackpad
-   browsing stays free; the arrows and drag release glide with GSAP. */
+/* =========================================================
+   TOUCH SCROLL SNAP
+========================================================= */
+
 @media (pointer: coarse) {
   .gm-track {
-    scroll-snap-type: x mandatory;
+    scroll-snap-type:
+      x mandatory;
   }
 
   .gm-card {
-    scroll-snap-align: start;
+    scroll-snap-align:
+      start;
   }
 }
 
-/* ------------------------------------------------------------------- card */
+/* =========================================================
+   CARD
+========================================================= */
 
 .gm-card {
   position: relative;
+
   flex: 0 0 auto;
+
   height: var(--gm-height);
-  aspect-ratio: var(--gm-ratio);
-  transition: opacity 0.5s var(--gm-ease);
+
+  aspect-ratio:
+    var(--gm-ratio);
+
+  transition:
+    opacity
+      0.5s
+      var(--gm-ease);
 }
 
 .gm-card:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid
+    var(--ink);
+
   outline-offset: 4px;
 }
 
 .gm-card__inner {
   position: absolute;
+
   inset: 0;
 }
 
+/* ---------------------------------------------------------
+   IMAGE
+--------------------------------------------------------- */
+
 .gm-card__media {
   position: absolute;
+
   inset: 0;
+
   overflow: hidden;
+
   background: #f1f1f1;
 }
 
 .gm-card__img {
   display: block;
+
   width: 100%;
+
   height: 100%;
+
   object-fit: cover;
-  transition: transform 0.9s var(--gm-ease);
+
+  transition:
+    transform
+      0.9s
+      var(--gm-ease);
 }
+
+/* ---------------------------------------------------------
+   HOVER SHADE
+--------------------------------------------------------- */
 
 .gm-card__shade {
   position: absolute;
+
   inset: 0;
+
   pointer-events: none;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.68) 0%,
-    rgba(0, 0, 0, 0.25) 40%,
-    transparent 72%
-  );
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.68)
+        0%,
+      rgba(0, 0, 0, 0.25)
+        40%,
+      transparent
+        72%
+    );
+
   opacity: 0;
-  transition: opacity 0.55s var(--gm-ease);
+
+  transition:
+    opacity
+      0.55s
+      var(--gm-ease);
 }
+
+/* =========================================================
+   CARD INFORMATION
+========================================================= */
 
 .gm-card__info {
   position: absolute;
-  inset: auto clamp(20px, 2.2vw, 36px) clamp(20px, 2.2vw, 36px);
+
+  inset:
+    auto
+    clamp(
+      20px,
+      2.2vw,
+      36px
+    )
+    clamp(
+      20px,
+      2.2vw,
+      36px
+    );
+
   display: flex;
+
   flex-direction: column;
+
   align-items: flex-start;
+
   gap: 12px;
+
   color: #fff;
+
   pointer-events: none;
 }
 
-/* Each line rises out of its own mask. */
+/* ---------------------------------------------------------
+   TEXT MASK
+--------------------------------------------------------- */
+
 .gm-mask {
   display: block;
+
   margin: 0;
+
   overflow: hidden;
-  /* room for descenders inside the mask */
+
   padding-bottom: 0.08em;
+
   margin-bottom: -0.08em;
 }
 
 .gm-line {
   display: block;
+
   opacity: 0;
-  transform: translateY(110%);
+
+  transform:
+    translateY(110%);
+
   transition:
-    transform 0.55s var(--gm-ease),
-    opacity 0.55s var(--gm-ease);
+    transform
+      0.55s
+      var(--gm-ease),
+    opacity
+      0.55s
+      var(--gm-ease);
 }
+
+/* ---------------------------------------------------------
+   OPTIONAL SMALL CONTENT
+--------------------------------------------------------- */
 
 .gm-card__category,
 .gm-card__meta {
-  font-family: var(--font-secondary);
+  font-family: var(
+    --font-secondary
+  );
+
   font-size: 12px;
+
   font-weight: 500;
+
   line-height: 1.3;
+
   letter-spacing: 0.12em;
+
   text-transform: uppercase;
 }
 
 .gm-card__meta {
   font-weight: 400;
+
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.72);
+
+  color: rgba(
+    255,
+    255,
+    255,
+    0.72
+  );
 }
 
+/* ---------------------------------------------------------
+   TITLE
+--------------------------------------------------------- */
+
 .gm-card__title {
-  font-family: var(--font-primary);
-  font-size: clamp(24px, 2.5vw, 42px);
+  font-family: var(
+    --font-primary
+  );
+
+  font-size: clamp(
+    24px,
+    2.5vw,
+    42px
+  );
+
   font-weight: 400;
+
   line-height: 1;
+
   letter-spacing: -0.03em;
+
   text-wrap: balance;
-  /* measured in the title's own face: two or three lines, never a column */
+
   max-width: 17ch;
 }
 
-/* ---------------------------------------------------------- reveal states */
+/* =========================================================
+   FOCUS REVEAL
+========================================================= */
 
-.gm-card:focus-visible .gm-card__img {
-  transform: scale(1.015);
+.gm-card:focus-visible
+  .gm-card__img {
+  transform:
+    scale(1.015);
 }
 
-.gm-card:focus-visible .gm-card__shade {
+.gm-card:focus-visible
+  .gm-card__shade {
   opacity: 1;
 }
 
-.gm-card:focus-visible .gm-line {
+.gm-card:focus-visible
+  .gm-line {
   opacity: 1;
-  transform: translateY(0);
+
+  transform:
+    translateY(0);
 }
 
-.gm-card:focus-visible .gm-card__title { transition-delay: 60ms; }
-.gm-card:focus-visible .gm-card__meta { transition-delay: 110ms; }
+.gm-card:focus-visible
+  .gm-card__title {
+  transition-delay: 60ms;
+}
+
+.gm-card:focus-visible
+  .gm-card__meta {
+  transition-delay: 110ms;
+}
+
+/* =========================================================
+   DESKTOP HOVER
+========================================================= */
 
 @media (hover: hover) and (pointer: fine) {
-  .gm-card:hover .gm-card__img {
-    transform: scale(1.015);
+  .gm-card:hover
+    .gm-card__img {
+    transform:
+      scale(1.015);
   }
 
-  .gm-card:hover .gm-card__shade {
+  .gm-card:hover
+    .gm-card__shade {
     opacity: 1;
   }
 
-  .gm-card:hover .gm-line {
+  .gm-card:hover
+    .gm-line {
     opacity: 1;
-    transform: translateY(0);
+
+    transform:
+      translateY(0);
   }
 
-  .gm-card:hover .gm-card__title { transition-delay: 60ms; }
-  .gm-card:hover .gm-card__meta { transition-delay: 110ms; }
+  .gm-card:hover
+    .gm-card__title {
+    transition-delay: 60ms;
+  }
 
-  /* The hovered piece leads; the rest step back only slightly. */
-  .gm-track:has(.gm-card:hover) .gm-card:not(:hover) {
+  .gm-card:hover
+    .gm-card__meta {
+    transition-delay: 110ms;
+  }
+
+  /*
+   * Non hovered projects step back slightly.
+   */
+  .gm-track:has(
+      .gm-card:hover
+    )
+    .gm-card:not(
+      :hover
+    ) {
     opacity: 0.86;
   }
 
-  .gm-section.has-view-cursor .gm-card {
+  .gm-section.has-view-cursor
+    .gm-card {
     cursor: none;
   }
 }
 
-/* No hover on touch: the card in front carries its details. */
+/* =========================================================
+   TOUCH ACTIVE CARD
+========================================================= */
+
 @media (hover: none) {
-  .gm-card.is-active .gm-card__shade {
+  .gm-card.is-active
+    .gm-card__shade {
     opacity: 1;
   }
 
-  .gm-card.is-active .gm-line {
+  .gm-card.is-active
+    .gm-line {
     opacity: 1;
-    transform: translateY(0);
+
+    transform:
+      translateY(0);
   }
 
-  .gm-card.is-active .gm-card__title { transition-delay: 60ms; }
-  .gm-card.is-active .gm-card__meta { transition-delay: 110ms; }
+  .gm-card.is-active
+    .gm-card__title {
+    transition-delay: 60ms;
+  }
+
+  .gm-card.is-active
+    .gm-card__meta {
+    transition-delay: 110ms;
+  }
 }
 
-/* ----------------------------------------------------------------- cursor */
+/* =========================================================
+   CUSTOM CURSOR
+========================================================= */
 
 .gm-cursor {
   position: fixed;
+
   top: 0;
+
   left: 0;
+
   z-index: 60;
+
   pointer-events: none;
 }
 
 .gm-cursor__dot {
   display: grid;
+
   place-items: center;
+
   width: 60px;
+
   height: 60px;
-  margin: -30px 0 0 -30px;
+
+  margin:
+    -30px 0 0 -30px;
+
   border-radius: 50%;
+
   background: #fff;
+
   color: var(--ink);
-  font-family: var(--font-secondary);
+
+  font-family: var(
+    --font-secondary
+  );
+
   font-size: 11px;
+
   font-weight: 500;
+
   letter-spacing: 0.12em;
+
   text-transform: uppercase;
+
   opacity: 0;
-  transform: scale(0.4);
+
+  transform:
+    scale(0.4);
+
   transition:
-    opacity 0.3s var(--gm-ease),
-    transform 0.45s var(--gm-ease);
+    opacity
+      0.3s
+      var(--gm-ease),
+    transform
+      0.45s
+      var(--gm-ease);
 }
 
-.gm-cursor.is-visible .gm-cursor__dot {
+.gm-cursor.is-visible
+  .gm-cursor__dot {
   opacity: 1;
+
   transform: scale(1);
 }
 
-/* ------------------------------------------------------------- responsive */
+/* =========================================================
+   RESPONSIVE — TABLET
+========================================================= */
 
 @media (max-width: 1023px) {
   .gm-section {
-    /* ~1.3 cards in view: a portrait and most of the next landscape. */
-    --gm-height: min(54vw, 64vh);
+    --gm-height: min(
+      54vw,
+      64vh
+    );
+  }
+
+  .gm-head {
+    margin-bottom: 36px;
+  }
+
+  .gm-gallery-controls {
+    margin-bottom: 12px;
+  }
+
+  .gm-arrow {
+    width: 44px;
+
+    height: 44px;
+
+    flex-basis: 44px;
+  }
+
+  .gm-arrow svg {
+    width: 17px;
+
+    height: 17px;
+  }
+
+  .gm-count {
+    margin-right: 8px;
+
+    font-size: 11px;
   }
 }
+
+/* =========================================================
+   RESPONSIVE — MOBILE
+========================================================= */
 
 @media (max-width: 767px) {
   .gm-head {
-    flex-direction: column;
+    margin-bottom: 28px;
   }
 
-  /* Swipe is the control on phones. */
-  .gm-controls {
+  /*
+   * Mobile uses swipe navigation.
+   */
+  .gm-gallery-controls {
     display: none;
   }
 }
+
+/* =========================================================
+   RESPONSIVE — SMALL MOBILE
+========================================================= */
 
 @media (max-width: 639px) {
   .gm-section {
     --gm-gap: 10px;
   }
 
-  /* One consistent frame per card, with the next one peeking in. */
+  .gm-heading {
+    font-size: clamp(
+      34px,
+      10vw,
+      44px
+    );
+  }
+
+  .gm-description {
+    font-size: 15px;
+
+    /* line-height: 1.5; */
+  }
+
+  /*
+   * Consistent mobile card.
+   * Next image still peeks into view.
+   */
   .gm-card {
     width: 84vw;
+
     height: auto;
+
     aspect-ratio: 4 / 5;
+  }
+
+  .gm-card__info {
+    inset:
+      auto
+      18px
+      18px;
+  }
+
+  .gm-card__title {
+    font-size: clamp(
+      24px,
+      8vw,
+      34px
+    );
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
   .gm-card__img,
-  .gm-line {
-    transition-duration: 0.01ms;
+  .gm-line,
+  .gm-arrow {
+    transition-duration:
+      0.01ms;
   }
 
-  .gm-card:hover .gm-card__img,
-  .gm-card:focus-visible .gm-card__img {
+  .gm-card:hover
+    .gm-card__img,
+  .gm-card:focus-visible
+    .gm-card__img {
     transform: none;
   }
 

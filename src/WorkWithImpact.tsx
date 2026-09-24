@@ -8,11 +8,11 @@ import photo8 from './Photo/Photo8.png'
 import { clamp01, lerp, matches, phase, sample, smoothstep, write } from './lib/scrollMotion'
 
 const projects = [
-  { image: photo4, label: 'Aerolink', index: '01/06', fixedWidth: 629 },
-  { image: photo5, label: 'Riaaj Vintage', index: '02/06', fixedWidth: 629 },
-  { image: photo6, label: 'Mr.Rework', index: '03/06', wide: true, fixedWidth: 1282 },
-  { image: photo7, label: 'Delhi-6', index: '04/06', fixedWidth: 629 },
-  { image: photo8, label: 'Nexa Solutions', index: '05/06', fixedWidth: 629 },
+  { image: photo4, label: 'Aerolink',   fixedWidth: 629 },
+  { image: photo5, label: 'Riaaj Vintage', fixedWidth: 629 },
+  { image: photo6, label: 'Mr.Rework',  wide: true, fixedWidth: 1282 },
+  { image: photo7, label: 'Delhi-6', fixedWidth: 629 },
+  { image: photo8, label: 'Nexa Solutions',fixedWidth: 629 },
 ]
 
 type Project = (typeof projects)[number]
@@ -188,12 +188,7 @@ function ProjectBoard({ project, thick }: { project: Project; thick: boolean }) 
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" />
 
-        <span
-          data-index
-          className="absolute right-4 top-4 origin-top-right text-sm font-medium tracking-wide text-white"
-        >
-          {project.index}
-        </span>
+        
 
         <span
           data-label
@@ -986,12 +981,7 @@ function WorkStatic() {
               className="h-full w-full rounded-[8px] object-cover opacity-100"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" />
-
-            <span className="absolute right-4 top-4 text-sm font-medium tracking-wide text-white">
-              {project.index}
-            </span>
-
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" /> 
             <span className="absolute bottom-4 left-4 text-[16px] font-semibold uppercase tracking-[-0.02em] text-white sm:text-[18px] lg:text-[20px]">
               {project.label}
             </span>
