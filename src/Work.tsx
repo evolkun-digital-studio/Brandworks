@@ -528,35 +528,35 @@ export default function PhotographyGallery() {
 
       <div
         ref={ipadRef}
-        className="absolute left-1/2 top-1/2 z-20 aspect-[4/3] w-[min(96vw,86svh)] opacity-0 [transform-style:preserve-3d] will-change-transform md:w-[min(96vw,108svh,1180px)] lg:w-[min(98vw,120svh,1440px)]"
+        className="absolute left-1/2 top-1/2 z-20 aspect-[3/4] w-[calc(100vw-16px)] max-w-[560px] opacity-0 [transform-style:preserve-3d] will-change-transform md:aspect-[4/3] md:w-[min(96vw,108svh,1180px)] md:max-w-none lg:w-[min(98vw,120svh,1440px)]"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
         <span
-          className="pointer-events-none absolute -top-[4px] right-[12%] z-0 h-[5px] w-[64px] rounded-t-[3px] bg-gradient-to-b from-[#626262] to-[#2c2c2c] sm:w-[82px]"
+          className="pointer-events-none absolute -top-[4px] right-[12%] z-0 hidden h-[5px] w-[64px] rounded-t-[3px] bg-gradient-to-b from-[#626262] to-[#2c2c2c] shadow-[0_-1px_0_rgba(255,255,255,0.18),0_1px_2px_rgba(0,0,0,0.35)] sm:w-[82px] md:block"
           aria-hidden="true"
         />
 
         <span
-          className="pointer-events-none absolute -right-[4px] top-[17%] z-0 h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959]  sm:h-[70px]"
+          className="pointer-events-none absolute -right-[4px] top-[17%] z-0 hidden h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] shadow-[1px_0_2px_rgba(0,0,0,0.34)] sm:h-[70px] md:block"
           aria-hidden="true"
         />
 
         <span
-          className="pointer-events-none absolute -right-[4px] top-[29%] z-0 h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] sm:h-[70px]"
+          className="pointer-events-none absolute -right-[4px] top-[29%] z-0 hidden h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] shadow-[1px_0_2px_rgba(0,0,0,0.34)] sm:h-[70px] md:block"
           aria-hidden="true"
         />
 
-        <div className="relative h-full w-full rounded-[clamp(22px,2.5vw,42px)] bg-gradient-to-br from-[#4a4a4a] via-[#242424] to-[#0f0f0f] p-[clamp(5px,0.5vw,8px)]  ring-1 ring-black/30">
-          <div className="relative h-full w-full rounded-[clamp(18px,2.15vw,36px)] bg-[#050505] p-[clamp(8px,0.85vw,13px)] ">
+        <div className="relative h-full w-full overflow-hidden rounded-[22px] bg-transparent p-0 shadow-none ring-0 md:overflow-visible md:rounded-[clamp(22px,2.5vw,42px)] md:bg-gradient-to-br md:from-[#4a4a4a] md:via-[#242424] md:to-[#0f0f0f] md:p-[clamp(5px,0.5vw,8px)] md:shadow-[0_42px_110px_rgba(0,0,0,0.22),0_10px_35px_rgba(0,0,0,0.12)] md:ring-1 md:ring-black/30">
+          <div className="relative h-full w-full rounded-[22px] bg-transparent p-0 shadow-none md:rounded-[clamp(18px,2.15vw,36px)] md:bg-[#050505] md:p-[clamp(8px,0.85vw,13px)] md:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.055)]">
             <span
-              className="pointer-events-none absolute left-[6px] top-1/2 z-40 h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[#0b0f13] ring-1 ring-white/[0.06] sm:left-[8px] sm:h-[6px] sm:w-[6px]"
+              className="pointer-events-none absolute left-[6px] top-1/2 z-40 hidden h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[#0b0f13] ring-1 ring-white/[0.06] sm:left-[8px] sm:h-[6px] sm:w-[6px] md:block"
               aria-hidden="true"
             >
               <span className="absolute left-1/2 top-1/2 h-[2px] w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1b3548]/75" />
             </span>
 
-            <div className="relative h-full w-full overflow-hidden rounded-[clamp(13px,1.7vw,28px)] bg-[#111] touch-pan-y">
+            <div className="relative h-full w-full overflow-hidden rounded-[22px] bg-[#111] touch-pan-y md:rounded-[clamp(13px,1.7vw,28px)]">
               {photographyImages.map((image, index) => (
                 <img
                   key={image}
@@ -653,7 +653,7 @@ export default function PhotographyGallery() {
             </div>
 
             <span
-              className="pointer-events-none absolute bottom-[4px] left-1/2 z-40 h-[3px] w-[10%] -translate-x-1/2 rounded-full bg-white/30 sm:bottom-[6px]"
+              className="pointer-events-none absolute bottom-[4px] left-1/2 z-40 hidden h-[3px] w-[10%] -translate-x-1/2 rounded-full bg-white/30 sm:bottom-[6px] md:block"
               aria-hidden="true"
             />
           </div>

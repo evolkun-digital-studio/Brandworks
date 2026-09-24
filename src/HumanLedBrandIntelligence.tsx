@@ -7,7 +7,7 @@ import { useReducedMotion } from "motion/react";
 gsap.registerPlugin(ScrollTrigger);
 
 const IMAGE =
-  "https://res.cloudinary.com/dmzo1kt0d/image/upload/v1789995717/hero-architecture-DRSGJqBP.jpg";
+  "https://ik.imagekit.io/rxoyjxx4c/cinematic-cover.webp";
 
 export default function HumanLedBrandIntelligence() {
   const sectionRef = useRef<HTMLElement>(null);

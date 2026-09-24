@@ -61,7 +61,7 @@
 }
 
 .social-heading {
-  font-size: clamp(30px, 5vw, 50px);
+  font-size: clamp(32px, 5vw, 50px);
 }
 
 /* Heavier and darker than the shared P1, so it holds up over the pattern. */

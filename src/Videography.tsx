@@ -1217,11 +1217,11 @@ export default function Videography() {
                 ref={wordTopRef}
                 className="
                   font-primary
-                  text-[clamp(3.8rem,10.4vw,10.4rem)]
+                  text-[clamp(2.8rem,10.4vw,5.4rem)]
                   font-medium
                   uppercase
                   leading-[0.8]
-                  tracking-[-0.075em]
+                  tracking-[-0.065em]
                 "
               >
                 cinematography

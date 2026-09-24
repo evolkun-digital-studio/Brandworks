@@ -98,7 +98,7 @@ export default function PRReputation() {
           >
             <h2
               id="pr-reputation-heading"
-              className="max-w-[1050px] font-primary text-[clamp(2.5rem,6.2vw,3rem)] leading-[0.9] tracking-[-0.055em] sm:leading-[0.88] md:tracking-[-0.06em] lg:leading-[0.86]"
+              className="max-w-[1050px] font-primary text-[clamp(2rem,6.2vw,3rem)] leading-[0.9] tracking-[-0.055em] sm:leading-[0.88] md:tracking-[-0.06em] lg:leading-[0.86]"
             >
               People don&apos;t trust logos.
               <br />
