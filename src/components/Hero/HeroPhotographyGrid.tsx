@@ -1,136 +1,253 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import gsap from 'gsap'
-import { Flip } from 'gsap/Flip'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { HeroGalleryImage } from '../../data/heroServices'
 import { HeroImg } from './HeroImg'
 import type { ImagePriority } from './HeroImg'
 
-gsap.registerPlugin(Flip)
-
-const FEATURED_SIZE = '(max-width: 639px) 78vw, 34vw'
+const FEATURED_SIZE = '(max-width: 639px) 100vw, 34vw'
 const THUMBNAIL_SIZE = '(max-width: 639px) 25vw, (max-width: 1023px) 17vw, 13vw'
+const FEATURED_COUNT = 3
+
+// Auto-rotation: after a rest the three feature frames move on to the next
+// three photographs, one frame at a time, left to right.
+const ROTATE_REST = 3000
+const ROTATE_STAGGER = 420
+// A click answers at once; the frames beside it follow a beat behind.
+const CLICK_STAGGER = 90
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number
+  cancelIdleCallback?: (handle: number) => void
+}
+
+type Selection = {
+  /** Index into `images` of the photograph in the leading feature frame. */
+  index: number
+  /** Delay between frames for this change, in ms. */
+  stagger: number
+}
+
+/** Resolves once the image is decoded (or has failed), never rejects. */
+function preload(image: HeroGalleryImage, sizes: string): Promise<void> {
+  const img = new Image()
+  if (image.srcSet) {
+    img.sizes = sizes
+    img.srcset = image.srcSet
+  }
+  img.src = image.src
+  return img.decode().catch(() => undefined)
+}
+
+/** Flags the frame ready once `img` is decoded, if it is still the frame's image. */
+function markReady(
+  img: HTMLImageElement,
+  id: string,
+  currentId: { readonly current: string },
+  setReady: (ready: boolean) => void,
+) {
+  void img
+    .decode()
+    .catch(() => undefined)
+    .then(() => {
+      if (currentId.current === id) setReady(true)
+    })
+}
 
 /**
- * Two-level editorial gallery. Promoting a thumbnail rotates it into the
- * leading slot and returns the displaced third feature to the contact sheet.
- * Stable ids let GSAP Flip carry each photograph between the two grids.
+ * One feature frame. It always holds a visible photograph: a new image is
+ * layered over the old one, stays transparent until it has loaded and
+ * decoded, then resolves in from a slight zoom. Only after that fade has
+ * finished is the old image removed. If the new image never loads, the old
+ * one simply stays on screen.
+ */
+function FeaturedFrame({
+  image,
+  delay,
+  priority,
+}: {
+  image: HeroGalleryImage
+  delay: number
+  priority: ImagePriority
+}) {
+  const layerRef = useRef<HTMLDivElement>(null)
+  const currentId = useRef(image.id)
+  const [current, setCurrent] = useState(image)
+  const [previous, setPrevious] = useState<HeroGalleryImage | null>(null)
+  const [ready, setReady] = useState(true)
+
+  if (image.id !== current.id) {
+    // Whichever photograph is actually on screen stays underneath: the old
+    // one if the incoming image never got as far as showing, else this one.
+    const underneath = previous && !ready ? previous : current
+    if (underneath.id === image.id) {
+      // Switched straight back to the photograph already showing.
+      setPrevious(null)
+      setReady(true)
+    } else {
+      setPrevious(underneath)
+      setReady(false)
+    }
+    setCurrent(image)
+  }
+
+  useLayoutEffect(() => {
+    currentId.current = current.id
+    // A cached image can be complete before onLoad is attached.
+    const img = layerRef.current?.querySelector('img')
+    if (img?.complete && img.naturalWidth > 0) markReady(img, current.id, currentId, setReady)
+  }, [current.id])
+
+  const entering = previous !== null
+  const state = entering ? (ready ? 'is-entering' : 'is-waiting') : ''
+
+  return (
+    <>
+      {previous && (
+        <div key={previous.id} className="gallery-frame">
+          <HeroImg image={previous} sizes={FEATURED_SIZE} priority="low" />
+        </div>
+      )}
+      <div
+        key={current.id}
+        ref={layerRef}
+        className={`gallery-frame ${state}`}
+        style={entering ? { animationDelay: `${delay}ms` } : undefined}
+        onAnimationEnd={() => setPrevious(null)}
+      >
+        <HeroImg
+          image={current}
+          sizes={FEATURED_SIZE}
+          priority={priority}
+          onLoad={(event) => markReady(event.currentTarget, current.id, currentId, setReady)}
+        />
+      </div>
+    </>
+  )
+}
+
+/**
+ * Two-level editorial gallery: three feature frames above a fixed contact
+ * sheet. One piece of state — the selected photograph — drives both a click
+ * on the contact sheet and the automatic rotation: the feature frames show
+ * the selected photograph and the two that follow it.
  */
 function HeroPhotographyGrid({
   images,
   priority,
+  active,
   reducedMotion,
 }: {
   images: readonly HeroGalleryImage[]
   priority: ImagePriority
+  active: boolean
   reducedMotion: boolean
 }) {
-  const rootRef = useRef<HTMLElement>(null)
-  const pendingFlip = useRef<Flip.FlipState | null>(null)
-  const animating = useRef(false)
-  const [featuredIds, setFeaturedIds] = useState(() => images.slice(0, 3).map(({ id }) => id))
+  const [selection, setSelection] = useState<Selection>({ index: 0, stagger: 0 })
+  const hovering = useRef(false)
+  const count = images.length
 
-  const imageById = useMemo(() => new Map(images.map((image) => [image.id, image])), [images])
-  const featuredImages = useMemo(
-    () => featuredIds.map((id) => imageById.get(id)).filter((image): image is HeroGalleryImage => Boolean(image)),
-    [featuredIds, imageById],
-  )
-  const featuredSet = useMemo(() => new Set(featuredIds), [featuredIds])
-  const thumbnailImages = useMemo(
-    () => images.filter(({ id }) => !featuredSet.has(id)),
-    [featuredSet, images],
-  )
+  const photoAt = (offset: number) => images[(selection.index + offset) % count] ?? images[0]
+  const featuredImages = Array.from({ length: Math.min(FEATURED_COUNT, count) }, (_, slot) => photoAt(slot))
+  const thumbnailImages = images.slice(FEATURED_COUNT)
+  const selectedId = photoAt(0)?.id
 
-  useLayoutEffect(() => {
-    const state = pendingFlip.current
-    const root = rootRef.current
-    if (!state || !root) return
-    pendingFlip.current = null
+  // Once the page is idle, warm every photograph at feature size so a click
+  // never waits on the network. The contact sheet has already fetched most.
+  useEffect(() => {
+    const win = window as IdleWindow
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+    if (connection?.saveData) return
 
-    const targets = Array.from(root.querySelectorAll<HTMLElement>('[data-gallery-image]'))
-    if (reducedMotion) {
-      gsap.set(targets, { clearProps: 'transform,opacity,zIndex' })
-      animating.current = false
-      return
+    let idleHandle: number | undefined
+    let timer: number | undefined
+    const warm = () => images.forEach((image) => void preload(image, FEATURED_SIZE))
+    const schedule = () => {
+      if (win.requestIdleCallback) idleHandle = win.requestIdleCallback(warm, { timeout: 4000 })
+      else timer = window.setTimeout(warm, 2000)
     }
 
-    const finish = () => {
-      gsap.set(targets, { clearProps: 'transform,opacity,zIndex' })
-      animating.current = false
-    }
-
-    const flip = Flip.from(state, {
-      targets,
-      absolute: true,
-      scale: true,
-      fade: true,
-      nested: true,
-      prune: true,
-      duration: 0.78,
-      ease: 'power3.inOut',
-      onComplete: finish,
-      onInterrupt: finish,
-    })
+    if (document.readyState === 'complete') schedule()
+    else window.addEventListener('load', schedule, { once: true })
 
     return () => {
-      flip.kill()
+      window.removeEventListener('load', schedule)
+      if (idleHandle !== undefined) win.cancelIdleCallback?.(idleHandle)
+      if (timer !== undefined) window.clearTimeout(timer)
     }
-  }, [featuredIds, reducedMotion])
+  }, [images])
 
-  const promote = (id: string, thumbnail: HTMLButtonElement) => {
-    if (animating.current || featuredSet.has(id)) return
+  // Auto-rotation, only while Photography is the active, on-screen service.
+  // Any change of selection — a click included — restarts the rest period.
+  const rotating = active && !reducedMotion && count > FEATURED_COUNT
 
-    const root = rootRef.current
-    if (!root) return
-    animating.current = true
+  useEffect(() => {
+    if (!rotating) return
 
-    const commit = () => {
-      pendingFlip.current = Flip.getState(root.querySelectorAll<HTMLElement>('[data-gallery-image]'))
-      setFeaturedIds((current) => [id, current[0], current[1]])
+    let cancelled = false
+    let timer: number | undefined
+    const from = selection.index
+
+    const advance = async () => {
+      if (hovering.current || document.hidden) {
+        timer = window.setTimeout(advance, ROTATE_REST)
+        return
+      }
+      const next = (from + FEATURED_COUNT) % count
+      await Promise.all(
+        Array.from({ length: FEATURED_COUNT }, (_, slot) => preload(images[(next + slot) % count], FEATURED_SIZE)),
+      )
+      if (cancelled) return
+      setSelection((current) => (current.index === from ? { index: next, stagger: ROTATE_STAGGER } : current))
     }
 
-    if (reducedMotion) {
-      commit()
-      return
+    timer = window.setTimeout(advance, ROTATE_REST)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
     }
+  }, [rotating, selection.index, count, images])
 
-    gsap.to(thumbnail, {
-      scale: 0.975,
-      opacity: 0.62,
-      duration: 0.14,
-      ease: 'power2.in',
-      onComplete: commit,
-    })
+  const select = (index: number) => {
+    if (index === selection.index) return
+    setSelection({ index, stagger: CLICK_STAGGER })
   }
 
+  if (count === 0) return null
+
   return (
-    <section ref={rootRef} className="photography-gallery" aria-label="Interactive photography gallery">
-      <div className="featured-gallery">
-        {featuredImages.map((image) => (
-          <div
-            key={image.id}
-            className="featured-image"
-            data-gallery-image
-            data-flip-id={image.id}
-          >
-            <HeroImg image={image} sizes={FEATURED_SIZE} priority={priority} />
+    <section className="photography-gallery" aria-label="Interactive photography gallery">
+      <div
+        className="featured-gallery"
+        onPointerEnter={() => {
+          hovering.current = true
+        }}
+        onPointerLeave={() => {
+          hovering.current = false
+        }}
+      >
+        {featuredImages.map((image, slot) => (
+          <div key={slot} className="featured-image">
+            <FeaturedFrame image={image} delay={slot * selection.stagger} priority={priority} />
           </div>
         ))}
       </div>
 
       <div className="thumbnail-gallery">
-        {thumbnailImages.map((image) => (
-          <button
-            key={image.id}
-            type="button"
-            className="thumbnail"
-            data-gallery-image
-            data-flip-id={image.id}
-            aria-label={`Feature: ${image.alt}`}
-            onClick={(event) => promote(image.id, event.currentTarget)}
-          >
-            <HeroImg image={image} sizes={THUMBNAIL_SIZE} priority="low" loading="lazy" />
-          </button>
-        ))}
+        {thumbnailImages.map((image, i) => {
+          const index = FEATURED_COUNT + i
+          const selected = image.id === selectedId
+          return (
+            <button
+              key={image.id}
+              type="button"
+              className={`thumbnail ${selected ? 'is-selected' : ''}`}
+              aria-label={`Feature: ${image.alt}`}
+              aria-current={selected ? 'true' : undefined}
+              onClick={() => select(index)}
+            >
+              <HeroImg image={image} sizes={THUMBNAIL_SIZE} priority="low" loading="lazy" />
+            </button>
+          )
+        })}
       </div>
     </section>
   )

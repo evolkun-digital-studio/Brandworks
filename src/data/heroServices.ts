@@ -45,6 +45,8 @@ export type HeroMedia =
   | { kind: 'grid'; images: HeroGalleryImage[] }
   | { kind: 'video'; src: string; poster: HeroImage }
   | { kind: 'image'; image: HeroImage }
+  /** Social Media: an editorial still beside a looping phone recording. */
+  | { kind: 'showcase'; image: HeroImage; video: { src: string; poster: string; label: string } }
 
 export type HeroServiceId = 'photography' | 'videography' | 'social' | 'pr'
 
@@ -60,6 +62,7 @@ export type HeroService = {
 }
 
 const IMAGEKIT = 'https://ik.imagekit.io/rxoyjxx4c'
+const CLOUDINARY_VIDEO = 'https://res.cloudinary.com/dpjdnoqii/video/upload'
 
 // Image transformations only (never video — see socialMedia.ts). `c-at_max`
 // stops ImageKit upscaling past the uploaded file.
@@ -234,13 +237,18 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
     title: SOCIAL_SECTION.heading,
     text: SOCIAL_SECTION.description,
     media: {
-      kind: 'image',
-      image: imagekitImage('ChatGPT%20Image%20Sep%2021,%202026,%2005_23_56%20PM.png', [640, 1024, 1672], {
-        width: 1672,
-        height: 941,
-        alt: 'BrandWorks studio mid-shoot: moodboards, lighting and a crew producing campaign content',
-        position: '50% 50%',
+      kind: 'showcase',
+      image: imagekitImage('ChatGPT%20Image%20Sep%2024,%202026,%2011_20_21%20AM.png', [480, 720, 1086], {
+        width: 1086,
+        height: 1448,
+        alt: 'BrandWorks Instagram profile on a phone, surrounded by growth, engagement and content-plan cards',
       }),
+      video: {
+        src: `${CLOUDINARY_VIDEO}/v1790229512/Screen_Recording_20260924_112309_Instagram_ppz2yx.mp4`,
+        // Cloudinary's first frame as a still, shown until the recording plays.
+        poster: `${CLOUDINARY_VIDEO}/so_0,w_720,q_auto,f_auto/v1790229512/Screen_Recording_20260924_112309_Instagram_ppz2yx.jpg`,
+        label: 'Screen recording of an Instagram reel being scrolled',
+      },
     },
   },
   pr: {
