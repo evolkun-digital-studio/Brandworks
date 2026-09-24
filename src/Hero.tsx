@@ -112,8 +112,6 @@ function Hero() {
           <h1 id="hero-heading" className="hero-title">
             <span className="sr-only">BrandWorks: </span>
             {HERO_HEADLINE[0]}
-            <br />
-            {HERO_HEADLINE[1]}
           </h1>
           <p className="hero-description">{HERO_DESCRIPTION}</p>
         </div>

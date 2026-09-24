@@ -23,6 +23,10 @@ import galleryPhoto10 from '../Photo/Photo10.png'
 import galleryPhoto11 from '../Photo/Photo11.png'
 import galleryPhoto12 from '../Photo/Photo12.png'
 import galleryPhoto13 from '../Photo/Photo13.png'
+import motionLifestyle from '../assets/social/campaign-motion.jpg'
+import cinematicAction from '../assets/social/campaign-action.jpg'
+import experimentalCreative from '../assets/graphics/gm-06-800.webp'
+import socialAerial from '../assets/social/campaign-aerial.jpg'
 import { SOCIAL_SECTION } from './socialMedia'
 
 export type HeroImage = {
@@ -46,9 +50,14 @@ export type HeroMedia =
   | { kind: 'video'; src: string; poster: HeroImage }
   | { kind: 'image'; image: HeroImage }
   /** Social Media: an editorial still beside a looping phone recording. */
-  | { kind: 'showcase'; image: HeroImage; video: { src: string; poster: string; label: string } }
+  | {
+      kind: 'showcase'
+      grid: HeroImage[]
+      image: HeroImage
+      video: { src: string; poster: string; label: string }
+    }
 
-export type HeroServiceId = 'photography' | 'videography' | 'social' | 'pr'
+export type HeroServiceId = 'photography' | 'videography' | 'social' | 'pr' | 'graphic-animation'
 
 export type HeroService = {
   id: HeroServiceId
@@ -82,7 +91,13 @@ export const HERO_HEADLINE = ['Brandworks'] as const
 export const HERO_DESCRIPTION =
   'Strategy, content and creative built to make brands seen, remembered and chosen.'
 
-export const HERO_SERVICE_ORDER: HeroServiceId[] = ['photography', 'videography', 'social', 'pr']
+export const HERO_SERVICE_ORDER: HeroServiceId[] = [
+  'photography',
+  'videography',
+  'social',
+  'pr',
+  'graphic-animation',
+]
 
 export const DEFAULT_HERO_SERVICE: HeroServiceId = 'photography'
 
@@ -234,10 +249,53 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
     id: 'social',
     label: 'Social Media',
     eyebrow: SOCIAL_SECTION.label,
-    title: SOCIAL_SECTION.heading,
     text: SOCIAL_SECTION.description,
     media: {
       kind: 'showcase',
+      grid: [
+        {
+          src: socialAerial,
+          width: 1200,
+          height: 800,
+          alt: 'Aerial campaign frame of a coastal road meeting a dark ocean',
+          position: '50% 56%',
+        },
+        {
+          src: photo01,
+          srcSet: `${photo01Small} 640w, ${photo01} 960w`,
+          width: 960,
+          height: 1200,
+          alt: 'Editorial campaign portrait of a rider on horseback',
+          position: '50% 35%',
+        },
+        {
+          src: photo03,
+          srcSet: `${photo03Small} 480w, ${photo03} 736w`,
+          width: 736,
+          height: 980,
+          alt: 'High-contrast product campaign frame of a can suspended in netting',
+        },
+        {
+          src: motionLifestyle,
+          width: 1200,
+          height: 673,
+          alt: 'Motion-led monochrome lifestyle portrait',
+          position: '46% 42%',
+        },
+        {
+          src: experimentalCreative,
+          width: 800,
+          height: 603,
+          alt: 'Experimental spectrum of coloured light rising through black',
+          position: '50% 65%',
+        },
+        {
+          src: cinematicAction,
+          width: 1200,
+          height: 673,
+          alt: 'Cinematic action portrait surrounded by a ring of light',
+        },
+      ],
       image: imagekitImage('ChatGPT%20Image%20Sep%2024,%202026,%2011_20_21%20AM.png', [480, 720, 1086], {
         width: 1086,
         height: 1448,
@@ -264,6 +322,21 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
         alt: 'Black and white editorial portrait of a founder',
         position: '50% 28%',
       }),
+    },
+  },
+  'graphic-animation': {
+    id: 'graphic-animation',
+    label: 'Graphic Animation',
+    eyebrow: 'Graphic Animation',
+    text: 'Campaign graphics and motion-led systems designed to make ideas move.',
+    media: {
+      kind: 'image',
+      image: {
+        src: experimentalCreative,
+        width: 800,
+        height: 603,
+        alt: 'Abstract spectrum of coloured light in motion against black',
+      },
     },
   },
 }
