@@ -100,7 +100,6 @@ describe.each([
   // Industries.tsx used to be listed here. Its still-image case study
   // is now a film, so the same "below the fold, must not load eagerly"
   // guarantee is asserted in videoPerformance.test.ts instead.
-  ['Contact.tsx', 'src={photo16}'],
 ])('%s — below-the-fold homepage images', (file, srcExpr) => {
   const img = findImgBlock(read(file), srcExpr)
 

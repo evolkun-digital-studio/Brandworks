@@ -20,8 +20,6 @@ import FAQs from './FAQs'
 import Blog from './Blog'
 import Industries from './Industries'
 import Testimonials from './Testimonials'
-import Contact from './Contact'
-import CTA from './CTA'
 import BlogPage from './blog/pages/BlogPage'
 import BlogDetailPage from './blog/pages/BlogDetailPage'
 import NotFound from './NotFound'
@@ -94,8 +92,6 @@ export function Home() {
       <Blog />
       <Industries />
       <Testimonials />
-      <Contact />
-      <CTA />
     </main>
   );
 }
