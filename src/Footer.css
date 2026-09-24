@@ -151,7 +151,7 @@
   min-height: clamp(130px, 10.5vw, 165px);
   align-items: center;
   padding: 18px var(--hero-gutter);
-  background: var(--color-bw-lime);
+  background: #c7f703;
   color: #171914;
   transform-origin: left center;
   transition:
