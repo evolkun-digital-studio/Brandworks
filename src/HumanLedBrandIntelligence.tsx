@@ -270,28 +270,31 @@ export default function HumanLedBrandIntelligence() {
 
         </div>
 
-        <div className="relative z-10 flex justify-center py-10 sm:py-12 md:py-14 lg:py-16 xl:py-18">
-          <h2
-            id="brand-intelligence-title"
-            style={{ fontFamily: '"Open Sans", sans-serif' }}
-            className="mx-auto w-full max-w-[1200px] text-center text-[clamp(1.4rem,6vw,1.8rem)] font-semibold leading-[1.08] tracking-[-0.03em] sm:text-[clamp(1.6rem,4vw,2rem)] md:text-[32px] md:leading-[1.04] lg:text-[38px]"
-          >
-            <span className="block overflow-hidden pb-[0.12em]">
-              <span ref={firstLineRef} className="block will-change-transformf font-normal ">
-                Your brand isn't competing for attention.
-              </span>
-            </span>
+       <div className="relative z-10 flex w-full justify-center px-4 py-8 min-[390px]:px-5 min-[390px]:py-9 sm:px-6 sm:py-10 md:px-8 md:py-12 lg:px-10 lg:py-14 xl:px-12 xl:py-16 2xl:px-16 2xl:py-20">
+  <h2
+    id="brand-intelligence-title"
+    style={{ fontFamily: '"Open Sans", sans-serif' }}
+    className="mx-auto w-full max-w-[1200px] text-center font-semibold text-[20px] leading-[1.08] tracking-[-0.03em] min-[390px]:text-[28px] sm:max-w-[760px] sm:text-[clamp(2rem,5.2vw,2.6rem)] sm:leading-[1.05] md:max-w-[900px] md:text-[clamp(2.4rem,4.6vw,3.2rem)] lg:max-w-[1050px] lg:text-[clamp(2.8rem,4vw,3.8rem)] xl:max-w-[1180px] xl:text-[clamp(3.1rem,3.6vw,4.4rem)] 2xl:max-w-[1280px] 2xl:text-[clamp(3.4rem,3.4vw,4.8rem)]"
+  >
+    <span className="block overflow-hidden pb-[0.14em]">
+      <span
+        ref={firstLineRef}
+        className="block font-normal will-change-transform"
+      >
+        Your brand isn&apos;t competing for attention.
+      </span>
+    </span>
 
-            <span className=" block overflow-hidden pb-[0.12em]">
-              <span
-                ref={secondLineRef}
-                className="block font-normal will-change-transform"
-              >
-                It's competing for understanding.
-              </span>
-            </span>
-          </h2>
-        </div>
+    <span className="block overflow-hidden pb-[0.14em] min-[390px]:pb-[0.20em]">
+      <span
+        ref={secondLineRef}
+        className="block font-normal will-change-transform"
+      >
+        It&apos;s competing for understanding.
+      </span>
+    </span>
+  </h2>
+</div>
 
         <div className="relative w-full">
           <div
@@ -313,7 +316,7 @@ export default function HumanLedBrandIntelligence() {
           <div className="overflow-hidden pb-1">
             <p
               ref={bottomTitleRef}
-              className="text-[clamp(1.25rem,5vw,1.6rem)] font-medium leading-[1.12] tracking-[-0.03em] sm:text-[clamp(1.4rem,3.5vw,1.75rem)] md:text-[30px] lg:text-[32px] xl:text-[34px]"
+              className="text-[clamp(1.2rem,5vw,1.2rem)] font-medium leading-[1.12] tracking-[-0.03em] sm:text-[clamp(1.4rem,3.5vw,1.75rem)] md:text-[30px] lg:text-[32px] xl:text-[34px]"
             >
               People rarely remember everything you said.
             </p>

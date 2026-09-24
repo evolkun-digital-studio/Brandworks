@@ -34,8 +34,7 @@ function FAQs() {
 
   return (
     <section className="faq-section" aria-labelledby="faq-heading">
-      <header className="faq-header">
-        <span className="site-kicker text-neutral-500">FAQs</span>
+      <header className="faq-header"> 
 
         <h2 id="faq-heading" className="faq-title">
           Questions, Answered

@@ -44,7 +44,7 @@ function Industries() {
           <div className="flex flex-col items-start text-left">
             <FadeUp
               as="h3"
-              className="text-[26px] leading-[1.2] font-semibold tracking-[-0.02em] text-neutral-900"
+              className="text-[26px] leading-[1.2] tracking-[-0.02em] text-neutral-900"
               y={32}
               duration={0.75}
               amount={0.25}

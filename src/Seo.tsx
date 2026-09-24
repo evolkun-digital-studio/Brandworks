@@ -1211,8 +1211,7 @@ function Intro({ headingId }: { headingId: string }) {
         className="mt-4 sm:mt-5 md:mt-6"
       >
         <h2
-          id={headingId}
-          className="site-display max-w-[1100px] text-balance text-[clamp(2.4rem,7vw,5.8rem)] leading-[0.94] tracking-[-0.05em] text-neutral-950 sm:leading-[0.92] md:tracking-[-0.055em]"
+          id={headingId}className="site-display max-w-[1100px] text-balance text-[clamp(2rem,6vw,4.8rem)] font-normal leading-[0.96] tracking-[-0.045em] text-neutral-950 sm:text-[clamp(2.4rem,5.5vw,4.8rem)] sm:leading-[0.94] md:tracking-[-0.05em] lg:text-[clamp(3rem,4.5vw,4.8rem)]"
         >
           Being online isn&apos;t enough.
           <span className="block">
