@@ -208,13 +208,15 @@
   transform: translate(3px, -3px);
 }
 
+/* Navigation, then socials and email, in two left-aligned columns that
+   start near the middle; the space to their left is left open. */
 .footer-content {
   position: relative;
   z-index: 5;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 0.3fr);
   align-items: start;
-  gap: var(--grid-gap);
+  column-gap: clamp(70px, 8vw, 150px);
   width: 100%;
   padding: clamp(48px, 7vh, 80px) var(--hero-gutter) 32px;
   pointer-events: auto;
@@ -228,87 +230,106 @@
   list-style: none;
 }
 
+/* Every piece of footer copy is set in Grimblade, upright and regular. */
+.footer-content,
+.footer-meta {
+  font-family: var(--font-primary);
+  font-style: normal;
+  font-weight: 400;
+  text-align: left;
+}
+
 .footer-content a {
-  font-family: var(--font-secondary);
-  color: rgba(255, 255, 255, 0.9);
-  transition: color 0.3s ease;
+  display: inline-block;
+  color: #fff;
+  opacity: 0.65;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .footer-content a:hover,
 .footer-content a:focus-visible {
-  color: var(--color-bw-lime);
+  opacity: 1;
+  transform: translateX(2px);
 }
 
-/* Primary footer navigation: one column, large and airy. */
+.footer-main-nav {
+  grid-column: 2;
+}
+
 .footer-main-nav ul {
-  gap: clamp(18px, 2.6vh, 28px);
+  /* With the 1.7 line-height this leaves ~20px of air between links. */
+  gap: 8px;
 }
 
 .footer-main-nav a {
-  font-size: clamp(22px, 2vw, 32px);
-  font-weight: 400;
-  line-height: 1.1;
+  font-size: clamp(18px, 1.35vw, 20px);
+  line-height: 1.7;
 }
 
-/* Socials and email start at the second column, a step smaller. */
 .footer-contact {
+  grid-column: 3;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-self: start;
 }
 
 .footer-socials {
-  gap: 14px;
+  /* ~12px of air between links at a 1.6 line-height. */
+  gap: 2px;
 }
 
-.footer-socials a {
-  font-size: clamp(15px, 1.1vw, 17px);
-  font-weight: 500;
-  line-height: 1.2;
+.footer-socials a,
+.footer-email {
+  font-size: clamp(15px, 1.1vw, 16px);
+  line-height: 1.6;
 }
 
 .footer-email {
-  margin-top: 50px;
-  font-size: clamp(15px, 1.1vw, 17px);
-  line-height: 1.2;
+  margin-top: clamp(60px, 9vh, 90px);
   word-break: break-word;
 }
 
+/* Quiet metadata on the bottom edge: left, centre and right thirds on one
+   baseline. */
 .footer-meta {
   position: relative;
   z-index: 5;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  align-items: center;
+  align-items: end;
   gap: 24px;
   width: 100%;
   margin-top: auto;
   padding: 20px var(--hero-gutter) 24px;
-  font-family: var(--font-secondary);
-  /* 16px at 1440px wide, 18px from ~1640px up */
-  font-size: clamp(16px, 1.1vw, 18px);
-  font-weight: 400;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  line-height: 1.2;
+  color: #fff;
 }
 
-.footer-meta > div {
-  display: flex;
-  gap: 22px;
+.footer-meta > * {
+  opacity: 0.6;
 }
 
-.footer-meta > :last-child {
+.footer-meta__left {
+  justify-self: start;
+}
+
+.footer-meta__center {
+  justify-self: center;
+}
+
+.footer-meta__right {
   justify-self: end;
 }
 
 .footer-meta a {
-  transition: color 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
-.footer-meta a:hover,
-.footer-meta a:focus-visible {
-  color: #fff;
+.footer-meta__center:has(a:hover, a:focus-visible) {
+  opacity: 1;
 }
 
 @media (max-width: 1023px) {
@@ -316,15 +337,15 @@
     --footer-video-top: clamp(88px, 12vh, 128px);
   }
 
-  /* Equal thirds are too narrow for the longer line at this size; keep the
-     three pieces anchored left, middle and right on one line instead, and
-     let the last one drop to its own line at the narrowest widths. */
+  .footer-content {
+    grid-template-columns: minmax(0, 0.6fr) auto auto minmax(0, 0.2fr);
+    column-gap: clamp(48px, 7vw, 80px);
+    padding-inline: var(--page-gutter);
+  }
+
   .footer-meta {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    row-gap: 8px;
-    font-size: clamp(15px, 1.6vw, 16px);
+    padding-inline: var(--page-gutter);
+    font-size: 12px;
     white-space: nowrap;
   }
 
@@ -332,6 +353,43 @@
     padding-block: 24px;
   }
 
+}
+
+@media (max-width: 767px) {
+  .footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 40px var(--page-gutter) 32px;
+  }
+
+  .footer-main-nav ul {
+    gap: 4px;
+  }
+
+  .footer-main-nav a {
+    font-size: 18px;
+  }
+
+  .footer-socials a,
+  .footer-email {
+    font-size: 15px;
+  }
+
+  .footer-email {
+    margin-top: 32px;
+  }
+
+  .footer-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 28px var(--page-gutter) 24px;
+    font-size: 12px;
+    white-space: normal;
+  }
 }
 
 @media (max-width: 639px) {
@@ -355,33 +413,6 @@
 
   .footer-fullscreen-button {
     right: var(--page-gutter);
-  }
-
-  .footer-content {
-    grid-template-columns: 1fr;
-    gap: 48px;
-    padding: 40px var(--page-gutter) 32px;
-  }
-
-  .footer-main-nav a {
-    font-size: 26px;
-  }
-
-  .footer-email {
-    margin-top: 36px;
-  }
-
-  .footer-meta {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 12px 22px;
-    padding: 28px var(--page-gutter) 24px;
-    font-size: 14px;
-  }
-
-  .footer-meta > :last-child {
-    width: 100%;
   }
 }
 

@@ -4,6 +4,7 @@ import { useGSAP } from '@gsap/react'
 import type { HeroImage, HeroServiceId } from '../../data/heroServices'
 import { heroServices, HERO_SERVICE_ORDER, DEFAULT_HERO_SERVICE } from '../../data/heroServices'
 import HeroPhotographyGrid from './HeroPhotographyGrid'
+import HeroSocialShowcase from './HeroSocialShowcase'
 import { HeroImg } from './HeroImg'
 import type { ImagePriority } from './HeroImg'
 
@@ -167,6 +168,7 @@ function HeroMedia({
                 <HeroPhotographyGrid
                   images={media.images}
                   priority={priority}
+                  active={isActive && inView}
                   reducedMotion={reducedMotion}
                 />
               ) : media.kind === 'video' ? (
@@ -174,6 +176,15 @@ function HeroMedia({
                   src={media.src}
                   poster={media.poster}
                   playing={isActive && inView}
+                  reducedMotion={reducedMotion}
+                />
+              ) : media.kind === 'showcase' ? (
+                <HeroSocialShowcase
+                  image={media.image}
+                  video={media.video}
+                  active={isActive}
+                  playing={isActive && inView}
+                  priority={priority}
                   reducedMotion={reducedMotion}
                 />
               ) : (

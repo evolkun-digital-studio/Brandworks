@@ -143,6 +143,70 @@
   grid-column: span 2;
 }
 
+/* A feature cell holds one or two frames: the photograph on show and,
+   while it changes, the one it is replacing underneath. An incoming frame
+   stays transparent until its image has decoded, so the cell is never empty
+   and never resizes. */
+.featured-image {
+  background: #080808;
+}
+
+.gallery-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.gallery-frame.is-waiting {
+  opacity: 0;
+}
+
+.gallery-frame.is-entering {
+  animation: gallery-frame-in 0.65s var(--hero-ease) both;
+}
+
+@keyframes gallery-frame-in {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes gallery-frame-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The contact sheet marks the photograph leading the feature row. */
+.thumbnail .hero-img {
+  opacity: 0.72;
+}
+
+.thumbnail.is-selected .hero-img {
+  opacity: 1;
+}
+
+.thumbnail::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0);
+  transition: box-shadow 0.45s var(--hero-ease);
+}
+
+.thumbnail.is-selected::after {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
 .thumbnail:focus-visible .hero-img {
   filter: brightness(1.08) contrast(1.04);
 }
@@ -151,13 +215,144 @@
   .thumbnail .hero-img {
     transition:
       transform 0.38s var(--hero-ease),
-      filter 0.38s var(--hero-ease);
+      filter 0.38s var(--hero-ease),
+      opacity 0.38s var(--hero-ease);
   }
 
   .thumbnail:hover .hero-img {
+    opacity: 1;
     transform: scale(1.035);
     filter: brightness(1.06) contrast(1.035);
   }
+
+  .featured-image .hero-img {
+    transition: transform 0.6s var(--hero-ease);
+  }
+
+  .featured-image:hover .hero-img {
+    transform: scale(1.03);
+  }
+}
+
+/* Social Media: a still and a recording side by side, held between the
+   header and the hero copy, with one lime line drawn through the whole
+   composition behind them. --hero-content-h is measured in Hero.tsx. */
+.social-showcase {
+  position: absolute;
+  inset: 0;
+  background: #0c0c0c;
+}
+
+.social-showcase__stage {
+  --showcase-gap: clamp(16px, 1.6vw, 24px);
+  --showcase-rise: 14px;
+  --showcase-drop: 22px;
+  /* Share of the stage width the pair may take; the rest is left open. */
+  --main-max: 54cqw;
+  position: absolute;
+  top: clamp(92px, 11.5vh, 132px);
+  right: var(--hero-gutter);
+  bottom: calc(var(--hero-content-h, 280px) + clamp(20px, 4vh, 44px));
+  left: var(--hero-gutter);
+  z-index: 1;
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.media-showcase {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: var(--showcase-gap);
+}
+
+.social-card {
+  position: relative;
+  /* Largest 3:4 pair that fits the stage, leaving room for the offsets. */
+  width: min(
+    calc((100cqh - var(--showcase-rise) - var(--showcase-drop)) * 3 / 4),
+    calc((var(--main-max) - var(--showcase-gap)) / 2)
+  );
+  aspect-ratio: 3 / 4;
+  flex: none;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #151515;
+  /* A hairline edge, not a shadow: separates the white still from the black. */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.social-card .hero-img {
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.social-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.social-image {
+  top: calc(var(--showcase-rise) * -1);
+}
+
+.social-video {
+  top: var(--showcase-drop);
+}
+
+/* The line: one SVG over the whole layer, beneath the cards (and, being in
+   the media layer, beneath all of the hero copy). */
+.social-line {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.social-line__path {
+  fill: none;
+  stroke: var(--color-bw-lime);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(206, 253, 16, 0.12));
+}
+
+/* Once drawn it holds still; only its strength breathes, very slowly. */
+.social-line.is-drawn {
+  animation: social-line-breathe 7s ease-in-out infinite;
+}
+
+@keyframes social-line-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* The shade exists for type over photographs; the showcase sits on flat
+   black, so it steps aside rather than greying the white still. */
+.hero-overlay {
+  transition: opacity 0.8s var(--hero-ease);
+}
+
+.hero[data-service='social'] .hero-overlay {
+  opacity: 0;
 }
 
 /* Light overall shade, deepened only where type sits: under the header
@@ -308,6 +503,56 @@
 
 /* --------------------------------------------------------------- tablet */
 
+@media (max-width: 1199px) {
+  .social-showcase__stage {
+    --showcase-gap: 14px;
+    --showcase-rise: 10px;
+    --showcase-drop: 16px;
+    --main-max: 58cqw;
+  }
+
+  .social-card {
+    border-radius: 18px;
+  }
+}
+
+/* Single-column copy: the pair sits above it. The hero grows past the fold
+   for this one service rather than shrinking the cards to thumbnails. */
+@media (max-width: 1023px) {
+  .hero {
+    --social-card-w: min(40vw, 300px);
+    --social-stage-h: calc(var(--social-card-w) * 4 / 3 + 32px);
+  }
+
+  .hero[data-service='social'] {
+    min-height: max(100svh, calc(96px + var(--social-stage-h) + 28px + var(--hero-content-h, 480px)));
+  }
+
+  .social-showcase__stage {
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: calc(var(--hero-content-h, 480px) + 28px);
+    height: var(--social-stage-h);
+    container-type: normal;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  .media-showcase {
+    flex: none;
+    height: var(--social-stage-h);
+    justify-content: safe center;
+    padding-inline: var(--hero-gutter);
+  }
+
+  .social-card {
+    width: var(--social-card-w);
+  }
+}
+
 @media (max-width: 1023px) {
   .thumbnail-gallery {
     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -338,6 +583,39 @@
 }
 
 /* --------------------------------------------------------------- mobile */
+
+@media (max-width: 767px) {
+  .hero {
+    --social-card-w: min(60vw, 300px);
+  }
+
+  .social-showcase__stage {
+    --showcase-gap: 12px;
+    --showcase-rise: 6px;
+    --showcase-drop: 10px;
+  }
+
+  .media-showcase {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--hero-gutter);
+    scrollbar-width: none;
+  }
+
+  .media-showcase::-webkit-scrollbar {
+    display: none;
+  }
+
+  .social-card {
+    border-radius: 16px;
+    scroll-snap-align: start;
+  }
+
+  .social-line__path {
+    stroke-width: 1.25px;
+  }
+}
 
 @media (max-width: 639px) {
   /* Grows past the fold rather than squeezing the copy. */
@@ -372,7 +650,7 @@
   }
 
   .featured-image {
-    flex: 0 0 78vw;
+    flex: 0 0 100%;
     scroll-snap-align: start;
   }
 
@@ -416,7 +694,19 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .thumbnail .hero-img {
+  .thumbnail .hero-img,
+  .featured-image .hero-img,
+  .hero-overlay {
     transition: none;
+  }
+
+  /* Still a cross-fade, never a cut, but without the zoom. */
+  .gallery-frame.is-entering {
+    animation-name: gallery-frame-fade;
+    animation-duration: 0.3s;
+  }
+
+  .social-line.is-drawn {
+    animation: none;
   }
 }

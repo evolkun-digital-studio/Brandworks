@@ -338,11 +338,11 @@ function Footer() {
       </div>
 
       <div className="footer-meta">
-        <span>Based in India, working worldwide.</span>
-        <div>
+        <span className="footer-meta__left">Based in India, working worldwide.</span>
+        <div className="footer-meta__center">
           <a href="#">©2026 Kinkh - Legal Notice</a>
         </div>
-        <span>India / Worldwide</span>
+        <span className="footer-meta__right">India / Worldwide</span>
       </div>
 
       <div ref={cursorRef} className="footer-cursor" aria-hidden="true">

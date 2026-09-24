@@ -26,6 +26,7 @@ type IdleWindow = Window & {
  */
 function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const reducedMotion = useReducedMotion() ?? false
   const [activeId, setActiveId] = useState<HeroServiceId>(DEFAULT_HERO_SERVICE)
   const [mounted, setMounted] = useState<ReadonlySet<HeroServiceId>>(() => new Set([DEFAULT_HERO_SERVICE]))
@@ -78,12 +79,35 @@ function Hero() {
     return () => observer.disconnect()
   }, [])
 
+  // The Social Media showcase sits above the copy rather than behind it, so
+  // it needs the copy's height. The tallest caption seen at the current width
+  // is kept, so switching services never resizes the showcase mid-fade.
+  useEffect(() => {
+    const section = sectionRef.current
+    const content = contentRef.current
+    if (!section || !content || typeof ResizeObserver === 'undefined') return
+    let width = 0
+    let reserve = 0
+    const observer = new ResizeObserver(() => {
+      const rect = content.getBoundingClientRect()
+      if (rect.width !== width) {
+        width = rect.width
+        reserve = 0
+      }
+      if (rect.height <= reserve) return
+      reserve = rect.height
+      section.style.setProperty('--hero-content-h', `${Math.ceil(reserve)}px`)
+    })
+    observer.observe(content)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <section ref={sectionRef} className="hero" aria-labelledby="hero-heading">
+    <section ref={sectionRef} className="hero" data-service={activeId} aria-labelledby="hero-heading">
       <HeroMedia activeId={activeId} mounted={mounted} inView={inView} reducedMotion={reducedMotion} />
       <div className="hero-overlay" aria-hidden="true" />
 
-      <div className="hero-content">
+      <div ref={contentRef} className="hero-content">
         <div className="hero-copy">
           <h1 id="hero-heading" className="hero-title">
             <span className="sr-only">BrandWorks: </span>
