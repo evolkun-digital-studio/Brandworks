@@ -368,7 +368,7 @@ function useCoverflow(
       }
       // Faster than the old 0.075 damping, but still eased enough to hide
       // wheel/trackpad steps. This is frame-rate independent.
-      const followRate = mobileMode ? 13.5 : m.tier === 'tablet' ? 11.5 : 10.5
+      const followRate = mobileMode ? 18 : m.tier === 'tablet' ? 20 : 19
       const follow = 1 - Math.exp((-followRate * dt) / 1000)
       current += (target - current) * follow
       if (Math.abs(target - current) < 0.00004) current = target
