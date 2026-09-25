@@ -3,7 +3,7 @@ import brandVideo2 from "./assets/Brand2.mp4";
 import LazyBackgroundVideo from "./LazyBackgroundVideo";
 
 const ABOUT_TEXT =
-  "Minimal Brandworks is a creative studio that brings strategy, creativity and digital expertise together to build distinctive brands and meaningful experiences.";
+  "BRANDWORKS is a creative and digital studio working across brand, media and growth. We bring strategy, production, design, reputation and digital execution into one working system. Some engagements start with a film. Some with a founder. Some with a website, search problem or campaign. The work depends on what needs to be solved.";
 
 const ABOUT_WORDS = ABOUT_TEXT.split(" ");
 
@@ -80,12 +80,12 @@ function About() {
       {/* TEXT */}
       <div className="flex w-full flex-col items-start text-left lg:max-w-[650px] xl:max-w-[700px]">
         <span className="site-kicker text-[10px] font-medium uppercase tracking-[0.14em] text-neutral-500 sm:text-[11px]">
-          About
+          Studio
         </span>
 
-        <h2
+        <h3
           ref={headingRef}
-          className="mt-4 w-full max-w-[680px] text-[clamp(20px,5.8vw,28px)] font-normal leading-[1.38] tracking-[-0.025em] sm:mt-5 sm:max-w-[720px] sm:text-[clamp(22px,3.3vw,27px)] sm:leading-[1.36] md:max-w-[760px] md:text-[clamp(24px,2.8vw,28px)] md:leading-[1.34] lg:max-w-[620px] lg:text-[clamp(25px,2vw,28px)] lg:leading-[1.32] xl:max-w-[680px] 2xl:max-w-[720px] 2xl:text-[29px]"
+          className="mt-4 w-full max-w-[680px] text-[clamp(20px,5.8vw,28px)]   leading-[1.38] tracking-[-0.025em] sm:mt-5 sm:max-w-[720px] sm:text-[clamp(22px,3.3vw,27px)] sm:leading-[1.36] md:max-w-[760px] md:text-[clamp(24px,2.8vw,28px)] md:leading-[1.34] lg:max-w-[620px] lg:text-[clamp(25px,2vw,28px)] lg:leading-[1.32] xl:max-w-[680px] 2xl:max-w-[720px] 2xl:text-[29px]"
         >
           {ABOUT_WORDS.map((word, index) => {
             const wordStart = index / total;
@@ -102,17 +102,18 @@ function About() {
               </span>
             );
           })}
-        </h2>
+        </h3>
 
         <a
           href="#"
           className="group mt-7 inline-flex items-center gap-2 border-b border-neutral-900 pb-1 text-neutral-900 transition-all duration-300 ease-out active:opacity-60 sm:mt-8 sm:min-h-[44px] sm:min-w-[154px] sm:justify-center sm:rounded-[3px] sm:border sm:bg-neutral-900 sm:px-5 sm:pb-0 sm:text-white sm:hover:bg-white sm:hover:text-neutral-900 lg:mt-9"
         >
           <span className="site-ui whitespace-nowrap text-[12px] font-medium sm:text-[13px]">
-            Get to know us
+            More about BRANDWORKS
           </span>
-          <span className="text-[14px] transition-transform duration-300 group-hover:translate-x-1 sm:hidden">
-            ↗
+
+          <span className="text-[14px] transition-transform duration-300 group-hover:translate-x-1">
+            →
           </span>
         </a>
       </div>

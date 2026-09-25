@@ -27,7 +27,6 @@ import motionLifestyle from '../assets/social/campaign-motion.jpg'
 import cinematicAction from '../assets/social/campaign-action.jpg'
 import experimentalCreative from '../assets/graphics/gm-06-800.webp'
 import socialAerial from '../assets/social/campaign-aerial.jpg'
-import { SOCIAL_SECTION } from './socialMedia'
 
 export type HeroImage = {
   src: string
@@ -63,9 +62,9 @@ export type HeroService = {
   id: HeroServiceId
   /** Capsule label. */
   label: string
-  /** Small caption shown with the visual. */
-  eyebrow: string
-  title?: string
+  /** Small caption shown with the visual. */ 
+  headline: string
+  serviceList: string
   text: string
   media: HeroMedia
 }
@@ -86,27 +85,23 @@ function imagekitImage(file: string, widths: number[], image: Omit<HeroImage, 's
   }
 }
 
-export const HERO_HEADLINE = ['Brandworks'] as const
-
-export const HERO_DESCRIPTION =
-  'Strategy, content and creative built to make brands seen, remembered and chosen.'
-
 export const HERO_SERVICE_ORDER: HeroServiceId[] = [
-  'photography',
   'videography',
-  'social',
+  'photography',
   'pr',
+  'social',
   'graphic-animation',
 ]
 
-export const DEFAULT_HERO_SERVICE: HeroServiceId = 'photography'
+export const DEFAULT_HERO_SERVICE: HeroServiceId = 'videography'
 
 export const heroServices: Record<HeroServiceId, HeroService> = {
   photography: {
     id: 'photography',
-    label: 'Photography',
-    eyebrow: 'Photography',
-    text: 'Images designed to hold attention long after the scroll has moved on.',
+    label: 'Photography', 
+    headline: 'Images with a clear point of view.',
+    text: 'Portraits, products, campaigns and brand photography built around how the subject should be seen.',
+    serviceList: 'Portrait · Product · Editorial · Campaign',
     media: {
       kind: 'grid',
       images: [
@@ -231,9 +226,10 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
   },
   videography: {
     id: 'videography',
-    label: 'Videography',
-    eyebrow: 'Videography',
-    text: 'Films, campaigns and visual stories built around an idea — not just a camera.',
+    label: 'Cinematography', 
+    headline: 'Stories built in motion.',
+    text: 'From concept and direction to production and post, we create films for brands, campaigns and people.',
+    serviceList: 'Brand Films · Campaigns · Commercials · Short-form',
     media: {
       kind: 'video',
       src: '/video/Idea - Cinematic Video _ Shot on Canon EOS250D.mp4',
@@ -247,9 +243,10 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
   },
   social: {
     id: 'social',
-    label: 'Social Media',
-    eyebrow: SOCIAL_SECTION.label,
-    text: SOCIAL_SECTION.description,
+    label: 'Social & Content', 
+    headline: 'Content with a reason to exist.',
+    text: 'Strategy, concepts, design and production for an ongoing social presence that stays consistent with the brand.',
+    serviceList: 'Strategy · Reels · Campaigns · Daily Content',
     media: {
       kind: 'showcase',
       grid: [
@@ -311,9 +308,10 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
   },
   pr: {
     id: 'pr',
-    label: 'PR',
-    eyebrow: 'PR & Reputation',
-    text: 'Building visibility, credibility and narratives people remember.',
+    label: 'Founder Reputation', 
+    headline: 'Build the presence behind the name.',
+    text: 'We shape how founders appear across media, search, social platforms and public conversations.',
+    serviceList: 'Positioning · Media · Search · Content',
     media: {
       kind: 'image',
       image: imagekitImage('ChatGPT%20Image%20Sep%2021,%202026,%2011_56_00%20AM.png', [640, 960, 1122], {
@@ -326,9 +324,10 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
   },
   'graphic-animation': {
     id: 'graphic-animation',
-    label: 'Graphic Animation',
-    eyebrow: 'Graphic Animation',
-    text: 'Campaign graphics and motion-led systems designed to make ideas move.',
+    label: 'Design & Motion', 
+    headline: 'Visual systems made to communicate.',
+    text: 'Graphic design, campaign assets, animation and motion built to keep the brand clear across different formats.',
+    serviceList: 'Graphic Design · Motion · Animation · Campaign Assets',
     media: {
       kind: 'image',
       image: {

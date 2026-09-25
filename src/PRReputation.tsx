@@ -26,10 +26,23 @@ const MEDIA = {
 }
 
 const POINTS = [
-  'A founder with conviction.',
-  'A purpose worth following.',
-  'A story worth remembering.',
-  'A message repeated consistently.',
+  {
+    title: 'Positioning',
+    description: 'Define what you should be known for.',
+  },
+  {
+    title: 'Media',
+    description:
+      'Build relevant visibility around your experience and point of view.',
+  },
+  {
+    title: 'Content',
+    description: 'Create a consistent public voice.',
+  },
+  {
+    title: 'Search & Reputation',
+    description: 'Shape what people discover when they look you up.',
+  },
 ]
 
 const EASE = [0.22, 1, 0.36, 1] as const
@@ -83,14 +96,11 @@ export default function PRReputation() {
     <section
       id="pr-founder-reputation"
       aria-labelledby="pr-reputation-heading"
-      className="relative overflow-hidden bg-white py-14 text-[#111] sm:py-16 md:py-20 lg:py-24 xl:py-28 2xl:py-32"
+      className="relative overflow-hidden bg-white py-14 text-[#111] sm:py-16 md:py-10 lg:py-10 xl:py-10 2xl:py-10"
     >
       <SectionContainer>
-        {/* SECTION META */}
-         
-
         {/* MANIFESTO */}
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:gap-8 md:mt-14 md:grid-cols-12 md:items-end md:gap-6 lg:mt-16 lg:gap-8 xl:mt-20 xl:gap-10">
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:gap-8 md:mt-14 md:grid-cols-12 md:items-end md:gap-6 lg:mt-10 lg:gap-8 xl:mt-10 xl:gap-10">
           <motion.div
             {...reveal}
             variants={rise(28, 0.04)}
@@ -100,13 +110,19 @@ export default function PRReputation() {
               id="pr-reputation-heading"
               className="max-w-[1050px] font-primary text-[clamp(2rem,6.2vw,3rem)] leading-[0.9] tracking-[-0.055em] sm:leading-[0.88] md:tracking-[-0.06em] lg:leading-[0.86]"
             >
-              People don&apos;t trust logos.
-              <br />
-              <span className="">
-                They trust meaning.
-              </span>
+              A founder is part of the brand.
             </h2>
-          </motion.div> 
+
+            <p className="mt-5 max-w-[720px] text-[14px] font-normal leading-[1.55] tracking-[-0.015em] text-black/60 sm:mt-6 sm:text-[15px] md:text-[16px] lg:max-w-[760px] lg:text-[17px]">
+              What people find when they search your name, read an interview,
+              visit LinkedIn or see you quoted in the media shapes how they
+              understand the business behind you.
+            </p>
+
+            <p className="mt-3 max-w-[720px] text-[14px] font-medium leading-[1.5] tracking-[-0.015em] text-black/80 sm:text-[15px] md:text-[16px] lg:text-[17px]">
+              We manage that presence deliberately.
+            </p>
+          </motion.div>
         </div>
 
         {/* EDITORIAL MEDIA */}
@@ -141,10 +157,10 @@ export default function PRReputation() {
               variants={rise(22, 0.08)}
               className="flex min-w-0 flex-col justify-end md:col-span-4 lg:col-span-3"
             >
-              <div className="">
+              <div>
                 {POINTS.map((point, index) => (
                   <motion.div
-                    key={point}
+                    key={point.title}
                     initial={reduce ? false : { opacity: 0, y: 14 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.6 }}
@@ -159,9 +175,15 @@ export default function PRReputation() {
                       0{index + 1}
                     </span>
 
-                    <p className="text-[15px] leading-[1.22] tracking-[-0.02em] text-black/72 transition-colors duration-300 group-hover:text-black sm:text-[16px] md:text-[15px] lg:text-[17px] xl:text-[18px]">
-                      {point}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="text-[15px] font-medium leading-[1.2] tracking-[-0.02em] text-black/80 transition-colors duration-300 group-hover:text-black sm:text-[16px] md:text-[15px] lg:text-[17px] xl:text-[18px]">
+                        {point.title}
+                      </p>
+
+                      <p className="mt-1.5 max-w-[300px] text-[12px] font-normal leading-[1.45] tracking-[-0.01em] text-black/48 transition-colors duration-300 group-hover:text-black/65 sm:text-[13px] md:text-[12px] lg:text-[13px] xl:text-[14px]">
+                        {point.description}
+                      </p>
+                    </div>
                   </motion.div>
                 ))}
               </div>
@@ -173,16 +195,15 @@ export default function PRReputation() {
         <motion.div
           {...reveal}
           variants={rise(22, 0.05)}
-          className="mt-5 grid grid-cols-1 gap-6 pt-5 sm:mt-14 sm:pt-6 md:mt-16 md:grid-cols-12 md:gap-6 lg:mt-18 lg:gap-8 xl:mt-18" > 
-
+          className="mt-5 grid grid-cols-1 gap-6 pt-5 sm:mt-14 sm:pt-6 md:mt-16 md:grid-cols-12 md:gap-6 lg:mt-18 lg:gap-8 xl:mt-18"
+        >
           <div className="md:col-span-9">
             <p className="max-w-[1050px] text-[clamp(1.2rem,4.4vw,1.5rem)] font-medium leading-[0.96] tracking-[-0.045em] sm:leading-[0.94] md:tracking-[-0.05em]">
-              Technology can distribute content.
+              Founder reputation is not personal branding for the sake of
+              visibility.
               <br className="hidden sm:block" />
               <span className="sm:hidden"> </span>
-              <span className="">
-                Only people create meaning.
-              </span>
+              <span>It is reputation managed with purpose.</span>
             </p>
           </div>
         </motion.div>

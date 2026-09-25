@@ -3,29 +3,34 @@ import './FAQs.css'
 
 const faqs = [
   {
-    question: 'What services does BRANDWORKS offer?',
+    question: 'What can BRANDWORKS handle?',
     answer:
-      'We offer brand strategy, content and creative production, and social media and marketing services designed to help brands grow and stand out.',
+      'Film, photography, founder reputation, PR, social content, graphic and motion design, websites, SEO, AEO, GEO and performance marketing.',
   },
   {
-    question: 'Who do you work with?',
+    question: 'Do we need to use every service?',
     answer:
-      'We work with startups, growing businesses, and established brands across a range of industries who want to build a stronger identity and reach.',
+      'No. We build the scope around what the brand actually needs.',
   },
   {
-    question: 'Can you work with an existing brand?',
+    question: 'Can BRANDWORKS work with our existing team?',
     answer:
-      'Yes, we can refresh, evolve, or fully rebuild an existing brand identity while keeping what already works for your audience.',
+      'Yes. We can lead an engagement or work alongside internal marketing, communications, design and technology teams.',
   },
   {
-    question: 'Do you offer customised solutions?',
+    question: 'Do you work with founders directly?',
     answer:
-      'Every project is tailored to your goals, audience, and budget, we do not believe in one size fits all packages.',
+      'Yes. We work with founders on positioning, media, reputation, content and their wider digital presence.',
   },
   {
-    question: 'Do you provide ongoing support?',
+    question: 'Do you handle ongoing work?',
     answer:
-      'Yes, we offer ongoing support and optimisation after launch to make sure your brand keeps performing and growing.',
+      'Yes. Some engagements are focused productions or builds; others continue across content, search, performance or reputation.',
+  },
+  {
+    question: 'Where do you work?',
+    answer:
+      'We work across markets and can support teams internationally.',
   },
 ]
 
@@ -34,16 +39,15 @@ function FAQs() {
 
   return (
     <section className="faq-section" aria-labelledby="faq-heading">
-      <header className="faq-header"> 
-
+      <header className="faq-header">
         <h2 id="faq-heading" className="faq-title">
-          Questions, Answered
+          Questions, answered.
         </h2>
 
         <p className="faq-intro">
-          Everything you need to know about working with BRANDWORKS
+          Practical answers about how BRANDWORKS works,
           <br className="hidden sm:block" />
-          and how we bring ideas to life.
+          what we handle and how engagements are structured.
         </p>
       </header>
 
@@ -51,6 +55,7 @@ function FAQs() {
         {faqs.map((faq, index) => {
           const isOpen = openIndex === index
           const answerId = `faq-answer-${index}`
+
           return (
             <div
               key={faq.question}
@@ -64,6 +69,7 @@ function FAQs() {
                 className="faq-question-row"
               >
                 <span className="faq-question">{faq.question}</span>
+
                 <span aria-hidden="true" className="faq-icon">
                   <span className="faq-icon__line faq-icon__line--horizontal" />
                   <span className="faq-icon__line faq-icon__line--vertical" />

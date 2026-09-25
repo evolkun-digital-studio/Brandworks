@@ -31,7 +31,7 @@ type RevealLayout = {
 }
 
 const REVEAL_LAYOUT: Record<Viewport, RevealLayout> = {
-  desktop: { startScale: 0.7, startY: 0.1, revealScreens: 0.72 },
+  desktop: { startScale: 0.7, startY: 0.30, revealScreens: 0.72 },
   tablet: { startScale: 0.74, startY: 0.15, revealScreens: 0.78 },
   mobile: { startScale: 0.78, startY: 0.15, revealScreens: 0.84 },
 }
@@ -518,13 +518,27 @@ export default function PhotographyGallery() {
       className="relative h-svh min-h-[560px] w-full overflow-hidden bg-white text-[#111] sm:min-h-[600px] lg:min-h-[620px]"
     >
       <div
-        ref={introRef}
-        className="pointer-events-none absolute inset-x-0 top-[clamp(34px,6vh,72px)] z-10 flex flex-col items-center px-5 text-center"
-      >
-        <h2 className="mt-3 font-primary text-[clamp(32px,4.5vw,68px)] font-medium leading-[0.96] tracking-[-0.045em]">
-          Photography
-        </h2>
-      </div>
+  ref={introRef}
+  className="pointer-events-none absolute inset-x-0 top-[clamp(34px,6vh,72px)] z-10 flex flex-col items-center px-5 pb-20 text-center"
+>
+  <h2 className="mt-3 font-primary text-[clamp(32px,4.5vw,68px)] font-medium leading-[0.96] tracking-[-0.045em]">
+    Photography
+  </h2>
+
+  <p className="mt-4 max-w-[720px] font-secondary text-[13px] font-normal leading-[1.55] tracking-[-0.015em] text-neutral-600 sm:text-[14px] md:text-[15px]">
+    People notice the image before they read the message.
+    <br className="hidden sm:block" />
+    We create portraits, products, editorial images and campaign photography
+    with a clear visual direction.
+  </p>
+
+  <div className="mt-4 flex flex-wrap font-medium items-center justify-center gap-x-4 gap-y-2 font-secondary text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-500 sm:text-[11px]">
+    <span>Portraits</span>
+    <span>Products</span>
+    <span>Campaigns</span>
+    <span>Editorial</span>
+  </div>
+</div>
 
       <div
         ref={ipadRef}
@@ -538,12 +552,12 @@ export default function PhotographyGallery() {
         />
 
         <span
-          className="pointer-events-none absolute -right-[4px] top-[17%] z-0 hidden h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] shadow-[1px_0_2px_rgba(0,0,0,0.34)] sm:h-[70px] md:block"
+          className="pointer-events-none absolute -right-[4px] top-[17%] z-0 hidden h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959]  sm:h-[70px] md:block"
           aria-hidden="true"
         />
 
         <span
-          className="pointer-events-none absolute -right-[4px] top-[29%] z-0 hidden h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959] shadow-[1px_0_2px_rgba(0,0,0,0.34)] sm:h-[70px] md:block"
+          className="pointer-events-none absolute -right-[4px] top-[29%] z-0 hidden h-[56px] w-[5px] rounded-r-[3px] bg-gradient-to-r from-[#222] to-[#595959]  sm:h-[70px] md:block"
           aria-hidden="true"
         />
 
@@ -600,14 +614,14 @@ export default function PhotographyGallery() {
                   type="button"
                   aria-label="Previous photograph"
                   onClick={() => go(-1)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full  bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
                 >
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
 
-                <div className="flex h-10 items-center gap-[3px] rounded-[12px] border border-white/10 bg-black/62 p-[3px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] backdrop-blur-xl sm:h-12 sm:gap-1 sm:rounded-[15px] sm:p-1">
+                <div className="flex h-10 items-center gap-[3px] rounded-[12px] bg-black/62 p-[3px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] backdrop-blur-xl sm:h-12 sm:gap-1 sm:rounded-[15px] sm:p-1">
                   {photographyImages.map((image, index) => (
                     <button
                       key={`${image}-thumb`}
@@ -615,10 +629,10 @@ export default function PhotographyGallery() {
                       aria-label={`View photograph ${index + 1}`}
                       aria-current={index === active ? 'true' : undefined}
                       onClick={() => goTo(index)}
-                      className={`relative h-[32px] w-[26px] overflow-hidden rounded-[7px] border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-10 sm:w-[46px] sm:rounded-[9px] ${
+                      className={`relative h-[32px] w-[26px] overflow-hidden rounded-[7px] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-10 sm:w-[46px] sm:rounded-[9px] ${
                         index === active
-                          ? 'scale-[1.02] border-white/90 opacity-100'
-                          : 'border-transparent opacity-55 hover:scale-[1.02] hover:opacity-90'
+                          ? 'scale-[1.02]  opacity-100'
+                          : ' opacity-55 hover:scale-[1.02] hover:opacity-90'
                       }`}
                     >
                       <img
@@ -632,7 +646,7 @@ export default function PhotographyGallery() {
                   ))}
                 </div>
 
-                <div className="hidden h-12 min-w-[78px] items-center justify-center gap-1.5 rounded-[15px] border border-white/10 bg-[rgba(42,28,23,0.72)] px-3 font-primary text-[9px] font-medium tracking-[0.06em] text-white shadow-[0_8px_24px_rgba(0,0,0,0.14)] backdrop-blur-xl min-[390px]:flex sm:min-w-[92px] sm:text-[10px]">
+                <div className="hidden h-12 min-w-[78px] items-center justify-center gap-1.5 rounded-[15px] bg-[rgba(42,28,23,0.72)] px-3 font-primary text-[9px] font-medium tracking-[0.06em] text-white shadow-[0_8px_24px_rgba(0,0,0,0.14)] backdrop-blur-xl min-[390px]:flex sm:min-w-[92px] sm:text-[10px]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#8f8a16]" aria-hidden="true" />
                   <span>{pad(active + 1)}</span>
                   <span className="text-white/30">/</span>
@@ -643,7 +657,7 @@ export default function PhotographyGallery() {
                   type="button"
                   aria-label="Next photograph"
                   onClick={() => go(1)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
                 >
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

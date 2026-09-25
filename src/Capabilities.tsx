@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { ReactNode, RefObject } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { ReactNode, RefObject } from "react";
 import {
   AnimatePresence,
   motion,
@@ -8,97 +8,119 @@ import {
   useMotionTemplate,
   useScroll,
   useTransform,
-} from 'motion/react'
-import type { MotionValue } from 'motion/react'
+} from "motion/react";
+import type { MotionValue } from "motion/react";
 
 const services = [
-  { name: 'Videography', description: 'Concept-led films and moving brand stories.' },
-  { name: 'Photography', description: "Distinctive imagery shaped around the brand's visual language." },
-  { name: 'PR', description: 'Stories worth telling, placed where they can matter.' },
   {
-    name: 'Founder Reputation Management',
-    description: 'Build a credible public presence around the people behind the brand.',
+    name: "CINEMATOGRAPHY",
+    description: "Creative direction, production and post-production for brand and campaign films.",
   },
   {
-    name: 'Performance & SEO Marketing',
-    description: 'Connect creative thinking with discovery, demand and measurable growth.',
+    name: "PHOTOGRAPHY",
+    description:
+      "Commercial, editorial and brand photography developed around a defined visual direction.",
   },
   {
-    name: 'Graphics & Animation',
-    description: 'Turn brand systems into expressive visual and motion communication.',
+    name: "PR & MEDIA",
+    description: "Media strategy, communication and reputation support for brands and founders.",
   },
   {
-    name: 'Social Media & Content Creation',
-    description: 'Carry one brand idea consistently across formats and conversations.',
+    name: "Founder Reputation Management",
+    description:
+      "Positioning, media, content and search management for founders building a public presence around their work.",
   },
-]
+  {
+    name: "SEARCH",
+    description:
+      "Technical SEO, content strategy, AEO and GEO for search and AI discovery.",
+  },
+  {
+    name: "DESIGN & MOTION",
+    description:
+      "Design systems, campaign graphics, animation and moving visual content.",
+  },
+  {
+    name: "PERFORMANCE",
+    description:
+      "Paid acquisition, creative testing and ongoing campaign optimisation.",
+  },
+];
 
 // Preferred first-line breaks for the long names in the scroll index;
 // narrower columns may still wrap further, but never at a worse point.
 const LINE_BREAKS: Record<string, string> = {
-  'Founder Reputation Management': 'Founder Reputation',
-  'Performance & SEO Marketing': 'Performance & SEO',
-  'Social Media & Content Creation': 'Social Media &',
-}
+  "Founder Reputation Management": "Founder Reputation",
+  "Performance & SEO Marketing": "Performance & SEO",
+  "Social Media & Content Creation": "Social Media &",
+};
 
-const TOTAL = services.length
-const pad = (n: number) => String(n).padStart(2, '0')
+const TOTAL = services.length;
+const pad = (n: number) => String(n).padStart(2, "0");
 
-const INTRO_WORDS = ['Different', 'disciplines.', null, 'One', 'connected', 'system.'] as const
-const INTRO_WORD_COUNT = INTRO_WORDS.filter(Boolean).length
+const INTRO_WORDS = [
+  "Different",
+  "disciplines.",
+  null,
+  "One",
+  "connected",
+  "system.",
+] as const;
+const INTRO_WORD_COUNT = INTRO_WORDS.filter(Boolean).length;
 
-const EASE = [0.22, 1, 0.36, 1] as const
-const GROTESK = "font-['Google_Sans_Flex','Helvetica',sans-serif]"
+const EASE = [0.22, 1, 0.36, 1] as const;
+const GROTESK = "font-['Google_Sans_Flex','Helvetica',sans-serif]";
 // Display type uses the Thin cut; small text (labels, counters, copy) Regular.
-const DISPLAY = `${GROTESK} font-thin`
+const DISPLAY = `${GROTESK} font-thin`;
 
 // The title is SemiBold, from the variable display cut (see .services-display).
-const TITLE_CLASS = `services-display  text-[clamp(44px,12vw,48px)] leading-[0.96] tracking-[-0.04em] text-[#111] md:text-[clamp(46px,4.7vw,58px)]`
-const LABEL_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.14em] text-[#777] uppercase`
-const COUNTER_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.08em] text-[#888] tabular-nums`
+const TITLE_CLASS = `${GROTESK} whitespace-nowrap  text-[clamp(24px,7.2vw,46px)] leading-[0.98] tracking-[-0.035em] text-[#111] sm:text-[clamp(28px,5.5vw,38px)] md:text-[32px] lg:text-[clamp(28px,2.55vw,36px)] xl:text-[46px] 2xl:text-[46px]`;
+const LABEL_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.14em] text-[#777] uppercase`;
+const COUNTER_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.08em] text-[#888] tabular-nums`;
 
 // The runway's scroll progress (0 = stage pinned, 1 = released) is
 // mapped linearly onto the list: row 0 sits on the focus line at
 // FOCUS_START and the last row at FOCUS_END, with a short hold on
 // either side so the first and last services get a moment in focus.
-const FOCUS_START = 0.06
-const FOCUS_END = 0.92
+const FOCUS_START = 0.06;
+const FOCUS_END = 0.92;
 
 // Focus steps by distance (in rows) from the focus line. Tone is opacity
 // on #111 and size is a transform scale on one shared base font-size, so
 // both stay on the compositor instead of re-laying out text every frame.
-const OPACITY_BY_DISTANCE = [1, 0.55, 0.28, 0.08] as const
-const SCALE_BY_DISTANCE = [1.18, 0.94, 0.86, 0.8] as const
-const BLUR_BY_DISTANCE = [0, 0, 0.3, 1, 1.4] as const
+const OPACITY_BY_DISTANCE = [1, 0.55, 0.28, 0.08] as const;
+const SCALE_BY_DISTANCE = [1.18, 0.94, 0.86, 0.8] as const;
+const BLUR_BY_DISTANCE = [0, 0, 0.3, 1, 1.4] as const;
 
 /** Piecewise-linear lookup: distance (in rows) from the focus line → value. */
 function lookup(table: readonly number[], d: number) {
-  const i = Math.floor(d)
-  if (i >= table.length - 1) return table[table.length - 1]
-  return table[i] + (table[i + 1] - table[i]) * (d - i)
+  const i = Math.floor(d);
+  if (i >= table.length - 1) return table[table.length - 1];
+  return table[i] + (table[i + 1] - table[i]) * (d - i);
 }
 
 /** Centre (px, within the list) of the fractional row index `s`. */
 function centerAt(c: number[], s: number) {
-  const lo = Math.max(0, Math.min(TOTAL - 1, Math.floor(s)))
-  const hi = Math.min(TOTAL - 1, lo + 1)
-  return c[lo] + (c[hi] - c[lo]) * (s - lo)
+  const lo = Math.max(0, Math.min(TOTAL - 1, Math.floor(s)));
+  const hi = Math.min(TOTAL - 1, lo + 1);
+  return c[lo] + (c[hi] - c[lo]) * (s - lo);
 }
 
-type Mode = 'scroll' | 'stacked' | 'static'
+type Mode = "scroll" | "stacked" | "static";
 
-const MIN_SCROLL_WIDTH = '(min-width: 768px)'
-const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
+const MIN_SCROLL_WIDTH = "(min-width: 1024px)";
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
 function matches(query: string) {
-  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+  return typeof window !== "undefined" &&
+    typeof window.matchMedia === "function"
     ? window.matchMedia(query).matches
-    : false
+    : false;
 }
 
 function currentMode(): Mode {
-  if (matches(REDUCED_MOTION)) return 'static'
-  return matches(MIN_SCROLL_WIDTH) ? 'scroll' : 'stacked'
+  if (matches(REDUCED_MOTION)) return "static";
+  return matches(MIN_SCROLL_WIDTH) ? "scroll" : "stacked";
 }
 
 /**
@@ -107,22 +129,25 @@ function currentMode(): Mode {
  * rendered, so the service list never appears twice in the DOM.
  */
 function useMode() {
-  const [mode, setMode] = useState<Mode>(currentMode)
+  const [mode, setMode] = useState<Mode>(currentMode);
 
   useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return
-    const queries = [MIN_SCROLL_WIDTH, REDUCED_MOTION].map((q) => window.matchMedia(q))
-    const onChange = () => setMode(currentMode())
-    queries.forEach((q) => q.addEventListener('change', onChange))
-    return () => queries.forEach((q) => q.removeEventListener('change', onChange))
-  }, [])
+    if (typeof window.matchMedia !== "function") return;
+    const queries = [MIN_SCROLL_WIDTH, REDUCED_MOTION].map((q) =>
+      window.matchMedia(q),
+    );
+    const onChange = () => setMode(currentMode());
+    queries.forEach((q) => q.addEventListener("change", onChange));
+    return () =>
+      queries.forEach((q) => q.removeEventListener("change", onChange));
+  }, []);
 
-  return mode
+  return mode;
 }
 
 function Capabilities() {
-  const mode = useMode()
-  const animated = mode !== 'static'
+  const mode = useMode();
+  const animated = mode !== "static";
 
   return (
     <section aria-labelledby="our-services-heading" className="bg-white">
@@ -146,35 +171,42 @@ function Capabilities() {
         </div>
       </div>
 
-      {mode === 'scroll' ? <ServiceScrollIndex /> : <ServiceStack animated={animated} />}
+      {mode === "scroll" ? (
+        <ServiceScrollIndex />
+      ) : (
+        <ServiceStack animated={animated} />
+      )}
     </section>
-  )
+  );
 }
 
-const INTRO_CLASS = `${DISPLAY} text-[clamp(2rem,3.4vw,3rem)] leading-[1.04] tracking-[-0.04em] text-[#111] md:col-span-7`
+const INTRO_CLASS = `${DISPLAY} text-[clamp(2rem,3.4vw,3rem)] leading-[1.04] tracking-[-0.04em] text-[#111] md:col-span-7`;
 
 /**
  * Intro H2: word-by-word opacity .15 → 1 / blur 4px → 0, scrubbed by
  * the heading's own position in the viewport (same idea as About.tsx).
  */
 function IntroHeading() {
-  const ref = useRef<HTMLHeadingElement>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.92', 'start 0.42'] })
+  const ref = useRef<HTMLHeadingElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start 0.92", "start 0.42"],
+  });
 
   return (
     <h2 ref={ref} className={INTRO_CLASS}>
       {INTRO_WORDS.map((word, i) => {
-        if (word === null) return <br key={`br-${i}`} />
-        const index = INTRO_WORDS.slice(0, i).filter(Boolean).length
+        if (word === null) return <br key={`br-${i}`} />;
+        const index = INTRO_WORDS.slice(0, i).filter(Boolean).length;
         return (
           <IntroWord key={word} progress={scrollYProgress} index={index}>
             {word}
-            {INTRO_WORDS[i + 1] ? ' ' : ''}
+            {INTRO_WORDS[i + 1] ? " " : ""}
           </IntroWord>
-        )
+        );
       })}
     </h2>
-  )
+  );
 }
 
 function IntroWord({
@@ -182,20 +214,20 @@ function IntroWord({
   index,
   children,
 }: {
-  progress: MotionValue<number>
-  index: number
-  children: ReactNode
+  progress: MotionValue<number>;
+  index: number;
+  children: ReactNode;
 }) {
-  const range = [index / INTRO_WORD_COUNT, (index + 2.5) / INTRO_WORD_COUNT]
-  const opacity = useTransform(progress, range, [0.15, 1])
-  const blur = useTransform(progress, range, [4, 0])
-  const filter = useMotionTemplate`blur(${blur}px)`
+  const range = [index / INTRO_WORD_COUNT, (index + 2.5) / INTRO_WORD_COUNT];
+  const opacity = useTransform(progress, range, [0.15, 1]);
+  const blur = useTransform(progress, range, [4, 0]);
+  const filter = useMotionTemplate`blur(${blur}px)`;
 
   return (
     <motion.span style={{ opacity, filter }} className="inline-block">
       {children}
     </motion.span>
-  )
+  );
 }
 
 /** Thin, long arrow drawn as a hairline — the typographic → glyph is too heavy in most fallbacks. */
@@ -214,7 +246,7 @@ function Arrow() {
       <line x1="1" y1="8" x2="54" y2="8" />
       <polyline points="47 1.5 54 8 47 14.5" />
     </svg>
-  )
+  );
 }
 
 /**
@@ -225,33 +257,39 @@ function Arrow() {
  * line. React state only changes when the active service changes.
  */
 function ServiceScrollIndex() {
-  const runwayRef = useRef<HTMLDivElement>(null)
-  const windowRef = useRef<HTMLDivElement>(null)
-  const listRef = useRef<HTMLUListElement>(null)
-  const itemRefs = useRef<(HTMLLIElement | null)[]>([])
+  const runwayRef = useRef<HTMLDivElement>(null);
+  const windowRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
 
   // Row centres (px within the list) and the window height, measured
   // from layout. Bumping `layout` makes every derived value recompute.
-  const centers = useRef<number[]>([])
-  const windowHeight = useRef(0)
-  const layout = useMotionValue(0)
+  const centers = useRef<number[]>([]);
+  const windowHeight = useRef(0);
+  const layout = useMotionValue(0);
 
   const { scrollYProgress } = useScroll({
     target: runwayRef,
-    offset: ['start start', 'end end'],
-  })
+    offset: ["start start", "end end"],
+  });
 
   // Fractional index of the row on the focus line — linear (ease: none).
-  const focus = useTransform(scrollYProgress, [FOCUS_START, FOCUS_END], [0, TOTAL - 1])
+  const focus = useTransform(
+    scrollYProgress,
+    [FOCUS_START, FOCUS_END],
+    [0, TOTAL - 1],
+  );
   const y = useTransform([focus, layout], ([s]: number[]) =>
-    centers.current.length === TOTAL ? windowHeight.current / 2 - centerAt(centers.current, s) : 0,
-  )
+    centers.current.length === TOTAL
+      ? windowHeight.current / 2 - centerAt(centers.current, s)
+      : 0,
+  );
 
-  const [active, setActive] = useState(0)
-  useMotionValueEvent(focus, 'change', (s) => {
-    const next = Math.max(0, Math.min(TOTAL - 1, Math.round(s)))
-    setActive((prev) => (prev === next ? prev : next))
-  })
+  const [active, setActive] = useState(0);
+  useMotionValueEvent(focus, "change", (s) => {
+    const next = Math.max(0, Math.min(TOTAL - 1, Math.round(s)));
+    setActive((prev) => (prev === next ? prev : next));
+  });
 
   // offsetTop ignores transforms, so measurements stay stable while the
   // list moves; re-measured whenever it reflows (wrapping, fonts, resize).
@@ -259,16 +297,19 @@ function ServiceScrollIndex() {
     const measure = () => {
       centers.current = itemRefs.current.map((item) =>
         item ? item.offsetTop + item.offsetHeight / 2 : 0,
-      )
-      windowHeight.current = windowRef.current?.clientHeight ?? 0
-      layout.set(layout.get() + 1)
-    }
-    measure()
-    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
-    if (listRef.current) observer?.observe(listRef.current)
-    if (windowRef.current) observer?.observe(windowRef.current)
-    return () => observer?.disconnect()
-  }, [layout])
+      );
+      windowHeight.current = windowRef.current?.clientHeight ?? 0;
+      layout.set(layout.get() + 1);
+    };
+    measure();
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(measure)
+        : null;
+    if (listRef.current) observer?.observe(listRef.current);
+    if (windowRef.current) observer?.observe(windowRef.current);
+    return () => observer?.disconnect();
+  }, [layout]);
 
   return (
     <div ref={runwayRef} className="relative min-h-[240vh] lg:min-h-[320vh]">
@@ -277,10 +318,8 @@ function ServiceScrollIndex() {
           {/* Left: label + counter, title on the focus line, active detail. */}
           <div className="relative h-full">
             <div className="absolute top-1/2 left-0 w-full -translate-y-1/2">
-               
-
               <h2 id="our-services-heading" className={TITLE_CLASS}>
-                Our Services.
+                The studio works across.
               </h2>
 
               <div
@@ -291,9 +330,9 @@ function ServiceScrollIndex() {
                   <motion.p
                     key={active}
                     className={`${GROTESK} text-[16px] leading-[1.4] font-normal text-[#777]`}
-                    initial={{ opacity: 0, filter: 'blur(4px)', y: 6 }}
-                    animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-                    exit={{ opacity: 0, filter: 'blur(4px)', y: -6 }}
+                    initial={{ opacity: 0, filter: "blur(4px)", y: 6 }}
+                    animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                    exit={{ opacity: 0, filter: "blur(4px)", y: -6 }}
                     transition={{ duration: 0.36, ease: EASE }}
                   >
                     {services[active].description}
@@ -314,9 +353,9 @@ function ServiceScrollIndex() {
             className="relative -mr-[7vw] h-full overflow-hidden pr-[7vw]"
             style={{
               WebkitMaskImage:
-                'linear-gradient(to bottom, transparent 0%, black 17%, black 83%, transparent 100%)',
+                "linear-gradient(to bottom, transparent 0%, black 17%, black 83%, transparent 100%)",
               maskImage:
-                'linear-gradient(to bottom, transparent 0%, black 17%, black 83%, transparent 100%)',
+                "linear-gradient(to bottom, transparent 0%, black 17%, black 83%, transparent 100%)",
             }}
           >
             <motion.ul
@@ -335,7 +374,7 @@ function ServiceScrollIndex() {
                   layout={layout}
                   centers={centers}
                   itemRef={(node) => {
-                    itemRefs.current[i] = node
+                    itemRefs.current[i] = node;
                   }}
                 />
               ))}
@@ -344,7 +383,7 @@ function ServiceScrollIndex() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -363,39 +402,41 @@ function ServiceRow({
   centers,
   itemRef,
 }: {
-  index: number
-  name: string
-  description: string
+  index: number;
+  name: string;
+  description: string;
   /** The row the arrow points at — the same index as the counter. */
-  active: boolean
-  focus: MotionValue<number>
-  layout: MotionValue<number>
-  centers: RefObject<number[]>
-  itemRef: (node: HTMLLIElement | null) => void
+  active: boolean;
+  focus: MotionValue<number>;
+  layout: MotionValue<number>;
+  centers: RefObject<number[]>;
+  itemRef: (node: HTMLLIElement | null) => void;
 }) {
   // Small plateau so the focused row reads fully #111 between steps.
   const distance = useTransform([focus, layout], ([s]: number[]) =>
-    centers.current.length === TOTAL ? Math.max(0, Math.abs(index - s) - 0.08) : index,
-  )
-  const opacity = useTransform(distance, (d) => lookup(OPACITY_BY_DISTANCE, d))
+    centers.current.length === TOTAL
+      ? Math.max(0, Math.abs(index - s) - 0.08)
+      : index,
+  );
+  const opacity = useTransform(distance, (d) => lookup(OPACITY_BY_DISTANCE, d));
   const filter = useTransform(distance, (d) => {
-    const blur = lookup(BLUR_BY_DISTANCE, d)
-    return blur < 0.05 ? 'none' : `blur(${blur.toFixed(2)}px)`
-  })
-  const scale = useTransform(distance, (d) => lookup(SCALE_BY_DISTANCE, d))
+    const blur = lookup(BLUR_BY_DISTANCE, d);
+    return blur < 0.05 ? "none" : `blur(${blur.toFixed(2)}px)`;
+  });
+  const scale = useTransform(distance, (d) => lookup(SCALE_BY_DISTANCE, d));
   // The index tag cancels the row's scale so it stays a quiet 10px label.
-  const tagScale = useTransform(scale, (v) => 1 / v)
-  const firstLine = LINE_BREAKS[name]
-  const rest = firstLine ? name.slice(firstLine.length).trim() : name
-  const split = rest.lastIndexOf(' ')
-  const head = split === -1 ? '' : rest.slice(0, split + 1)
-  const last = rest.slice(split + 1)
+  const tagScale = useTransform(scale, (v) => 1 / v);
+  const firstLine = LINE_BREAKS[name];
+  const rest = firstLine ? name.slice(firstLine.length).trim() : name;
+  const split = rest.lastIndexOf(" ");
+  const head = split === -1 ? "" : rest.slice(0, split + 1);
+  const last = rest.slice(split + 1);
 
   return (
     <motion.li
       ref={itemRef}
-      style={{ opacity, filter, scale, transformOrigin: 'left center' }}
-      className={`services-display service-row${active ? ' is-active' : ''} max-w-[400px] text-[clamp(36px,3.3vw,38px)] leading-[1.08] tracking-[-0.035em]`}
+      style={{ opacity, filter, scale, transformOrigin: "left center" }}
+      className={`services-display service-row${active ? " is-active" : ""} max-w-[400px] text-[clamp(36px,3.3vw,38px)] leading-[1.08] tracking-[-0.035em]`}
     >
       {firstLine && (
         <>
@@ -410,7 +451,7 @@ function ServiceRow({
         {last}
         <motion.span
           aria-hidden="true"
-          style={{ scale: tagScale, transformOrigin: 'left center' }}
+          style={{ scale: tagScale, transformOrigin: "left center" }}
           className="ml-[0.4em] inline-block align-top text-[10px] leading-[2.2] font-thin tracking-[0.08em] tabular-nums opacity-50"
         >
           {pad(index + 1)}
@@ -418,7 +459,7 @@ function ServiceRow({
       </span>
       <span className="sr-only">: {description}</span>
     </motion.li>
-  )
+  );
 }
 
 /**
@@ -428,21 +469,25 @@ function ServiceRow({
  */
 function ServiceStack({ animated }: { animated: boolean }) {
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-4 pt-10 pb-24 sm:px-8 md:grid md:grid-cols-12 md:gap-x-6 md:px-[7vw] md:pb-36">
-      <div className="md:sticky md:top-[30vh] md:col-span-5 md:self-start">
+    <div className="mx-auto w-full max-w-[1600px] px-4 pt-10 pb-24 sm:px-8 md:px-[7vw] md:pb-32 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:pb-36">
+      <div className="lg:sticky lg:top-[30vh] lg:col-span-5 lg:self-start">
         <span className={LABEL_CLASS}>What we do</span>
         <h2 id="our-services-heading" className={`mt-3 ${TITLE_CLASS}`}>
-          Our Services.
+          The studio works across.
         </h2>
       </div>
 
-      <ul className="m-0 mt-14 list-none space-y-11 p-0 md:col-span-6 md:col-start-7 md:mt-0 md:space-y-14">
+      <ul className="m-0 mt-12 list-none space-y-10 p-0 sm:mt-14 sm:space-y-11 lg:col-span-6 lg:col-start-7 lg:mt-0 lg:space-y-14">
         {services.map((service, i) => (
           <motion.li
             key={service.name}
-            initial={animated ? { opacity: 0, filter: 'blur(4px)', y: 12 } : false}
-            whileInView={animated ? { opacity: 1, filter: 'blur(0px)', y: 0 } : undefined}
-            viewport={{ once: true, margin: '0px 0px -12% 0px' }}
+            initial={
+              animated ? { opacity: 0, filter: "blur(4px)", y: 12 } : false
+            }
+            whileInView={
+              animated ? { opacity: 1, filter: "blur(0px)", y: 0 } : undefined
+            }
+            viewport={{ once: true, margin: "0px 0px -12% 0px" }}
             transition={{ duration: 0.7, ease: EASE }}
           >
             <span aria-hidden="true" className={`block ${COUNTER_CLASS}`}>
@@ -453,14 +498,16 @@ function ServiceStack({ animated }: { animated: boolean }) {
             >
               {service.name}
             </span>
-            <span className={`${GROTESK} site-copy mt-3 block max-w-[420px] font-normal text-[#777]`}>
+            <span
+              className={`${GROTESK} site-copy mt-3 block max-w-[420px] font-normal text-[#777]`}
+            >
               {service.description}
             </span>
           </motion.li>
         ))}
       </ul>
     </div>
-  )
+  );
 }
 
-export default Capabilities
+export default Capabilities;

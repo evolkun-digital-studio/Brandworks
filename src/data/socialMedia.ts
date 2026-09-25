@@ -53,10 +53,10 @@ export const SOCIAL_REELS: SocialReel[] = [
   },
 ]
 
-export const SOCIAL_SECTION = { 
-  heading: 'Content built to stop the scroll.',
+export const SOCIAL_SECTION = {
+  heading: 'Social Media & Content',
   description:
-    'From strategy and concepts to reels, campaigns and daily content, we build social presence that feels consistent, relevant and worth following.',
+    'A consistent presence, built around real ideas. We develop content strategies, campaigns, reels, graphics and ongoing formats for brands and founders. The goal is simple: make every piece feel connected rather than posted in isolation.',
   phoneLabel: 'Social Media & Content',
 }
 
