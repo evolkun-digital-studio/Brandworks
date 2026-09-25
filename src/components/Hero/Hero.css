@@ -373,7 +373,8 @@
   transition: opacity 0.8s var(--hero-ease);
 }
 
-.hero[data-service='social'] .hero-overlay {
+.hero[data-service='social'] .hero-overlay,
+.hero[data-service='web'] .hero-overlay {
   opacity: 0;
 }
 
@@ -406,11 +407,16 @@
 .hero-title {
   margin: 0;
   font-family: var(--font-primary);
-  font-size: clamp(56px, 5vw, 56px);
+  font-size: clamp(48px, 5vw, 48px);
   font-style: normal;
   font-weight: 400;
   line-height: 0.92;
   letter-spacing: -0.045em;
+}
+
+/* Web's headline reads as two even lines, not a one-word widow. */
+.hero[data-service='web'] .hero-title {
+  text-wrap: balance;
 }
 
 .hero-description {
@@ -494,6 +500,15 @@
   pointer-events: auto;
 }
 
+/* Six services don't fit one row beside the headline: two even rows of
+   three, capsules at full size. */
+@media (min-width: 1024px) {
+  .hero-switcher {
+    flex-wrap: wrap;
+    max-width: 540px;
+  }
+}
+
 .hero-capsule {
   min-height: 44px;
   padding: 13px 20px;
@@ -566,6 +581,11 @@
     min-height: max(100svh, calc(96px + var(--social-stage-h) + 28px + var(--hero-content-h, 480px)));
   }
 
+  /* Web: never squeeze the browser below a readable size. */
+  .hero[data-service='web'] {
+    min-height: max(100svh, calc(var(--web-stage-top, 124px) + var(--web-stage-min, 400px) + var(--hero-content-h, 480px)));
+  }
+
   .social-showcase__stage {
     top: auto;
     right: 0;
@@ -636,6 +656,8 @@
 
 @media (max-width: 767px) {
   .hero {
+    --web-stage-top: 124px;
+    --web-stage-min: 290px;
     --social-card-w: min(60vw, 300px);
     --social-sheet-w: calc(100vw - var(--hero-gutter) * 2);
     --social-sheet-h: calc(var(--social-sheet-w) * 9 / 8);

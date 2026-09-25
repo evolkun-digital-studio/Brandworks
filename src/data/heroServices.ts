@@ -55,14 +55,18 @@ export type HeroMedia =
       image: HeroImage
       video: { src: string; poster: string; label: string }
     }
+  /** Web Design & Development: a coded composition, no media to fetch. */
+  | { kind: 'web' }
 
-export type HeroServiceId = 'photography' | 'videography' | 'social' | 'pr' | 'graphic-animation'
+export type HeroServiceId = 'photography' | 'videography' | 'social' | 'pr' | 'graphic-animation' | 'web'
 
 export type HeroService = {
   id: HeroServiceId
   /** Capsule label. */
   label: string
-  /** Small caption shown with the visual. */ 
+  /** Optional kicker above the service list in the caption. */
+  eyebrow?: string
+  /** Small caption shown with the visual. */
   headline: string
   serviceList: string
   text: string
@@ -91,6 +95,7 @@ export const HERO_SERVICE_ORDER: HeroServiceId[] = [
   'pr',
   'social',
   'graphic-animation',
+  'web',
 ]
 
 export const DEFAULT_HERO_SERVICE: HeroServiceId = 'videography'
@@ -337,5 +342,13 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
         alt: 'Abstract spectrum of coloured light in motion against black',
       },
     },
+  },
+  web: {
+    id: 'web',
+    label: 'Web Design & Dev',
+    headline: 'Digital experiences built to work.',
+    text: 'Websites designed and developed around clarity, interaction and how people actually use the web.',
+    serviceList: 'Strategy · UX/UI · Development · Performance',
+    media: { kind: 'web' },
   },
 }
