@@ -23,6 +23,7 @@ import Testimonials from './Testimonials'
 import BlogPage from './blog/pages/BlogPage'
 import BlogDetailPage from './blog/pages/BlogDetailPage'
 import NotFound from './NotFound'
+import AboutPage from './components/AboutPage/AboutPage'
 import WebsiteSectionProps from "./Seo";
 
 // Route-level code splitting (Phase 10, Part 13): AdminRoutes pulls in
@@ -101,6 +102,7 @@ function App() {
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogDetailPage />} />
         {/* Catch-all for any other path (Phase 13, Part 1/15) — kept

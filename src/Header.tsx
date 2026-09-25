@@ -6,7 +6,7 @@ const LOGO_SRC = 'https://ik.imagekit.io/rxoyjxx4c/ChatGPT%20Image%20Sep%2023,%2
 
 const navLinks:{ label: string; href: string }[] = [
   { label: 'Home', href: '/' },
-  { label: 'About', href: '#' },
+  { label: 'About', href: '/about' },
   { label: 'Services', href: '#' },
   { label: 'Work', href: '#' },
   { label: 'Insights', href: '/blog' },
