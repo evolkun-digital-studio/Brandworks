@@ -39,7 +39,7 @@
   position: absolute;
   inset: -7% 0;
   background: url('https://ik.imagekit.io/rxoyjxx4c/pattern%20@4x.png?updatedAt=1790058641375') 50% 50% / cover no-repeat;
-  opacity: 0.35;
+  opacity: 0.12;
   transform: rotate(30deg) scale(1.15);
   transform-origin: center;
   will-change: transform;
@@ -61,13 +61,14 @@
 }
 
 .social-heading {
-  font-size: clamp(40px, 5vw, 80px);
+  font-size: clamp(32px, 5vw, 50px);
 }
 
 /* Heavier and darker than the shared P1, so it holds up over the pattern. */
 .social-description {
   max-width: 34ch;
   font-weight: 500;
+  font-size: 16px;
   color: var(--ink);
 }
 

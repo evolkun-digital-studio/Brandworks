@@ -1,55 +1,119 @@
-const testimonial = {
-  quote:
-    'The AI agents have taken a huge amount of repetitive work off our team, automating tasks that used to consume hours every day. Everything now feels noticeably faster, simpler, and far more organized, allowing our team to focus on higher-value work instead of manual processes.',
-  name: 'Mikle John',
-  role: 'Marketing Director',
-  initials: 'MJ',
-  avatarColor: '#2f8f4e',
+import { motion, useReducedMotion } from 'motion/react'
+import type { Variants } from 'motion/react'
+import './Testimonials.css'
+
+type Testimonial = {
+  quote: string
+  name: string
+  role: string
+  initials: string
+  /** Optional portrait; the initials sit on the lime disc until one is supplied. */
+  image?: string
 }
 
-const testimonials = [testimonial, testimonial, testimonial]
+const testimonials: Testimonial[] = [
+  {
+    quote:
+      'The AI agents have taken a huge amount of repetitive work off our team, automating tasks that used to consume hours every day. Everything now feels noticeably faster, simpler, and far more organized, allowing our team to focus on higher-value work instead of manual processes.',
+    name: 'Mikle John',
+    role: 'Marketing Director',
+    initials: 'MJ',
+  },
+  {
+    quote:
+      'The AI agents have taken a huge amount of repetitive work off our team, automating tasks that used to consume hours every day. Everything now feels noticeably faster, simpler, and far more organized, allowing our team to focus on higher-value work instead of manual processes.',
+    name: 'Mikle John',
+    role: 'Marketing Director',
+    initials: 'MJ',
+  },
+  {
+    quote:
+      'The AI agents have taken a huge amount of repetitive work off our team, automating tasks that used to consume hours every day. Everything now feels noticeably faster, simpler, and far more organized, allowing our team to focus on higher-value work instead of manual processes.',
+    name: 'Mikle John',
+    role: 'Marketing Director',
+    initials: 'MJ',
+  },
+]
+
+/** The site's entrance curve — the same one Capabilities.tsx uses. */
+const EASE = [0.22, 1, 0.36, 1] as const
+
+// Line → heading → copy → cards, all driven by the section entering view.
+const intro: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12 } },
+}
+
+const rule: Variants = {
+  hidden: { scaleX: 0 },
+  visible: { scaleX: 1, transition: { duration: 0.6, ease: EASE } },
+}
+
+const rise: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
+}
+
+const grid: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.11, delayChildren: 0.1 } },
+}
 
 function Testimonials() {
+  const reduce = useReducedMotion()
+  // With reduced motion everything renders in its final state.
+  const reveal = reduce
+    ? {}
+    : { initial: 'hidden', whileInView: 'visible', viewport: { once: true, amount: 0.2 } }
+
   return (
-    <section className="mx-auto flex w-full max-w-[1280px] flex-col px-4 pt-20 pb-16 sm:pb-20 lg:pb-28">
-      <h2 className="site-heading text-neutral-900">
-        Testimonials
-      </h2>
+    <section className="testimonials" aria-labelledby="testimonials-heading">
+      <motion.header className="testimonials-header" variants={intro} {...reveal}>
+        <motion.span className="testimonials-rule" variants={rule} aria-hidden="true" />
 
-      <p className="site-copy mt-4 max-w-[560px] text-neutral-600">
-        See how businesses are using intelligent automation to work smarter
-        and scale faster.
-      </p>
+        <motion.h2 id="testimonials-heading" className="site-display testimonials-title" variants={rise}>
+          What clients say<span className="testimonials-dot">.</span>
+        </motion.h2>
 
-      <div className="mt-10 grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {testimonials.map((item, index) => (
-          <div
-            key={index}
-            className="flex min-h-[360px] flex-col justify-between rounded-[16px] bg-neutral-100 p-8 text-left"
-          >
-            <p className="text-[15px] leading-[1.6] font-normal text-neutral-700">
-              {item.quote}
-            </p>
+        <motion.p className="site-copy testimonials-intro" variants={rise}>
+          Feedback from people we have worked with.
+        </motion.p>
+      </motion.header>
 
-            <div className="mt-8 flex items-center gap-3">
-              <span
-                style={{ backgroundColor: item.avatarColor }}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold text-white"
-              >
-                {item.initials}
-              </span>
-              <div className="flex flex-col">
-                <span className="text-[14px] leading-tight font-semibold text-neutral-900">
-                  {item.name}
+      {testimonials.length > 0 && (
+        <motion.ul className="testimonials-grid" variants={grid} {...reveal}>
+          {testimonials.map((item, index) => (
+            <motion.li key={`${item.name}-${index}`} className="testimonials-cell" variants={rise}>
+              <figure className="testimonial-card">
+                <span className="testimonial-mark" aria-hidden="true">
+                  “
                 </span>
-                <span className="text-[12px] leading-tight text-neutral-500">
-                  {item.role}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+
+                <blockquote className="testimonial-quote">
+                  <p>“{item.quote}”</p>
+                </blockquote>
+
+                <span className="testimonial-divider" aria-hidden="true" />
+
+                <figcaption className="testimonial-client">
+                  <span className="testimonial-avatar" aria-hidden="true">
+                    {item.image ? (
+                      <img src={item.image} alt="" loading="lazy" decoding="async" />
+                    ) : (
+                      item.initials
+                    )}
+                  </span>
+
+                  <span className="testimonial-meta">
+                    <span className="testimonial-name">{item.name}</span>
+                    <span className="testimonial-role">{item.role}</span>
+                  </span>
+                </figcaption>
+              </figure>
+            </motion.li>
+          ))}
+        </motion.ul>
+      )}
     </section>
   )
 }

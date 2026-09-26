@@ -5,6 +5,7 @@ import type { HeroImage, HeroServiceId } from '../../data/heroServices'
 import { heroServices, HERO_SERVICE_ORDER, DEFAULT_HERO_SERVICE } from '../../data/heroServices'
 import HeroPhotographyGrid from './HeroPhotographyGrid'
 import HeroSocialShowcase from './HeroSocialShowcase'
+import WebDesignHero from './WebDesignHero'
 import { HeroImg } from './HeroImg'
 import type { ImagePriority } from './HeroImg'
 
@@ -188,6 +189,8 @@ function HeroMedia({
                   priority={priority}
                   reducedMotion={reducedMotion}
                 />
+              ) : media.kind === 'web' ? (
+                <WebDesignHero active={isActive} playing={isActive && inView} reducedMotion={reducedMotion} />
               ) : (
                 <HeroImg image={media.image} sizes="100vw" priority={priority} />
               ))}

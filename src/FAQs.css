@@ -81,17 +81,17 @@
 .faq-question {
   min-width: 0;
   font-family: var(--font-secondary);
-  font-size: clamp(18px, 1.4vw, 20px);
+  font-size: clamp(15px, 1.1vw, 17px);
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
 
 .faq-icon {
   position: relative;
   display: block;
-  width: clamp(20px, 1.7vw, 26px);
-  height: clamp(20px, 1.7vw, 26px);
+  width: clamp(20px, 1.7vw, 20px);
+  height: clamp(20px, 1.7vw, 20px);
   flex-shrink: 0;
 }
 

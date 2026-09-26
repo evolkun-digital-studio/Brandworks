@@ -73,16 +73,9 @@ function HeroCaption({ activeId, reducedMotion }: { activeId: HeroServiceId; red
           {service.eyebrow}
         </span>
       </span>
-      {service.title && (
-        <span className="hero-mask">
-          <span data-reveal className="hero-caption__title">
-            {service.title}
-          </span>
-        </span>
-      )}
       <span className="hero-mask">
         <span data-reveal className="hero-caption__text">
-          {service.text}
+          {service.serviceList}
         </span>
       </span>
     </div>

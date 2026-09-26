@@ -1,0 +1,241 @@
+/*
+ * What clients say — understated cards, a lime quote mark and a small
+ * client portrait. Container and gutters match the Industries section
+ * directly above so the two share the same left edge.
+ */
+.testimonials {
+  --testimonials-accent: #c7f703;
+  --testimonials-surface: #f7f7f5;
+  --testimonials-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  display: flex;
+  width: 100%;
+  max-width: 1440px;
+  flex-direction: column;
+  margin-inline: auto;
+  padding: 68px 18px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.testimonials-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.testimonials-rule {
+  display: block;
+  width: 40px;
+  height: 3px;
+  margin-bottom: clamp(18px, 2vw, 24px);
+  border-radius: 2px;
+  background: var(--testimonials-accent);
+  transform-origin: left center;
+}
+
+.testimonials-title {
+  max-width: 900px;
+  color: var(--ink);
+}
+
+.testimonials-dot {
+  color: var(--testimonials-accent);
+}
+
+.testimonials-intro {
+  max-width: 620px;
+  margin-top: 16px;
+  color: var(--ink-muted);
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin: clamp(36px, 4vw, 52px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.testimonials-cell {
+  display: flex;
+  min-width: 0;
+}
+
+.testimonial-card {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  margin: 0;
+  padding: 24px 22px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 18px;
+  background: var(--testimonials-surface);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.025);
+  transition:
+    transform 350ms var(--testimonials-ease),
+    border-color 350ms var(--testimonials-ease);
+}
+
+.testimonial-mark {
+  display: block;
+  height: 0.5em;
+  margin-bottom: 16px;
+  font-family: var(--font-secondary);
+  font-size: 64px;
+  font-weight: 800;
+  font-style: normal;
+  line-height: 0.9;
+  color: var(--testimonials-accent);
+  transform-origin: left top;
+  transition: transform 350ms var(--testimonials-ease);
+}
+
+/* The quote takes the free space, so every client block lands on the
+   same baseline however long its testimonial runs. */
+.testimonial-quote {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.testimonial-quote p {
+  margin: 0;
+  font-family: var(--font-secondary);
+  font-size: 16px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.5;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.testimonial-divider {
+  display: block;
+  width: 120px;
+  height: 1px;
+  margin: 26px 0 20px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.testimonial-client {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.testimonial-avatar {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--testimonials-accent);
+  font-family: var(--font-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.testimonial-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.testimonial-meta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.testimonial-name {
+  font-family: var(--font-secondary);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.testimonial-role {
+  font-family: var(--font-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Tablet: 2 + 1 */
+@media (min-width: 640px) {
+  .testimonials-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .testimonial-card {
+    padding: 32px 28px;
+    border-radius: 20px;
+  }
+
+  .testimonial-quote p {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 900px) {
+  .testimonials {
+    padding: clamp(68px, 7vw, 96px) 48px;
+  }
+}
+
+/* Desktop: three in a row */
+@media (min-width: 1024px) {
+  .testimonials-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .testimonial-card {
+    padding: 36px 34px;
+    border-radius: 22px;
+  }
+
+  .testimonial-mark {
+    font-size: 72px;
+  }
+
+  .testimonial-quote p {
+    font-size: clamp(18px, 1.3vw, 19px);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .testimonial-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 0, 0, 0.09);
+  }
+
+  .testimonial-card:hover .testimonial-mark {
+    transform: translateX(2px) scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testimonial-card,
+  .testimonial-mark {
+    transition: none;
+  }
+
+  .testimonial-card:hover,
+  .testimonial-card:hover .testimonial-mark {
+    transform: none;
+  }
+}

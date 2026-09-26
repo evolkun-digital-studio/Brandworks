@@ -6,9 +6,8 @@ import ServiceSwitcher from './components/Hero/ServiceSwitcher'
 import type { HeroServiceId } from './data/heroServices'
 import {
   DEFAULT_HERO_SERVICE,
-  HERO_DESCRIPTION,
-  HERO_HEADLINE,
   HERO_SERVICE_ORDER,
+  heroServices,
 } from './data/heroServices'
 import './components/Hero/Hero.css'
 
@@ -31,6 +30,7 @@ function Hero() {
   const [activeId, setActiveId] = useState<HeroServiceId>(DEFAULT_HERO_SERVICE)
   const [mounted, setMounted] = useState<ReadonlySet<HeroServiceId>>(() => new Set([DEFAULT_HERO_SERVICE]))
   const [inView, setInView] = useState(true)
+  const service = heroServices[activeId]
 
   const warm = useCallback((id: HeroServiceId) => {
     setMounted((current) => (current.has(id) ? current : new Set(current).add(id)))
@@ -110,10 +110,9 @@ function Hero() {
       <div ref={contentRef} className="hero-content">
         <div className="hero-copy">
           <h1 id="hero-heading" className="hero-title">
-            <span className="sr-only">BrandWorks: </span>
-            {HERO_HEADLINE[0]}
+            {service.headline}
           </h1>
-          <p className="hero-description">{HERO_DESCRIPTION}</p>
+          <p className="hero-description">{service.text}</p>
         </div>
 
         <div className="hero-aside">

@@ -1,0 +1,1043 @@
+/*
+ * Web Design & Development hero visual (WebDesignHero.tsx).
+ *
+ * Everything here is the finished, static composition — the state reduced
+ * motion shows, and the frame the GSAP loop starts and ends on. The loop
+ * only ever animates transform, opacity, clip-path and a couple of colours.
+ *
+ *   .web-hero          the layer: near-black, with a faint technical grid
+ *   .web-hero__stage   the space between the header and the hero copy
+ *   .wd-rig            browser-sized box; the cards are placed against it
+ *   .wd-browser        chrome + viewport; a size container for the site
+ *   .wd-viewport       finished site, wireframe (clipped) and the scan line
+ */
+
+.web-hero {
+  --wd-accent: #c7f703;
+  --wd-ink: #0b0b0b;
+  --wd-paper: #f3f2ee;
+  --wd-hair: rgba(255, 255, 255, 0.09);
+  --wd-radius: 14px;
+  --wd-card-radius: 12px;
+  --wd-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, monospace;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.web-hero .wd-mono {
+  font-family: var(--wd-mono);
+}
+
+/* An almost-invisible construction grid, a touch clearer around the
+   browser and gone at the edges. */
+.wd-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.16) 0.9px, transparent 1.4px),
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size:
+    288px 288px,
+    72px 72px,
+    72px 72px;
+  background-position:
+    -144px -144px,
+    0 0,
+    0 0;
+  -webkit-mask-image: radial-gradient(62% 68% at 60% 40%, #000 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
+  mask-image: radial-gradient(62% 68% at 60% 40%, #000 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------- stage */
+
+.web-hero__stage {
+  position: absolute;
+  top: clamp(96px, 13vh, 140px);
+  right: calc(var(--hero-gutter) * 0.55);
+  bottom: calc(var(--hero-content-h, 280px) + clamp(40px, 7vh, 72px));
+  left: var(--hero-gutter);
+  container-type: size;
+  pointer-events: none;
+}
+
+/* Right of centre and a little oversized: the browser leans out of the
+   column the copy sits in rather than sitting in a box of its own. */
+.wd-rig {
+  --rig-w: min(58cqw, 86cqh * 1.6);
+  position: absolute;
+  left: calc(61cqw - var(--rig-w) / 2);
+  top: calc(46cqh - var(--rig-w) * 0.3125);
+  width: var(--rig-w);
+  aspect-ratio: 16 / 10;
+}
+
+.wd-halo {
+  position: absolute;
+  inset: -18% -14%;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.055), transparent 70%);
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------- browser */
+
+.wd-browser {
+  position: absolute;
+  inset: 0;
+  container: wd / inline-size;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--wd-radius);
+  background: #151515;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 50px 90px -40px rgba(0, 0, 0, 0.9),
+    0 24px 40px -24px rgba(0, 0, 0, 0.6);
+  transform-origin: 50% 60%;
+}
+
+.wd-chrome {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  height: clamp(22px, 3.9cqw, 36px);
+  padding: 0 clamp(9px, 1.6cqw, 16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #161616;
+}
+
+.wd-dots {
+  display: flex;
+  gap: clamp(4px, 0.7cqw, 7px);
+}
+
+.wd-dots i {
+  width: clamp(5px, 0.8cqw, 8px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.wd-url {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  translate: -50% -50%;
+  min-width: 34%;
+  justify-content: center;
+  padding: 0.42em 1.2em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.52);
+  font-family: var(--font-secondary);
+  font-size: clamp(8px, 1.15cqw, 11.5px);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.wd-url__lock {
+  position: relative;
+  width: 0.72em;
+  height: 0.58em;
+  margin-top: 0.3em;
+  border-radius: 1.5px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.wd-url__lock::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 88%;
+  width: 0.5em;
+  height: 0.46em;
+  translate: -50% 0;
+  border: 1.2px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 0;
+  border-radius: 0.3em 0.3em 0 0;
+}
+
+.wd-chrome__end {
+  width: clamp(16px, 2.6cqw, 26px);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 -4px 0 rgba(255, 255, 255, 0.14), 0 4px 0 rgba(255, 255, 255, 0.14);
+}
+
+.wd-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--wd-paper);
+}
+
+/* ----------------------------------------------------------------- site */
+
+.wd-site {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: 2.4cqw 3.6cqw 2.2cqw;
+  background: var(--wd-paper);
+  color: var(--wd-ink);
+  font-family: var(--font-secondary);
+}
+
+.wd-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: max(7.5px, 1.1cqw);
+  line-height: 1;
+}
+
+.wd-logo {
+  font-family: var(--font-primary);
+  font-size: 1.35em;
+  letter-spacing: -0.02em;
+}
+
+.wd-links {
+  display: flex;
+  gap: 2.6cqw;
+  color: rgba(11, 11, 11, 0.62);
+}
+
+.wd-contact {
+  padding: 0.6em 1.1em;
+  border: 1px solid rgba(11, 11, 11, 0.2);
+  border-radius: 999px;
+}
+
+.wd-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 3.6cqw;
+  min-height: 0;
+}
+
+.wd-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.wd-eyebrow {
+  display: block;
+  font-size: max(6.5px, 0.9cqw);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(11, 11, 11, 0.5);
+}
+
+.wd-h1 {
+  position: relative;
+  display: block;
+  margin-top: 1.6cqw;
+  font-family: var(--font-primary);
+  font-size: 6.3cqw;
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+}
+
+.wd-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+.wd-line {
+  display: inline-block;
+}
+
+.wd-copy {
+  display: block;
+  max-width: 30ch;
+  margin-top: 2cqw;
+  font-size: max(7.5px, 1.22cqw);
+  line-height: 1.5;
+  color: rgba(11, 11, 11, 0.62);
+}
+
+.wd-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  margin-top: 2.6cqw;
+  padding: 0.95em 1.25em 0.95em 1.45em;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wd-ink);
+  color: #fff;
+  font-size: max(7.5px, 1.12cqw);
+  font-weight: 600;
+  line-height: 1;
+  isolation: isolate;
+}
+
+.wd-cta__fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--wd-accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.wd-cta__arrow {
+  display: inline-flex;
+  width: 1.05em;
+  height: 1.05em;
+}
+
+.wd-cta__arrow svg,
+.wd-view svg {
+  width: 100%;
+  height: 100%;
+}
+
+.wd-art {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9cqw;
+  min-height: 0;
+  margin: 0;
+}
+
+.wd-art__frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 6 / 5;
+  max-height: 100%;
+  overflow: hidden;
+  border-radius: 0.9cqw;
+  background: #15161c;
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+}
+
+/* The artwork: a lit sphere and one orbit in a cool, deep field, with the
+   studio lime kept to a low glow. Pure CSS, nothing to download. */
+.wd-art__img {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(44% 38% at 14% 96%, rgba(199, 247, 3, 0.3), rgba(199, 247, 3, 0) 70%),
+    radial-gradient(60% 55% at 84% 8%, rgba(184, 192, 255, 0.55), rgba(184, 192, 255, 0) 70%),
+    linear-gradient(160deg, #2c3048 0%, #16171f 58%, #0e0f13 100%);
+  transform-origin: 60% 55%;
+}
+
+.wd-art__orb {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 54%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #fbfbf8 0%, #d4d7e6 16%, #7f86a8 44%, #2a2d40 74%, #15161e 100%);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+.wd-art__orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 92%;
+  height: 26%;
+  translate: -50% -50%;
+  rotate: -14deg;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 50%;
+}
+
+.wd-art__rule {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  bottom: 8%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.wd-art__cap {
+  display: flex;
+  justify-content: space-between;
+  font-size: max(6.5px, 0.88cqw);
+  line-height: 1.2;
+  color: rgba(11, 11, 11, 0.5);
+}
+
+.wd-view {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  width: max-content;
+  height: max-content;
+  margin: auto;
+  padding: 0.85em 1.2em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--wd-ink);
+  font-size: max(7.5px, 1.05cqw);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.wd-view svg {
+  width: 1em;
+  height: 1em;
+}
+
+.wd-foot {
+  display: flex;
+  gap: 3cqw;
+  padding-top: 1.3cqw;
+  border-top: 1px solid rgba(11, 11, 11, 0.12);
+  font-size: max(6.5px, 0.88cqw);
+  line-height: 1.2;
+  color: rgba(11, 11, 11, 0.55);
+}
+
+.wd-foot > :first-child {
+  margin-right: auto;
+  color: var(--wd-ink);
+}
+
+/* The headline selection: a design tool's bounding box, not a highlight. */
+.wd-select {
+  position: absolute;
+  inset: -0.5cqw -0.9cqw -0.3cqw -0.9cqw;
+  border: 1px solid var(--wd-ink);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wd-select i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--wd-ink);
+  background: #fff;
+}
+
+.wd-select i:nth-child(1) { left: -3px; top: -3px; }
+.wd-select i:nth-child(2) { right: -3px; top: -3px; }
+.wd-select i:nth-child(3) { left: -3px; bottom: -3px; }
+.wd-select i:nth-child(4) { right: -3px; bottom: -3px; }
+
+.wd-select__tag {
+  position: absolute;
+  right: -1px;
+  bottom: calc(100% + 5px);
+  padding: 0.45em 0.7em;
+  border-radius: 4px;
+  background: var(--wd-ink);
+  color: var(--wd-accent);
+  font-family: var(--wd-mono);
+  font-size: max(7px, 0.85cqw);
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ wireframe */
+
+.wd-wire {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  clip-path: inset(0 100% 0 0);
+}
+
+.wd-site--wire {
+  background: #121212;
+  color: transparent;
+}
+
+/* Type becomes blocks the exact length of each line it set. */
+.wd-site--wire .wd-t {
+  color: transparent;
+  background: linear-gradient(transparent 28%, rgba(255, 255, 255, 0.15) 28% 72%, transparent 72%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  border-radius: 2px;
+}
+
+.wd-site--wire .wd-h1 .wd-t {
+  background: linear-gradient(transparent 20%, rgba(255, 255, 255, 0.11) 20% 84%, transparent 84%);
+}
+
+.wd-h1 > .wd-tag {
+  left: auto;
+  right: 0;
+}
+
+.wd-site--wire .wd-links,
+.wd-site--wire .wd-copy,
+.wd-site--wire .wd-eyebrow,
+.wd-site--wire .wd-art__cap,
+.wd-site--wire .wd-foot {
+  color: transparent;
+}
+
+.wd-site--wire .wd-nav,
+.wd-site--wire .wd-text,
+.wd-site--wire .wd-h1 {
+  outline: 1px dashed rgba(255, 255, 255, 0.16);
+  outline-offset: 0.7cqw;
+}
+
+.wd-site--wire .wd-contact {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.wd-site--wire .wd-contact .wd-t {
+  background: none;
+}
+
+.wd-site--wire .wd-cta {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  color: transparent;
+  overflow: visible;
+}
+
+.wd-site--wire .wd-cta .wd-t {
+  background: linear-gradient(transparent 34%, rgba(255, 255, 255, 0.2) 34% 66%, transparent 66%);
+}
+
+.wd-site--wire .wd-art__frame {
+  overflow: visible;
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.wd-art__x {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.wd-art__x line {
+  stroke: rgba(255, 255, 255, 0.13);
+  stroke-width: 1;
+}
+
+.wd-site--wire .wd-foot {
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+
+/* 12-column layout grid under the structure. */
+.wd-cols {
+  position: absolute;
+  inset: 0 3.6cqw;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1.2cqw;
+  pointer-events: none;
+}
+
+.wd-cols span {
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.035),
+    inset -1px 0 0 rgba(255, 255, 255, 0.035);
+}
+
+.wd-tag {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.9cqw);
+  padding: 0.3em 0.5em;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--wd-mono);
+  font-size: max(6.5px, 0.78cqw);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.wd-tag--in {
+  bottom: auto;
+  top: 0.8cqw;
+  left: 0.8cqw;
+}
+
+.wd-nav .wd-tag--in {
+  top: 50%;
+  left: 34%;
+  margin-top: -0.8em;
+}
+
+.wd-cta .wd-tag {
+  left: calc(100% + 0.8cqw);
+  top: 50%;
+  bottom: auto;
+  margin-top: -0.8em;
+}
+
+/* ---------------------------------------------------------------- scan */
+
+/* A full-width box whose left edge is the line: sliding the box moves the
+   line, and the viewport's overflow keeps the rest out of sight. */
+.wd-scan {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  opacity: 0;
+  transform: translateX(100%);
+  pointer-events: none;
+}
+
+.wd-scan__line {
+  position: absolute;
+  left: -1px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--wd-accent);
+  box-shadow: 0 0 12px rgba(199, 247, 3, 0.55), 0 0 2px rgba(199, 247, 3, 0.9);
+}
+
+.wd-scan__glow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 14cqw;
+  background: linear-gradient(90deg, rgba(199, 247, 3, 0.16), rgba(199, 247, 3, 0));
+}
+
+.wd-scan__label {
+  position: absolute;
+  top: 1.2cqw;
+  font-size: max(6.5px, 0.78cqw);
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wd-scan__label--before {
+  right: calc(100% + 1cqw);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.wd-scan__label--after {
+  left: 1cqw;
+  color: rgba(11, 11, 11, 0.55);
+}
+
+/* --------------------------------------------------------------- cards */
+
+.wd-card {
+  position: absolute;
+  z-index: 2;
+  padding: 12px 14px 13px;
+  border: 1px solid var(--wd-hair);
+  border-radius: var(--wd-card-radius);
+  background: rgba(20, 20, 20, 0.78);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.85);
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font-secondary);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.wd-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 9px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.wd-card__head .wd-mono {
+  font-size: 9.5px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.wd-card--code {
+  left: -8%;
+  bottom: -11%;
+  width: clamp(208px, 30%, 250px);
+}
+
+.wd-code {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: pre;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.wd-code i {
+  display: inline-block;
+  width: 18px;
+  font-style: normal;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.wd-code b {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.wd-code em {
+  font-style: normal;
+  color: var(--wd-accent);
+}
+
+.wd-card--type {
+  right: -9%;
+  top: 54%;
+  width: clamp(124px, 16%, 150px);
+}
+
+.wd-type__specimen {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-primary);
+  font-size: 40px;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: #fff;
+}
+
+.wd-type__hl {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 2px;
+  background: var(--wd-accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.wd-type__specs {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 0;
+  font-size: 10px;
+}
+
+.wd-type__specs div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.wd-type__specs dt {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.wd-type__specs dd {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+/* Floats free of the browser, in the open space above the headline. */
+.wd-card--resp {
+  right: calc(100% + 30px);
+  top: 9%;
+  width: clamp(150px, 21%, 184px);
+}
+
+.wd-devices {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 30px;
+  padding: 0 2px;
+}
+
+.wd-device {
+  position: relative;
+  border: 1.3px solid rgba(255, 255, 255, 0.34);
+  border-radius: 3px;
+}
+
+.wd-device--desktop {
+  width: 44px;
+  height: 26px;
+  margin-bottom: 4px;
+}
+
+.wd-device--desktop::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 14px;
+  height: 4px;
+  translate: -50% 0;
+  border-bottom: 1.3px solid rgba(255, 255, 255, 0.34);
+}
+
+.wd-device--tablet {
+  width: 21px;
+  height: 28px;
+}
+
+.wd-device--phone {
+  width: 13px;
+  height: 24px;
+  border-radius: 3.5px;
+}
+
+.wd-device.is-on {
+  border-color: rgba(255, 255, 255, 0.86);
+}
+
+.wd-device.is-on::before {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: -4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--wd-accent);
+}
+
+.wd-devices__sizes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+/* -------------------------------------------------------------- cursor */
+
+.wd-cursor {
+  --cursor: 30px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 5;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+}
+
+.wd-cursor__arrow {
+  position: absolute;
+  left: calc(var(--cursor) * -0.0833);
+  top: calc(var(--cursor) * -0.0714);
+  width: var(--cursor);
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+}
+
+.wd-cursor__arrow path {
+  fill: var(--wd-accent);
+  stroke: var(--wd-ink);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+}
+
+.wd-cursor__tag {
+  position: absolute;
+  left: calc(var(--cursor) * 0.62);
+  top: calc(var(--cursor) * 0.9);
+  padding: 5px 9px;
+  border-radius: 3px 10px 10px 10px;
+  background: var(--wd-accent);
+  color: var(--wd-ink);
+  font-family: var(--font-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------- tablet */
+
+@media (max-width: 1199px) {
+  .wd-card--code {
+    left: -5%;
+    width: clamp(196px, 32%, 232px);
+  }
+
+  .wd-card--type {
+    right: -5%;
+  }
+}
+
+/* A short stage (small laptops, where the copy runs to four lines): the
+   browser is too small to wear cards over it, so they step outside it. */
+@container (max-height: 380px) {
+  .wd-card--code {
+    left: auto;
+    right: calc(100% + 28px);
+    bottom: 2%;
+  }
+
+  .wd-card--resp {
+    display: none;
+  }
+
+  .wd-card--type {
+    right: -14%;
+    top: 30%;
+  }
+}
+
+/* Single-column copy below: the browser takes the centre of the stage and
+   the cards pull in close to it. */
+@media (max-width: 1023px) {
+  .web-hero__stage {
+    top: clamp(96px, 11vh, 132px);
+    right: var(--hero-gutter);
+    bottom: calc(var(--hero-content-h, 420px) + 40px);
+  }
+
+  .wd-rig {
+    --rig-w: min(84cqw, 80cqh * 1.6);
+    left: calc(50cqw - var(--rig-w) / 2);
+    top: calc(48cqh - var(--rig-w) * 0.3125);
+  }
+
+  .wd-grid {
+    -webkit-mask-image: radial-gradient(80% 60% at 50% 34%, #000 0%, rgba(0, 0, 0, 0.4) 55%, transparent 100%);
+    mask-image: radial-gradient(80% 60% at 50% 34%, #000 0%, rgba(0, 0, 0, 0.4) 55%, transparent 100%);
+  }
+
+  .wd-card--code {
+    left: -4%;
+    bottom: -9%;
+  }
+
+  .wd-card--type {
+    right: -4%;
+    top: 36%;
+  }
+
+  .wd-card--resp {
+    right: -3%;
+    top: -13%;
+  }
+}
+
+/* --------------------------------------------------------------- mobile */
+
+/* The browser becomes the upper visual at full width, taller than a
+   desktop window so the site stays legible, with one card beside it. */
+@media (max-width: 639px) {
+  .web-hero__stage {
+    top: 96px;
+    bottom: calc(var(--hero-content-h, 460px) + 28px);
+  }
+
+  .wd-rig {
+    --rig-w: min(100cqw, 92cqh * 1.3);
+    aspect-ratio: 13 / 10;
+    left: calc(50cqw - var(--rig-w) / 2);
+    top: calc(46cqh - var(--rig-w) * 0.3846);
+  }
+
+  .wd-browser {
+    --wd-radius: 12px;
+  }
+
+  .wd-site {
+    padding: 3.6cqw 4.4cqw 3.4cqw;
+  }
+
+  .wd-main {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 4cqw;
+  }
+
+  .wd-h1 {
+    font-size: 7.4cqw;
+  }
+
+  .wd-copy,
+  .wd-links,
+  .wd-foot > :nth-child(n + 3) {
+    display: none;
+  }
+
+  .wd-art__frame {
+    aspect-ratio: 4 / 5;
+  }
+
+  .wd-card--code,
+  .wd-card--resp {
+    display: none;
+  }
+
+  .wd-card--type {
+    right: -2px;
+    top: auto;
+    bottom: -9%;
+    width: 112px;
+    padding: 9px 11px 10px;
+  }
+
+  .wd-type__specimen {
+    font-size: 30px;
+  }
+
+  .wd-type__specs {
+    margin-top: 8px;
+  }
+
+  .wd-type__specs div:nth-child(3) {
+    display: none;
+  }
+
+  .wd-cursor {
+    --cursor: 22px;
+  }
+
+  .wd-cursor__tag {
+    display: none;
+  }
+}

@@ -59,7 +59,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 50px;
+  height: 25px;
   padding: 0 18px;
   border: 1px solid var(--pill-border);
   border-radius: 999px;
@@ -85,6 +85,7 @@
 }
 
 .nav-pill--cta {
+  height: 35px;
   padding: 0 20px;
   border-color: var(--cta-border);
   background: var(--cta-bg);

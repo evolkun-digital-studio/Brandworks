@@ -6,7 +6,6 @@
   min-height: 100svh;
   flex-direction: column;
   overflow: hidden;
-  /* The band of film above the lime strip — also the fullscreen zone. */
   --footer-video-top: clamp(112px, 17vh, 180px);
   padding-top: var(--footer-video-top);
   background: #151713;
@@ -35,7 +34,6 @@
   background: #151713;
 }
 
-/* In the viewer the whole frame shows, letterboxed on black. */
 .footer-video:fullscreen {
   object-fit: contain;
   background: #000;
@@ -46,15 +44,12 @@
   background: #000;
 }
 
-/* Enough shade for the white type; the film stays the hero. */
 .footer-video-overlay {
   z-index: 1;
   background: rgba(0, 0, 0, 0.45);
   pointer-events: none;
 }
 
-/* The only fullscreen hover/click area: the film band above the lime strip.
-   Touch screens use the visible button instead, so it's inert there. */
 .footer-video-zone {
   position: absolute;
   top: 0;
@@ -97,7 +92,6 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
-  /* centre the pill on the pointer */
   transform: translate(-50%, -50%);
 }
 
@@ -105,8 +99,6 @@
   letter-spacing: 0;
 }
 
-/* Touch and tablet: a small, always-visible button over the film. On a
-   desktop pointer it stays out of sight until reached by keyboard. */
 .footer-fullscreen-button {
   position: absolute;
   top: clamp(20px, 3vh, 32px);
@@ -124,8 +116,10 @@
   font-family: var(--font-secondary);
   font-size: 11px;
   font-weight: 600;
+  line-height: 1;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -145,30 +139,30 @@
   position: relative;
   z-index: 5;
   display: flex;
-  justify-content: space-between;
-  gap: 32px;
   width: 100%;
   min-height: clamp(130px, 10.5vw, 165px);
   align-items: center;
+  justify-content: space-between;
+  gap: clamp(24px, 4vw, 56px);
   padding: 18px var(--hero-gutter);
-  background: #c7f703;
-  color: #171914;
+  background: #000;
+  color: #fff;
   transform-origin: left center;
   transition:
     background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
     color 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* On hover the strip turns black; the CTA (which inherits this colour)
-   flips to white, and the logo's white wordmark reads as is. */
 .footer-brand-strip:hover {
-  background: #000;
+  background: white;
   color: #fff;
 }
 
 .footer-logo {
   display: block;
-  width: clamp(250px, 23vw, 360px);
+  width: clamp(220px, 23vw, 360px);
+  max-width: 60%;
+  flex-shrink: 1;
 }
 
 .footer-logo img {
@@ -176,16 +170,25 @@
   width: 100%;
   height: auto;
   filter: none;
+  transition: filter 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.footer-brand-strip:hover .footer-logo img {
+  filter: grayscale(1);
 }
 
 .footer-cta {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 9px;
   padding: 12px 0;
+  color: inherit;
   font-family: var(--font-secondary);
   font-size: clamp(14px, 1.1vw, 17px);
+  font-weight: 400;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .footer-cta span,
@@ -196,6 +199,7 @@
 .footer-cta svg {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }
 
 .footer-cta:hover span,
@@ -208,8 +212,6 @@
   transform: translate(3px, -3px);
 }
 
-/* Navigation, then socials and email, in two left-aligned columns that
-   start near the middle; the space to their left is left open. */
 .footer-content {
   position: relative;
   z-index: 5;
@@ -230,7 +232,6 @@
   list-style: none;
 }
 
-/* Every piece of footer copy is set in Grimblade, upright and regular. */
 .footer-content,
 .footer-meta {
   font-family: var(--font-primary);
@@ -259,7 +260,6 @@
 }
 
 .footer-main-nav ul {
-  /* With the 1.7 line-height this leaves ~20px of air between links. */
   gap: 8px;
 }
 
@@ -276,7 +276,6 @@
 }
 
 .footer-socials {
-  /* ~12px of air between links at a 1.6 line-height. */
   gap: 2px;
 }
 
@@ -291,8 +290,6 @@
   word-break: break-word;
 }
 
-/* Quiet metadata on the bottom edge: left, centre and right thirds on one
-   baseline. */
 .footer-meta {
   position: relative;
   z-index: 5;
@@ -303,9 +300,9 @@
   width: 100%;
   margin-top: auto;
   padding: 20px var(--hero-gutter) 24px;
+  color: #fff;
   font-size: 13px;
   line-height: 1.2;
-  color: #fff;
 }
 
 .footer-meta > * {
@@ -332,15 +329,47 @@
   opacity: 1;
 }
 
+@media (max-width: 1199px) {
+  .footer-content {
+    grid-template-columns: minmax(0, 0.7fr) auto auto minmax(0, 0.15fr);
+    column-gap: clamp(48px, 6vw, 90px);
+  }
+
+  .footer-logo {
+    width: clamp(220px, 25vw, 300px);
+  }
+}
+
 @media (max-width: 1023px) {
   .brandworks-footer {
     --footer-video-top: clamp(88px, 12vh, 128px);
   }
 
+  .footer-brand-strip {
+    gap: 28px;
+    padding: 24px var(--page-gutter);
+  }
+
+  .footer-logo {
+    width: clamp(210px, 30vw, 280px);
+  }
+
+  .footer-cta {
+    font-size: 14px;
+  }
+
   .footer-content {
-    grid-template-columns: minmax(0, 0.6fr) auto auto minmax(0, 0.2fr);
-    column-gap: clamp(48px, 7vw, 80px);
+    grid-template-columns: minmax(0, 0.45fr) auto auto;
+    column-gap: clamp(40px, 6vw, 70px);
     padding-inline: var(--page-gutter);
+  }
+
+  .footer-main-nav {
+    grid-column: 2;
+  }
+
+  .footer-contact {
+    grid-column: 3;
   }
 
   .footer-meta {
@@ -349,13 +378,34 @@
     white-space: nowrap;
   }
 
-  .footer-brand-strip {
-    padding-block: 24px;
+  .footer-fullscreen-button {
+    right: var(--page-gutter);
   }
-
 }
 
 @media (max-width: 767px) {
+  .brandworks-footer {
+    min-height: 100svh;
+  }
+
+  .footer-brand-strip {
+    min-height: 112px;
+  }
+
+  .footer-logo {
+    width: min(230px, 48vw);
+  }
+
+  .footer-cta {
+    gap: 7px;
+    font-size: 13px;
+  }
+
+  .footer-cta svg {
+    width: 16px;
+    height: 16px;
+  }
+
   .footer-content {
     display: flex;
     flex-direction: column;
@@ -390,34 +440,69 @@
     font-size: 12px;
     white-space: normal;
   }
+
+  .footer-meta__left,
+  .footer-meta__center,
+  .footer-meta__right {
+    justify-self: auto;
+  }
 }
 
 @media (max-width: 639px) {
   .brandworks-footer {
-    min-height: 100svh;
     --footer-video-top: 76px;
   }
 
   .footer-brand-strip {
-    display: flex;
     min-height: 0;
     flex-direction: column;
     align-items: flex-start;
-    gap: 20px;
+    justify-content: flex-start;
+    gap: 18px;
     padding: 28px var(--page-gutter) 24px;
   }
 
   .footer-logo {
     width: min(250px, 78vw);
+    max-width: 100%;
+  }
+
+  .footer-cta {
+    font-size: 14px;
   }
 
   .footer-fullscreen-button {
+    top: 18px;
     right: var(--page-gutter);
+    min-height: 38px;
+    padding-inline: 14px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 389px) {
+  .footer-brand-strip {
+    padding-top: 24px;
+    padding-bottom: 22px;
+  }
+
+  .footer-logo {
+    width: min(220px, 76vw);
+  }
+
+  .footer-content {
+    gap: 34px;
+    padding-top: 36px;
+  }
+
+  .footer-meta {
+    padding-top: 24px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .footer-brand-strip,
+  .footer-logo img,
   .footer-cta span,
   .footer-cta svg,
   .footer-content a,

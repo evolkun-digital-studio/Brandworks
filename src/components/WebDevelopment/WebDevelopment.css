@@ -1,0 +1,526 @@
+/*
+ * Web Design & Development — the editorial digital reel (WebDevelopment.tsx).
+ *
+ * The base rules describe the stacked reel: intro, then each project as a
+ * kicker, a framed image and a caption in normal flow. That is what phones,
+ * reduced motion and no-JS all get, complete and static.
+ *
+ * `.wdr.is-cinematic` (added by the script only where the pinned stage runs)
+ * turns the same markup into one 100svh stage: every project becomes a
+ * full-stage layer, the frame is drawn by `.wdr-window`, and the clip-path the
+ * script writes onto each `.wdr-mask` copies that frame in px.
+ *
+ * Near-black is the web hero's #0a0a0a; the section re-scopes the shared ink
+ * tokens so the `.section-*` primitives read as off-white on it. Lime is the
+ * site's --color-bw-lime and appears only as 1px rules and one tiny index.
+ */
+.wdr {
+  --wdr-bg: #0a0a0a;
+  --wdr-sheet: #121212;
+  --ink: #f2f1ec;
+  /* ≈ 7:1 on --wdr-bg. */
+  --ink-muted: rgba(242, 241, 236, 0.62);
+  --wdr-faint: rgba(242, 241, 236, 0.44);
+  --wdr-rule: rgba(242, 241, 236, 0.14);
+  --wdr-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  background: var(--wdr-bg);
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ */
+/* Intro                                                              */
+/* ------------------------------------------------------------------ */
+
+.wdr-intro {
+  display: flex;
+  flex-direction: column;
+  min-height: clamp(560px, 82svh, 880px);
+  padding-top: var(--section-space);
+}
+
+.wdr-intro__header {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.wdr-intro__grid {
+  align-items: start;
+  margin-top: clamp(56px, 11svh, 144px);
+}
+
+.wdr-heading {
+  grid-column: 1 / 7;
+  font-size: clamp(36px, 4vw, 48px);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.wdr-heading__line {
+  display: block;
+}
+
+/* Set a little lower than the heading: asymmetric, not centred. */
+.wdr-intro__aside {
+  grid-column: 8 / 12;
+  padding-top: clamp(8px, 1.2vw, 20px);
+}
+
+.wdr-description {
+  max-width: 36ch;
+}
+
+.wdr-capabilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 0;
+  margin: clamp(36px, 4.5vw, 64px) 0 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--wdr-rule);
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--ink-muted);
+}
+
+.wdr-capabilities li + li::before {
+  content: '·';
+  margin-inline: 0.6em;
+  color: var(--wdr-faint);
+}
+
+.wdr-rule {
+  height: 1px;
+  margin-top: clamp(64px, 10svh, 128px);
+  background: var(--color-bw-lime);
+  transform-origin: left center;
+}
+
+@media (max-width: 1023px) {
+  .wdr-heading {
+    grid-column: 1 / -1;
+  }
+
+  .wdr-intro__aside {
+    grid-column: 2 / -1;
+    padding-top: clamp(32px, 5vw, 48px);
+  }
+}
+
+@media (max-width: 767px) {
+  .wdr-intro {
+    min-height: 0;
+  }
+
+  .wdr-intro__grid {
+    margin-top: 40px;
+  }
+
+  .wdr-heading {
+    font-size: clamp(34px, 9.5vw, 44px);
+  }
+
+  .wdr-intro__aside {
+    padding-top: 28px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Reel — stacked (base)                                              */
+/* ------------------------------------------------------------------ */
+
+.wdr-stage {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin-inline: auto;
+  padding: clamp(56px, 8vw, 112px) var(--page-gutter) var(--section-space);
+}
+
+.wdr-window,
+.wdr-caption-rule,
+.wdr-progress {
+  display: none;
+}
+
+.wdr-projects {
+  display: grid;
+  gap: clamp(72px, 12vw, 160px);
+}
+
+.wdr-project {
+  position: relative;
+  min-width: 0;
+}
+
+.wdr-figure {
+  margin: 0;
+}
+
+/* Text that slides through its own mask. The padding keeps descenders. */
+.wdr-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+.wdr-line__inner {
+  display: block;
+}
+
+.wdr-kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 14px;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.wdr-kicker__index {
+  color: var(--color-bw-lime);
+}
+
+.wdr-kicker__total {
+  color: var(--wdr-faint);
+}
+
+.wdr-mask {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--wdr-sheet);
+}
+
+.wdr-sheet {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--wdr-sheet);
+}
+
+/* Oversized top and bottom so drift and parallax never show an edge. */
+.wdr-art {
+  position: absolute;
+  inset: -6% 0;
+  will-change: transform;
+}
+
+.wdr-hover {
+  position: absolute;
+  inset: 0;
+  transition: transform 1.1s var(--wdr-ease);
+}
+
+.wdr-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wdr-hover > .wdr-img {
+  position: absolute;
+  inset: 0;
+}
+
+/* Project 02: the desktop capture set off-centre, and one mobile crop. */
+.wdr-spread__main,
+.wdr-spread__crop {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.wdr-spread__main {
+  top: 14%;
+  left: 5%;
+  width: 66%;
+  height: 70%;
+}
+
+.wdr-spread__crop {
+  top: 34%;
+  right: 7%;
+  width: 19%;
+  aspect-ratio: 9 / 16;
+}
+
+.wdr-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wdr-mask:hover .wdr-hover {
+    transform: scale(1.015);
+  }
+}
+
+.wdr-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--wdr-rule);
+}
+
+.wdr-meta__main {
+  min-width: 0;
+}
+
+.wdr-meta__side {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  text-align: right;
+}
+
+.wdr-title {
+  margin: 0;
+  font-size: clamp(20px, 1.7vw, 26px);
+  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+
+.wdr-services,
+.wdr-year,
+.wdr-view {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-muted);
+}
+
+.wdr-year {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.wdr-view {
+  margin: 0;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.wdr-view:hover {
+  color: var(--color-bw-lime);
+}
+
+.wdr-view:focus-visible,
+.wdr-hit:focus-visible {
+  outline: 2px solid var(--color-bw-lime);
+  outline-offset: 4px;
+}
+
+/* Stacked on a wide screen (reduced motion, short windows): keep each
+   frame within a viewport's height. */
+@media (min-width: 1024px) {
+  .wdr-mask {
+    aspect-ratio: 2 / 1;
+  }
+}
+
+@media (max-width: 767px) {
+  .wdr-mask {
+    aspect-ratio: 4 / 3;
+  }
+
+  /* The spread needs height on a phone for the mobile crop to read. */
+  .wdr-project[data-layout='spread'] .wdr-mask {
+    aspect-ratio: 4 / 5;
+  }
+
+  .wdr-project[data-layout='spread'] .wdr-spread__main {
+    top: 10%;
+    left: 6%;
+    width: 88%;
+    height: 50%;
+  }
+
+  .wdr-project[data-layout='spread'] .wdr-spread__crop {
+    top: auto;
+    bottom: 10%;
+    right: 6%;
+    width: 34%;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wdr-hover {
+    transition: none;
+  }
+
+  .wdr-mask:hover .wdr-hover {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Reel — the pinned stage (tablet and desktop, motion allowed)       */
+/* ------------------------------------------------------------------ */
+
+.wdr.is-cinematic .wdr-stage {
+  /* The frame: 75–88vw wide on desktop, with room above for the kicker
+     and below for the caption and progress. */
+  --wdr-side: max(var(--page-gutter), 7vw);
+  --wdr-top: clamp(64px, 11svh, 112px);
+  --wdr-bottom: clamp(124px, 19svh, 180px);
+
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  max-width: none;
+  padding: 0;
+  overflow: hidden;
+  background: var(--wdr-bg);
+}
+
+/* Portrait tablets: keep the frame landscape and centred in the stage. */
+@media (orientation: portrait) {
+  .wdr.is-cinematic .wdr-stage {
+    --wdr-frame-h: calc((100vw - 2 * var(--wdr-side)) * 0.7);
+    --wdr-top: calc((100svh - var(--wdr-frame-h)) / 2 - 48px);
+    --wdr-bottom: calc((100svh - var(--wdr-frame-h)) / 2 + 48px);
+  }
+}
+
+.wdr.is-cinematic .wdr-window {
+  display: block;
+  position: absolute;
+  top: var(--wdr-top);
+  right: var(--wdr-side);
+  bottom: var(--wdr-bottom);
+  left: var(--wdr-side);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Registration marks at the frame's corners, just outside it. */
+.wdr-guide {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 0 solid var(--wdr-faint);
+}
+
+.wdr-guide--tl { top: -14px; left: -14px; border-top-width: 1px; border-left-width: 1px; }
+.wdr-guide--tr { top: -14px; right: -14px; border-top-width: 1px; border-right-width: 1px; }
+.wdr-guide--bl { bottom: -14px; left: -14px; border-bottom-width: 1px; border-left-width: 1px; }
+.wdr-guide--br { bottom: -14px; right: -14px; border-bottom-width: 1px; border-right-width: 1px; }
+
+.wdr.is-cinematic .wdr-projects {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* Every project is a full-stage layer; 01 on top. Only the one showing
+   takes the pointer, so hover and links belong to what is on screen. */
+.wdr.is-cinematic .wdr-project {
+  position: absolute;
+  inset: 0;
+  z-index: var(--wdr-z);
+  pointer-events: none;
+}
+
+.wdr.is-cinematic .wdr-project.is-active {
+  pointer-events: auto;
+}
+
+.wdr.is-cinematic .wdr-mask {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* A sheet is the size of the frame, so sliding it up by its own height
+   carries it clean out of the frame. The last project is full-stage, so
+   opening the frame shows more of it rather than an edge. */
+.wdr.is-cinematic .wdr-sheet {
+  inset: var(--wdr-top) var(--wdr-side) var(--wdr-bottom);
+  will-change: transform;
+}
+
+.wdr.is-cinematic .wdr-project[data-layout='bleed'] .wdr-sheet {
+  inset: 0;
+}
+
+.wdr.is-cinematic .wdr-kicker {
+  position: absolute;
+  left: var(--wdr-side);
+  right: var(--wdr-side);
+  bottom: calc(100% - var(--wdr-top) + 18px);
+  margin: 0;
+}
+
+.wdr.is-cinematic .wdr-meta {
+  position: absolute;
+  top: calc(100% - var(--wdr-bottom) + 18px);
+  left: var(--wdr-side);
+  right: var(--wdr-side);
+  margin: 0;
+  border-top: 0;
+}
+
+.wdr.is-cinematic .wdr-caption-rule {
+  display: block;
+  position: absolute;
+  z-index: 10;
+  top: calc(100% - var(--wdr-bottom) + 18px);
+  left: var(--wdr-side);
+  right: var(--wdr-side);
+  height: 1px;
+  background: var(--wdr-rule);
+}
+
+.wdr.is-cinematic .wdr-progress {
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: absolute;
+  left: var(--wdr-side);
+  right: var(--wdr-side);
+  /* Near the stage's foot, but never far below the caption (portrait). */
+  bottom: max(clamp(20px, 4svh, 40px), calc(var(--wdr-bottom) - 150px));
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wdr-faint);
+}
+
+.wdr-progress__track {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: var(--wdr-rule);
+}
+
+.wdr-progress__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bw-lime);
+  transform-origin: left center;
+}

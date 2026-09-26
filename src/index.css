@@ -132,7 +132,8 @@
 }
 
 .service-row.is-active {
-  font-weight: 600;
+  font-weight: 400;
+  font-size: 38px;
   color: #111;
 }
 
@@ -1070,3 +1071,305 @@ select {
     width: 22px;
   }
 }
+/* =========================================================
+   PHOTOGRAPHY — IPAD REVEAL
+   ========================================================= */
+
+.photo-ipad-section {
+  isolation: isolate;
+}
+
+/*
+ * Sized using BOTH viewport width and height.
+ *
+ * 110svh as a width constraint keeps the iPad from becoming
+ * taller than the available viewport on short laptop screens.
+ *
+ * Final device occupies roughly 80–90% of the usable viewport.
+ */
+.photo-ipad {
+  width: min(92vw, 110svh, 1180px);
+  transform-style: preserve-3d;
+}
+
+/* =========================================================
+   IPAD FRAME
+   ========================================================= */
+
+.photo-ipad__frame {
+  position: relative;
+  z-index: 10;
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* =========================================================
+   IPAD SCREEN
+   ========================================================= */
+
+/*
+ * Screen opening calibrated for the supplied iPad PNG.
+ *
+ * If the PNG itself gets replaced later, these are the only
+ * four geometry values that should need adjustment.
+ */
+.photo-ipad__screen {
+  position: absolute;
+  left: 6.8%;
+  top: 9.7%;
+  z-index: 2;
+  width: 86.4%;
+  height: 79.8%;
+  overflow: hidden;
+  border-radius: clamp(10px, 1.45vw, 21px);
+  background: #111;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+/* =========================================================
+   PHOTOS
+   ========================================================= */
+
+.photo-ipad__slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+/* =========================================================
+   CONTROLLER
+   ========================================================= */
+
+.photo-ipad-controller {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(12px, 3.4%, 28px);
+  z-index: 30;
+  display: flex;
+  max-width: calc(100% - 24px);
+  align-items: center;
+  gap: 7px;
+  transform: translateX(-50%);
+  will-change: transform, opacity;
+}
+
+/* =========================================================
+   ROUND CONTROLS
+   ========================================================= */
+
+.photo-ipad-controller__round {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  background: rgba(18, 18, 18, 0.72);
+  color: rgba(255, 255, 255, 0.94);
+  cursor: pointer;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transition:
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 280ms ease;
+}
+
+.photo-ipad-controller__round:hover {
+  transform: scale(1.055);
+  background: rgba(18, 18, 18, 0.86);
+}
+
+.photo-ipad-controller__round:active {
+  transform: scale(0.94);
+}
+
+/* =========================================================
+   THUMBNAIL STRIP
+   ========================================================= */
+
+.photo-ipad-controller__thumbs {
+  display: flex;
+  height: 48px;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(18, 18, 18, 0.68);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.photo-ipad-controller__thumb {
+  position: relative;
+  width: clamp(38px, 4vw, 58px);
+  height: 40px;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: #222;
+  opacity: 0.52;
+  cursor: pointer;
+  transition:
+    opacity 260ms ease,
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 260ms ease;
+}
+
+.photo-ipad-controller__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-ipad-controller__thumb:hover {
+  opacity: 0.88;
+  transform: scale(1.025);
+}
+
+.photo-ipad-controller__thumb.is-active {
+  border-color: rgba(255, 255, 255, 0.9);
+  opacity: 1;
+}
+
+/* =========================================================
+   COUNTER
+   ========================================================= */
+
+.photo-ipad-controller__count {
+  display: flex;
+  height: 48px;
+  min-width: 78px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(18, 18, 18, 0.72);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1023px) {
+  .photo-ipad {
+    width: min(94vw, 104svh);
+  }
+
+  .photo-ipad-controller__round {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .photo-ipad-controller__thumbs,
+  .photo-ipad-controller__count {
+    height: 44px;
+  }
+
+  .photo-ipad-controller__thumb {
+    width: 42px;
+    height: 36px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 767px) {
+  .photo-ipad {
+    width: min(97vw, 94svh);
+  }
+
+  .photo-ipad__screen {
+    border-radius: 10px;
+  }
+
+  .photo-ipad-controller {
+    bottom: 3%;
+    gap: 4px;
+    max-width: calc(100% - 14px);
+  }
+
+  .photo-ipad-controller__round {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .photo-ipad-controller__thumbs {
+    height: 38px;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 11px;
+  }
+
+  .photo-ipad-controller__thumb {
+    width: clamp(27px, 8vw, 35px);
+    height: 30px;
+    border-radius: 7px;
+  }
+
+  .photo-ipad-controller__count {
+    height: 38px;
+    min-width: 58px;
+    padding-inline: 8px;
+    border-radius: 11px;
+    font-size: 8px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 390px) {
+  .photo-ipad-controller__count {
+    display: none;
+  }
+
+  .photo-ipad-controller__thumb {
+    width: 27px;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+.photo-ipad-controller button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-ipad,
+  .photo-ipad__slide,
+  .photo-ipad-controller {
+    transition: none !important;
+  }
+} 

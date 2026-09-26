@@ -26,7 +26,7 @@ const EASE = 'power3.out'
  */
 function SocialMedia() {
   const sectionRef = useRef<HTMLElement>(null)
-  const { label, heading, description, phoneLabel } = SOCIAL_SECTION
+  const { heading, description, phoneLabel } = SOCIAL_SECTION
 
   useGSAP(
     () => {
@@ -92,8 +92,7 @@ function SocialMedia() {
       </div>
 
       <SectionContainer className="social-layout">
-        <div className="social-copy">
-          <SectionLabel className="social-label">{label}</SectionLabel>
+        <div className="social-copy"> 
           <SectionHeading id="social-media-heading" className="social-heading">
             {heading}
           </SectionHeading>
