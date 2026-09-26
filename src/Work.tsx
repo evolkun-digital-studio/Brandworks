@@ -547,7 +547,7 @@ export default function PhotographyGallery() {
         onTouchEnd={onTouchEnd}
       >
         <span
-          className="pointer-events-none absolute -top-[4px] right-[12%] z-0 hidden h-[5px] w-[64px] rounded-t-[3px] bg-gradient-to-b from-[#626262] to-[#2c2c2c] shadow-[0_-1px_0_rgba(255,255,255,0.18),0_1px_2px_rgba(0,0,0,0.35)] sm:w-[82px] md:block"
+          className="pointer-events-none absolute -top-[4px] right-[12%] z-0 hidden h-[5px] w-[64px] rounded-t-[3px] bg-gradient-to-b from-[#626262] to-[#2c2c2c] sm:w-[82px] md:block"
           aria-hidden="true"
         />
 
@@ -561,8 +561,8 @@ export default function PhotographyGallery() {
           aria-hidden="true"
         />
 
-        <div className="relative h-full w-full overflow-hidden rounded-[22px] bg-transparent p-0 shadow-none ring-0 md:overflow-visible md:rounded-[clamp(22px,2.5vw,42px)] md:bg-gradient-to-br md:from-[#4a4a4a] md:via-[#242424] md:to-[#0f0f0f] md:p-[clamp(5px,0.5vw,8px)] md:shadow-[0_42px_110px_rgba(0,0,0,0.22),0_10px_35px_rgba(0,0,0,0.12)] md:ring-1 md:ring-black/30">
-          <div className="relative h-full w-full rounded-[22px] bg-transparent p-0 shadow-none md:rounded-[clamp(18px,2.15vw,36px)] md:bg-[#050505] md:p-[clamp(8px,0.85vw,13px)] md:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.055)]">
+        <div className="relative h-full w-full overflow-hidden rounded-[22px] bg-transparent p-0 shadow-none ring-0 md:overflow-visible md:rounded-[clamp(22px,2.5vw,42px)] md:bg-gradient-to-br md:from-[#4a4a4a] md:via-[#242424] md:to-[#0f0f0f] md:p-[clamp(5px,0.5vw,8px)] md:ring-1 md:ring-black/30">
+          <div className="relative h-full w-full rounded-[22px] bg-transparent p-0 shadow-none md:rounded-[clamp(18px,2.15vw,36px)] md:bg-[#050505] md:p-[clamp(8px,0.85vw,13px)]">
             <span
               className="pointer-events-none absolute left-[6px] top-1/2 z-40 hidden h-[5px] w-[5px] -translate-y-1/2 rounded-full bg-[#0b0f13] ring-1 ring-white/[0.06] sm:left-[8px] sm:h-[6px] sm:w-[6px] md:block"
               aria-hidden="true"
@@ -614,14 +614,14 @@ export default function PhotographyGallery() {
                   type="button"
                   aria-label="Previous photograph"
                   onClick={() => go(-1)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full  bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full  bg-black/72 text-white backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
                 >
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
 
-                <div className="flex h-10 items-center gap-[3px] rounded-[12px] bg-black/62 p-[3px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] backdrop-blur-xl sm:h-12 sm:gap-1 sm:rounded-[15px] sm:p-1">
+                <div className="flex h-10 items-center gap-[3px] rounded-[12px] bg-black/62 p-[3px] backdrop-blur-xl sm:h-12 sm:gap-1 sm:rounded-[15px] sm:p-1">
                   {photographyImages.map((image, index) => (
                     <button
                       key={`${image}-thumb`}
@@ -646,7 +646,7 @@ export default function PhotographyGallery() {
                   ))}
                 </div>
 
-                <div className="hidden h-12 min-w-[78px] items-center justify-center gap-1.5 rounded-[15px] bg-[rgba(42,28,23,0.72)] px-3 font-primary text-[9px] font-medium tracking-[0.06em] text-white shadow-[0_8px_24px_rgba(0,0,0,0.14)] backdrop-blur-xl min-[390px]:flex sm:min-w-[92px] sm:text-[10px]">
+                <div className="hidden h-12 min-w-[78px] items-center justify-center gap-1.5 rounded-[15px] bg-[rgba(42,28,23,0.72)] px-3 font-primary text-[9px] font-medium tracking-[0.06em] text-white backdrop-blur-xl min-[390px]:flex sm:min-w-[92px] sm:text-[10px]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#8f8a16]" aria-hidden="true" />
                   <span>{pad(active + 1)}</span>
                   <span className="text-white/30">/</span>
@@ -657,7 +657,7 @@ export default function PhotographyGallery() {
                   type="button"
                   aria-label="Next photograph"
                   onClick={() => go(1)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/72 text-white shadow-[0_8px_24px_rgba(0,0,0,0.16)] backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/72 text-white backdrop-blur-xl transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.05] active:scale-[0.94] sm:h-11 sm:w-11"
                 >
                   <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

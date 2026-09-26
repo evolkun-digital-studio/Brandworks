@@ -18,11 +18,9 @@ import WebDevelopment from './components/WebDevelopment/WebDevelopment'
 import Capabilities from './Capabilities'
 import Results from './Results'
 import FAQs from './FAQs'
-import Blog from './Blog'
 import Industries from './Industries'
 import Testimonials from './Testimonials'
-import BlogPage from './blog/pages/BlogPage'
-import BlogDetailPage from './blog/pages/BlogDetailPage'
+import { EditorialArticlePage, EditorialIndexPage } from './editorial/EditorialPages'
 import NotFound from './NotFound'
 import AboutPage from './components/AboutPage/AboutPage'
 import WebsiteSectionProps from "./Seo";
@@ -105,8 +103,10 @@ function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:slug" element={<BlogDetailPage />} />
+        <Route path="/blog" element={<EditorialIndexPage kind="blog" />} />
+        <Route path="/blog/:slug" element={<EditorialArticlePage kind="blog" />} />
+        <Route path="/news" element={<EditorialIndexPage kind="news" />} />
+        <Route path="/news/:slug" element={<EditorialArticlePage kind="news" />} />
         {/* Catch-all for any other path (Phase 13, Part 1/15) — kept
            inside PublicLayout so Header/Footer/RouteAnalytics still
            render; without this, an unmatched path previously rendered

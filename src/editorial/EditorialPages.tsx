@@ -1,0 +1,46 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { blogPosts, newsPosts } from './data'
+import { EditorialImage } from './EditorialImage'
+import type { EditorialKind, EditorialPost } from './types'
+import { removeLinkTag, removeMetaTag, setDocumentTitle, setJsonLd, setLinkTag, setMetaTag, removeJsonLd } from '../blog/lib/documentHead'
+import './Editorial.css'
+
+const blogFilters = ['All', 'Strategy', 'Design', 'Film', 'Photography', 'Digital', 'Culture']
+const newsFilters = ['All', 'Studio', 'Work', 'Campaigns', 'Press', 'Collaborations', 'Announcements']
+const formatDate = (date: string) => new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(date))
+
+function PageHead({ kind, post }: { kind: EditorialKind; post?: EditorialPost }) {
+  useEffect(() => {
+    const title = post ? `${post.title} | BrandWorks` : `${kind === 'blog' ? 'Blog' : 'Newsroom'} | BrandWorks`
+    const description = post?.excerpt ?? (kind === 'blog' ? 'Ideas, observations and work behind better brands.' : 'What’s happening at BrandWorks.')
+    const canonical = `${window.location.origin}/${kind}${post ? `/${post.slug}` : ''}`
+    setDocumentTitle(title); setMetaTag('name', 'description', description); setLinkTag('canonical', canonical)
+    const schema = post ? { '@context': 'https://schema.org', '@type': kind === 'blog' ? 'BlogPosting' : 'NewsArticle', headline: post.title, description: post.excerpt, image: post.image, datePublished: post.date, dateModified: post.date, author: { '@type': 'Organization', name: 'BrandWorks' }, publisher: { '@type': 'Organization', name: 'BrandWorks' }, mainEntityOfPage: canonical } : { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: window.location.origin }, { '@type': 'ListItem', position: 2, name: kind === 'blog' ? 'Blog' : 'News', item: `${window.location.origin}/${kind}` }] }
+    setJsonLd('brandworks-editorial-schema', JSON.stringify(schema))
+    return () => { removeMetaTag('name', 'description'); removeLinkTag('canonical'); removeJsonLd('brandworks-editorial-schema') }
+  }, [kind, post])
+  return null
+}
+
+function Meta({ post }: { post: EditorialPost }) { return <div className="editorial-meta"><span>{post.author}</span><span><time dateTime={post.date}>{formatDate(post.date)}</time></span>{post.readingTime && <span>{post.readingTime}</span>}</div> }
+
+function Card({ post, large = false, kind = 'blog' }: { post: EditorialPost; large?: boolean; kind?: EditorialKind }) { return <article className={`editorial-card ${large ? 'is-large' : ''}`}><Link to={`/${kind}/${post.slug}`}><EditorialImage src={post.image} alt={post.imageAlt} /><span className="editorial-category">{post.category}</span><h3>{post.title}</h3><p className="editorial-excerpt">{post.excerpt}</p><Meta post={post} /></Link></article> }
+
+function FilterBar({ kind, selected, setSelected, search, setSearch }: { kind: EditorialKind; selected: string; setSelected: (s: string) => void; search: string; setSearch: (s: string) => void }) { const filters = kind === 'blog' ? blogFilters : newsFilters; return <div className="editorial-toolbar"><div className="editorial-filters" role="tablist" aria-label={`${kind} categories`}>{filters.map(filter => <button key={filter} className={selected === filter ? 'is-active' : ''} onClick={() => setSelected(filter)} role="tab" aria-selected={selected === filter}>{filter}</button>)}</div><label><span className="sr-only">Search {kind}</span><input className="editorial-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search stories" /></label></div> }
+
+export function EditorialIndexPage({ kind }: { kind: EditorialKind }) {
+  const posts = kind === 'blog' ? blogPosts : newsPosts
+  const [selected, setSelected] = useState('All'); const [search, setSearch] = useState(''); const [visible, setVisible] = useState(6)
+  const filtered = useMemo(() => posts.filter(post => (selected === 'All' || post.category.toLowerCase().includes(selected.toLowerCase()) || post.tags.some(tag => tag.toLowerCase().includes(selected.toLowerCase()))) && `${post.title} ${post.excerpt} ${post.tags.join(' ')}`.toLowerCase().includes(search.toLowerCase())), [posts, selected, search])
+  const featured = posts.find(post => post.featured) ?? posts[0]
+  const rest = filtered.filter(post => post.slug !== featured.slug).slice(0, visible)
+  return <main className="editorial-page"><PageHead kind={kind} /><div className="editorial-wrap"><header className="editorial-intro"><p className="editorial-eyebrow">{kind === 'blog' ? 'BrandWorks Journal' : 'Newsroom'}</p><h1 className="editorial-title">{kind === 'blog' ? 'Ideas, observations and work behind better brands.' : 'What’s happening at BrandWorks.'}</h1><p className="editorial-lede">{kind === 'blog' ? 'Thoughts on creativity, culture, branding, production, digital experiences and the ideas shaping how brands communicate.' : 'New work, collaborations, studio updates and developments from across BrandWorks.'}</p></header><section className="editorial-feature" aria-labelledby="featured-heading"><EditorialImage src={featured.image} alt={featured.imageAlt} priority /><div><span className="editorial-category">{kind === 'news' ? 'News' : featured.category}</span><h2 id="featured-heading">{featured.title}</h2><p className="editorial-excerpt">{featured.excerpt}</p><Meta post={featured} /><Link className="editorial-link" to={`/${kind}/${featured.slug}`}>Read {kind === 'blog' ? 'article' : 'story'} <span aria-hidden="true">↗</span></Link></div></section><FilterBar kind={kind} selected={selected} setSelected={setSelected} search={search} setSearch={setSearch} />{kind === 'blog' ? <><section className="editorial-grid" aria-label="Latest articles">{rest.map(post => <Card key={post.slug} post={post} />)}</section><div className="editorial-statement"><p>Not everything we make begins with a camera. Some things begin with a question.</p></div><section className="editorial-more" aria-label="More articles"><Card post={filtered[filtered.length - 1] ?? posts[1]} large /><div className="editorial-more-side">{posts.slice(2, 4).map(post => <Card key={post.slug} post={post} />)}</div></section></> : <section className="news-feed" aria-label="News feed">{rest.map(post => <Link className="news-row" key={post.slug} to={`/news/${post.slug}`}><time dateTime={post.date}>{formatDate(post.date)}</time><span className="editorial-category">{post.category}</span><h3>{post.title}</h3><EditorialImage src={post.image} alt={post.imageAlt} /></Link>)}</section>}{visible < filtered.length && <button className="editorial-link" type="button" onClick={() => setVisible(value => value + 3)}>Load more {kind === 'blog' ? 'articles' : 'stories'} <span aria-hidden="true">↓</span></button>}</div></main>
+}
+
+export function EditorialArticlePage({ kind }: { kind: EditorialKind }) {
+  const { slug } = useParams(); const posts = kind === 'blog' ? blogPosts : newsPosts; const post = posts.find(item => item.slug === slug)
+  if (!post) return <main className="editorial-page"><div className="editorial-wrap"><h1 className="editorial-title">Story not found.</h1><Link className="editorial-link" to={`/${kind}`}>Back to {kind === 'blog' ? 'Journal' : 'Newsroom'}</Link></div></main>
+  const related = posts.filter(item => item.slug !== post.slug).slice(0, 3); const next = posts[(posts.indexOf(post) + 1) % posts.length]
+  return <main className="editorial-page"><PageHead kind={kind} post={post} /><article className="editorial-wrap editorial-article"><Link className="editorial-link" to={`/${kind}`}>← Back to {kind === 'blog' ? 'Journal' : 'Newsroom'}</Link><header className="editorial-intro" style={{ marginTop: 72 }}><span className="editorial-category">{post.category} · {formatDate(post.date)}</span><h1 className="editorial-title">{post.title}</h1><p className="editorial-lede">{post.excerpt}</p><Meta post={post} /></header><EditorialImage src={post.image} alt={post.imageAlt} priority className="editorial-article-cover" /><div className="editorial-article-body">{post.content.map((paragraph, index) => index === 1 && kind === 'blog' ? <blockquote key={paragraph}>“Good creative work does not start with decoration. It starts with understanding.”</blockquote> : <p key={paragraph}>{paragraph}</p>)}<h2>{kind === 'blog' ? 'The useful part is what lasts.' : 'A closer look at the work.'}</h2><p>{kind === 'blog' ? 'A considered brand gives teams a way to make better choices at speed. It keeps the work coherent without making it predictable.' : 'The finished story is only one part of the process. The other part is building a way of working that can keep the idea intact as it travels.'}</p></div><div className="editorial-next"><span className="editorial-label">Next {kind === 'blog' ? 'article' : 'story'}</span><Link to={`/${kind}/${next.slug}`}><EditorialImage src={next.image} alt={next.imageAlt} /><h2>{next.title}</h2></Link></div><section className="editorial-related"><span className="editorial-label">Related reading</span><div className="editorial-grid">{related.map(item => <Card key={item.slug} post={item} kind={kind} />)}</div></section></article></main>
+}

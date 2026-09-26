@@ -33,8 +33,7 @@ export type AboutImage = {
   position?: string
 }
 
-export const ABOUT_HERO = {
-  index: '01 — About BrandWorks',
+export const ABOUT_HERO = { 
   heading: 'About Us',
   description: 'The people, thinking and journey behind BrandWorks.',
   image: {

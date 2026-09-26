@@ -106,8 +106,7 @@ function AboutHero() {
   return (
     <section className="about-hero" aria-labelledby="about-hero-heading" data-reveal-group>
       <div className="section-container">
-        <div className="about-hero__meta" data-reveal="fade">
-          <span className="section-label about-label">{ABOUT_HERO.index}</span>
+        <div className="about-hero__meta" data-reveal="fade"> 
           <span className="section-label about-label about-hero__location">{ABOUT_HERO.location}</span>
         </div>
 
