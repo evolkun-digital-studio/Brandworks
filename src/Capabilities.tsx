@@ -314,19 +314,25 @@ function ServiceScrollIndex() {
   return (
     <div ref={runwayRef} className="relative min-h-[240vh] lg:min-h-[320vh]">
       <div className="sticky top-0 h-screen overflow-hidden bg-white">
-        <div className="mx-auto grid h-full w-full max-w-[1600px] grid-cols-[4.5fr_1fr_6.5fr] gap-x-[clamp(16px,2vw,40px)] px-[7vw]">
+        {/* The grid is sized to what is visibly there — title, arrow, the
+           names — and centred on that, so the composition sits on the
+           viewport's centre rather than the list's ragged right edge
+           pulling it left; a small optical nudge right finishes the job.
+           The roller's masked window then bleeds out to the viewport edge
+           (--svc-bleed) for its full visible width. */}
+        <div className="mx-auto grid h-full w-full max-w-[calc(1040px_+_14vw)] grid-cols-[max-content_auto_minmax(0,1fr)] gap-x-[clamp(20px,2vw,36px)] translate-x-[clamp(0px,2.5vw,40px)] px-[7vw] [--svc-bleed:max(7vw,calc((100vw_-_1040px)/2))]">
           {/* Left: label + counter, title on the focus line, active detail. */}
-          <div className="relative h-full">
-            <div className="absolute top-1/2 left-0 w-full -translate-y-1/2">
+          <div className="relative flex h-full items-center">
+            <div className="relative w-full">
               <h2 id="our-services-heading" className={TITLE_CLASS}>
                 The studio works across.
               </h2>
 
               <div
                 aria-hidden="true"
-                className="absolute top-full left-0 mt-[clamp(28px,4.5vh,52px)] w-full max-w-[380px]"
+                className="absolute top-full left-0 mt-[clamp(28px,4.5vh,52px)] w-full max-w-[40  0px]"
               >
-                <AnimatePresence mode="wait" initial={false}>
+                 <AnimatePresence mode="wait" initial={false}>
                   <motion.p
                     key={active}
                     className={`${GROTESK} text-[16px] leading-[1.4] font-normal text-[#777]`}
@@ -350,7 +356,7 @@ function ServiceScrollIndex() {
           {/* Right: masked window; the list inside is scrubbed by scroll. */}
           <div
             ref={windowRef}
-            className="relative -mr-[7vw] h-full overflow-hidden pr-[7vw]"
+            className="relative -mr-[var(--svc-bleed)] h-full overflow-hidden pr-[var(--svc-bleed)]"
             style={{
               WebkitMaskImage:
                 "linear-gradient(to bottom, transparent 0%, black 17%, black 83%, transparent 100%)",
@@ -436,7 +442,7 @@ function ServiceRow({
     <motion.li
       ref={itemRef}
       style={{ opacity, filter, scale, transformOrigin: "left center" }}
-      className={`services-display service-row${active ? " is-active" : ""} max-w-[400px] text-[clamp(36px,3.3vw,38px)] leading-[1.08] tracking-[-0.035em]`}
+      className={`services-display service-row${active ? " is-active" : ""} max-w-[640px] text-[clamp(36px,3.3vw,38px)] leading-[1.08] tracking-[-0.035em]`}
     >
       {firstLine && (
         <>
