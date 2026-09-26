@@ -59,18 +59,14 @@ describe('Hero — service media loading strategy', () => {
 describe('About.tsx — video source and loading strategy', () => {
   const source = read('About.tsx')
 
-  it('still imports the same video asset, unchanged', () => {
-    expect(source).toContain("from './assets/Brand2.mp4'")
-  })
-
-  it('uses LazyBackgroundVideo, not a raw <video> element', () => {
-    expect(source).toContain('LazyBackgroundVideo')
-    expect(source).not.toMatch(/<video/)
-  })
-
-  it('does not mark the About video as priority (well below the fold)', () => {
-    const block = source.slice(source.indexOf('LazyBackgroundVideo'), source.indexOf('LazyBackgroundVideo') + 300)
-    expect(block).not.toContain('priority')
+  it('uses the supplied Cloudinary video with native background playback attributes', () => {
+    const video = source.slice(source.indexOf('<video'), source.indexOf('/>', source.indexOf('<video')))
+    expect(video).toContain('https://res.cloudinary.com/dpjdnoqii/video/upload/v1790402778/gemini_generated_video_b01ac751_umpdsx.mp4')
+    for (const attr of ['autoPlay', 'muted', 'loop', 'playsInline', 'preload="metadata"']) {
+      expect(video).toContain(attr)
+    }
+    expect(video).not.toContain('controls')
+    expect(video).toContain('absolute inset-0 block h-full w-full object-cover object-center')
   })
 
   it('reserves layout space via a fixed-dimension container', () => {

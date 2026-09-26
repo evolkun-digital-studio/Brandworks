@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import brandVideo2 from "./assets/Brand2.mp4";
-import LazyBackgroundVideo from "./LazyBackgroundVideo";
+import { useEffect, useRef, useState } from 'react'
 
 const ABOUT_TEXT =
   "BRANDWORKS is a creative and digital studio working across brand, media and growth. We bring strategy, production, design, reputation and digital execution into one working system. Some engagements start with a film. Some with a founder. Some with a website, search problem or campaign. The work depends on what needs to be solved.";
@@ -118,11 +116,15 @@ function About() {
         </a>
       </div>
 
-      {/* VIDEO */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[5px] bg-neutral-100 min-[390px]:aspect-[1.4/1] sm:aspect-[16/10] sm:rounded-[6px] md:aspect-[16/9] lg:ml-auto lg:aspect-[1.48/1] lg:min-h-[360px] xl:min-h-[400px] 2xl:min-h-[440px] min-[1800px]:min-h-[470px]">
-        <LazyBackgroundVideo
-          src={brandVideo2}
-          className="h-full w-full object-cover object-center opacity-100"
+      <div className="relative h-[365px] w-[572px] max-w-full overflow-hidden rounded-[8px] bg-neutral-100">
+        <video
+          src="https://res.cloudinary.com/dpjdnoqii/video/upload/v1790402778/gemini_generated_video_b01ac751_umpdsx.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 block h-full w-full object-cover object-center opacity-100"
         />
 
         <svg

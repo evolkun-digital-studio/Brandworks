@@ -1,11 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { ReactNode, RefObject } from "react";
+import type { RefObject } from "react";
 import {
   AnimatePresence,
   motion,
   useMotionValue,
   useMotionValueEvent,
-  useMotionTemplate,
   useScroll,
   useTransform,
 } from "motion/react";
@@ -57,16 +56,6 @@ const LINE_BREAKS: Record<string, string> = {
 
 const TOTAL = services.length;
 const pad = (n: number) => String(n).padStart(2, "0");
-
-const INTRO_WORDS = [
-  "Different",
-  "disciplines.",
-  null,
-  "One",
-  "connected",
-  "system.",
-] as const;
-const INTRO_WORD_COUNT = INTRO_WORDS.filter(Boolean).length;
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const GROTESK = "font-['Google_Sans_Flex','Helvetica',sans-serif]";
@@ -151,82 +140,12 @@ function Capabilities() {
 
   return (
     <section aria-labelledby="our-services-heading" className="bg-white">
-      <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-8 md:px-[7vw]">
-        <div className="grid grid-cols-1 gap-y-6 border-t border-black/[0.08] pt-20 pb-5 sm:pt-28 md:grid-cols-12 md:gap-x-6 md:pb-12 lg:pt-36">
-          {animated ? (
-            <IntroHeading />
-          ) : (
-            <h2 className={INTRO_CLASS}>
-              Different disciplines.
-              <br />
-              One connected system.
-            </h2>
-          )}
-
-          {/* <p className={`${GROTESK} site-copy font-normal max-w-[440px] self-end text-[#777] md:col-span-5 md:col-start-8`}>
-            From the first concept to the way it reaches people,
-            <br className="hidden lg:block" /> Brandworks carries one thought
-            across every discipline.
-          </p> */}
-        </div>
-      </div>
-
       {mode === "scroll" ? (
         <ServiceScrollIndex />
       ) : (
         <ServiceStack animated={animated} />
       )}
     </section>
-  );
-}
-
-const INTRO_CLASS = `${DISPLAY} text-[clamp(2rem,3.4vw,3rem)] leading-[1.04] tracking-[-0.04em] text-[#111] md:col-span-7`;
-
-/**
- * Intro H2: word-by-word opacity .15 → 1 / blur 4px → 0, scrubbed by
- * the heading's own position in the viewport (same idea as About.tsx).
- */
-function IntroHeading() {
-  const ref = useRef<HTMLHeadingElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 0.92", "start 0.42"],
-  });
-
-  return (
-    <h2 ref={ref} className={INTRO_CLASS}>
-      {INTRO_WORDS.map((word, i) => {
-        if (word === null) return <br key={`br-${i}`} />;
-        const index = INTRO_WORDS.slice(0, i).filter(Boolean).length;
-        return (
-          <IntroWord key={word} progress={scrollYProgress} index={index}>
-            {word}
-            {INTRO_WORDS[i + 1] ? " " : ""}
-          </IntroWord>
-        );
-      })}
-    </h2>
-  );
-}
-
-function IntroWord({
-  progress,
-  index,
-  children,
-}: {
-  progress: MotionValue<number>;
-  index: number;
-  children: ReactNode;
-}) {
-  const range = [index / INTRO_WORD_COUNT, (index + 2.5) / INTRO_WORD_COUNT];
-  const opacity = useTransform(progress, range, [0.15, 1]);
-  const blur = useTransform(progress, range, [4, 0]);
-  const filter = useMotionTemplate`blur(${blur}px)`;
-
-  return (
-    <motion.span style={{ opacity, filter }} className="inline-block">
-      {children}
-    </motion.span>
   );
 }
 
@@ -475,7 +394,7 @@ function ServiceRow({
  */
 function ServiceStack({ animated }: { animated: boolean }) {
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-4 pt-10 pb-24 sm:px-8 md:px-[7vw] md:pb-32 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:pb-36">
+    <div className="mx-auto w-full max-w-[1600px] px-4 pb-24 sm:px-8 md:px-[7vw] md:pb-32 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:pb-36">
       <div className="lg:sticky lg:top-[30vh] lg:col-span-5 lg:self-start">
         <span className={LABEL_CLASS}>What we do</span>
         <h2 id="our-services-heading" className={`mt-3 ${TITLE_CLASS}`}>
