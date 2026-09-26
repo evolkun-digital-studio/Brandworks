@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import brandVideo2 from './assets/Brand2.mp4'
-import LazyBackgroundVideo from './LazyBackgroundVideo'
 
 const ABOUT_TEXT =
   'Minimal Brandworks is a creative studio that brings strategy, creativity and digital expertise together to build distinctive brands and meaningful experiences.'
@@ -112,13 +110,15 @@ function About() {
         </a>
       </div>
 
-      {/* Well below the fold and the largest of the three videos
-         (~28.1MB) — deferred until it's about to scroll into view
-         rather than loaded eagerly (Phase 11, Part 3/4). */}
       <div className="relative h-[365px] w-[572px] max-w-full overflow-hidden rounded-[8px] bg-neutral-100">
-        <LazyBackgroundVideo
-          src={brandVideo2}
-          className="h-full w-full object-cover opacity-100"
+        <video
+          src="https://res.cloudinary.com/dpjdnoqii/video/upload/v1790402778/gemini_generated_video_b01ac751_umpdsx.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 block h-full w-full object-cover object-center opacity-100"
         />
         <svg
           viewBox="0 0 24 24"
