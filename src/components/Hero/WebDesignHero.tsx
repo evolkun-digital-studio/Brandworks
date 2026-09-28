@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
+import backdropPoster from '../../assets/footer-showreel-poster.webp'
 import './WebDesignHero.css'
 
 /*
@@ -28,7 +29,11 @@ import './WebDesignHero.css'
 const RESET_DELAY = 1100
 // A resize rebuilds the loop against the new layout, once it has settled.
 const RESIZE_DEBOUNCE = 220
+// Matches the browser's reshape transition in the CSS, plus a beat.
+const DEVICE_SETTLE = 800
 const SCAN_DURATION = 2.8
+// Seen only through frosted glass, so the light encode is plenty.
+const BACKDROP_VIDEO = '/video/footer-showreel-540.mp4'
 
 type Box = { x: number; y: number; w: number; h: number }
 type Point = { x: number; y: number }
@@ -86,6 +91,10 @@ function Site({ variant }: { variant: 'final' | 'wire' }) {
         </span>
         <span className="wd-contact">
           <span className="wd-t">Contact</span>
+        </span>
+        <span className="wd-burger">
+          <i />
+          <i />
         </span>
         {wire && <span className="wd-tag wd-tag--in">nav</span>}
       </div>
@@ -212,21 +221,37 @@ function TypeCard() {
   )
 }
 
-function ResponsiveCard() {
+type Device = 'desktop' | 'tablet' | 'phone'
+
+const DEVICES: { id: Device; width: number }[] = [
+  { id: 'desktop', width: 1440 },
+  { id: 'tablet', width: 834 },
+  { id: 'phone', width: 390 },
+]
+
+/** The one control in the visual: pick a screen and the browser becomes
+ *  it. Pointer-only, like the rest of this decorative layer. */
+function ResponsiveCard({ device, onDevice }: { device: Device; onDevice: (device: Device) => void }) {
   return (
     <div className="wd-card wd-card--resp" data-wd-card="resp">
       <div className="wd-card__head">
         <span>Responsive</span>
       </div>
       <div className="wd-devices">
-        <span className="wd-device wd-device--desktop is-on" />
-        <span className="wd-device wd-device--tablet" />
-        <span className="wd-device wd-device--phone" />
-      </div>
-      <div className="wd-devices__sizes wd-mono">
-        <span>1440</span>
-        <span>834</span>
-        <span>390</span>
+        {DEVICES.map(({ id, width }) => (
+          <button
+            key={id}
+            type="button"
+            tabIndex={-1}
+            className={`wd-device-btn ${device === id ? 'is-on' : ''}`}
+            onClick={() => onDevice(id)}
+          >
+            <span className="wd-device-btn__icon">
+              <span className={`wd-device wd-device--${id} ${device === id ? 'is-on' : ''}`} />
+            </span>
+            <span className="wd-device-btn__size wd-mono">{width}</span>
+          </button>
+        ))}
       </div>
     </div>
   )
@@ -429,6 +454,22 @@ function WebDesignHero({
   const playingRef = useRef(playing)
   const runRef = useRef<Run | null>(null)
   const pendingRef = useRef<{ ctx: gsap.Context; timer: number } | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const rebuildRef = useRef<((delay: number) => void) | null>(null)
+  const [device, setDevice] = useState<Device>('desktop')
+  const [videoRequested, setVideoRequested] = useState(false)
+
+  // The backdrop film is fetched on the first visit and only runs while
+  // Web is on screen. Reduced motion keeps the still.
+  const wantsVideo = playing && !reducedMotion
+  if (wantsVideo && !videoRequested) setVideoRequested(true)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (wantsVideo) void video.play().catch(() => undefined)
+    else video.pause()
+  }, [wantsVideo, videoRequested])
 
   const flushPending = () => {
     const pending = pendingRef.current
@@ -475,9 +516,23 @@ function WebDesignHero({
     runRef.current = run
 
     // The cursor's route is measured, so a new layout means a new route.
+    // A new layout — the stage resized, or a different screen picked in
+    // the Responsive card — means a new route: reset to the clean frame,
+    // then rebuild once the layout has settled.
     let width = stage.clientWidth
     let height = stage.clientHeight
     let resizeTimer: number | undefined
+    const rebuild = (delay: number) => {
+      window.clearTimeout(resizeTimer)
+      if (run.loop) {
+        run.loop.totalProgress(0).kill()
+        run.loop = null
+      }
+      resizeTimer = window.setTimeout(() => {
+        if (!run.loop && run.intro.progress() === 1) startLoop()
+      }, delay)
+    }
+    rebuildRef.current = rebuild
     const observer =
       typeof ResizeObserver === 'undefined'
         ? null
@@ -485,16 +540,12 @@ function WebDesignHero({
             if (stage.clientWidth === width && stage.clientHeight === height) return
             width = stage.clientWidth
             height = stage.clientHeight
-            window.clearTimeout(resizeTimer)
-            resizeTimer = window.setTimeout(() => {
-              if (!run.loop) return
-              run.loop.totalProgress(0).kill()
-              startLoop()
-            }, RESIZE_DEBOUNCE)
+            if (run.loop) rebuild(RESIZE_DEBOUNCE)
           })
     observer?.observe(stage)
 
     return () => {
+      rebuildRef.current = null
       observer?.disconnect()
       window.clearTimeout(resizeTimer)
       run.intro.pause()
@@ -505,18 +556,114 @@ function WebDesignHero({
     // flushPending only touches refs.
   }, [active, reducedMotion])
 
+  // Picking a screen: the browser reshapes (CSS), the site blinks through
+  // the change, and the film re-measures its route for the new layout.
+  const pickDevice = (next: Device) => {
+    if (next === device) return
+    setDevice(next)
+    const viewport = rootRef.current?.querySelector<HTMLElement>('.wd-viewport')
+    if (viewport && !reducedMotion) {
+      gsap.fromTo(viewport, { opacity: 0.15 }, { opacity: 1, duration: 0.6, delay: 0.3, ease: 'power2.out' })
+    }
+    rebuildRef.current?.(DEVICE_SETTLE)
+  }
+
+  // Pointer parallax: the composition tilts toward the pointer, the cards
+  // drift further than the browser, and the film and a soft light move
+  // behind it. Mouse and trackpad only; reduced motion keeps it still.
+  // Only the stage, the card layer and the backdrop move — none of them are
+  // touched by the timelines, and the cursor's route is measured without
+  // transforms, so the film stays on its marks.
+  useEffect(() => {
+    const root = rootRef.current
+    const stage = stageRef.current
+    const hero = root?.closest<HTMLElement>('.hero')
+    if (!root || !stage || !hero || !active || reducedMotion) return
+    if (!window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) return
+
+    const depth = root.querySelector<HTMLElement>('[data-wd-depth]')
+    const backdrop = root.querySelector<HTMLElement>('.wd-backdrop')
+    const spot = root.querySelector<HTMLElement>('[data-wd-spot]')
+    const targets = [stage, depth, backdrop, spot].filter((el): el is HTMLElement => Boolean(el))
+
+    gsap.set(stage, { transformPerspective: 1400, transformOrigin: '60% 50%' })
+    const ease = { duration: 0.9, ease: 'power3.out' }
+    const tiltX = gsap.quickTo(stage, 'rotationX', ease)
+    const tiltY = gsap.quickTo(stage, 'rotationY', ease)
+    const shiftX = gsap.quickTo(stage, 'x', ease)
+    const shiftY = gsap.quickTo(stage, 'y', ease)
+    const depthX = depth && gsap.quickTo(depth, 'x', ease)
+    const depthY = depth && gsap.quickTo(depth, 'y', ease)
+    const backX = backdrop && gsap.quickTo(backdrop, 'x', { duration: 1.6, ease: 'power3.out' })
+    const backY = backdrop && gsap.quickTo(backdrop, 'y', { duration: 1.6, ease: 'power3.out' })
+    const spotX = spot && gsap.quickTo(spot, 'x', { duration: 0.6, ease: 'power3.out' })
+    const spotY = spot && gsap.quickTo(spot, 'y', { duration: 0.6, ease: 'power3.out' })
+    if (spot) gsap.to(spot, { opacity: 1, duration: 0.8 })
+
+    /** -1…1 from the centre of the hero. */
+    const aim = (nx: number, ny: number) => {
+      tiltY(nx * 5)
+      tiltX(ny * -4)
+      shiftX(nx * 10)
+      shiftY(ny * 8)
+      depthX?.(nx * 18)
+      depthY?.(ny * 14)
+      backX?.(nx * -26)
+      backY?.(ny * -20)
+    }
+
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') return
+      const rect = hero.getBoundingClientRect()
+      const px = event.clientX - rect.left
+      const py = event.clientY - rect.top
+      aim((px / rect.width) * 2 - 1, (py / rect.height) * 2 - 1)
+      spotX?.(px)
+      spotY?.(py)
+    }
+    const onLeave = () => aim(0, 0)
+
+    hero.addEventListener('pointermove', onMove, { passive: true })
+    hero.addEventListener('pointerleave', onLeave)
+
+    return () => {
+      hero.removeEventListener('pointermove', onMove)
+      hero.removeEventListener('pointerleave', onLeave)
+      gsap.killTweensOf(targets)
+      // Ease home while HeroMedia fades the layer out.
+      gsap.to(targets, { x: 0, y: 0, rotationX: 0, rotationY: 0, duration: 0.8, ease: 'power3.out' })
+      if (spot) gsap.to(spot, { opacity: 0, duration: 0.4 })
+    }
+  }, [active, reducedMotion])
+
   // Leaving the page: nothing waits on a timer.
   useEffect(() => () => flushPending(), [])
 
   return (
     <div ref={rootRef} className="web-hero" aria-hidden="true">
+      <div className="wd-backdrop">
+        <img className="wd-backdrop__media" src={backdropPoster} alt="" decoding="async" />
+        {videoRequested && (
+          <video
+            ref={videoRef}
+            className="wd-backdrop__media"
+            src={BACKDROP_VIDEO}
+            muted
+            loop
+            playsInline
+            autoPlay
+            preload="auto"
+          />
+        )}
+      </div>
+      <div className="wd-spot" data-wd-spot />
       <div className="wd-grid" />
 
       <div ref={stageRef} className="web-hero__stage">
         <div className="wd-rig">
           <div className="wd-halo" />
 
-          <div className="wd-browser">
+          <div className="wd-browser" data-device={device}>
             <div className="wd-chrome">
               <span className="wd-dots">
                 <i />
@@ -544,9 +691,13 @@ function WebDesignHero({
             </div>
           </div>
 
-          <DevelopmentCard />
-          <TypeCard />
-          <ResponsiveCard />
+          {/* The cards float nearer than the browser: they travel further
+              with the pointer. */}
+          <div className="wd-depth" data-wd-depth>
+            <DevelopmentCard />
+            <TypeCard />
+            <ResponsiveCard device={device} onDevice={pickDevice} />
+          </div>
         </div>
 
         <div className="wd-cursor" data-wd="cursor">

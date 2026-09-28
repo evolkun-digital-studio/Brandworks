@@ -23,8 +23,8 @@
   --about-rule-strong: rgba(17, 17, 17, 0.22);
 
   --about-hero-size: clamp(4rem, 10vw, 10rem);
-  --about-statement-size: clamp(2.5rem, 4.6vw, 3randWorks beganrem);
-  --about-heading-size: clamp(2rem, 4vw, 4rem);
+  --about-statement-size: clamp(2.5rem, 4.6vw, 2.5rem);
+  --about-heading-size: clamp(2rem, 4vw, 3rem);
 
   /* How far the hero portrait reaches into the section below it. */
   --about-overlap: clamp(96px, 14vw, 220px);
@@ -366,8 +366,8 @@ body:has(.about-page) .site-header__logo {
   max-width: 22ch;
   margin: clamp(20px, 2vw, 32px) 0 0;
   font-family: var(--font-primary);
-  font-size: clamp(24px, 2.5vw, 38px);
-  font-weight: 500;
+  font-size: 36px;
+  font-weight: 200;
   line-height: 1.1;
   letter-spacing: -0.025em;
   text-wrap: pretty;
@@ -708,6 +708,10 @@ body:has(.about-page) .site-header__logo {
     grid-column: 5 / 9;
   }
 
+  .about-stage__text {
+    font-size: 32px;
+  }
+
   .about-journey__image--tall {
     grid-column: 5 / 9;
   }
@@ -814,6 +818,7 @@ body:has(.about-page) .site-header__logo {
 
   .about-stage__text {
     max-width: none;
+    font-size: clamp(26px, 7.4vw, 30px);
   }
 
   .about-principles__list {

@@ -1,8 +1,14 @@
+import campaignMotion from '../assets/social/campaign-motion.jpg'
+import photo01 from '../assets/hero/photo-01.webp'
+import photo02 from '../assets/hero/photo-02.webp'
+import photo03 from '../assets/hero/photo-03.webp'
+import photo04 from '../assets/hero/photo-04.webp'
+
 export type Photograph = {
   id: string
   title: string
   category: string
-  description: string
+  // description: string
   src: string
   alt: string
   width: number
@@ -21,9 +27,9 @@ export const photographs: Photograph[] = [
     id: 'campaign',
     title: 'Campaign photography',
     category: 'Campaign / Art direction',
-    description:
-      'A visual language that holds together across the campaign, from the main image to the smallest detail.',
-    src: '/images/photography/photo-01.webp',
+    // description:
+    //   'A visual language that holds together across the campaign, from the main image to the smallest detail.',
+    src: photo01,
     alt: 'Campaign photography selection',
     width: 1600,
     height: 1200,
@@ -33,9 +39,9 @@ export const photographs: Photograph[] = [
     id: 'portraits',
     title: 'Editorial portraits',
     category: 'Portrait / Founder / Editorial',
-    description:
-      'People photographed with intention. Character, expression and environment, without the familiar corporate template.',
-    src: '/images/photography/photo-02.webp',
+    // description:
+    //     'People photographed with intention. Character, expression and environment, without the familiar corporate template.',
+    src: photo02,
     alt: 'Editorial portrait selection',
     width: 1200,
     height: 1500,
@@ -45,9 +51,9 @@ export const photographs: Photograph[] = [
     id: 'product',
     title: 'Product stories',
     category: 'Product / Still life',
-    description:
-      'Material, light and composition working together to show the product clearly and give it a point of view.',
-    src: '/images/photography/photo-03.webp',
+    // description:
+    //   'Material, light and composition working together to show the product clearly and give it a point of view.',
+    src: photo03,
     alt: 'Product and still-life photography selection',
     width: 1200,
     height: 1500,
@@ -56,9 +62,9 @@ export const photographs: Photograph[] = [
     id: 'spaces',
     title: 'Spaces & hospitality',
     category: 'Architecture / Interiors / Hospitality',
-    description:
-      'The atmosphere of a place, not just its dimensions. Architecture and interiors photographed around how they feel.',
-    src: '/images/photography/photo-04.webp',
+    //  description:
+      // 'The atmosphere of a place, not just its dimensions. Architecture and interiors photographed around how they feel.',
+    src: photo04,
     alt: 'Architecture and hospitality photography selection',
     width: 1600,
     height: 1200,
@@ -69,11 +75,11 @@ export const heroPhotograph: Photograph = {
   id: 'hero',
   title: 'Photography that shapes perception.',
   category: 'Direction / Production / Image',
-  description: '',
-  src: '/images/photography/hero.webp',
-  alt: 'Featured brand photography selection',
-  width: 1920,
-  height: 1200,
+  // description: '',
+  src: campaignMotion,
+  alt: 'Motion-led monochrome lifestyle portrait',
+  width: 1200,
+  height: 673,
   position: '50% 50%',
 }
 

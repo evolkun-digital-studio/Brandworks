@@ -338,6 +338,33 @@
   pointer-events: none;
 }
 
+/* Desktop: the copy lives in the right column, so only the pair has to
+   clear it. The contact sheet takes the full height on the left, centred,
+   where the bottom-left would otherwise sit empty. */
+@media (min-width: 1024px) {
+  .social-showcase__stage {
+    bottom: clamp(32px, 6.5vh, 72px);
+    align-items: center;
+  }
+
+  .media-showcase {
+    --pair-h: calc(100cqh - var(--hero-content-h, 280px) - clamp(20px, 4vh, 44px));
+    align-self: flex-start;
+    height: var(--pair-h);
+  }
+
+  .media-showcase .social-card {
+    width: min(
+      calc((var(--pair-h) - var(--showcase-rise) - var(--showcase-drop)) * 3 / 4),
+      calc((var(--main-max) - var(--showcase-gap)) / 2)
+    );
+  }
+
+  .social-contact-sheet {
+    width: clamp(500px, 44cqw, 600px);
+  }
+}
+
 .social-image {
   top: calc(var(--showcase-rise) * -1);
 }
@@ -397,17 +424,18 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  /* One column: the copy sits against the right gutter. */
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
-  column-gap: clamp(32px, 5vw, 96px);
   padding: 0 var(--hero-gutter) clamp(32px, 6.5vh, 72px);
   pointer-events: none;
 }
 
 .hero-title {
+  display: block;
   margin: 0;
   font-family: var(--font-primary);
-  font-size: clamp(48px, 5vw, 48px);
+  font-size: 1em;
   font-style: normal;
   font-weight: 400;
   line-height: 0.92;
@@ -420,39 +448,39 @@
 }
 
 .hero-description {
-  max-width: 520px;
-  margin: clamp(18px, 2.6vh, 30px) 0 0;
+  display: block;
   font-family: var(--font-secondary);
-  font-size: clamp(15px, 1.15vw, 17px);
+  font-size: clamp(14px, 1.1vw, 15px);
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.86);
   text-wrap: pretty;
 }
 
+@media (min-width: 1024px) {
+  .hero-description {
+    font-size: 11px;
+  }
+}
+
+/* The right column: headline, description, then the service capsules. */
 .hero-aside {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 22px;
+  gap: 28px;
   justify-self: end;
-  max-width: 720px;
+  /* Same measure as the copy, so the column ends on the right gutter. */
+  max-width: 560px;
 }
 
-/* Service caption — the only text that animates. Each line reveals
-   through its own mask. */
+/* Headline and description — the only text that animates. Each line
+   reveals through its own mask. Held to ~560px so the description stays
+   around two lines. */
 .hero-caption {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-width: 440px;
-}
-
-.hero[data-service='social'] .hero-caption {
-  gap: 12px;
-}
-
-.hero[data-service='social'] .hero-aside {
-  gap: 24px;
+  gap: clamp(14px, 2vh, 20px);
+  max-width: 560px;
 }
 
 .hero-mask {
@@ -461,6 +489,13 @@
   /* room for descenders inside the mask */
   padding-bottom: 0.1em;
   margin-bottom: -0.1em;
+}
+
+/* The headline's tight leading needs room above and below the glyphs. */
+.hero-mask--title {
+  margin-block: -0.14em;
+  padding-block: 0.14em;
+  font-size: clamp(32px, 3vw, 68px);
 }
 
 .hero-caption__eyebrow {
@@ -493,25 +528,110 @@
 
 /* ------------------------------------------------------------- capsules */
 
-.hero-switcher {
+/* One line of capsules that scrolls sideways, held to the copy's width,
+   with the glass "next" button beside it. */
+.hero-switcher-wrap {
   display: flex;
-  flex-wrap: nowrap;
+  align-items: center;
   gap: 10px;
+  width: 100%;
   pointer-events: auto;
 }
 
-/* Six services don't fit one row beside the headline: two even rows of
-   three, capsules at full size. */
-@media (min-width: 1024px) {
-  .hero-switcher {
-    flex-wrap: wrap;
-    max-width: 540px;
-  }
+.hero-switcher {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  /* room for the focus ring inside the scroll box */
+  padding: 6px;
+  margin: -6px;
+  pointer-events: auto;
+}
+
+.hero-switcher::-webkit-scrollbar {
+  display: none;
+}
+
+/* Capsules running off either side fade out at that edge, so the row
+   reads as cut rather than chopped. */
+.hero-switcher {
+  --fade-start: 0px;
+  --fade-end: 0px;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)),
+    transparent 100%
+  );
+}
+
+.hero-switcher.is-cut-start {
+  --fade-start: 56px;
+}
+
+.hero-switcher.is-cut-end {
+  --fade-end: 56px;
+}
+
+.hero-switcher-next {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.06));
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 6px 20px rgba(0, 0, 0, 0.25);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 0.45s var(--hero-ease),
+    border-color 0.45s var(--hero-ease);
+}
+
+.hero-switcher-next:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.hero-switcher-next:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.hero-switcher-next svg {
+  transition: transform 0.45s var(--hero-ease);
+}
+
+/* At the end of the row the arrow turns round: the next press goes back. */
+.hero-switcher-next.is-back svg {
+  transform: rotate(180deg);
 }
 
 .hero-capsule {
-  min-height: 44px;
-  padding: 13px 20px;
+  flex: none;
+  min-height: 36px;
+  padding: 10px 16px;
   border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 999px;
   background: rgba(30, 30, 30, 0.25);
@@ -519,7 +639,7 @@
   backdrop-filter: blur(12px);
   color: #fff;
   font-family: var(--font-primary);
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -645,11 +765,6 @@
   .hero-aside {
     justify-self: start;
   }
-
-  .hero-switcher {
-    flex-wrap: wrap;
-  }
-
 }
 
 /* --------------------------------------------------------------- mobile */
@@ -760,27 +875,9 @@
     gap: 18px;
   }
 
-  .hero-switcher {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 8px;
-    width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    white-space: nowrap;
-    padding: 3px;
-    margin: -3px;
-  }
-
-  .hero-switcher::-webkit-scrollbar {
-    display: none;
-  }
-
   .hero-capsule {
-    flex: 0 0 auto;
-    padding: 13px 14px;
-    font-size: 14px;
+    padding: 10px 12px;
+    font-size: 13px;
   }
 }
 
@@ -788,7 +885,8 @@
   .thumbnail .hero-img,
   .featured-image .hero-img,
   .social-contact-sheet__cell .hero-img,
-  .hero-overlay {
+  .hero-overlay,
+  .hero-switcher-next svg {
     transition: none;
   }
 

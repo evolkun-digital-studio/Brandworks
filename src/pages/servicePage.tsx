@@ -5,6 +5,16 @@ import {
   type ReactNode,
 } from 'react'
 import { Link } from 'react-router-dom'
+import photo1 from '../Photo/Photo1.jpg'
+import photo2 from '../Photo/Photo2.jpg'
+import photo3 from '../Photo/Photo3.jpg'
+import photo4 from '../Photo/Photo4.png'
+import photo5 from '../Photo/Photo5.png'
+import photo6 from '../Photo/Photo6.png'
+import photo7 from '../Photo/Photo7.png'
+import photo8 from '../Photo/Photo8.png'
+import photo9 from '../Photo/Photo9.png'
+import photo10 from '../Photo/Photo10.png'
 
 type Service = {
   number: string
@@ -42,7 +52,7 @@ const services: Service[] = [
       'Creative Direction',
       'Campaign Strategy',
     ],
-    image: '/images/services/strategy.webp',
+    image: photo1,
     imageAlt:
       'Brand strategy and creative direction work by BrandWorks',
   },
@@ -59,7 +69,7 @@ const services: Service[] = [
       'Digital Graphics',
       'Motion Graphics',
     ],
-    image: '/images/services/graphic-design.webp',
+    image: photo2,
     imageAlt:
       'Graphic design and visual identity work by BrandWorks',
   },
@@ -76,7 +86,7 @@ const services: Service[] = [
       'Short-form Content',
       'Creative Production',
     ],
-    image: '/images/services/content-creation.webp',
+    image: photo3,
     imageAlt:
       'Brand content creation and campaign production by BrandWorks',
   },
@@ -93,7 +103,7 @@ const services: Service[] = [
       'Campaign Photography',
       'Founder Portraits',
     ],
-    image: '/images/services/photography.webp',
+    image: photo4,
     imageAlt:
       'Commercial and campaign photography by BrandWorks',
   },
@@ -111,7 +121,7 @@ const services: Service[] = [
       'Cinematography',
       'Post-production',
     ],
-    image: '/images/services/videography.webp',
+    image: photo5,
     imageAlt:
       'Videography, film production and cinematography by BrandWorks',
   },
@@ -128,7 +138,7 @@ const services: Service[] = [
       'Platform Management',
       'Campaigns',
     ],
-    image: '/images/services/social-media.webp',
+    image: photo6,
     imageAlt:
       'Social media marketing and content strategy by BrandWorks',
   },
@@ -145,7 +155,7 @@ const services: Service[] = [
       'Thought Leadership',
       'Reputation Management',
     ],
-    image: '/images/services/pr-reputation.webp',
+    image: photo7,
     imageAlt:
       'PR and founder reputation management services by BrandWorks',
   },
@@ -162,7 +172,7 @@ const services: Service[] = [
       'Media Strategy',
       'Conversion Optimisation',
     ],
-    image: '/images/services/performance-marketing.webp',
+    image: photo8,
     imageAlt:
       'Performance marketing and paid media campaigns by BrandWorks',
   },
@@ -179,7 +189,7 @@ const services: Service[] = [
       'Content SEO',
       'International SEO',
     ],
-    image: '/images/services/seo.webp',
+    image: photo9,
     imageAlt:
       'SEO strategy and search engine optimisation services by BrandWorks',
   },
@@ -197,7 +207,7 @@ const services: Service[] = [
       'Frontend Development',
       'Technical Performance',
     ],
-    image: '/images/services/web-design.webp',
+    image: photo10,
     imageAlt:
       'Web design and website development work by BrandWorks',
   },
@@ -387,14 +397,13 @@ export default function ServicesPage() {
       ====================================================== */}
 
       <section className="mx-auto w-full max-w-[1280px] px-5 pb-16 pt-24 sm:px-7 sm:pb-20 sm:pt-28 lg:px-10 lg:pb-24 lg:pt-32">
-        <div className="max-w-[880px]">
-          <SectionLabel>Capabilities</SectionLabel>
+        <div className="mx-auto max-w-[880px] text-center"> 
 
-          <h1 className="mt-5 max-w-[820px] text-[clamp(2.25rem,4.4vw,3.6rem)] font-medium leading-[0.98] tracking-[-0.045em]">
+          <h1 className="mx-auto mt-5 max-w-[820px] text-[clamp(2.25rem,4.4vw,3rem)] font-medium leading-[0.98] tracking-[-0.045em]">
             From how a brand thinks to how the world sees it.
           </h1>
 
-          <p className="mt-7 max-w-[670px] text-[16px] leading-[1.65] text-neutral-600 sm:text-[17px]">
+          <p className="mx-auto mt-7 max-w-[670px] text-[16px] leading-[1.65] text-neutral-600 sm:text-[17px]">
             BrandWorks is a multidisciplinary creative and
             digital agency bringing strategy, design,
             photography, film, social media, reputation,
@@ -427,10 +436,10 @@ export default function ServicesPage() {
                 </h2>
               </div>
 
-              <p className="hidden max-w-[320px] text-right text-sm leading-6 text-neutral-500 md:block">
+              {/* <p className="hidden max-w-[320px] text-right text-sm leading-6 text-neutral-500 md:block">
                 Specialist capabilities designed to work
                 independently or together.
-              </p>
+              </p> */}
             </div>
 
             <nav aria-label="BrandWorks services">
@@ -459,7 +468,7 @@ export default function ServicesPage() {
                           service.title}
                       </span>
 
-                      <span className="hidden max-w-[410px] text-sm leading-6 text-neutral-500 sm:block">
+                      <span className="hidden max-w-[410px] text-sm leading-6 text-neutral-500 opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 sm:block pointer-coarse:opacity-100 motion-reduce:transition-none">
                         {service.description}
                       </span>
 
@@ -601,20 +610,14 @@ export default function ServicesPage() {
         </section>
       )}
 
-      {/* =====================================================
-          GROUPED CAPABILITIES
-      ====================================================== */}
+      {/*  GROUPED CAPABILITIES */}
 
       <section
         aria-labelledby="capability-groups-title"
         className="border-t border-neutral-200"
       >
         <div className="mx-auto w-full max-w-[1280px] px-5 py-16 sm:px-7 sm:py-20 lg:px-10 lg:py-24">
-          <div className="max-w-[650px]">
-            <SectionLabel>
-              Across BrandWorks
-            </SectionLabel>
-
+          <div className="max-w-[900px]"> 
             <h2
               id="capability-groups-title"
               className="mt-3 text-[clamp(1.8rem,3vw,2.5rem)] font-medium leading-[1.05] tracking-[-0.04em]"
@@ -693,9 +696,8 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* =====================================================
-          INTEGRATED AGENCY MESSAGE
-      ====================================================== */}
+      {/* 
+          INTEGRATED AGENCY MESSAGE */}
 
       <section className="border-t border-neutral-200 bg-neutral-950 text-white">
         <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-5 py-16 sm:px-7 sm:py-20 md:grid-cols-[0.8fr_1.2fr] lg:px-10 lg:py-24">
@@ -727,9 +729,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* =====================================================
-          CLOSING / INTERNAL LINKING
-      ====================================================== */}
+      {/*  CLOSING / INTERNAL LINKING */}
 
       <section className="border-t border-neutral-800 bg-neutral-950 text-white">
         <div className="mx-auto w-full max-w-[1280px] px-5 py-14 sm:px-7 sm:py-16 lg:px-10">

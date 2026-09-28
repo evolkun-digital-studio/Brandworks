@@ -7,9 +7,9 @@ import { heroServices } from '../../data/heroServices'
 gsap.registerPlugin(useGSAP)
 
 /**
- * The small copy that belongs to the active service. On a switch the
- * current lines slip up out of their masks, then the new ones rise in —
- * the only text in the hero that moves.
+ * The headline and description that belong to the active service. On a
+ * switch the current lines slip up out of their masks, then the new ones
+ * rise in — the only text in the hero that moves.
  */
 function HeroCaption({ activeId, reducedMotion }: { activeId: HeroServiceId; reducedMotion: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -68,14 +68,21 @@ function HeroCaption({ activeId, reducedMotion }: { activeId: HeroServiceId; red
 
   return (
     <div ref={rootRef} className="hero-caption" aria-live="polite">
-      <span className="hero-mask">
-        <span data-reveal className="hero-caption__eyebrow">
-          {service.eyebrow}
+      {service.eyebrow && (
+        <span className="hero-mask">
+          <span data-reveal className="hero-caption__eyebrow">
+            {service.eyebrow}
+          </span>
         </span>
-      </span>
+      )}
+      <h1 id="hero-heading" className="hero-mask hero-mask--title">
+        <span data-reveal className="hero-title">
+          {service.headline}
+        </span>
+      </h1>
       <span className="hero-mask">
-        <span data-reveal className="hero-caption__text">
-          {service.serviceList}
+        <span data-reveal className="hero-description">
+          {service.text}
         </span>
       </span>
     </div>

@@ -83,7 +83,7 @@ function About() {
 
         <h3
           ref={headingRef}
-          className="mt-4 w-full max-w-[680px] text-[clamp(20px,5.8vw,28px)]   leading-[1.38] tracking-[-0.025em] sm:mt-5 sm:max-w-[720px] sm:text-[clamp(22px,3.3vw,27px)] sm:leading-[1.36] md:max-w-[760px] md:text-[clamp(24px,2.8vw,28px)] md:leading-[1.34] lg:max-w-[620px] lg:text-[clamp(25px,2vw,28px)] lg:leading-[1.32] xl:max-w-[680px] 2xl:max-w-[720px] 2xl:text-[29px]"
+          className="mt-4 w-full max-w-[680px] font-secondary text-[clamp(20px,5.8vw,28px)] font-medium leading-[1.38] tracking-[-0.025em] sm:mt-5 sm:max-w-[720px] sm:text-[clamp(22px,3.3vw,27px)] sm:leading-[1.36] md:max-w-[760px] md:text-[clamp(24px,2.8vw,28px)] md:leading-[1.34] lg:max-w-[620px] lg:text-[clamp(25px,2vw,28px)] lg:leading-[1.32] xl:max-w-[680px] 2xl:max-w-[720px] 2xl:text-[29px]"
         >
           {ABOUT_WORDS.map((word, index) => {
             const wordStart = index / total;
@@ -118,7 +118,7 @@ function About() {
 
       <div className="relative h-[365px] w-[572px] max-w-full overflow-hidden rounded-[8px] bg-neutral-100">
         <video
-          src="https://res.cloudinary.com/dpjdnoqii/video/upload/v1790402778/gemini_generated_video_b01ac751_umpdsx.mp4"
+          src="https://res.cloudinary.com/dmzo1kt0d/video/upload/v1790595343/brandworks_bw_transition_smooth_60fps.mp4"
           autoPlay
           muted
           loop

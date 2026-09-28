@@ -119,12 +119,13 @@ function measure(hero: HTMLElement, showcase: HTMLElement): Geometry | null {
   const descriptionInk = description ? inkX(description, originX) : titleInk
   const captionInk = inkX(caption, originX)
   const captionBox = layoutBox(caption, hero)
-  const pills = Array.from(switcher.children) as HTMLElement[]
-  const pillBoxes = pills.map((pill) => layoutBox(pill, hero))
-  const pillsLeft = Math.min(...pillBoxes.map((b) => b.x))
-  const pillsRight = Math.max(...pillBoxes.map(right))
-  const pillsTop = Math.min(...pillBoxes.map((b) => b.y))
-  const pillsBottom = Math.max(...pillBoxes.map(bottom))
+  // The capsules scroll inside one row: route around the visible row and
+  // its next button, not capsules scrolled out of sight.
+  const row = layoutBox(switcher.closest<HTMLElement>('.hero-switcher-wrap') ?? switcher, hero)
+  const pillsLeft = row.x
+  const pillsRight = right(row)
+  const pillsTop = row.y
+  const pillsBottom = bottom(row)
   const copyRight = Math.max(titleInk.right, descriptionInk.right)
 
   return {

@@ -317,7 +317,7 @@ function SelectedPhotography({ onOpen }: { onOpen: OpenPhotograph }) {
                 <span className="bwp-chapter-number">{String(index + 1).padStart(2, '0')}</span>
                 <h3>{photograph.title}</h3>
                 <p className="bwp-chapter-category">{photograph.category}</p>
-                <p className="bwp-chapter-description">{photograph.description}</p>
+                {/* <p className="bwp-chapter-description">{photograph.description}</p> */}
                 <button type="button" className="bwp-text-link"
                   onClick={(event) => onOpen(photograph, event.currentTarget)}>
                   View photograph <Arrow />
@@ -493,17 +493,17 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
       <section className="bwp-hero bwp-container" aria-labelledby="bwp-page-heading">
         <div className="bwp-hero-copy">
           <div>
-            <Label>04 / Photography</Label>
+            <Label>Photography</Label>
             <h1 id="bwp-page-heading">
               <span className="bwp-title-mask"><span data-bwp-title>Photography that</span></span>
               <span className="bwp-title-mask"><span data-bwp-title>shapes perception.</span></span>
             </h1>
           </div>
-          <div className="bwp-hero-description">
+          {/* <div className="bwp-hero-description">
             <p>Commercial, campaign and editorial photography built around how a brand,
               product, place or person needs to be remembered.</p>
             <a className="bwp-text-link" href="#selected-photography">View selected photography <Arrow /></a>
-          </div>
+          </div> */}
         </div>
         <figure className="bwp-hero-figure">
           <div className="bwp-hero-stage" data-bwp-hero>
@@ -515,7 +515,7 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
               </div>
             </button>
           </div>
-          <figcaption><span>BrandWorks / Photography</span><span>Direction. Production. Image.</span></figcaption>
+          {/* <figcaption><span>BrandWorks / Photography</span><span>Direction. Production. Image.</span></figcaption> */}
         </figure>
       </section>
 
@@ -534,7 +534,7 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
         <div className="bwp-container">
           <header className="bwp-section-head" data-bwp-reveal>
             <div><Label>Photography practice</Label><h2 id="bwp-practice-heading">Built around what the<br />brand needs to show.</h2></div>
-            <p>Commercial photography, editorial thinking.<br />Explore a frame to see the full image.</p>
+            {/* <p>Commercial photography, editorial thinking.<br />Explore a frame to see the full image.</p> */}
           </header>
           <ContactSheet onOpen={openPhotograph} />
           <ul className="bwp-capabilities" aria-label="Photography services">

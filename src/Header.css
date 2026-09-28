@@ -67,7 +67,7 @@
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   color: var(--pill-ink);
-  font-family: var(--font-primary);
+  font-family: var(--font-secondary);
   font-size: 14px;
   font-weight: 400;
   line-height: 1;

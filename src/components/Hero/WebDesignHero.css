@@ -30,6 +30,60 @@
   font-family: var(--wd-mono);
 }
 
+/* A film behind frosted glass: heavily blurred and tinted so it reads as
+   moving light, never as footage competing with the composition. Scaled
+   past the edges so the blur never shows a soft border. */
+/* Oversized so the pointer parallax never uncovers an edge. */
+.wd-backdrop {
+  position: absolute;
+  inset: -48px;
+  overflow: hidden;
+}
+
+.wd-backdrop__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(36px) saturate(160%) brightness(0.85);
+  transform: scale(1.18);
+}
+
+/* A soft light that follows the pointer across the frosted film
+   (positioned by WebDesignHero; hidden until the pointer moves). */
+.wd-spot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 620px;
+  height: 620px;
+  margin: -310px 0 0 -310px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(199, 247, 3, 0.11), rgba(199, 247, 3, 0.04) 55%, transparent);
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The cards' own layer, the same box as the rig, so the pointer can move
+   them further than the browser behind them. */
+.wd-depth {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.wd-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 80% at 60% 42%, rgba(10, 10, 10, 0.25), rgba(10, 10, 10, 0.72) 100%),
+    rgba(10, 10, 10, 0.3);
+}
+
 /* An almost-invisible construction grid, a touch clearer around the
    browser and gone at the edges. */
 .wd-grid {
@@ -92,9 +146,12 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--wd-radius);
-  background: #151515;
+  background: rgba(22, 22, 22, 0.42);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.14),
     0 50px 90px -40px rgba(0, 0, 0, 0.9),
     0 24px 40px -24px rgba(0, 0, 0, 0.6);
   transform-origin: 50% 60%;
@@ -108,8 +165,8 @@
   justify-content: space-between;
   height: clamp(22px, 3.9cqw, 36px);
   padding: 0 clamp(9px, 1.6cqw, 16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: #161616;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .wd-dots {
@@ -664,16 +721,44 @@
   position: absolute;
   z-index: 2;
   padding: 12px 14px 13px;
-  border: 1px solid var(--wd-hair);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--wd-card-radius);
-  background: rgba(20, 20, 20, 0.78);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.85);
+  /* Glass: the blurred film shows through, lit along the top edge. */
+  /* A dark base keeps the type legible where a card crosses the white site. */
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
+    rgba(16, 16, 16, 0.62);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 24px 48px -24px rgba(0, 0, 0, 0.85);
   color: rgba(255, 255, 255, 0.86);
   font-family: var(--font-secondary);
   font-size: 11px;
   line-height: 1.3;
+}
+
+/* Cards lift under the pointer. `translate` composes with the transforms
+   the timeline sets, so the two never fight. */
+@media (hover: hover) and (pointer: fine) {
+  .wd-card {
+    pointer-events: auto;
+    transition:
+      translate 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .wd-card:hover {
+    translate: 0 -8px;
+    border-color: rgba(255, 255, 255, 0.34);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wd-card {
+    transition: none;
+  }
 }
 
 .wd-card__head {
@@ -784,12 +869,56 @@
   width: clamp(150px, 21%, 184px);
 }
 
+/* Always clickable, touch included: it's the card's whole point. */
+.wd-card--resp {
+  pointer-events: auto;
+}
+
 .wd-devices {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  margin: 0 -6px -6px;
+}
+
+.wd-device-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.42);
+  cursor: pointer;
+  transition:
+    background-color 0.35s var(--hero-ease, ease),
+    color 0.35s var(--hero-ease, ease);
+}
+
+.wd-device-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.wd-device-btn.is-on {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.wd-device-btn__icon {
+  display: flex;
+  align-items: flex-end;
   height: 30px;
-  padding: 0 2px;
+}
+
+.wd-device-btn:hover .wd-device:not(.is-on) {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.wd-device-btn__size {
+  font-size: 9.5px;
+  line-height: 1;
 }
 
 .wd-device {
@@ -826,6 +955,10 @@
   border-radius: 3.5px;
 }
 
+.wd-device {
+  transition: border-color 0.35s ease;
+}
+
 .wd-device.is-on {
   border-color: rgba(255, 255, 255, 0.86);
 }
@@ -841,12 +974,181 @@
   background: var(--wd-accent);
 }
 
-.wd-devices__sizes {
+
+/* ------------------------------------------------------------- devices */
+
+/* Picking a screen in the Responsive card reshapes the browser within the
+   rig (a portrait tablet, then a tall phone, both centred) and the site
+   inside it reflows to that screen's layout. The site is sized in cqw of
+   the browser, so each screen sets its own, larger scale. */
+.wd-browser {
+  transition:
+    left 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    right 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wd-browser[data-device='tablet'] {
+  left: 26.5%;
+  right: 26.5%;
+}
+
+.wd-browser[data-device='phone'] {
+  --wd-radius: 22px;
+  left: 35.5%;
+  right: 35.5%;
+}
+
+.wd-burger {
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wd-burger i {
+  display: block;
+  width: 12px;
+  height: 1.3px;
+  background: currentColor;
+}
+
+/* Tablet and phone: one column, image below the copy, nav collapsed. */
+.wd-browser:not([data-device='desktop']) .wd-links {
+  display: none;
+}
+
+.wd-browser:not([data-device='desktop']) .wd-main {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  overflow: hidden;
+}
+
+.wd-browser:not([data-device='desktop']) .wd-art__frame {
+  aspect-ratio: 16 / 10;
+}
+
+.wd-browser[data-device='tablet'] .wd-site {
+  padding: 5cqw 6cqw 4cqw;
+}
+
+.wd-browser[data-device='tablet'] .wd-nav {
+  font-size: max(7.5px, 2.6cqw);
+}
+
+.wd-browser[data-device='tablet'] .wd-main {
+  gap: 6cqw;
+  padding-top: 7cqw;
+}
+
+.wd-browser[data-device='tablet'] .wd-eyebrow {
+  font-size: max(6.5px, 2cqw);
+}
+
+.wd-browser[data-device='tablet'] .wd-h1 {
+  margin-top: 3cqw;
+  font-size: 11cqw;
+}
+
+.wd-browser[data-device='tablet'] .wd-copy {
+  margin-top: 4cqw;
+  font-size: max(7.5px, 2.8cqw);
+}
+
+.wd-browser[data-device='tablet'] .wd-cta {
+  margin-top: 5cqw;
+  font-size: max(7.5px, 2.6cqw);
+}
+
+.wd-browser[data-device='tablet'] .wd-art__frame {
+  border-radius: 2cqw;
+}
+
+.wd-browser[data-device='tablet'] .wd-art__cap,
+.wd-browser[data-device='tablet'] .wd-foot {
+  font-size: max(6.5px, 2cqw);
+}
+
+.wd-browser[data-device='tablet'] .wd-view {
+  font-size: max(7.5px, 2.4cqw);
+}
+
+.wd-browser[data-device='tablet'] .wd-foot {
+  gap: 5cqw;
+  padding-top: 3cqw;
+}
+
+.wd-browser[data-device='phone'] .wd-dots,
+.wd-browser[data-device='phone'] .wd-chrome__end,
+.wd-browser[data-device='phone'] .wd-contact,
+.wd-browser[data-device='phone'] .wd-foot > :nth-child(n + 3) {
+  display: none;
+}
+
+.wd-browser[data-device='phone'] .wd-url {
+  min-width: 70%;
+}
+
+.wd-browser[data-device='phone'] .wd-burger {
   display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 9.5px;
-  color: rgba(255, 255, 255, 0.42);
+}
+
+.wd-browser[data-device='phone'] .wd-site {
+  padding: 7cqw 7cqw 6cqw;
+}
+
+.wd-browser[data-device='phone'] .wd-nav {
+  font-size: max(7.5px, 4cqw);
+}
+
+.wd-browser[data-device='phone'] .wd-main {
+  gap: 8cqw;
+  padding-top: 10cqw;
+}
+
+.wd-browser[data-device='phone'] .wd-eyebrow {
+  font-size: max(6.5px, 3.2cqw);
+}
+
+.wd-browser[data-device='phone'] .wd-h1 {
+  margin-top: 4cqw;
+  font-size: 15cqw;
+}
+
+.wd-browser[data-device='phone'] .wd-copy {
+  margin-top: 5cqw;
+  font-size: max(7.5px, 4.2cqw);
+}
+
+.wd-browser[data-device='phone'] .wd-cta {
+  margin-top: 7cqw;
+  font-size: max(7.5px, 4cqw);
+}
+
+.wd-browser[data-device='phone'] .wd-art__frame {
+  aspect-ratio: 4 / 3;
+  border-radius: 3cqw;
+}
+
+.wd-browser[data-device='phone'] .wd-art__cap,
+.wd-browser[data-device='phone'] .wd-foot {
+  font-size: max(6.5px, 3.2cqw);
+}
+
+.wd-browser[data-device='phone'] .wd-view {
+  font-size: max(7.5px, 3.6cqw);
+}
+
+.wd-browser[data-device='phone'] .wd-foot {
+  padding-top: 4cqw;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wd-browser,
+  .wd-device-btn,
+  .wd-device {
+    transition: none;
+  }
 }
 
 /* -------------------------------------------------------------- cursor */
