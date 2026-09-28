@@ -23,7 +23,7 @@
   --about-rule-strong: rgba(17, 17, 17, 0.22);
 
   --about-hero-size: clamp(4rem, 10vw, 10rem);
-  --about-statement-size: clamp(2.5rem, 4.6vw, 4.75rem);
+  --about-statement-size: clamp(2.5rem, 4.6vw, 3.5rem);
   --about-heading-size: clamp(2rem, 4vw, 4rem);
 
   /* How far the hero portrait reaches into the section below it. */
@@ -34,6 +34,15 @@
   overflow-x: clip;
   background: var(--about-paper);
   color: var(--about-ink);
+}
+
+/* Let grid children shrink with the viewport, especially long display words
+   and media frames on narrow tablets. */
+.about-page .section-grid > *,
+.about-page .about-hero > .section-container,
+.about-page .about-media {
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* No italics anywhere on this page, whatever the markup or UA defaults. */
@@ -655,6 +664,26 @@ body:has(.about-page) .site-header__logo {
 /* ---------------------------------------------------------------- tablet */
 
 @media (max-width: 1023px) {
+  .about-page {
+    --about-hero-size: clamp(4.25rem, 10vw, 7rem);
+    --about-statement-size: clamp(2.25rem, 5.4vw, 3.25rem);
+    --about-heading-size: clamp(2rem, 4.8vw, 3.5rem);
+    --about-overlap: clamp(80px, 12vw, 128px);
+  }
+
+  .about-hero {
+    padding-top: clamp(104px, 13vw, 144px);
+  }
+
+  .about-hero__heading {
+    margin-top: clamp(40px, 7vw, 80px);
+  }
+
+  .about-hero__media {
+    width: clamp(220px, 32vw, 320px);
+    margin-top: clamp(40px, 6vw, 72px);
+  }
+
   .about-intro__studio {
     grid-column: 1 / 5;
   }
@@ -711,17 +740,43 @@ body:has(.about-page) .site-header__logo {
   .about-team__intro {
     max-width: 560px;
   }
+
+  .about-team__members {
+    margin-top: var(--content-gap);
+  }
 }
 
 /* ----------------------------------------------------------------- phone */
 
 @media (max-width: 767px) {
   .about-page {
-    --about-hero-size: min(4rem, 17vw);
-    --about-statement-size: clamp(30px, 8.4vw, 40px);
+    --about-hero-size: clamp(2.7rem, 15.5vw, 4rem);
+    --about-statement-size: clamp(30px, 8.4vw, 32px);
     --about-heading-size: clamp(28px, 7.6vw, 36px);
     /* A small overlap still links the hero to the page below. */
     --about-overlap: 64px;
+  }
+
+  .about-page .section-container {
+    padding-inline: max(18px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right));
+  }
+
+  .about-page .section-grid {
+    row-gap: var(--content-gap);
+  }
+
+  .about-hero {
+    padding-top: max(96px, calc(72px + env(safe-area-inset-top)));
+  }
+
+  .about-hero__heading {
+    margin-top: clamp(36px, 12vw, 56px);
+    line-height: 0.92;
+  }
+
+  .about-hero__description {
+    max-width: 32ch;
+    margin-top: 20px;
   }
 
   /* .section-grid is a flex column here: the desktop vertical alignments
@@ -735,7 +790,8 @@ body:has(.about-page) .site-header__logo {
   }
 
   .about-hero__media {
-    width: min(62vw, 300px);
+    width: min(68vw, 300px);
+    margin-top: clamp(40px, 12vw, 56px);
   }
 
   .about-intro__head {
@@ -748,7 +804,7 @@ body:has(.about-page) .site-header__logo {
   }
 
   .about-journey__story {
-    gap: 64px;
+    gap: clamp(56px, 15vw, 88px);
   }
 
   /* Image first, then its words, whatever the desktop order. */
@@ -785,7 +841,7 @@ body:has(.about-page) .site-header__logo {
   .about-team__members {
     display: flex;
     flex-direction: column;
-    gap: 48px;
+    gap: clamp(40px, 12vw, 64px);
   }
 
   .about-team__column {
@@ -800,6 +856,22 @@ body:has(.about-page) .site-header__logo {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 40px 16px;
     align-items: start;
+  }
+}
+
+/* Very narrow phones: keep the discipline list readable instead of forcing
+   two cramped columns. */
+@media (max-width: 379px) {
+  .about-disciplines {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .about-principle {
+    column-gap: 14px;
+  }
+
+  .about-principle__number {
+    font-size: 42px;
   }
 }
 

@@ -1117,6 +1117,7 @@ export default function WebsiteSection({
 
   return (
     <section
+      id="search-seo"
       aria-labelledby={headingId}
       className={`relative w-full overflow-x-clip bg-white px-4 text-neutral-900 [--seo-bg:#ffffff] min-[420px]:px-5 sm:px-6 md:px-8 lg:px-10 xl:px-12 2xl:px-16 ${className}`}
     >

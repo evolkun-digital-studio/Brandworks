@@ -1,30 +1,41 @@
-import { lazy, Suspense, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import PublicLayout from './PublicLayout'
-import { removeLinkTag, removeMetaTag, setDocumentTitle, setLinkTag, setMetaTag } from './blog/lib/documentHead'
-import Hero from './Hero'
-import HumanLedBrandIntelligence from './HumanLedBrandIntelligence'
-import Services from './Services'
-import About from './About'
-import Photography from './Work'
-import Work from './WorkWithImpact' 
+import { lazy, Suspense, useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import PublicLayout from "./PublicLayout";
+import {
+  removeLinkTag,
+  removeMetaTag,
+  setDocumentTitle,
+  setLinkTag,
+  setMetaTag,
+} from "./blog/lib/documentHead";
+import Hero from "./Hero";
+import HumanLedBrandIntelligence from "./HumanLedBrandIntelligence";
+import Services from "./Services";
+import About from "./About";
+import Photography from "./Work";
+import Work from "./WorkWithImpact";
 
-import Videography from './Videography'
-import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
-import PRReputation from './PRReputation'
-import SocialMedia from './components/SocialMedia/SocialMedia'
-import WebDevelopment from './components/WebDevelopment/WebDevelopment'
+import Videography from "./Videography";
+import GraphicsMotionExperience from "./components/GraphicsMotion/GraphicsMotionExperience";
+import PRReputation from "./PRReputation";
+import SocialMedia from "./components/SocialMedia/SocialMedia";
+import WebDevelopment from "./components/WebDevelopment/WebDevelopment";
 // import Photography from './Photography'
-import Capabilities from './Capabilities'
-import Results from './Results'
-import FAQs from './FAQs'
-import Industries from './Industries'
-import Testimonials from './Testimonials'
-import { EditorialArticlePage, EditorialIndexPage } from './editorial/EditorialPages'
-import NotFound from './NotFound'
-import AboutPage from './components/AboutPage/AboutPage'
+import Capabilities from "./Capabilities";
+import Results from "./Results";
+import FAQs from "./FAQs";
+import Industries from "./Industries";
+import Testimonials from "./Testimonials";
+import {
+  EditorialArticlePage,
+  EditorialIndexPage,
+} from "./editorial/EditorialPages";
+import NotFound from "./NotFound";
+import AboutPage from "./components/AboutPage/AboutPage";
 import WebsiteSectionProps from "./Seo";
-
+import ServicesPage from "./pages/servicePage";
+import CinematographyPage from "./pages/services/CinematographyPage";
+import PhotographyPage from "./pages/services/PhotographyPage";
 // Route-level code splitting (Phase 10, Part 13): AdminRoutes pulls in
 // the entire CMS — react-markdown's admin preview, the SEO analyzer,
 // every admin page — none of which a public visitor has any reason to
@@ -70,6 +81,20 @@ export function Home() {
     };
   }, []);
 
+  // Deep links such as /#photography (used by the Journal's service
+  // links). The router doesn't scroll to a hash on its own; waiting a
+  // beat lets the pinned sections above measure themselves first.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const timer = window.setTimeout(() => {
+      document
+        .getElementById(decodeURIComponent(hash.slice(1)))
+        ?.scrollIntoView({ block: "start" });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [hash]);
+
   return (
     <main>
       <Hero />
@@ -79,13 +104,13 @@ export function Home() {
       <About />
       <Work />
       {/* <PhotographyTransition /> */}
-      <Photography/>
+      <Photography />
       <Videography />
       <GraphicsMotionExperience />
       <PRReputation />
       <SocialMedia />
       <WebDevelopment />
-      {/* <Photography /> */} 
+      {/* <Photography /> */}
       <WebsiteSectionProps />
       <Capabilities />
       <Results />
@@ -103,10 +128,19 @@ function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/services/videography" element={<CinematographyPage />} />
+        <Route path="/services/photography" element={<PhotographyPage />} />
         <Route path="/blog" element={<EditorialIndexPage kind="blog" />} />
-        <Route path="/blog/:slug" element={<EditorialArticlePage kind="blog" />} />
+        <Route
+          path="/blog/:slug"
+          element={<EditorialArticlePage kind="blog" />}
+        />
         <Route path="/news" element={<EditorialIndexPage kind="news" />} />
-        <Route path="/news/:slug" element={<EditorialArticlePage kind="news" />} />
+        <Route
+          path="/news/:slug"
+          element={<EditorialArticlePage kind="news" />}
+        />
         {/* Catch-all for any other path (Phase 13, Part 1/15) — kept
            inside PublicLayout so Header/Footer/RouteAnalytics still
            render; without this, an unmatched path previously rendered
