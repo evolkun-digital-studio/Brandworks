@@ -23,7 +23,7 @@
   --about-rule-strong: rgba(17, 17, 17, 0.22);
 
   --about-hero-size: clamp(4rem, 10vw, 10rem);
-  --about-statement-size: clamp(2.5rem, 4.6vw, 3.5rem);
+  --about-statement-size: clamp(2.5rem, 4.6vw, 3randWorks beganrem);
   --about-heading-size: clamp(2rem, 4vw, 4rem);
 
   /* How far the hero portrait reaches into the section below it. */
