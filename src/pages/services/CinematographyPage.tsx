@@ -813,7 +813,7 @@ export default function CinematographyPage() {
           CAPABILITIES — SILVER
       ====================================================== */}
 
-      <section className="bg-[#c8c8c8] text-[#231f20]">
+      <section className="bg-white text-[#231f20]">
         <div className="mx-auto w-full max-w-[1280px] px-5 py-16 sm:px-7 sm:py-20 lg:px-10 lg:py-24">
           <div className="grid gap-12 lg:grid-cols-[.72fr_1.28fr] lg:gap-20">
             <div data-reveal>

@@ -10,6 +10,7 @@ import {
 } from "./blog/lib/documentHead";
 import Hero from "./Hero";
 import HumanLedBrandIntelligence from "./HumanLedBrandIntelligence";
+import BrandStatement from "./HumanLedBrandIntelligence";
 import Services from "./Services";
 import About from "./About";
 import Photography from "./Work";
@@ -98,7 +99,9 @@ export function Home() {
   return (
     <main>
       <Hero />
-      <HumanLedBrandIntelligence />
+      {/* <HumanLedBrandIntelligence />
+       */}
+       <BrandStatement />
       <Services />
       {/* <BrandIntelligence /> */}
       <About />
