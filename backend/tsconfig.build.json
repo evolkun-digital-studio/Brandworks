@@ -1,4 +1,8 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["src/**/*.test.ts"]
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/scripts/__tmp_*.ts",
+    "src/scripts/verifyBlogDataLayer.ts"
+  ]
 }

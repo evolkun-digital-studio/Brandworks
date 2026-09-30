@@ -1,0 +1,225 @@
+name: Deploy
+
+# Production deployment to cPanel: CI, then SSH + rsync.
+#
+# Runs only for a push to development or a manual run started from development.
+# Pull requests never reach this workflow. If any step fails the run
+# stops, and once production has been touched it is put back the way
+# it was.
+
+on:
+  push:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One production deployment at a time; a newer push supersedes a run
+# still in progress. A run cancelled part-way through restores its own
+# backup before it exits (see "Roll back" below), so the run that
+# replaces it always starts from a complete release.
+concurrency:
+  group: production-deployment
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: CI
+    if: github.ref == 'refs/heads/development'
+    uses: ./.github/workflows/ci.yml
+    with:
+      production: true
+    secrets:
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+  deploy:
+    name: Deploy to cPanel
+    needs: ci
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      API_URL: ${{ secrets.VITE_API_URL }}
+      SITE_URL: ${{ vars.PRODUCTION_URL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # The artifacts built by the CI job of this same run — never a
+      # rebuild, never files left over from anywhere else.
+      - name: Download frontend build
+        uses: actions/download-artifact@v8
+        with:
+          name: frontend-dist
+          path: release/frontend
+
+      - name: Download backend bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: backend-bundle
+          path: release/backend
+
+      - name: Verify release contents
+        run: |
+          set -euo pipefail
+          for file in \
+            release/frontend/index.html \
+            release/frontend/.htaccess \
+            release/backend/dist/server.js \
+            release/backend/package.json \
+            release/backend/package-lock.json \
+            release/backend/passenger.cjs \
+            release/backend/build-info.json
+          do
+            if [[ ! -s "$file" ]]; then
+              echo "::error::Release is incomplete: $file is missing."
+              exit 1
+            fi
+          done
+          if ! grep -qF "\"commit\":\"$GITHUB_SHA\"" release/backend/build-info.json; then
+            echo "::error::The backend bundle was not built from commit $GITHUB_SHA."
+            exit 1
+          fi
+          if find release \( -name '.env' -o -name '.env.*' -o -name node_modules \) | grep -q .; then
+            echo "::error::The release contains an environment file or node_modules."
+            exit 1
+          fi
+
+      - name: Connect to cPanel
+        uses: ./.github/actions/cpanel-connect
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USERNAME }}
+          port: ${{ secrets.CPANEL_PORT }}
+          private-key: ${{ secrets.CPANEL_SSH_KEY }}
+          known-hosts: ${{ secrets.CPANEL_KNOWN_HOSTS }}
+          node-bin-dir: ${{ vars.CPANEL_NODE_BIN_DIR }}
+
+      - name: Upload deploy tooling
+        run: |
+          set -euo pipefail
+          # The top-level names in this build: what the deploy will own
+          # inside public_html.
+          (
+            shopt -s dotglob nullglob
+            for path in release/frontend/*; do printf '%s\n' "${path##*/}"; done
+          ) > incoming-frontend-entries.txt
+          # shellcheck disable=SC2029  # expanding the path here is intended
+          ssh cpanel "mkdir -p '$REMOTE_HOME/apps/.deploy'"
+          rsync -rlt --chmod=F600 \
+            .github/scripts/deployctl.sh incoming-frontend-entries.txt \
+            "cpanel:$REMOTE_HOME/apps/.deploy/"
+
+      - name: Preflight
+        run: deployctl preflight
+
+      - name: Back up current production
+        id: backup
+        run: |
+          set -euo pipefail
+          backup_id="$(date -u +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}"
+          echo "id=$backup_id" >> "$GITHUB_OUTPUT"
+          deployctl backup "$backup_id"
+
+      # rsync flags, both deploy steps:
+      #   -rlt (not -a)     copy contents and timestamps, but leave the
+      #                     ownership and mode of the existing
+      #                     directories on the server as cPanel set them
+      #   -z                compress in transit
+      #   -c                compare by checksum — artifact timestamps
+      #                     change every run, content mostly does not,
+      #                     so unchanged files (the videos) are skipped
+      #   --delete-delay,   upload everything first, then switch files
+      #   --delay-updates   and remove stale ones in one step at the
+      #                     end: an interrupted transfer changes nothing
+      #   --exclude-from    paths that are neither uploaded nor deleted
+      - name: Deploy frontend
+        run: |
+          set -euo pipefail
+          destination="$REMOTE_HOME/public_html/"
+          if [[ ! "$destination" =~ ^/home/[^/]+/public_html/$ ]]; then
+            echo "::error::Refusing to sync: unexpected frontend destination."
+            exit 1
+          fi
+          test -s release/frontend/index.html
+
+          # Everything in public_html that a deploy did not put there
+          # (.well-known, cgi-bin, other sites) — never touched.
+          deployctl frontend-protect > "$RUNNER_TEMP/frontend-protect.rules"
+
+          rsync -rltzc --chmod=D755,F644 \
+            --delete-delay --delay-updates \
+            --exclude-from="$RUNNER_TEMP/frontend-protect.rules" \
+            release/frontend/ "cpanel:$destination"
+
+      - name: Deploy backend
+        run: |
+          set -euo pipefail
+          destination="$REMOTE_HOME/apps/backend/"
+          if [[ ! "$destination" =~ ^/home/[^/]+/apps/backend/$ ]]; then
+            echo "::error::Refusing to sync: unexpected backend destination."
+            exit 1
+          fi
+
+          # .env, node_modules, tmp/, logs, uploads/ and storage/ live
+          # on the server: excluded here, so rsync neither uploads over
+          # them nor deletes them.
+          deployctl backend-excludes > "$RUNNER_TEMP/backend-exclude.rules"
+          grep -qxF '/.env' "$RUNNER_TEMP/backend-exclude.rules"
+
+          rsync -rltzc --chmod=D755,F644 \
+            --delete-delay --delay-updates \
+            --exclude-from="$RUNNER_TEMP/backend-exclude.rules" \
+            release/backend/ "cpanel:$destination"
+
+      - name: Install backend dependencies
+        run: deployctl install
+
+      - name: Restart backend
+        run: deployctl restart
+
+      - name: Health check
+        run: bash .github/scripts/healthcheck.sh "$API_URL" "$GITHUB_SHA"
+
+      - name: Frontend check
+        if: vars.PRODUCTION_URL != ''
+        run: |
+          curl --fail --silent --show-error --location --max-time 20 \
+            --retry 4 --retry-delay 5 --retry-all-errors \
+            --output /dev/null "$SITE_URL"
+          echo "Frontend responded with HTTP 200."
+
+      - name: Record release and prune old backups
+        id: finalize
+        run: deployctl finalize
+
+      # Runs when any step after the backup failed, and also when the
+      # run was cancelled in the middle of a deploy.
+      - name: Roll back
+        if: always() && steps.backup.outcome == 'success' && steps.finalize.outcome != 'success'
+        env:
+          BACKUP_ID: ${{ steps.backup.outputs.id }}
+        run: |
+          echo "::error::Deployment did not complete. Restoring backup $BACKUP_ID."
+          deployctl rollback "$BACKUP_ID"
+          if HEALTH_ATTEMPTS=8 bash .github/scripts/healthcheck.sh "$API_URL"; then
+            echo "::notice::Production was rolled back to the previous release and is healthy."
+          else
+            echo "::error::Rolled back, but the backend is still not healthy. Check it on the server."
+          fi
+
+      - name: Remove SSH key
+        if: always()
+        run: rm -f ~/.ssh/cpanel_deploy
+
+      - name: Summary
+        if: success()
+        env:
+          BACKUP_ID: ${{ steps.backup.outputs.id }}
+        run: |
+          {
+            echo "### Deployed \`${GITHUB_SHA::7}\` to production"
+            echo ""
+            echo "- Backend health check passed with the new build."
+            echo "- Previous release kept as backup \`$BACKUP_ID\`."
+          } >> "$GITHUB_STEP_SUMMARY"

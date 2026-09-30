@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "description": "Backend API for BRANDWORKS (separate from the src/ frontend).",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.build.json",
@@ -21,6 +24,7 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.6.0"
   },

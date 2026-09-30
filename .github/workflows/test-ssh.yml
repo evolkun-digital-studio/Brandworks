@@ -1,0 +1,38 @@
+name: Test cPanel SSH
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-ssh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -e
+
+          mkdir -p ~/.ssh
+
+          printf '%s\n' "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/cpanel_key
+
+          chmod 600 ~/.ssh/cpanel_key
+
+          ssh-keyscan \
+            -p "${{ secrets.CPANEL_PORT }}" \
+            "${{ secrets.CPANEL_HOST }}" \
+            >> ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        shell: bash
+        run: |
+          set -e
+
+          ssh \
+            -i ~/.ssh/cpanel_key \
+            -p "${{ secrets.CPANEL_PORT }}" \
+            "${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_HOST }}" \
+            "echo 'SSH SUCCESS' && whoami && pwd"

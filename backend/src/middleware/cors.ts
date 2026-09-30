@@ -1,10 +1,12 @@
 import cors from 'cors'
 import type { CorsOptions } from 'cors'
 import { allowedOrigins } from '../config/env.js'
+import { forbidden } from '../lib/httpError.js'
 
 /**
- * Allows the configured frontend origin(s) to call this API during
- * local development. Requests with no origin (curl, server-to-server,
+ * Allows only the configured frontend origin(s) (FRONTEND_ORIGIN — the
+ * Vite dev server locally, the real site in production) to call this
+ * API from a browser. Requests with no origin (curl, server-to-server,
  * health checks) are allowed through since they aren't browser requests.
  *
  * `credentials: true` is required so the browser will send/accept the
@@ -12,6 +14,11 @@ import { allowedOrigins } from '../config/env.js'
  * this only works together with an explicit origin allow-list above
  * (never a `*` wildcard, which the `cors` package refuses to pair with
  * credentials anyway).
+ *
+ * A disallowed origin is an expected client error, not a server
+ * fault: it's rejected with a 403 through the normal HttpError path
+ * rather than a bare Error, which the error handler would report as a
+ * 500 and log with a full stack trace on every stray request.
  */
 const corsOptions: CorsOptions = {
   origin(origin, callback) {
@@ -19,7 +26,7 @@ const corsOptions: CorsOptions = {
       callback(null, true)
       return
     }
-    callback(new Error(`Origin ${origin} is not allowed by CORS`))
+    callback(forbidden('This origin is not allowed to access the API.'))
   },
   credentials: true,
 }

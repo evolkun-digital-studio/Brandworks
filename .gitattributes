@@ -1,0 +1,5 @@
+# These run on, or are parsed by, the Linux production server. Keep LF
+# line endings even when the repository is checked out on Windows
+# (core.autocrlf) — a CRLF shell script or .htaccess fails there.
+*.sh        text eol=lf
+.htaccess   text eol=lf

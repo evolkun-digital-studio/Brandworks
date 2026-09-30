@@ -1,0 +1,125 @@
+name: Connect to cPanel
+description: >
+  Sets up key-based SSH to the cPanel server under the host alias `cpanel`
+  and puts a `deployctl` command on PATH that runs
+  ~/apps/.deploy/deployctl.sh on the server.
+
+inputs:
+  host:
+    description: Server hostname or IP (CPANEL_HOST).
+    required: true
+  username:
+    description: cPanel account name (CPANEL_USERNAME).
+    required: true
+  port:
+    description: SSH port (CPANEL_PORT).
+    required: false
+    default: '22'
+  private-key:
+    description: Private key with no passphrase (CPANEL_SSH_KEY).
+    required: true
+  known-hosts:
+    description: >
+      Optional pinned known_hosts line(s) for the server. When empty the
+      host key is fetched with ssh-keyscan at the start of each run.
+    required: false
+    default: ''
+  node-bin-dir:
+    description: Optional directory on the server containing node and npm.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Configure SSH
+      shell: bash
+      env:
+        SSH_HOST: ${{ inputs.host }}
+        SSH_USER: ${{ inputs.username }}
+        SSH_PORT: ${{ inputs.port }}
+        SSH_KEY: ${{ inputs.private-key }}
+        SSH_KNOWN_HOSTS: ${{ inputs.known-hosts }}
+        NODE_BIN_DIR: ${{ inputs.node-bin-dir }}
+      run: |
+        set -euo pipefail
+
+        missing=()
+        [[ -n "$SSH_HOST" ]] || missing+=(CPANEL_HOST)
+        [[ -n "$SSH_USER" ]] || missing+=(CPANEL_USERNAME)
+        [[ -n "$SSH_KEY" ]] || missing+=(CPANEL_SSH_KEY)
+        if (( ${#missing[@]} )); then
+          echo "::error::Missing repository secret(s): ${missing[*]}"
+          exit 1
+        fi
+        port="${SSH_PORT:-22}"
+        if [[ ! "$port" =~ ^[0-9]+$ ]]; then
+          echo "::error::CPANEL_PORT must be a number."
+          exit 1
+        fi
+        # The username becomes part of every remote path, including the
+        # targets of rsync --delete. Nothing but a plain account name.
+        if [[ ! "$SSH_USER" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$ ]]; then
+          echo "::error::CPANEL_USERNAME does not look like a cPanel account name."
+          exit 1
+        fi
+        if [[ ! "$NODE_BIN_DIR" =~ ^[A-Za-z0-9._/-]*$ ]]; then
+          echo "::error::CPANEL_NODE_BIN_DIR must be a plain absolute path."
+          exit 1
+        fi
+
+        # The key is written straight to a file readable only by this
+        # user and is never echoed; GitHub also masks it in the log.
+        install -m 700 -d ~/.ssh
+        ( umask 077; printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/cpanel_deploy )
+        chmod 600 ~/.ssh/cpanel_deploy
+        if ! ssh-keygen -y -P '' -f ~/.ssh/cpanel_deploy > /dev/null 2>&1; then
+          echo "::error::CPANEL_SSH_KEY is not a valid private key, or it has a passphrase. Use a dedicated deploy key without one."
+          exit 1
+        fi
+
+        # Host key verification stays on (StrictHostKeyChecking yes
+        # below). known_hosts comes from the pinned value when one is
+        # configured, otherwise from a scan of the server itself.
+        if [[ -n "$SSH_KNOWN_HOSTS" ]]; then
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+        else
+          ssh-keyscan -H -T 20 -p "$port" "$SSH_HOST" > ~/.ssh/known_hosts 2> /dev/null || true
+        fi
+        if [[ ! -s ~/.ssh/known_hosts ]]; then
+          echo "::error::Could not get the server's SSH host key. Check CPANEL_HOST and CPANEL_PORT, and that SSH access is enabled for the account."
+          exit 1
+        fi
+        chmod 600 ~/.ssh/known_hosts
+
+        {
+          echo "Host cpanel"
+          echo "  HostName $SSH_HOST"
+          echo "  User $SSH_USER"
+          echo "  Port $port"
+          echo "  IdentityFile ~/.ssh/cpanel_deploy"
+          echo "  IdentitiesOnly yes"
+          echo "  StrictHostKeyChecking yes"
+          echo "  BatchMode yes"
+          echo "  ConnectTimeout 20"
+          echo "  ServerAliveInterval 30"
+          echo "  ServerAliveCountMax 4"
+        } > ~/.ssh/config
+        chmod 600 ~/.ssh/config
+
+        if ! ssh cpanel true; then
+          echo "::error::SSH login failed. Is the public half of CPANEL_SSH_KEY authorized in cPanel (SSH Access > Manage SSH Keys)?"
+          exit 1
+        fi
+
+        remote_home="/home/$SSH_USER"
+        {
+          echo "REMOTE_HOME=$remote_home"
+          echo "REMOTE_NODE_BIN_DIR=$NODE_BIN_DIR"
+        } >> "$GITHUB_ENV"
+
+        # `deployctl <command> [backup-id]` on the runner runs the
+        # server-side script over this connection.
+        mkdir -p "$RUNNER_TEMP/bin"
+        install -m 755 "$GITHUB_ACTION_PATH/remote-deployctl.sh" "$RUNNER_TEMP/bin/deployctl"
+        echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"

@@ -110,8 +110,33 @@ function resolveSchedulerIntervalMs(): number {
   return parsed
 }
 
+// How many reverse-proxy hops sit in front of this process. Behind
+// cPanel/Passenger every request arrives from the local web server,
+// so without this Express reports the proxy's address as the client
+// IP — and the rate limiters would count every visitor as one client.
+// A hop count (not `true`) on purpose: trusting every X-Forwarded-For
+// entry would let a client spoof its own address. Defaults to 1 in
+// production (Apache/Passenger) and 0 elsewhere; raise it to 2 if a
+// CDN such as Cloudflare is also in front.
+const MAX_TRUST_PROXY_HOPS = 5
+
+function resolveTrustProxy(): number {
+  const raw = optional('TRUST_PROXY', isProductionEnv ? '1' : '0')
+  const parsed = Number(raw)
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > MAX_TRUST_PROXY_HOPS) {
+    throw new Error(
+      `TRUST_PROXY must be a whole number of proxy hops between 0 and ${MAX_TRUST_PROXY_HOPS} — got: "${raw}"`,
+    )
+  }
+  return parsed
+}
+
 export const env = {
-  /** Port the Express server listens on. */
+  /**
+   * Port the Express server listens on. 4001 is only the local
+   * development fallback — in production the host supplies it (under
+   * Passenger the listen call is intercepted and this value is unused).
+   */
   port: Number(optional('PORT', '4001')),
 
   /** Node environment: development | production | test. */
@@ -155,6 +180,9 @@ export const env = {
    * SCHEDULER_INTERVAL_MS is unset.
    */
   schedulerIntervalMs: resolveSchedulerIntervalMs(),
+
+  /** See resolveTrustProxy() above. 0 disables proxy trust entirely. */
+  trustProxy: resolveTrustProxy(),
 }
 
 export const isProduction = isProductionEnv
@@ -167,4 +195,54 @@ if (env.publicOrigin === `http://localhost:${env.port}` || env.publicOrigin === 
   throw new Error(
     `PUBLIC_ORIGIN must not be this backend's own origin (${env.publicOrigin}) — set it to the public website's origin instead.`,
   )
+}
+
+const MIN_RECOMMENDED_JWT_SECRET_LENGTH = 32
+
+/**
+ * Startup-time check of everything the running server needs, called
+ * once from server.ts before it accepts a request. The getters above
+ * stay lazy (so scripts and tests that never touch auth or the
+ * database don't need those values), which on its own would let a
+ * server with no JWT_SECRET start, report healthy, and only fail on
+ * the first login — this closes that gap.
+ *
+ * Throws on anything that would make the deployment wrong; returns
+ * warnings for things that are merely suspicious, for the caller to
+ * log. Never includes a secret's value in either.
+ */
+export function assertStartupConfig(): string[] {
+  const warnings: string[] = []
+
+  required('MONGODB_URI')
+  const jwtSecret = required('JWT_SECRET')
+
+  if (!isProductionEnv) return warnings
+
+  // The development default (http://localhost:5173) is never a valid
+  // production CORS allow-list — it would lock the real site out of
+  // its own API while allowing a developer machine in.
+  const frontendOrigin = process.env.FRONTEND_ORIGIN
+  if (!frontendOrigin || frontendOrigin.trim() === '') {
+    throw new Error(
+      'FRONTEND_ORIGIN is required in production — set it to the public website origin(s) allowed to call this API (e.g. https://brandworks.com).',
+    )
+  }
+
+  if (jwtSecret.length < MIN_RECOMMENDED_JWT_SECRET_LENGTH) {
+    warnings.push(
+      `JWT_SECRET is shorter than ${MIN_RECOMMENDED_JWT_SECRET_LENGTH} characters — generate a longer random value.`,
+    )
+  }
+
+  // The admin session cookie is `secure` in production (lib/authCookie.ts),
+  // so a browser only ever sends it over HTTPS — a plain-http origin
+  // here means admin login cannot work.
+  for (const origin of [...allowedOrigins, env.publicOrigin]) {
+    if (!origin.startsWith('https://')) {
+      warnings.push(`${origin} is not an https:// origin — production is expected to be served over HTTPS.`)
+    }
+  }
+
+  return warnings
 }

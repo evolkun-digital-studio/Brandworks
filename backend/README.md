@@ -1,7 +1,7 @@
 # BRANDWORKS Backend
 
 A standalone Node.js + Express + TypeScript API (ESM/NodeNext), separate from
-the Vite/React frontend in the repo root. MongoDB-backed, with authenticated
+the Vite/React frontend in `../Brandworks`. MongoDB-backed, with authenticated
 admin CMS endpoints, a public read-only blog API, and public SEO
 infrastructure (`/sitemap.xml`, `/robots.txt`).
 
@@ -39,6 +39,10 @@ See `.env.example` for the full, current list with inline explanations. Summary:
 | `JWT_SECRET`       | Signs admin session JWTs. **Required.**                                 | *(none — required)*         |
 | `JWT_EXPIRES_IN`   | Admin session lifetime                                                  | `8h`                         |
 | `PUBLIC_ORIGIN`    | The public **website's** own origin — used to build canonical/sitemap URLs (see "Production deployment" below). Optional in dev (falls back to the first `FRONTEND_ORIGIN`); **required** when `NODE_ENV=production` — the server refuses to start in production without it. | falls back to `FRONTEND_ORIGIN` |
+| `TRUST_PROXY`      | Number of reverse-proxy hops in front of the process, so rate limiting sees real client IPs. | `0` (`1` in production) |
+
+In production `FRONTEND_ORIGIN` is also required — the localhost default is
+never accepted as the CORS allow-list there.
 
 > `4000` was already in use by an unrelated process on the machine this was
 > originally set up on, so the default here is `4001`.
@@ -46,7 +50,7 @@ See `.env.example` for the full, current list with inline explanations. Summary:
 ## Endpoints
 
 Public (no auth):
-- `GET /api/health` — liveness check.
+- `GET /api/health` — liveness check; also reports the deployed commit. `200`/`"ok"` when MongoDB is reachable, `503`/`"degraded"` when not.
 - `GET /api/blogs` / `GET /api/blogs/:slug` — published blog posts only (Phase 3 visibility rules: `status=published`, `publishedAt<=now`, `deletedAt=null`).
 - `GET /sitemap.xml` — deterministic sitemap of the static public pages plus every sitemap-eligible published post.
 - `GET /robots.txt` — deterministic robots directives; always points crawlers at `${PUBLIC_ORIGIN}/sitemap.xml`.
@@ -71,6 +75,7 @@ backend/
 │   ├── middleware/         # cross-cutting Express middleware (cors, auth, rate limiting)
 │   ├── lib/                # small pure utilities (xml, robots, slugify, validators, jwt, ...)
 │   └── config/             # env var loading/typing, MongoDB connection
+├── passenger.cjs          # startup file for cPanel/Passenger (loads dist/server.js)
 ├── .env / .env.example
 ├── package.json
 ├── tsconfig.json          # includes tests, used for typecheck
@@ -78,6 +83,11 @@ backend/
 ```
 
 ## Production deployment
+
+How this is built and shipped to cPanel — the pipeline, server paths,
+rollback, restart — is in the [repository README](../README.md#production-deployment).
+The rest of this section is about how the two origins must be configured,
+wherever they are hosted.
 
 ### Two origins, one public identity
 
@@ -131,7 +141,11 @@ location = /robots.txt  { proxy_pass http://127.0.0.1:4001/robots.txt; }
 
 or the equivalent rewrite/redirect rule on whatever platform hosts the
 frontend (Cloudflare Page Rules, Vercel/Netlify rewrites, an API gateway,
-etc.). Without this rule, `https://www.example.com/sitemap.xml` 404s, even
-though the backend itself is serving valid sitemap content at its own origin.
+etc.). On the cPanel deployment, where a reverse proxy is not available to
+`.htaccess`, the pipeline writes a redirect for exactly these two paths into
+the frontend's `.htaccess` instead (see `.github/workflows/ci.yml`).
+Without such a rule, `https://www.example.com/sitemap.xml` does not reach the
+backend at all, even though the backend itself is serving valid sitemap
+content at its own origin.
 **The backend's own port must never be the origin search engines see** — the
 proxy is what keeps that true.

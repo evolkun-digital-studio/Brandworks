@@ -1,15 +1,21 @@
-node_modules
-dist
+node_modules/
+dist/
+coverage/
 
-# Environment variables (local secrets/config) — never commit this.
+# Written by the deploy pipeline into the release bundle, never committed.
+build-info.json
+
+# Environment variables (local secrets/config) — never commit these.
 .env
-.env.local
+.env.*
+!.env.example
 *.local
 
-# Logs
-logs
+# Logs and runtime files (tmp/ holds Passenger's restart.txt on the server)
+logs/
 *.log
 npm-debug.log*
+tmp/
 
 # Editor / OS
 .DS_Store

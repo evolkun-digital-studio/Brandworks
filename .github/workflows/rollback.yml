@@ -1,0 +1,71 @@
+name: Rollback
+
+# Manually restores a backup taken by the Deploy workflow. Each backup
+# holds the release that was live just before a deploy, so restoring
+# the most recent one undoes the latest deployment.
+#
+# This does not change the repository: development still contains the commit
+# that was rolled back, and the next push to development deploys again.
+# Revert or fix that commit before pushing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_id:
+        description: Backup to restore, e.g. 20260101-120000-abc1234. Leave empty for the most recent.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Shares the deploy workflow's group so the two never overlap; waits
+# for a deployment in progress instead of cancelling it.
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    name: Restore backup
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      API_URL: ${{ secrets.VITE_API_URL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Connect to cPanel
+        uses: ./.github/actions/cpanel-connect
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USERNAME }}
+          port: ${{ secrets.CPANEL_PORT }}
+          private-key: ${{ secrets.CPANEL_SSH_KEY }}
+          known-hosts: ${{ secrets.CPANEL_KNOWN_HOSTS }}
+          node-bin-dir: ${{ vars.CPANEL_NODE_BIN_DIR }}
+
+      - name: Available backups
+        run: deployctl list
+
+      - name: Restore
+        env:
+          BACKUP_ID: ${{ inputs.backup_id }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$BACKUP_ID" ]]; then
+            deployctl rollback
+          elif [[ "$BACKUP_ID" =~ ^[0-9]{8}-[0-9]{6}-[0-9a-f]{7,40}$ ]]; then
+            deployctl rollback "$BACKUP_ID"
+          else
+            echo "::error::Not a backup id: $BACKUP_ID"
+            exit 1
+          fi
+
+      - name: Health check
+        run: bash .github/scripts/healthcheck.sh "$API_URL"
+
+      - name: Remove SSH key
+        if: always()
+        run: rm -f ~/.ssh/cpanel_deploy

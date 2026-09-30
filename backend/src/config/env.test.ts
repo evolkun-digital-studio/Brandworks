@@ -36,7 +36,11 @@ function run(overrides: Record<string, string | undefined>) {
   for (const key of Object.keys(overrides)) {
     if (overrides[key] === undefined) delete env[key]
   }
-  return spawnSync('npx', ['tsx', envFile], { cwd: repoRoot, env, encoding: 'utf8' })
+  // The running Node binary with tsx as a loader, rather than `npx tsx`:
+  // `npx` is a .cmd shim on Windows, which spawnSync cannot execute
+  // without a shell, so every scenario here failed there with a null
+  // exit status. This form behaves identically on every platform.
+  return spawnSync(process.execPath, ['--import', 'tsx', envFile], { cwd: repoRoot, env, encoding: 'utf8' })
 }
 
 describe('env.ts — PUBLIC_ORIGIN validation', () => {
@@ -128,6 +132,31 @@ describe('env.ts — SCHEDULER_INTERVAL_MS validation (Phase 15)', () => {
 
   it('refuses a negative value', () => {
     const result = run({ ...VALID_ORIGIN, SCHEDULER_INTERVAL_MS: '-1000' })
+    expect(result.status).not.toBe(0)
+  })
+}, 30_000)
+
+describe('env.ts — TRUST_PROXY validation', () => {
+  const VALID_ORIGIN = { NODE_ENV: 'development', PUBLIC_ORIGIN: 'https://brandworks.com' }
+
+  it('starts cleanly when unset', () => {
+    const result = run({ ...VALID_ORIGIN, TRUST_PROXY: undefined })
+    expect(result.status).toBe(0)
+  })
+
+  it('accepts a hop count', () => {
+    const result = run({ ...VALID_ORIGIN, TRUST_PROXY: '2' })
+    expect(result.status).toBe(0)
+  })
+
+  it('refuses "true" — trusting every forwarded address would let clients spoof their IP', () => {
+    const result = run({ ...VALID_ORIGIN, TRUST_PROXY: 'true' })
+    expect(result.status).not.toBe(0)
+    expect(result.stderr).toContain('TRUST_PROXY must be a whole number of proxy hops')
+  })
+
+  it('refuses a negative hop count', () => {
+    const result = run({ ...VALID_ORIGIN, TRUST_PROXY: '-1' })
     expect(result.status).not.toBe(0)
   })
 }, 30_000)

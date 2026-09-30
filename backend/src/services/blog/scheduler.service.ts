@@ -1,6 +1,7 @@
 import { publishDueScheduledBlogs } from '../../repositories/blog.repository.js'
 import { env } from '../../config/env.js'
 import { toSafeErrorMessage } from '../../lib/safeError.js'
+import { logger } from '../../lib/logger.js'
 
 /**
  * Backend-authoritative scheduled-publishing worker (Phase 14, Part
@@ -30,7 +31,7 @@ async function runOnce(): Promise<void> {
     // (or faster) cadence; a cycle that actually did something is the
     // informative case, so that's what gets a line.
     if (publishedCount > 0) {
-      console.log(
+      logger.info(
         `[scheduler] cycle complete publishedCount=${publishedCount} durationMs=${Date.now() - startedAt}`,
       )
     }
@@ -42,9 +43,8 @@ async function runOnce(): Promise<void> {
     // ever reaches a log line — never article content (nothing here
     // ever touches a document's fields to begin with), never a JWT,
     // never a raw environment value.
-    console.error(
-      `[scheduler] cycle failed durationMs=${Date.now() - startedAt}:`,
-      toSafeErrorMessage(error),
+    logger.error(
+      `[scheduler] cycle failed durationMs=${Date.now() - startedAt}: ${toSafeErrorMessage(error)}`,
     )
   }
 }
@@ -52,7 +52,7 @@ async function runOnce(): Promise<void> {
 /** Idempotent — calling this more than once (e.g. an accidental double startup call) never starts a second interval. */
 export function startBlogScheduler(): void {
   if (intervalHandle) return
-  console.log(`[scheduler] Blog scheduler started intervalMs=${env.schedulerIntervalMs}`)
+  logger.info(`[scheduler] Blog scheduler started intervalMs=${env.schedulerIntervalMs}`)
   // Catches anything already due the moment the server starts,
   // instead of waiting up to a full interval for the first cycle.
   void runOnce()
@@ -64,6 +64,6 @@ export function stopBlogScheduler(): void {
   if (intervalHandle) {
     clearInterval(intervalHandle)
     intervalHandle = null
-    console.log('[scheduler] Blog scheduler stopped')
+    logger.info('[scheduler] Blog scheduler stopped')
   }
 }
