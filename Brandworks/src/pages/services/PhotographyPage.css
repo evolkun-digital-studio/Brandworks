@@ -1,0 +1,815 @@
+/* BrandWorks photography. Scoped styles: existing header/footer remain untouched. */
+.bwp-page,
+.bwp-dialog {
+  --bwp-lime: #ccff00;
+  --bwp-ink: black;
+  --bwp-silver: #c8c8c8;
+  --bwp-graphite: #49494a;
+  --bwp-paper: #fff;
+  --bwp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bwp-gutter: clamp(20px, 3.2vw, 40px);
+  /* Set these to your actual persistent header height if necessary. */
+  --bwp-header-offset: 88px;
+  --bwp-sticky-top: 104px;
+  font-family: inherit;
+  -webkit-font-smoothing: antialiased;
+}
+.bwp-page {
+  background: var(--bwp-paper);
+  color: var(--bwp-ink);
+}
+/* Do not add overflow:hidden to this page or its parents: the gallery is sticky. */
+.bwp-page *,
+.bwp-dialog * {
+  box-sizing: border-box;
+}
+.bwp-page :where(h1, h2, h3, p, figure, ul) {
+  margin: 0;
+}
+.bwp-page :where(a, button),
+.bwp-dialog button {
+  -webkit-tap-highlight-color: transparent;
+}
+.bwp-page a {
+  color: inherit;
+  text-decoration: none;
+}
+.bwp-page button,
+.bwp-dialog button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+.bwp-page :where(a, button):focus-visible,
+.bwp-dialog button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 5px;
+}
+.bwp-page ::selection {
+  background: var(--bwp-lime);
+  color: var(--bwp-ink);
+}
+.bwp-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: var(--bwp-gutter);
+}
+.bwp-section {
+  padding-block: clamp(52px, 6vw, 84px);
+}
+.bwp-page :where(section[id]) {
+  scroll-margin-top: calc(var(--bwp-header-offset) + 16px);
+}
+.bwp-page h1,
+.bwp-page h2,
+.bwp-page h3 {
+  font-weight: 500;
+  font-style: normal;
+  text-wrap: balance;
+}
+.bwp-page h1 {
+  font-size: clamp(32px, 4.2vw, 52px);
+  line-height: 1.07;
+  letter-spacing: -0.046em;
+}
+.bwp-page h2 {
+  font-size: clamp(27px, 3vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -0.036em;
+}
+.bwp-page h3 {
+  font-size: clamp(23px, 2.4vw, 30px);
+  line-height: 1.16;
+  letter-spacing: -0.027em;
+}
+.bwp-label {
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bwp-graphite);
+}
+.bwp-page p:not(.bwp-label) {
+  text-wrap: pretty;
+}
+.bwp-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 44px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.bwp-arrow {
+  display: inline-block;
+  transition: transform 0.4s var(--bwp-ease);
+}
+:where(.bwp-text-link, .bwp-cta-link, .bwp-contact-panel):is(
+    :hover,
+    :focus-visible
+  )
+  .bwp-arrow {
+  transform: translate(3px, -3px);
+}
+.bwp-text-link {
+  position: relative;
+}
+.bwp-text-link::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0.2);
+  transform-origin: left;
+  transition: transform 0.45s var(--bwp-ease);
+}
+.bwp-text-link:is(:hover, :focus-visible)::after {
+  transform: scaleX(1);
+}
+
+/* Media: no animated layout dimensions, no indefinite fake loading. */
+.bwp-photo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bwp-silver);
+}
+.bwp-photo img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.bwp-skeleton {
+  position: absolute;
+  inset: 0;
+  background: var(--bwp-silver);
+}
+.bwp-photo[data-status="loading"] .bwp-skeleton {
+  animation: bwp-loading 1.8s ease-in-out infinite;
+}
+.bwp-photo[data-status="ready"] .bwp-skeleton {
+  visibility: hidden;
+}
+.bwp-photo[data-status="error"] img {
+  visibility: hidden;
+}
+.bwp-photo[data-status="error"] .bwp-skeleton {
+  animation: none;
+}
+.bwp-media-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--bwp-graphite);
+  font-size: 13px;
+}
+@keyframes bwp-loading {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+.bwp-image-plane {
+  width: 100%;
+  height: 100%;
+}
+
+/* HERO. The crop opens while its containing rectangle stays the same size. */
+.bwp-hero {
+  padding-top: calc(var(--bwp-header-offset) + 32px);
+}
+.bwp-hero-copy {
+  display: grid;
+  grid-template-columns: 1.18fr 0.82fr;
+  align-items: end;
+  gap: 48px;
+  margin-bottom: 32px;
+}
+.bwp-hero-copy > div:first-child {
+  grid-column: 1 / -1;
+}
+.bwp-hero-copy .bwp-label {
+  margin-bottom: 16px;
+}
+.bwp-hero-copy h1 {
+  text-align: center;
+}
+.bwp-title-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.bwp-title-mask > span {
+  display: block;
+}
+.bwp-hero-description {
+  max-width: 410px;
+  justify-self: end;
+}
+.bwp-hero-description > p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--bwp-graphite);
+}
+.bwp-hero-description .bwp-text-link {
+  margin-top: 12px;
+}
+.bwp-hero-stage {
+  height: clamp(280px, 58svh, 620px);
+  position: relative;
+}
+.bwp-hero-mask {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.bwp-hero-mask:focus-visible {
+  outline-offset: -5px !important;
+  outline-color: var(--bwp-lime) !important;
+}
+.bwp-hero-figure > figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--bwp-graphite);
+}
+.bwp-perspective {
+  display: grid;
+  grid-template-columns: 0.55fr 1.45fr;
+  gap: 48px;
+}
+.bwp-perspective > div {
+  max-width: 720px;
+}
+.bwp-perspective p:not(.bwp-label) {
+  margin-top: 18px;
+  max-width: 590px;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--bwp-graphite);
+}
+
+/* SELECTED WORK. Inline photos are the base mode, including no-JS/reduced motion. */
+.bwp-story {
+  background: var(--bwp-ink);
+  color: white;
+}
+.bwp-story .bwp-label {
+  color: var(--bwp-silver);
+}
+.bwp-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 36px;
+  margin-bottom: 36px;
+}
+.bwp-section-head h2 {
+  margin-top: 14px;
+}
+.bwp-section-head > p {
+  max-width: 360px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--bwp-graphite);
+}
+.bwp-story .bwp-section-head {
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--bwp-graphite);
+}
+.bwp-story .bwp-text-link {
+  color: white;
+}
+.bwp-story .bwp-text-link::after {
+  background: var(--bwp-lime);
+}
+.bwp-story-stage {
+  display: none;
+}
+.bwp-story-chapters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px 24px;
+}
+.bwp-chapter {
+  min-width: 0;
+}
+.bwp-inline-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.bwp-chapter-number {
+  display: block;
+  font-size: 11px;
+  color: var(--bwp-lime);
+  margin-bottom: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.bwp-chapter-category {
+  margin-top: 10px !important;
+  font-size: 12px;
+  color: var(--bwp-silver);
+  line-height: 1.6;
+}
+.bwp-chapter-description {
+  margin-top: 16px !important;
+  max-width: 340px;
+  color: var(--bwp-silver);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.bwp-chapter .bwp-text-link {
+  margin-top: 12px;
+}
+.bwp-story-frame {
+  position: relative;
+  height: min(60svh, 600px);
+  width: 100%;
+  overflow: hidden;
+  background: var(--bwp-graphite);
+}
+.bwp-story-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.bwp-story-meter {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 17px;
+  color: var(--bwp-silver);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.bwp-story-track {
+  display: block;
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: var(--bwp-graphite);
+}
+.bwp-story-track > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--bwp-lime);
+  transform-origin: left;
+}
+.bwp-counter {
+  display: inline-grid;
+  overflow: hidden;
+  width: 2.3ch;
+  height: 1.4em;
+  line-height: 1.4;
+}
+.bwp-counter > span {
+  display: block;
+  grid-area: 1 / 1;
+}
+
+@media (min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference) {
+  .bwp-story--enhanced .bwp-story-grid {
+    display: grid;
+    grid-template-columns: 1.26fr 0.74fr;
+    gap: 72px;
+    align-items: start;
+  }
+  .bwp-story--enhanced .bwp-story-stage {
+    display: block;
+    position: sticky;
+    top: var(--bwp-sticky-top);
+  }
+  .bwp-story--enhanced .bwp-story-chapters {
+    display: block;
+    padding-bottom: max(0px, calc(60svh - 360px));
+  }
+  .bwp-story--enhanced .bwp-inline-photo {
+    display: none;
+  }
+  .bwp-story--enhanced .bwp-chapter {
+    min-height: max(340px, 43svh);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 34px 0;
+    border-top: 1px solid var(--bwp-graphite);
+  }
+  .bwp-story--enhanced .bwp-chapter:last-child {
+    border-bottom: 1px solid var(--bwp-graphite);
+  }
+  .bwp-story--enhanced .bwp-chapter h3 {
+    color: var(--bwp-silver);
+    transition: color 0.25s ease;
+  }
+  .bwp-story--enhanced .bwp-chapter[data-active="true"] h3 {
+    color: white;
+  }
+}
+
+/* EXPANDABLE CONTACT SHEET. Hover/focus opens a frame, click opens the photograph. */
+.bwp-practice {
+  background: var(--bwp-paper);
+}
+.bwp-contact-sheet {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 14px;
+}
+.bwp-contact-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+}
+.bwp-contact-image {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+.bwp-contact-image .bwp-photo {
+  transition: transform 0.75s var(--bwp-ease);
+}
+.bwp-contact-panel:is(:hover, :focus-visible) .bwp-contact-image .bwp-photo {
+  transform: scale(1.025);
+}
+.bwp-contact-caption {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding-top: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.bwp-contact-caption > span:first-child {
+  font-size: 10px;
+  padding-top: 2px;
+  color: var(--bwp-graphite);
+  font-variant-numeric: tabular-nums;
+}
+.bwp-contact-caption > span:nth-child(2) {
+  text-wrap: balance;
+}
+@media (min-width: 900px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .bwp-contact-sheet {
+    display: flex;
+    gap: 16px;
+  }
+  .bwp-contact-panel {
+    flex: 1 1 0;
+    transition: flex-grow 0.7s var(--bwp-ease);
+  }
+  .bwp-contact-panel[data-active="true"] {
+    flex-grow: 2.35;
+  }
+  .bwp-contact-image {
+    aspect-ratio: auto;
+    height: clamp(290px, 32vw, 430px);
+  }
+  .bwp-contact-panel[data-active="true"] .bwp-contact-caption {
+    border-top: 2px solid var(--bwp-lime);
+    padding-top: 12px;
+  }
+  .bwp-contact-caption {
+    min-height: 64px;
+  }
+}
+.bwp-capabilities {
+  list-style: none;
+  padding: 0;
+  margin-top: 36px !important;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
+}
+.bwp-capabilities li {
+  display: flex;
+  align-items: baseline;
+  gap: 22px;
+  min-height: 60px;
+  padding-block: 18px;
+  border-bottom: 1px solid var(--bwp-silver);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.bwp-capabilities li > span {
+  color: var(--bwp-graphite);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* PRODUCTION + BUSINESS CONTEXT. Subordinate to the actual imagery. */
+.bwp-process {
+  border-top: 1px solid var(--bwp-silver);
+  display: grid;
+  grid-template-columns: 0.7fr 1.3fr;
+  gap: 56px;
+}
+.bwp-process h2 {
+  margin-top: 14px;
+}
+.bwp-process-list {
+  border-top: 1px solid var(--bwp-silver);
+}
+.bwp-process-list article {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 9px 22px;
+  padding-block: 24px;
+  border-bottom: 1px solid var(--bwp-silver);
+}
+.bwp-process-list article > span {
+  font-size: 10px;
+  color: var(--bwp-graphite);
+  padding-top: 5px;
+}
+.bwp-process-list h3 {
+  font-size: 21px;
+}
+.bwp-process-list article > p {
+  grid-column: 2;
+  max-width: 490px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--bwp-graphite);
+}
+.bwp-context {
+  background: white;
+}
+.bwp-context-grid {
+  display: grid;
+  grid-template-columns: 0.55fr 1.45fr;
+  gap: 48px;
+}
+.bwp-context-grid > div {
+  max-width: 710px;
+}
+.bwp-context p:not(.bwp-label) {
+  font-size: 16px;
+  line-height: 1.8;
+  margin-top: 20px;
+  color: var(--bwp-graphite);
+}
+.bwp-context p > a {
+  color: var(--bwp-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.bwp-cta {
+  background: var(--bwp-ink);
+  color: white;
+}
+.bwp-cta .bwp-label {
+  color: var(--bwp-silver);
+}
+.bwp-cta-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 32px;
+}
+.bwp-cta h2 {
+  margin-top: 14px;
+}
+.bwp-cta-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  background: var(--bwp-lime);
+  color: var(--bwp-ink) !important;
+  padding: 16px 20px;
+  min-height: 52px;
+  font-size: 14px;
+}
+
+/* Full-frame viewer. Styles duplicated under this prefix because it is portaled. */
+.bwp-dialog {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  background: transparent;
+  color: white;
+  overflow: hidden;
+}
+.bwp-dialog::backdrop {
+  background: transparent;
+}
+.bwp-viewer-surface {
+  background: rgba(35, 31, 32, 0.97);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 20px;
+  height: 100%;
+  padding: 22px clamp(18px, 4vw, 60px);
+  overscroll-behavior: contain;
+}
+.bwp-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  font-size: 14px;
+}
+.bwp-viewer-toolbar p {
+  margin: 0;
+}
+.bwp-viewer-toolbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-width: 86px;
+  min-height: 44px;
+}
+.bwp-viewer-toolbar button > span {
+  font-size: 24px;
+}
+.bwp-viewer-figure {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 16px;
+}
+.bwp-viewer-figure .bwp-photo {
+  background: transparent;
+}
+.bwp-viewer-figure .bwp-photo img {
+  object-position: center !important;
+}
+.bwp-viewer-figure figcaption {
+  text-align: center;
+  font-size: 12px;
+  color: var(--bwp-silver);
+}
+.bwp-viewer-help {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--bwp-silver);
+  text-align: center;
+  margin: 0;
+}
+
+@media (max-width: 1023px) {
+  .bwp-hero-copy {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 30px;
+  }
+  .bwp-process {
+    gap: 32px;
+  }
+  .bwp-perspective,
+  .bwp-context-grid {
+    grid-template-columns: 0.4fr 1.4fr;
+    gap: 32px;
+  }
+}
+@media (max-width: 767px) {
+  .bwp-page {
+    --bwp-header-offset: 64px;
+  }
+  .bwp-hero {
+    padding-top: calc(var(--bwp-header-offset) + 28px);
+  }
+  .bwp-hero-copy,
+  .bwp-perspective,
+  .bwp-context-grid,
+  .bwp-process {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .bwp-hero-description {
+    justify-self: start;
+    max-width: 480px;
+  }
+  .bwp-hero-stage {
+    height: auto;
+    aspect-ratio: 4 / 5;
+    max-height: 560px;
+  }
+  .bwp-hero-figure > figcaption {
+    font-size: 10px;
+    gap: 10px;
+  }
+  .bwp-hero-description > p,
+  .bwp-perspective p:not(.bwp-label),
+  .bwp-context p:not(.bwp-label) {
+    font-size: 15px;
+  }
+  .bwp-section-head {
+    align-items: start;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .bwp-section-head .bwp-text-link {
+    margin-top: -8px;
+  }
+  .bwp-capabilities {
+    gap: 0 24px;
+  }
+  .bwp-capabilities li {
+    font-size: 14px;
+    gap: 12px;
+  }
+  .bwp-process-list article {
+    padding-block: 22px;
+  }
+  .bwp-cta-inner {
+    flex-direction: column;
+    align-items: start;
+    gap: 28px;
+  }
+  .bwp-desktop-break {
+    display: none;
+  }
+}
+@media (max-width: 579px) {
+  .bwp-story-chapters {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .bwp-inline-photo {
+    aspect-ratio: 4 / 3;
+    margin-bottom: 20px;
+  }
+  .bwp-chapter-description {
+    max-width: none;
+  }
+  .bwp-contact-caption {
+    gap: 7px;
+    font-size: 11px;
+  }
+  .bwp-contact-caption .bwp-arrow {
+    display: none;
+  }
+  .bwp-capabilities {
+    grid-template-columns: 1fr;
+  }
+  .bwp-viewer-surface {
+    gap: 12px;
+    padding-block: 12px 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bwp-page *,
+  .bwp-page *::before,
+  .bwp-page *::after,
+  .bwp-dialog *,
+  .bwp-dialog *::before,
+  .bwp-dialog *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .bwp-story-stage {
+    display: none !important;
+  }
+  .bwp-story-chapters {
+    display: grid !important;
+  }
+  .bwp-inline-photo {
+    display: block !important;
+  }
+  .bwp-contact-image .bwp-photo {
+    transform: none !important;
+  }
+}
