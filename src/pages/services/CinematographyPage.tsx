@@ -917,6 +917,12 @@ export default function VideographyPage() {
                       </span>
                     </div>
 
+
+
+
+
+
+
                     {/* <p className="mb-4 text-[10px] font-medium uppercase tracking-[0.14em] text-black/45">
                       {film.category}
                     </p> */}
