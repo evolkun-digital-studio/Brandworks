@@ -222,9 +222,16 @@ cmd_backend_excludes() {
 
 cmd_install() {
   [[ -f "$BACKEND_DIR/package-lock.json" ]] || die "no package-lock.json in $BACKEND_DIR"
+
   activate_node
   cd "$BACKEND_DIR"
+
+  export PYTHON=/bin/python3.8
+  export npm_config_python=/bin/python3.8
+
   log "installing production dependencies with node $(node -p 'process.versions.node')"
+  log "using Python $("$PYTHON" --version 2>&1)"
+
   npm ci --omit=dev --no-audit --no-fund >&2
 }
 
