@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { useAdminAuth } from '../context/AdminAuthContext'
+import { useAdminAuth } from '../context/useAdminAuth'
 import { ApiError } from '../api/client'
 import FormField from '../components/FormField'
 import FormMessage from '../components/FormMessage'

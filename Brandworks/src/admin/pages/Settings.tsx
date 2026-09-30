@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { useAdminAuth } from '../context/AdminAuthContext'
+import { useAdminAuth } from '../context/useAdminAuth'
 import * as adminApi from '../api/adminApi'
 import { ApiError } from '../api/client'
 import FormField from '../components/FormField'

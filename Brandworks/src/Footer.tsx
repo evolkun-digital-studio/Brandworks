@@ -34,33 +34,7 @@ type FullscreenShell = HTMLDivElement & {
   webkitRequestFullscreen?: () => Promise<void> | void
 }
 
-type FullscreenDocument = Document & {
-  webkitFullscreenElement?: Element | null
-}
-
 const VIDEO_FPS = 30
-
-const THUMB_SEEKS = [0.12, 0.5, 0.84] as const
-
-function formatTimecode(seconds: number) {
-  if (!Number.isFinite(seconds) || seconds < 0) {
-    return '00 : 00 : 00'
-  }
-
-  const whole = Math.floor(seconds)
-  const minutes = Math.floor(whole / 60)
-  const secs = whole % 60
-
-  const frames = Math.min(
-    VIDEO_FPS - 1,
-    Math.floor((seconds - whole) * VIDEO_FPS),
-  )
-
-  return `${String(minutes).padStart(2, '0')} : ${String(secs).padStart(
-    2,
-    '0',
-  )} : ${String(frames).padStart(2, '0')}`
-}
 
 const mainLinks = [
   { label: 'Home', href: '/' },
@@ -97,7 +71,6 @@ function Arrow() {
 function Footer() {
   const rootRef = useRef<HTMLElement>(null)
   const videoRef = useRef<FullscreenVideo>(null)
-  const fullscreenShellRef = useRef<FullscreenShell>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
 
   const cursorApiRef = useRef<{
@@ -113,11 +86,6 @@ function Footer() {
   const fullscreenRef = useRef(false)
 
   const reducedMotion = useReducedMotion() ?? false
-
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
-  const [timecode, setTimecode] = useState('00 : 00 : 00')
 
   /**
    * The silent background loop:

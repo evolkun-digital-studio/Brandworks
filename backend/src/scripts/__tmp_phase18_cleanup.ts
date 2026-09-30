@@ -99,7 +99,7 @@ async function main() {
 
   // Never touch regression-test-post or any admin document from here.
   const regressionPost = await blogs.findOne({ slug: 'regression-test-post' })
-  check('regression-test-post is not in the deletion list', !idsToDelete.some((id) => id.equals(regressionPost?._id!)))
+  check('regression-test-post is not in the deletion list', regressionPost ? !idsToDelete.some((id) => id.equals(regressionPost._id)) : true)
 
   // --- Backup before deletion ---
   writeFileSync(

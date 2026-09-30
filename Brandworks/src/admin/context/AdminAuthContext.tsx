@@ -10,7 +10,7 @@ import * as adminApi from '../api/adminApi'
 import { ApiError } from '../api/client'
 import type { AdminAccount } from '../api/types'
 
-interface AdminAuthContextValue {
+export interface AdminAuthContextValue {
   admin: AdminAccount | null
   /** True only while the initial session check (GET /auth/me) is in flight. */
   loading: boolean
@@ -20,7 +20,7 @@ interface AdminAuthContextValue {
   refresh: () => Promise<void>
 }
 
-const AdminAuthContext = createContext<AdminAuthContextValue | null>(null)
+export const AdminAuthContext = createContext<AdminAuthContextValue | null>(null)
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<AdminAccount | null>(null)
@@ -65,12 +65,4 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AdminAuthContext.Provider>
   )
-}
-
-export function useAdminAuth(): AdminAuthContextValue {
-  const ctx = useContext(AdminAuthContext)
-  if (!ctx) {
-    throw new Error('useAdminAuth must be used within an AdminAuthProvider')
-  }
-  return ctx
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useAdminAuth } from '../../context/AdminAuthContext'
+import { useAdminAuth } from '../../context/useAdminAuth'
 import * as blogApi from '../../api/blogAdminApi'
 import { ApiError } from '../../api/client'
 import FormMessage from '../../components/FormMessage'

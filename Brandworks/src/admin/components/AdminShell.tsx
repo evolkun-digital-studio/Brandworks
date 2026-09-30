@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { useAdminAuth } from '../context/AdminAuthContext'
+import { useAdminAuth } from '../context/useAdminAuth'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-[6px] px-3 py-2 text-[14px] font-medium uppercase tracking-wide transition-colors ${
