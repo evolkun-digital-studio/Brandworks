@@ -18,7 +18,7 @@ vi.mock('../../api/blogAdminApi', () => ({
   restoreBlogPost: vi.fn(),
 }))
 
-vi.mock('../../context/AdminAuthContext', () => ({
+vi.mock('../../context/useAdminAuth', () => ({
   useAdminAuth: () => ({
     admin: { id: '1', username: 'testadmin', role: 'admin' },
     loading: false,
