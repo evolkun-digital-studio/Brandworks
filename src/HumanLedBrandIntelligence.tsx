@@ -557,7 +557,7 @@ export default function BrandStatementPrecision() {
         .bw2-intro-bottom {
           font-size: clamp(3.5rem, 7.5vw, 9rem);
           line-height: 0.86;
-
+          margin-bottom:15px;
           font-weight: 400
           will-change: transform, opacity;
         }
@@ -873,9 +873,9 @@ export default function BrandStatementPrecision() {
 
               <div className="bw2-final-rule" />
 
-              <div className="bw2-final-meta">
+              {/* <div className="bw2-final-meta">
                 perception becomes memory
-              </div>
+              </div> */}
 
             </div>
 

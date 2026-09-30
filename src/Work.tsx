@@ -521,7 +521,7 @@ export default function PhotographyGallery() {
   ref={introRef}
   className="pointer-events-none absolute inset-x-0 top-[clamp(34px,6vh,72px)] z-10 flex flex-col items-center px-5 pb-20 text-center"
 >
-  <h2 className="mt-3 font-primary text-[clamp(32px,4.5vw,68px)] font-medium leading-[0.96] tracking-[-0.045em]">
+  <h2 className="mt-3 font-primary text-[clamp(32px,4.5vw,68px)] font-medium leading-[0.96] ">
     Photography
   </h2>
 

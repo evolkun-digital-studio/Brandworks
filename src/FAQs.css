@@ -22,7 +22,7 @@
   font-size: clamp(32px, 4vw, 48px);
   font-weight: 500;
   line-height: 0.98;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.010em;
   text-wrap: balance;
   color: #171717;
 }
