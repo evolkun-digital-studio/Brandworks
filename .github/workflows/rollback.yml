@@ -64,7 +64,14 @@ jobs:
           fi
 
       - name: Health check
+        if: vars.BACKEND_HEALTHCHECK_ENABLED == 'true'
         run: bash .github/scripts/healthcheck.sh "$API_URL"
+
+      - name: Rollback notice
+        if: vars.BACKEND_HEALTHCHECK_ENABLED != 'true'
+        run: |
+          echo "::notice::Backup restored. Backend health checks are currently disabled."
+          echo "When api.brandworks.me is configured and live, set BACKEND_HEALTHCHECK_ENABLED=true."
 
       - name: Remove SSH key
         if: always()

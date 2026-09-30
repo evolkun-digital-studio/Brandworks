@@ -179,6 +179,7 @@ jobs:
         run: deployctl restart
 
       - name: Health check
+        if: vars.BACKEND_HEALTHCHECK_ENABLED == 'true'
         run: bash .github/scripts/healthcheck.sh "$API_URL" "$GITHUB_SHA"
 
       - name: Frontend check
@@ -202,10 +203,14 @@ jobs:
         run: |
           echo "::error::Deployment did not complete. Restoring backup $BACKUP_ID."
           deployctl rollback "$BACKUP_ID"
-          if HEALTH_ATTEMPTS=8 bash .github/scripts/healthcheck.sh "$API_URL"; then
-            echo "::notice::Production was rolled back to the previous release and is healthy."
+          if [[ "${{ vars.BACKEND_HEALTHCHECK_ENABLED }}" == "true" ]]; then
+            if HEALTH_ATTEMPTS=8 bash .github/scripts/healthcheck.sh "$API_URL"; then
+              echo "::notice::Production was rolled back to the previous release and is healthy."
+            else
+              echo "::error::Rolled back, but the backend is still not healthy. Check it on the server."
+            fi
           else
-            echo "::error::Rolled back, but the backend is still not healthy. Check it on the server."
+            echo "::notice::Production was rolled back to backup $BACKUP_ID. Backend health checks are currently disabled."
           fi
 
       - name: Remove SSH key
@@ -220,6 +225,11 @@ jobs:
           {
             echo "### Deployed \`${GITHUB_SHA::7}\` to production"
             echo ""
-            echo "- Backend health check passed with the new build."
+            if [[ "${{ vars.BACKEND_HEALTHCHECK_ENABLED }}" == "true" ]]; then
+              echo "- Backend health check passed with the new build."
+            else
+              echo "- Frontend deployed and responding."
+              echo "- Backend health checks currently disabled. Set BACKEND_HEALTHCHECK_ENABLED=true when api.brandworks.me is live."
+            fi
             echo "- Previous release kept as backup \`$BACKUP_ID\`."
           } >> "$GITHUB_STEP_SUMMARY"
