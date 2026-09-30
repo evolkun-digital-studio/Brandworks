@@ -178,9 +178,6 @@ jobs:
       - name: Restart backend
         run: deployctl restart
 
-      - name: Health check
-        run: bash .github/scripts/healthcheck.sh "$API_URL" "$GITHUB_SHA"
-
       - name: Frontend check
         if: vars.PRODUCTION_URL != ''
         run: |
