@@ -53,34 +53,19 @@ jobs:
           name: frontend-dist
           path: release/frontend
 
-      - name: Download backend bundle
-        uses: actions/download-artifact@v8
-        with:
-          name: backend-bundle
-          path: release/backend
-
       - name: Verify release contents
         run: |
           set -euo pipefail
           for file in \
             release/frontend/index.html \
-            release/frontend/.htaccess \
-            release/backend/dist/server.js \
-            release/backend/package.json \
-            release/backend/package-lock.json \
-            release/backend/passenger.cjs \
-            release/backend/build-info.json
+            release/frontend/.htaccess
           do
             if [[ ! -s "$file" ]]; then
               echo "::error::Release is incomplete: $file is missing."
               exit 1
             fi
           done
-          if ! grep -qF "\"commit\":\"$GITHUB_SHA\"" release/backend/build-info.json; then
-            echo "::error::The backend bundle was not built from commit $GITHUB_SHA."
-            exit 1
-          fi
-          if find release \( -name '.env' -o -name '.env.*' -o -name node_modules \) | grep -q .; then
+          if find release/frontend \( -name '.env' -o -name '.env.*' -o -name node_modules \) | grep -q .; then
             echo "::error::The release contains an environment file or node_modules."
             exit 1
           fi
@@ -152,32 +137,6 @@ jobs:
             --exclude-from="$RUNNER_TEMP/frontend-protect.rules" \
             release/frontend/ "cpanel:$destination"
 
-      - name: Deploy backend
-        run: |
-          set -euo pipefail
-          destination="$REMOTE_HOME/apps/backend/"
-          if [[ ! "$destination" =~ ^/home/[^/]+/apps/backend/$ ]]; then
-            echo "::error::Refusing to sync: unexpected backend destination."
-            exit 1
-          fi
-
-          # .env, node_modules, tmp/, logs, uploads/ and storage/ live
-          # on the server: excluded here, so rsync neither uploads over
-          # them nor deletes them.
-          deployctl backend-excludes > "$RUNNER_TEMP/backend-exclude.rules"
-          grep -qxF '/.env' "$RUNNER_TEMP/backend-exclude.rules"
-
-          rsync -rltzc --chmod=D755,F644 \
-            --delete-delay --delay-updates \
-            --exclude-from="$RUNNER_TEMP/backend-exclude.rules" \
-            release/backend/ "cpanel:$destination"
-
-      - name: Install backend dependencies
-        run: deployctl install
-
-      - name: Restart backend
-        run: deployctl restart
-
       - name: Frontend check
         if: vars.PRODUCTION_URL != ''
         run: |
@@ -199,11 +158,7 @@ jobs:
         run: |
           echo "::error::Deployment did not complete. Restoring backup $BACKUP_ID."
           deployctl rollback "$BACKUP_ID"
-          if HEALTH_ATTEMPTS=8 bash .github/scripts/healthcheck.sh "$API_URL"; then
-            echo "::notice::Production was rolled back to the previous release and is healthy."
-          else
-            echo "::error::Rolled back, but the backend is still not healthy. Check it on the server."
-          fi
+          echo "::notice::Production was rolled back to backup $BACKUP_ID."
 
       - name: Remove SSH key
         if: always()
@@ -217,6 +172,6 @@ jobs:
           {
             echo "### Deployed \`${GITHUB_SHA::7}\` to production"
             echo ""
-            echo "- Backend health check passed with the new build."
+            echo "- Frontend deployed successfully."
             echo "- Previous release kept as backup \`$BACKUP_ID\`."
           } >> "$GITHUB_STEP_SUMMARY"
