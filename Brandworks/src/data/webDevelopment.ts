@@ -36,7 +36,7 @@ export type WebProjectImage = {
  * How the work sits in the reel's frame:
  * - 'landscape' — one large landscape crop, sized to the frame;
  * - 'spread'    — a desktop capture set off-centre with one mobile crop;
- * - 'bleed'     — edge-to-edge; the last project opens out to full width.
+ * - 'bleed'     — edge-to-edge within the frame.
  */
 export type WebProjectLayout = 'landscape' | 'spread' | 'bleed'
 

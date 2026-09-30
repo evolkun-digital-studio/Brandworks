@@ -19,12 +19,11 @@ const STACKED = '(max-width: 767px), (max-height: 559px)'
 
 const RADIUS = 8
 /** Pinned scroll length, in viewport heights: shorter on tablets. */
-const PIN_DESKTOP = 2.8
-const PIN_TABLET = 2
+const PIN_DESKTOP = 2.05
+const PIN_TABLET = 1.46
 /** Timeline units: how long each project holds, and each sheet takes to pass. */
 const HOLD = 0.7
 const PASS = 1
-const EXPAND = 1.1
 
 /**
  * Web Design & Development — an editorial digital reel. Deliberately not the
@@ -37,8 +36,8 @@ const EXPAND = 1.1
  *   4. The stage pins. Each project drifts a few percent while it holds;
  *      its sheet then slides up out of the frame, uncovering the next one
  *      beneath, while captions swap through their line masks.
- *   5. The last project's frame opens to the full viewport (radius 8 → 0),
- *      the pin releases and the next section takes over.
+ *   5. After the last project's hold the pin releases, frame and caption
+ *      still on show, and the next section takes over.
  *
  * Lenis drives the real window scroll, so ScrollTrigger needs no proxy.
  * Phones get a stacked list with a per-image clip reveal; reduced motion
@@ -107,7 +106,6 @@ function WebDevelopment() {
           const m = measure()
           return `inset(${m.h - m.b}px ${m.r}px ${m.b}px ${m.l}px round ${RADIUS}px)`
         }
-        const fullClip = 'inset(0px 0px 0px 0px round 0px)'
 
         gsap.set(allLines, { yPercent: 100 })
         gsap.set(arts.slice(1), { scale: 1.06, yPercent: 3 })
@@ -198,18 +196,6 @@ function WebDevelopment() {
         })
 
         reel.fromTo(q('.wdr-progress__fill'), { scaleX: 0 }, { scaleX: 1, duration: time }, 0)
-
-        // The last frame opens to the full viewport, its furniture recedes.
-        reel
-          .fromTo(masks[last], { clipPath: windowClip }, { clipPath: fullClip, duration: EXPAND, ease: 'power2.inOut' }, time)
-          .fromTo(arts[last], { yPercent: -3 }, { yPercent: 0, duration: EXPAND, ease: 'power2.inOut' }, time)
-          .fromTo(
-            [...q('.wdr-chrome'), articles[last].querySelector('.wdr-kicker'), articles[last].querySelector('.wdr-meta')],
-            { autoAlpha: 1 },
-            { autoAlpha: 0, duration: EXPAND * 0.4 },
-            time,
-          )
-          .to({}, { duration: 0.4 })
 
         return () => {
           gsap.killTweensOf(allLines)

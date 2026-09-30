@@ -5,6 +5,50 @@ import { useGSAP } from '@gsap/react'
 
 gsap.registerPlugin(ScrollTrigger)
 
+type Slide = {
+  id: string
+  image: string
+  /** Timeline position where the previous text starts leaving and this
+   *  slide's image starts crossfading in. The text exits below read the
+   *  same value, so the two can't drift apart. */
+  at: number
+}
+
+// Placeholder photography — replace `image` with BrandWorks work.
+// One full-banner backdrop per text step, in order.
+const SLIDES: Slide[] = [
+  {
+    id: 'intro',
+    image: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=1920&q=75',
+    at: 0,
+  },
+  {
+    id: 'see',
+    image: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=1920&q=75',
+    at: 1.55,
+  },
+  {
+    id: 'hear',
+    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1920&q=75',
+    at: 3,
+  },
+  {
+    id: 'understand',
+    image: 'https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=1920&q=75',
+    at: 4.55,
+  },
+  {
+    id: 'final',
+    image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=75',
+    at: 6.35,
+  },
+]
+
+const [, SEE_AT, HEAR_AT, UNDERSTAND_AT, FINAL_AT] = SLIDES.map((slide) => slide.at)
+
+// Crossfade length in timeline units, the same scale as the text tweens.
+const BG_FADE = 1
+
 export default function BrandStatementPrecision() {
   const sectionRef = useRef<HTMLElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
@@ -26,7 +70,6 @@ export default function BrandStatementPrecision() {
         const wordHearWrap = '.bw2-hear-wrap'
         const wordUnderstandWrap = '.bw2-understand-wrap'
 
-        const line = '.bw2-progress-line'
         const counter = '.bw2-counter'
         const finalStatement = '.bw2-final'
         const finalLine = '.bw2-final-line'
@@ -64,11 +107,6 @@ export default function BrandStatementPrecision() {
           opacity: 0,
         })
 
-        gsap.set(line, {
-          scaleX: 0,
-          transformOrigin: 'left center',
-        })
-
         gsap.set(finalStatement, {
           autoAlpha: 0,
         })
@@ -76,6 +114,16 @@ export default function BrandStatementPrecision() {
         gsap.set(finalLine, {
           yPercent: 110,
           opacity: 0,
+        })
+
+        const bgLayers = gsap.utils.toArray<HTMLElement>(
+          '.bw2-bg-layer',
+          sectionRef.current
+        )
+
+        gsap.set(bgLayers.slice(1), {
+          opacity: 0,
+          scale: 1.04,
         })
 
         const tl = gsap.timeline({
@@ -127,16 +175,6 @@ export default function BrandStatementPrecision() {
         )
 
         tl.to(
-          line,
-          {
-            scaleX: 1,
-            duration: 1,
-            ease: 'power3.inOut',
-          },
-          0.35
-        )
-
-        tl.to(
           counter,
           {
             opacity: 1,
@@ -154,7 +192,7 @@ export default function BrandStatementPrecision() {
             duration: 0.8,
             ease: 'power3.inOut',
           },
-          1.55
+          SEE_AT
         )
 
         // -------------------------------------------------
@@ -211,7 +249,7 @@ export default function BrandStatementPrecision() {
             duration: 0.75,
             ease: 'power4.in',
           },
-          3
+          HEAR_AT
         )
 
         tl.to(
@@ -221,7 +259,7 @@ export default function BrandStatementPrecision() {
             duration: 0.65,
             ease: 'power4.inOut',
           },
-          3
+          HEAR_AT
         )
 
         // -------------------------------------------------
@@ -285,7 +323,7 @@ export default function BrandStatementPrecision() {
             duration: 0.75,
             ease: 'power4.in',
           },
-          4.55
+          UNDERSTAND_AT
         )
 
         tl.to(
@@ -295,7 +333,7 @@ export default function BrandStatementPrecision() {
             duration: 0.7,
             ease: 'power4.inOut',
           },
-          4.55
+          UNDERSTAND_AT
         )
 
         // -------------------------------------------------
@@ -364,11 +402,11 @@ export default function BrandStatementPrecision() {
             duration: 0.75,
             ease: 'power3.inOut',
           },
-          6.35
+          FINAL_AT
         )
 
         tl.to(
-          [eyebrow, counter, line],
+          [eyebrow, counter],
           {
             opacity: 0,
             duration: 0.45,
@@ -424,6 +462,53 @@ export default function BrandStatementPrecision() {
           },
           7.35
         )
+
+        // -------------------------------------------------
+        // BACKDROPS — one per text step, on the same timeline
+        // -------------------------------------------------
+
+        // Added last so the text alone decides how long the timeline is.
+        const total = tl.duration()
+
+        bgLayers.forEach((layer, index) => {
+          const start = SLIDES[index].at
+          const next = SLIDES[index + 1]
+          const leaves = next ? next.at + BG_FADE : total
+
+          // slow push-in for as long as this picture is on screen
+          tl.to(
+            layer.querySelector('img'),
+            {
+              scale: 1.03,
+              duration: leaves - start,
+              ease: 'none',
+            },
+            start
+          )
+
+          if (index === 0) return
+
+          // Fades in over the previous picture, which stays opaque
+          // underneath until this one covers it — no dip to the background.
+          tl.to(
+            layer,
+            {
+              opacity: 1,
+              scale: 1,
+              duration: BG_FADE,
+              ease: 'power3.inOut',
+            },
+            start
+          )
+
+          tl.set(
+            bgLayers[index - 1],
+            {
+              opacity: 0,
+            },
+            start + BG_FADE
+          )
+        })
       })
 
       mm.add('(prefers-reduced-motion: reduce)', () => {
@@ -454,8 +539,8 @@ export default function BrandStatementPrecision() {
         .bw2-section {
           position: relative;
           width: 100%;
-          background: white;
-          color: #111;
+          background: #111;
+          color: #fff;
           font-family: var(--font-primary);
         }
 
@@ -465,11 +550,51 @@ export default function BrandStatementPrecision() {
           height: 100vh;
           height: 100svh;
           overflow: hidden;
-          background: white;
+          background: #111;
+        }
+
+        /* ---------------------------------------
+           BACKDROPS
+        --------------------------------------- */
+
+        .bw2-bg,
+        .bw2-bg-layer,
+        .bw2-bg-overlay {
+          position: absolute;
+          inset: 0;
+        }
+
+        .bw2-bg {
+          overflow: hidden;
+          pointer-events: none;
+        }
+
+        /* Without the timeline (reduced motion) only the first picture shows. */
+        .bw2-bg-layer {
+          opacity: 0;
+          will-change: opacity, transform;
+        }
+
+        .bw2-bg-layer:first-child {
+          opacity: 1;
+        }
+
+        .bw2-bg-layer img {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          will-change: transform;
+        }
+
+        .bw2-bg-overlay {
+          background: rgba(0, 0, 0, 0.25);
         }
 
         .bw2-shell {
           position: relative;
+          z-index: 1;
           width: min(calc(100% - 56px), 1600px);
           height: 100%;
           margin: 0 auto;
@@ -503,14 +628,14 @@ export default function BrandStatementPrecision() {
           letter-spacing: 0.14em;
           text-transform: uppercase;
 
-          color: rgba(17, 17, 17, 0.48);
+          color: rgba(255, 255, 255, 0.8);
         }
 
         .bw2-eyebrow-dot {
           width: 5px;
           height: 5px;
           border-radius: 50%;
-          background: #111;
+          background: #fff;
         }
 
         .bw2-counter {
@@ -521,11 +646,11 @@ export default function BrandStatementPrecision() {
           font-size: 10px;
           line-height: 1;
           letter-spacing: 0.12em;
-          color: rgba(17, 17, 17, 0.45);
+          color: rgba(255, 255, 255, 0.7);
         }
 
         .bw2-counter-current {
-          color: #111;
+          color: #fff;
         }
 
         /* ---------------------------------------
@@ -563,8 +688,8 @@ export default function BrandStatementPrecision() {
         }
 
         .bw2-intro-bottom {
-          color: black
-        } 
+          color: #fff
+        }
         /* ---------------------------------------
            MAIN WORDS
         --------------------------------------- */
@@ -638,24 +763,7 @@ export default function BrandStatementPrecision() {
           letter-spacing: 0.13em;
           text-transform: uppercase;
 
-          color: rgba(17, 17, 17, 0.38);
-        }
-
-        .bw2-progress-track {
-          position: relative;
-          flex: 1;
-
-          height: 1px;
-
-          overflow: hidden;
-          background: rgba(17, 17, 17, 0.13);
-        }
-
-        .bw2-progress-line {
-          position: absolute;
-          inset: 0;
-
-          background: #111;
+          color: rgba(255, 255, 255, 0.7);
         }
 
         /* ---------------------------------------
@@ -708,7 +816,7 @@ export default function BrandStatementPrecision() {
 
           margin: 48px auto 20px;
 
-          background: rgba(17, 17, 17, 0.55);
+          background: rgba(255, 255, 255, 0.7);
         }
 
         .bw2-final-meta {
@@ -720,7 +828,7 @@ export default function BrandStatementPrecision() {
 
           text-transform: uppercase;
 
-          color: rgba(17, 17, 17, 0.4);
+          color: rgba(255, 255, 255, 0.7);
         }
 
         /* ---------------------------------------
@@ -790,20 +898,29 @@ export default function BrandStatementPrecision() {
       <section ref={sectionRef} className="bw2-section">
         <div ref={stageRef} className="bw2-stage">
 
+          {/* Full-banner backdrops */}
+          <div className="bw2-bg" aria-hidden="true">
+            {SLIDES.map((slide) => (
+              <div key={slide.id} className="bw2-bg-layer">
+                <img
+                  src={slide.image}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                />
+              </div>
+            ))}
+
+            <div className="bw2-bg-overlay" />
+          </div>
+
           <div className="bw2-shell">
 
-            {/* Top precision UI */}
-            <div className="bw2-topbar">
-              <div className="bw2-eyebrow">
-                <span className="bw2-eyebrow-dot" />
-                <span>Brandworks / Perspective</span>
-              </div>
-
-              <div className="bw2-counter">
-                <span className="bw2-counter-current">00</span>
-                <span>/</span>
-                <span>03</span>
-              </div>
+         y   <div className="bw2-counter">
+              <span className="bw2-counter-current">00</span>
+              <span>/</span>
+              <span>03</span>
             </div>
 
             {/* Intro */}
@@ -884,10 +1001,6 @@ export default function BrandStatementPrecision() {
               <span className="bw2-progress-caption">
                 Scroll to reveal
               </span>
-
-              <div className="bw2-progress-track">
-                <div className="bw2-progress-line" />
-              </div>
             </div>
 
           </div>
