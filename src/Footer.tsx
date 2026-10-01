@@ -1,24 +1,26 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { mediaUrl } from './media'
+import { useCallback, useEffect, useRef } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { useReducedMotion } from 'motion/react'
-import showreelPoster from './assets/footer-showreel-poster.webp'
+const showreelPoster = mediaUrl("footer-showreel-poster.webp")
 import { matches } from './lib/scrollMotion'
 import './Footer.css'
 
 gsap.registerPlugin(useGSAP)
 
 const LOGO_SRC =
-  'https://ik.imagekit.io/rxoyjxx4c/ChatGPT%20Image%20Sep%2023,%202026,%2003_32_46%20PM.png'
+  mediaUrl("ChatGPT Image Sep 23, 2026, 03_32_46 PM.png")
 
-// Web copies of Pexels video 4488715.
+// Pexels video 39105126, served from the Pexels CDN until copies are
+// uploaded to the media bucket.
 // Phones get the lighter encode; the choice is made once,
 // when the video is first attached.
 const SHOWREEL = {
-  desktop: '/video/footer-showreel-1080.mp4',
-  mobile: '/video/footer-showreel-540.mp4',
+  desktop: 'https://videos.pexels.com/video-files/39105126/16638118_1920_1080_30fps.mp4',
+  mobile: 'https://videos.pexels.com/video-files/39105126/16638112_1280_720_30fps.mp4',
 }
 
 /** Where the fullscreen cursor follows the pointer instead of a button. */
@@ -28,38 +30,6 @@ const CURSOR_QUERY =
 type FullscreenVideo = HTMLVideoElement & {
   webkitEnterFullscreen?: () => void
   webkitRequestFullscreen?: () => Promise<void> | void
-}
-
-type FullscreenShell = HTMLDivElement & {
-  webkitRequestFullscreen?: () => Promise<void> | void
-}
-
-type FullscreenDocument = Document & {
-  webkitFullscreenElement?: Element | null
-}
-
-const VIDEO_FPS = 30
-
-const THUMB_SEEKS = [0.12, 0.5, 0.84] as const
-
-function formatTimecode(seconds: number) {
-  if (!Number.isFinite(seconds) || seconds < 0) {
-    return '00 : 00 : 00'
-  }
-
-  const whole = Math.floor(seconds)
-  const minutes = Math.floor(whole / 60)
-  const secs = whole % 60
-
-  const frames = Math.min(
-    VIDEO_FPS - 1,
-    Math.floor((seconds - whole) * VIDEO_FPS),
-  )
-
-  return `${String(minutes).padStart(2, '0')} : ${String(secs).padStart(
-    2,
-    '0',
-  )} : ${String(frames).padStart(2, '0')}`
 }
 
 const mainLinks = [
@@ -97,7 +67,6 @@ function Arrow() {
 function Footer() {
   const rootRef = useRef<HTMLElement>(null)
   const videoRef = useRef<FullscreenVideo>(null)
-  const fullscreenShellRef = useRef<FullscreenShell>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
 
   const cursorApiRef = useRef<{
@@ -113,11 +82,6 @@ function Footer() {
   const fullscreenRef = useRef(false)
 
   const reducedMotion = useReducedMotion() ?? false
-
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
-  const [timecode, setTimecode] = useState('00 : 00 : 00')
 
   /**
    * The silent background loop:

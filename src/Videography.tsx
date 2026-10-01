@@ -1,3 +1,4 @@
+import { mediaUrl } from './media'
 import { forwardRef, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
@@ -19,25 +20,25 @@ const VIDEO_PROJECTS: VideoProject[] = [
     id: "01",
     title: "Brand Film",
     line: "Ideas, given movement.",
-    src: "/video/CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4",
+    src: mediaUrl("CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4"),
   },
   {
     id: "02",
     title: "Campaign Film",
     line: "Rhythm becomes direction.",
-    src: "/video/Central Cee - Obsessed With You (Official Video).mp4",
+    src: mediaUrl("Central Cee - Obsessed With You (Official Video).mp4"),
   },
   {
     id: "03",
     title: "Visual Story",
     line: "Every frame carries intent.",
-    src: "/video/Idea - Cinematic Video _ Shot on Canon EOS250D.mp4",
+    src: mediaUrl("Idea - Cinematic Video _ Shot on Canon EOS250D.mp4"),
   },
   {
     id: "04",
     title: "Creative Film",
     line: "The story keeps moving.",
-    src: "/video/CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4",
+    src: mediaUrl("CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4"),
   },
 ];
 

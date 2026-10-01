@@ -1,18 +1,19 @@
+import { mediaUrl } from './media'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import type { RefObject } from 'react'
 
 
 
-import photo4 from './Photo/Photo4.png'
+const photo4 = mediaUrl("moisturizer mock up.png")
 
-import photo5 from './Photo/Photo5.png'
+const photo7 = mediaUrl("Artboard 7 (1).png")
 
-import photo6 from './Photo/Photo6.png'
+const photo6 = mediaUrl("Artboard 2@3x.png")
 
-import photo7 from './Photo/Photo7.png'
+const photo5 = mediaUrl("Artboard 2.png")
 
-import photo8 from './Photo/Photo8.png'
+const photo8 = mediaUrl("Asset 7@4x.png")
 
 
 
@@ -36,23 +37,28 @@ import {
 
 
 
-const projects = [
+type Project = {
+  image: string
+  fixedWidth: number
+  wide?: boolean
+  label?: string
+}
 
-  { image: photo4, label: 'Aerolink', fixedWidth: 629 },
+const projects: Project[] = [
 
-  { image: photo5, label: 'Riaaj Vintage', fixedWidth: 629 },
+  { image: photo4,  fixedWidth: 629 },
 
-  { image: photo6, label: 'Mr.Rework', wide: true, fixedWidth: 1282 },
+  { image: photo5, fixedWidth: 629 },
 
-  { image: photo7, label: 'Delhi-6', fixedWidth: 629 },
+  { image: photo6,  wide: true, fixedWidth: 1282 },
 
-  { image: photo8, label: 'Nexa Solutions', fixedWidth: 629 },
+  { image: photo7,  fixedWidth: 629 },
+
+  { image: photo8,  fixedWidth: 629 },
 
 ]
 
 
-
-type Project = (typeof projects)[number]
 
 const COUNT = projects.length
 
@@ -492,7 +498,7 @@ function ProjectBoard({ project, thick }: { project: Project; thick: boolean }) 
 
           src={project.image}
 
-          alt={project.label}
+          alt={project.label ?? ''}
 
           loading="lazy"
 
@@ -1912,7 +1918,7 @@ function WorkCanvas() {
 
               {projects.map((project) => (
 
-                <ProjectBoard key={project.label} project={project} thick />
+                <ProjectBoard key={project.image} project={project} thick />
 
               ))}
 
@@ -2052,11 +2058,11 @@ function WorkMobile() {
 
           >
 
-            {projects.map((project) => (
+            {/* {projects.map((project) => (
 
-              <ProjectBoard key={project.label} project={project} thick={false} />
+              <ProjectBoard key={project.image} project={project} thick={false} />
 
-            ))}
+            ))} */}
 
           </div>
 
@@ -2112,7 +2118,7 @@ function WorkStatic() {
 
           <div
 
-            key={project.label}
+            key={project.image}
 
             className={`relative aspect-[629/580] w-full overflow-hidden rounded-[8px] ${
 
@@ -2126,7 +2132,7 @@ function WorkStatic() {
 
               src={project.image}
 
-              alt={project.label}
+              alt={project.label ?? ''}
 
               loading="lazy"
 

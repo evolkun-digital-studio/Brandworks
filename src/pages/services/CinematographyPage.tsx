@@ -1,4 +1,5 @@
-import React, {
+import { mediaUrl } from '../../media'
+import {
   useCallback,
   useEffect,
   useRef,
@@ -55,9 +56,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "A focused brand film built around controlled composition, movement and a clear visual narrative.",
-    videoUrl: "/video/footer-showreel-1080.mp4",
+    videoUrl: mediaUrl("footer-showreel-1080.mp4"),
     poster:
-      "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1485846234645-a62644f84728.jpg"),
     // deliverables: ["Brand Film", "Campaign Cutdowns", "Sound Design"],
   },
   {
@@ -68,9 +69,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "Precise lighting, material detail and intentional camera movement designed to make the product feel considered.",
-    videoUrl: "/video/footer-showreel-1080.mp4",
+    videoUrl: mediaUrl("footer-showreel-1080.mp4"),
     poster:
-      "https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1492724441997-5dc865305da7.jpg"),
     // deliverables: ["Hero Film", "Product Details", "Social Cuts"],
   },
   {
@@ -81,9 +82,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "Editorial cinematography shaped by rhythm, gesture and movement rather than unnecessary visual effects.",
-    videoUrl: "/video/footer-showreel-1080.mp4",
+    videoUrl: mediaUrl("footer-showreel-1080.mp4"),
     poster:
-      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1509631179647-0177331693ae.jpg"),
     // deliverables: ["Campaign Film", "Vertical Edit", "Photography"],
   },
   {
@@ -94,9 +95,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "Measured camera movement and natural perspective used to communicate scale, material and atmosphere.",
-    videoUrl: "/video/footer-showreel-1080.mp4",
+    videoUrl: mediaUrl("footer-showreel-1080.mp4"),
     poster:
-      "https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1487958449943-2429e8be8625.jpg"),
     // deliverables: ["Property Film", "Drone", "Social Edit"],
   },
   {
@@ -107,9 +108,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "A warmer visual language combining spaces, details and human moments into one continuous experience.",
-    videoUrl: "/video/footer-showreel-1080.mp4",
+    videoUrl: mediaUrl("footer-showreel-1080.mp4"),
     poster:
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1566073771259-6a8506099945.jpg"),
     // deliverables: ["Experience Film", "Short Cuts", "Ambient Audio"],
   },
   {
@@ -120,9 +121,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "Tracking shots, controlled speed and deliberate framing designed around performance and physical movement.",
-    videoUrl: "/video/footer-showreel-1080.mp4",
+    videoUrl: mediaUrl("footer-showreel-1080.mp4"),
     poster:
-      "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1503736334956-4c8f8e92946d.jpg"),
     // deliverables: ["Commercial", "Tracking Shots", "Cutdowns"],
   },
   {
@@ -133,9 +134,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "A quieter documentary approach built around personality, environment and believable human detail.",
-    videoUrl: "/video/footer-showreel-1080.mp4",
+    videoUrl: mediaUrl("footer-showreel-1080.mp4"),
     poster:
-      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1516035069371-29a1b244cc32.jpg"),
     // deliverables: ["Interview Film", "Portraits", "Social Stories"],
   },
   {
@@ -146,9 +147,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "Fast-moving coverage structured into a film with rhythm, scale and a clear sense of place.",
-    videoUrl: "/video/footer-showreel-1080.mp4",
+    videoUrl: mediaUrl("footer-showreel-1080.mp4"),
     poster:
-      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1492684223066-81342ee5ff30.jpg"),
     // deliverables: ["Event Film", "Highlights", "Vertical Reels"],
   },
   {
@@ -159,9 +160,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "Short-form motion built for digital platforms without compromising framing, pace or production quality.",
-    videoUrl: "/video/CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4",
+    videoUrl: mediaUrl("CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4"),
     poster:
-      "https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1536240478700-b869070f9279.jpg"),
     // deliverables: ["Campaign Film", "9:16 Edits", "Motion Assets"],
   },
   {
@@ -172,9 +173,9 @@ const FILMS: Film[] = [
     year: "2026",
     description:
       "A selection of film, commercial, editorial and motion work created across the studio.",
-    videoUrl: "/video/Central Cee - Obsessed With You (Official Video).mp4",
+    videoUrl: mediaUrl("Central Cee - Obsessed With You (Official Video).mp4"),
     poster:
-      "https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=1800&q=85",
+      mediaUrl("photo-1492619375914-88005aa9e8fb.jpg"),
     // deliverables: ["Showreel", "Direction", "Production"],
   },
 ];
@@ -654,7 +655,7 @@ export default function VideographyPage() {
           <div className="hero-media-shell relative mt-12 min-h-[360px] flex-1 overflow-hidden bg-[#111] md:mt-14 md:min-h-[480px]">
             <video
               ref={heroVideoRef}
-              src="/video/CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4"
+              src={mediaUrl("CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4")}
               autoPlay={!reduceMotion}
               loop
               playsInline

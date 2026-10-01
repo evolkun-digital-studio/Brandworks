@@ -38,7 +38,9 @@
 .social-pattern__layer {
   position: absolute;
   inset: -7% 0;
-  background: url('https://ik.imagekit.io/rxoyjxx4c/pattern%20@4x.png?updatedAt=1790058641375') 50% 50% / cover no-repeat;
+  background-position: 50% 50%;
+  background-size: cover;
+  background-repeat: no-repeat;
   opacity: 0.12;
   transform: rotate(30deg) scale(1.15);
   transform-origin: center;

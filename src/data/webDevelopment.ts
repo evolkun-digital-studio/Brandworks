@@ -1,3 +1,4 @@
+import { mediaUrl } from '../media'
 // Web Design & Development — the homepage "digital reel"
 // (components/WebDevelopment). Content only: the component reads this and
 // nothing else, so replacing a project is a data edit, never a layout edit.
@@ -14,13 +15,13 @@
 // for a 'spread' project should be a 9:16-ish portrait capture of the same
 // site.
 
-import gm02 from '../assets/graphics/gm-02.webp'
-import gm02Small from '../assets/graphics/gm-02-800.webp'
-import gm05 from '../assets/graphics/gm-05.webp'
-import gm05Small from '../assets/graphics/gm-05-560.webp'
-import gm06 from '../assets/graphics/gm-06.webp'
-import gm06Small from '../assets/graphics/gm-06-800.webp'
-import coastRoad from '../assets/social/campaign-aerial.jpg'
+const gm02 = mediaUrl("gm-02.webp")
+const gm02Small = mediaUrl("gm-02-800.webp")
+const gm05 = mediaUrl("gm-05.webp")
+const gm05Small = mediaUrl("gm-05-560.webp")
+const gm06 = mediaUrl("gm-06.webp")
+const gm06Small = mediaUrl("gm-06-800.webp")
+const coastRoad = mediaUrl("campaign-aerial.jpg")
 
 export type WebProjectImage = {
   src: string

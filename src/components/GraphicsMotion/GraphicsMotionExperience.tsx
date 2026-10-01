@@ -23,8 +23,6 @@ gsap.registerPlugin(ScrollTrigger)
 
 const TOTAL = GRAPHICS_PROJECTS.length
 
-const pad = (n: number) => String(n).padStart(2, '0')
-
 /**
  * Arrow navigation movement.
  */
@@ -801,10 +799,6 @@ function GraphicsMotionExperience() {
       scope: sectionRef,
     },
   )
-
-  const shown = atEnd
-    ? TOTAL
-    : active + 1
 
   /* =======================================================
      JSX

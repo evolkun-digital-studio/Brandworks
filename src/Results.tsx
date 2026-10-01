@@ -1,8 +1,9 @@
+import { mediaUrl } from './media'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
-import photo9 from './Photo/Photo9.png'
-import photo10 from './Photo/Photo10.png'
-import photo11 from './Photo/Photo11.png'
+const photo9 = mediaUrl("Photo9.png")
+const photo10 = mediaUrl("Photo10.png")
+const photo11 = mediaUrl("Photo11.png")
 import { clamp01, lerp, matches, sample, smoothstep, write } from './lib/scrollMotion'
 const results = [
   {

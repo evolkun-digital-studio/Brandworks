@@ -1,3 +1,4 @@
+import { mediaUrl } from '../media'
 import {
   useEffect,
   useMemo,
@@ -5,16 +6,16 @@ import {
   type ReactNode,
 } from 'react'
 import { Link } from 'react-router-dom'
-import photo1 from '../Photo/Photo1.jpg'
-import photo2 from '../Photo/Photo2.jpg'
-import photo3 from '../Photo/Photo3.jpg'
-import photo4 from '../Photo/Photo4.png'
-import photo5 from '../Photo/Photo5.png'
-import photo6 from '../Photo/Photo6.png'
-import photo7 from '../Photo/Photo7.png'
-import photo8 from '../Photo/Photo8.png'
-import photo9 from '../Photo/Photo9.png'
-import photo10 from '../Photo/Photo10.png'
+const photo1 = mediaUrl("our_stra.jpg")
+const photo2 = mediaUrl("graphic_design.jpg")
+const photo3 = mediaUrl("content_creation.avif")
+const photo4 = mediaUrl("photography.jpg")
+const photo5 = mediaUrl("videography.jpg")
+const photo6 = mediaUrl("socialmedia.jpg")
+const photo7 = mediaUrl("vcvcvcvcv.jpg")
+const photo8 = mediaUrl("Artboard 14@3x.png")
+const photo9 = mediaUrl("seo.jpg")
+const photo10 = mediaUrl("website_dev.jpg")
 
 type Service = {
   number: string

@@ -9,7 +9,6 @@ import {
   setMetaTag,
 } from "./blog/lib/documentHead";
 import Hero from "./Hero";
-import HumanLedBrandIntelligence from "./HumanLedBrandIntelligence";
 import BrandStatement from "./HumanLedBrandIntelligence";
 import Services from "./Services";
 import About from "./About";

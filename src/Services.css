@@ -1,0 +1,82 @@
+/* Static layout: a plain grid, readable without motion or JavaScript. */
+.services-showcase {
+  overflow: hidden;
+  padding-block: clamp(56px, 8vw, 112px);
+}
+
+.services-stage {
+  margin-top: clamp(32px, 5vw, 56px);
+  padding-inline: clamp(16px, 4vw, 32px);
+}
+
+.services-ring {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(16px, 2vw, 24px);
+  width: 100%;
+  max-width: 1282px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.service-card {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #e5e5e5;
+}
+
+.service-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.service-card__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: clamp(12px, 1.6vw, 20px);
+  color: #fff;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.65), rgb(0 0 0 / 0) 55%);
+}
+
+/* Spatial layout: Services.tsx sets data-spatial once GSAP takes over and
+   writes each card's transform from the centre of the stage. */
+.services-showcase[data-spatial='true'] {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  padding-block: clamp(72px, 10vh, 112px) clamp(24px, 5vh, 56px);
+}
+
+.services-showcase[data-spatial='true'] .services-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: clamp(20px, 4vh, 48px);
+  padding-inline: 0;
+  perspective: 1200px;
+}
+
+.services-showcase[data-spatial='true'] .services-ring {
+  position: absolute;
+  inset: 0;
+  display: block;
+  max-width: none;
+  transform-style: preserve-3d;
+}
+
+.services-showcase[data-spatial='true'] .service-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: min(86%, 460px);
+  max-width: 72vw;
+  will-change: transform;
+}

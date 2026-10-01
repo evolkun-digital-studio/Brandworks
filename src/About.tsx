@@ -1,3 +1,4 @@
+import { mediaUrl } from './media'
 import { useEffect, useRef, useState } from 'react'
 
 const ABOUT_TEXT =
@@ -118,7 +119,7 @@ function About() {
 
       <div className="relative h-[365px] w-[572px] max-w-full overflow-hidden rounded-[8px] bg-neutral-100">
         <video
-          src="https://res.cloudinary.com/dmzo1kt0d/video/upload/v1790595343/brandworks_bw_transition_smooth_60fps.mp4"
+          src={mediaUrl("brandworktransition.mp4")}
           autoPlay
           muted
           loop

@@ -1,3 +1,4 @@
+import { mediaUrl } from '../../media'
 import { useEffect, useRef } from 'react'
 import Lenis from 'lenis'
 import gsap from 'gsap'
@@ -20,7 +21,7 @@ type Project = {
 const projects: Project[] = [
   {
     image:
-      'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=1800&q=88',
+      mediaUrl("photo-1549490349-8643362247b5.jpg"),
     type: 'Identity / Packaging',
     title: 'A clear identity, made tangible.',
     kind: 'Client',
@@ -29,7 +30,7 @@ const projects: Project[] = [
   },
   {
     image:
-      'https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1800&q=88',
+      mediaUrl("photo-1558655146-9f40138edfeb.jpg"),
     type: 'Campaign / Key visual',
     title: 'A world built from one idea.',
     kind: 'Studio',
@@ -38,7 +39,7 @@ const projects: Project[] = [
   },
   {
     image:
-      'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1600&q=88',
+      mediaUrl("photo-1561070791-2526d30994b5.jpg"),
     type: 'Motion / Title sequence',
     title: 'Static thinking, set in motion.',
     kind: 'Client',
@@ -47,7 +48,7 @@ const projects: Project[] = [
   },
   {
     image:
-      'https://images.unsplash.com/photo-1553484771-047a44eee27b?auto=format&fit=crop&w=1800&q=88',
+      mediaUrl("photo-1553484771-047a44eee27b.jpg"),
     type: 'Social / Content system',
     title: 'One system. Every touchpoint.',
     kind: 'Client',
@@ -56,7 +57,7 @@ const projects: Project[] = [
   },
   {
     image:
-      'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1600&q=88',
+      mediaUrl("photo-1513364776144-60967b0f800f.jpg"),
     type: 'Illustration / Visual language',
     title: 'Built to be recognised.',
     kind: 'Studio',
@@ -65,7 +66,7 @@ const projects: Project[] = [
   },
   {
     image:
-      'https://images.unsplash.com/photo-1561214115-f2f134cc4912?auto=format&fit=crop&w=1800&q=88',
+      mediaUrl("photo-1561214115-f2f134cc4912.jpg"),
     type: 'Art direction / Brand world',
     title: 'A visual language people remember.',
     kind: 'Client',
@@ -74,7 +75,7 @@ const projects: Project[] = [
   },
   {
     image:
-      'https://images.unsplash.com/photo-1572044162444-ad60f128bdea?auto=format&fit=crop&w=1700&q=86',
+      mediaUrl("photo-1572044162444-ad60f128bdea.jpg"),
     type: 'Print / Publication',
     title: 'Details that reward attention.',
     kind: 'Studio',
@@ -83,7 +84,7 @@ const projects: Project[] = [
   },
   {
     image:
-      'https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1700&q=86',
+      mediaUrl("photo-1559028012-481c04fa702d.jpg"),
     type: 'Digital / Interface',
     title: 'A useful visual rhythm.',
     kind: 'Client',
@@ -92,7 +93,7 @@ const projects: Project[] = [
   },
   {
     image:
-      'https://images.unsplash.com/photo-1545235617-9465d2a55698?auto=format&fit=crop&w=1700&q=86',
+      mediaUrl("photo-1545235617-9465d2a55698.jpg"),
     type: 'Campaign / Photography',
     title: 'A frame with a little tension.',
     kind: 'Client',
@@ -101,7 +102,7 @@ const projects: Project[] = [
   },
   {
     image:
-      'https://images.unsplash.com/photo-1567016432779-094069958ea5?auto=format&fit=crop&w=1700&q=86',
+      mediaUrl("photo-1567016432779-094069958ea5.jpg"),
     type: 'Spatial / Experience',
     title: 'A brand you can walk into.',
     kind: 'Studio',
@@ -156,10 +157,10 @@ const process = [
 ]
 
 const heroVideo =
-  'https://videos.pexels.com/video-files/3571937/3571937-sd_1280_720_30fps.mp4'
+  mediaUrl("3571937-sd_1280_720_30fps.mp4")
 
 const motionVideo =
-  'https://videos.pexels.com/video-files/3129595/3129595-hd_1920_1080_25fps.mp4'
+  mediaUrl("3129595-hd_1920_1080_25fps.mp4")
 
 function Arrow({ down = false }: { down?: boolean }) {
   return (
@@ -590,7 +591,7 @@ export default function GraphicDesignPage() {
                 muted
                 loop
                 playsInline
-                poster="https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1800&q=88"
+                poster={mediaUrl("photo-1558655146-9f40138edfeb.jpg")}
                 aria-label="BrandWorks graphic design motion study"
               >
                 <source src={heroVideo} type="video/mp4" />
@@ -622,7 +623,7 @@ export default function GraphicDesignPage() {
               <div className="aspect-[4/5] overflow-hidden bg-[#d8d8d2]">
                 <img
                   className="h-full w-full object-cover"
-                  src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=88"
+                  src={mediaUrl("photo-1513364776144-60967b0f800f.jpg")}
                   alt="BrandWorks visual design study"
                 />
               </div>
