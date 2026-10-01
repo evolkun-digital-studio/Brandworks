@@ -1,9 +1,19 @@
 import { mediaUrl } from '../media'
 // Content for the Social Media section (components/SocialMedia).
 
-const reel01Poster = mediaUrl("reel-01-poster.webp")
-const reel02Poster = mediaUrl("reel-02-poster.webp")
-const reel03Poster = mediaUrl("reel-03-poster.webp")
+// The reels and their posters are not on the R2 bucket: the videos are
+// served from ImageKit and the posters are bundled locally.
+import reel01Poster from '../assets/social/reel-01-poster.webp'
+import reel02Poster from '../assets/social/reel-02-poster.webp'
+import reel03Poster from '../assets/social/reel-03-poster.webp'
+
+const IMAGEKIT = 'https://ik.imagekit.io/rxoyjxx4c'
+
+// `tr=orig-true` asks ImageKit for the uploaded file as-is; other URL forms
+// trigger video transformations, which count against the account quota.
+// encodeURI, not encodeURIComponent: ImageKit 404s on a comma encoded as %2C.
+const original = (file: string) => `${IMAGEKIT}/${encodeURI(file)}?tr=orig-true`
+
 const contentStill = mediaUrl("content-still.webp")
 const campaignStill = mediaUrl("campaign-still.webp")
 
@@ -12,8 +22,8 @@ export type SocialReel = {
   category: string
   caption: string
   src: string
-  /** The reel's first frame, shown until the video can play. */
-  poster: string
+  /** The reel's first frame, shown until the video can play. Without one, the video's own first frame shows. */
+  poster?: string
 }
 
 export const SOCIAL_REELS: SocialReel[] = [
@@ -21,22 +31,28 @@ export const SOCIAL_REELS: SocialReel[] = [
     id: '01',
     category: 'Reel / Social',
     caption: 'Creative built for attention.',
-    src: mediaUrl("Jnco southpole shorts drop Saturday May 10th _ - All Shorts will be available this Saturday at .mp4"),
+    src: original("Jnco southpole shorts drop Saturday May 10th _ - All Shorts will be available this Saturday at .mp4"),
     poster: reel01Poster,
   },
   {
     id: '02',
     category: 'Brand content',
     caption: 'Consistency turns content into identity.',
-    src: mediaUrl("Carhartt has become a global symbol of authentic workwear, embraced not only by workers but also.mp4"),
+    src: original("Carhartt has become a global symbol of authentic workwear, embraced not only by workers but also.mp4"),
     poster: reel02Poster,
   },
   {
     id: '03',
     category: 'Campaign',
     caption: 'Concept, content and distribution working together.',
-    src: mediaUrl("Collection of polo Harrington jacket Polo Ralph Lauren Harrington Jacket Bomber Nylon Classic Po.mp4"),
+    src: original("Collection of polo Harrington jacket Polo Ralph Lauren Harrington Jacket Bomber Nylon Classic Po.mp4"),
     poster: reel03Poster,
+  },
+  {
+    id: '04',
+    category: 'Product drop',
+    caption: 'Building anticipation before launch.',
+    src: original("Dropping soon _ Vintage 90s classic coogi multicolor 3D knit sweater All sizes are available fo.mp4"),
   },
 ]
 
