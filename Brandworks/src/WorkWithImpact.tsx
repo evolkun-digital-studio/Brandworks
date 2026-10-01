@@ -13,7 +13,7 @@ const photo6 = mediaUrl("Artboard 2@3x.png")
 
 const photo5 = mediaUrl("Artboard 2.png")
 
-const photo8 = mediaUrl("Asset 7@4x.png")
+const photo8 = mediaUrl("logo mock up.png")
 
 
 

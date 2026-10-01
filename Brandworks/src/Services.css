@@ -1,82 +1,205 @@
-/* Static layout: a plain grid, readable without motion or JavaScript. */
+/* Services showcase: 3D cylindrical service ring driven by scroll */
 .services-showcase {
+  --card-w: clamp(240px, min(21vw, 38vh), 290px);
+  --card-h: calc(var(--card-w) * 1.42);
+  --ring-perspective: 1300px;
+
+  background: #ffffff;
+  color: #000;
   overflow: hidden;
-  padding-block: clamp(56px, 8vw, 112px);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.services-stage {
-  margin-top: clamp(32px, 5vw, 56px);
+.services-showcase__header {
+  flex-shrink: 0;
+  margin-top: clamp(72px, 10vh, 112px);
+  margin-bottom: clamp(20px, 4vh, 48px);
   padding-inline: clamp(16px, 4vw, 32px);
+  text-align: center;
 }
 
-.services-ring {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: clamp(16px, 2vw, 24px);
-  width: 100%;
-  max-width: 1282px;
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
+.services-showcase__title {
+  font-family: var(--font-primary, 'Courier Prime', serif);
+  font-size: clamp(46px, 6vw, 58px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #000;
+  margin: 0;
+  max-width: 100%;
 }
 
-.service-card {
+.services-showcase__description {
+  font-family: var(--font-secondary, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  font-size: clamp(17px, 2.2vw, 21px);
+  font-weight: 400;
+  line-height: 1.4;
+  color: #555;
+  margin: clamp(20px, 3vh, 36px) auto 0;
+  max-width: min(550px, 90vw);
+  padding-inline: 16px;
+}
+
+/* Camera: perspective lives on the container so the ring's centre is the vanishing point */
+.services-showcase__container {
   position: relative;
-  aspect-ratio: 3 / 4;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
   overflow: hidden;
-  border-radius: 8px;
-  background: #e5e5e5;
+  padding-bottom: clamp(24px, 5vh, 56px);
+  perspective: var(--ring-perspective);
+  perspective-origin: 50% 50%;
 }
 
-.service-card img {
+.services-showcase__ring {
+  position: relative;
+  width: 100%;
+  height: calc(var(--card-h) + 48px);
+  transform-style: preserve-3d;
+}
+
+/* Cards are absolutely centred; GSAP places them on the cylinder via transform only */
+.services-showcase__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin-left: calc(var(--card-w) / -2);
+  margin-top: calc(var(--card-h) / -2);
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e5e5e5;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.services-showcase__image {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   user-select: none;
+  -webkit-user-drag: none;
 }
 
-.service-card__overlay {
+/* Darkens cards away from centre (opacity-only, cheaper than filter: brightness) */
+.services-showcase__shade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.services-showcase__overlay {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: flex-end;
-  padding: clamp(12px, 1.6vw, 20px);
+  padding: 0 20px 22px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 55%);
+  pointer-events: none;
+}
+
+.services-showcase__label {
+  font-family: var(--font-secondary, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  font-size: clamp(18px, 1.6vw, 22px);
+  font-weight: 500;
+  line-height: 1.2;
   color: #fff;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.65), rgb(0 0 0 / 0) 55%);
+  margin: 0;
+  white-space: normal;
 }
 
-/* Spatial layout: Services.tsx sets data-spatial once GSAP takes over and
-   writes each card's transform from the centre of the stage. */
-.services-showcase[data-spatial='true'] {
-  display: flex;
-  flex-direction: column;
-  height: 100svh;
-  padding-block: clamp(72px, 10vh, 112px) clamp(24px, 5vh, 56px);
+/* Reduced motion: no pin, no 3D — a clean static grid of every service */
+.services-showcase--static {
+  min-height: auto;
 }
 
-.services-showcase[data-spatial='true'] .services-stage {
+.services-showcase--static .services-showcase__container {
+  perspective: none;
+  padding: 0 clamp(16px, 4vw, 32px) clamp(48px, 8vh, 96px);
+}
+
+.services-showcase--static .services-showcase__ring {
+  height: auto;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  transform-style: flat;
+}
+
+.services-showcase--static .services-showcase__card {
   position: relative;
-  flex: 1;
-  min-height: 0;
-  margin-top: clamp(20px, 4vh, 48px);
-  padding-inline: 0;
-  perspective: 1200px;
+  left: auto;
+  top: auto;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  margin: 0;
+  transform: none;
+  will-change: auto;
 }
 
-.services-showcase[data-spatial='true'] .services-ring {
-  position: absolute;
-  inset: 0;
-  display: block;
-  max-width: none;
-  transform-style: preserve-3d;
+/* Tablet: tighter ring, ~3 cards clearly visible */
+@media (max-width: 1023px) {
+  .services-showcase {
+    --card-w: clamp(240px, min(34vw, 36vh), 280px);
+    --ring-perspective: 1200px;
+  }
+
+  .services-showcase__title {
+    font-size: clamp(42px, 5.5vw, 52px);
+  }
+
+  .services-showcase__description {
+    font-size: clamp(16px, 2vw, 19px);
+  }
 }
 
-.services-showcase[data-spatial='true'] .service-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  height: min(86%, 460px);
-  max-width: 72vw;
-  will-change: transform;
+/* Mobile: one dominant card with small peeks of its neighbours */
+@media (max-width: 700px) {
+  .services-showcase {
+    --card-w: min(76vw, 320px, 44vh);
+    --card-h: calc(var(--card-w) * 1.36);
+    --ring-perspective: 1500px;
+    min-height: 100svh;
+  }
+
+  .services-showcase--static {
+    min-height: auto;
+  }
+
+  .services-showcase__header {
+    margin-top: clamp(56px, 8vh, 80px);
+    margin-bottom: clamp(24px, 5vh, 48px);
+  }
+
+  .services-showcase__title {
+    font-size: clamp(34px, 7vw, 42px);
+  }
+
+  .services-showcase__description {
+    font-size: clamp(15px, 2vw, 17px);
+    margin: clamp(16px, 2vh, 24px) auto 0;
+  }
+
+  .services-showcase__container {
+    padding-bottom: clamp(32px, 8vh, 48px);
+  }
+
+  .services-showcase__label {
+    font-size: 18px;
+  }
 }
