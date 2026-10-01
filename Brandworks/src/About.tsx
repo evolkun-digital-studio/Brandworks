@@ -1,146 +1,131 @@
-import { mediaUrl } from './media'
-import { useEffect, useRef, useState } from 'react'
+import { mediaUrl } from "./media";
+import { useEffect, useRef, useState } from "react";
 
 const ABOUT_TEXT =
-  "BRANDWORKS is a creative and digital studio working across brand, media and growth. We bring strategy, production, design, reputation and digital execution into one working system. Some engagements start with a film. Some with a founder. Some with a website, search problem or campaign. The work depends on what needs to be solved.";
+  "A creative and digital studio working across brand, media and growth. We bring strategy, production, design, reputation and digital execution into one working system.";
 
-const ABOUT_WORDS = ABOUT_TEXT.split(" ");
-
-const COLOR_FROM: [number, number, number] = [163, 163, 163];
-const COLOR_TO: [number, number, number] = [23, 23, 23];
-
-function mixColor(t: number) {
-  const clamped = Math.min(1, Math.max(0, t));
-  const [r1, g1, b1] = COLOR_FROM;
-  const [r2, g2, b2] = COLOR_TO;
-
-  const r = Math.round(r1 + (r2 - r1) * clamped);
-  const g = Math.round(g1 + (g2 - g1) * clamped);
-  const b = Math.round(b1 + (b2 - b1) * clamped);
-
-  return `rgb(${r}, ${g}, ${b})`;
+function formatTime(seconds: number) {
+  const s = Number.isFinite(seconds) ? seconds : 0;
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
-function About() {
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const [progress, setProgress] = useState(0);
+type AboutProps = {
+  ctaHref?: string;
+};
 
+function About({ ctaHref = "#" }: AboutProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const barRef = useRef<HTMLSpanElement>(null);
+  const timeRef = useRef<HTMLSpanElement>(null);
+
+  const [playing, setPlaying] = useState(false);
+  const [duration, setDuration] = useState("00:00");
+
+  // Autoplay unless the visitor prefers reduced motion.
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia(
+    const video = videoRef.current;
+    if (!video) return;
+
+    const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    if (prefersReducedMotion) {
-      setProgress(1);
-      return;
-    }
-
-    let ticking = false;
-
-    const updateProgress = () => {
-      ticking = false;
-
-      const el = headingRef.current;
-      if (!el) return;
-
-      const { top } = el.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-
-      const start = viewportHeight * 0.88;
-      const end = viewportHeight * 0.28;
-      const next = (start - top) / (start - end);
-
-      setProgress(Math.min(1, Math.max(0, next)));
-    };
-
-    const onScroll = () => {
-      if (ticking) return;
-
-      ticking = true;
-      requestAnimationFrame(updateProgress);
-    };
-
-    updateProgress();
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
+    if (!reduce) video.play().catch(() => {});
   }, []);
 
-  const total = ABOUT_WORDS.length;
-  const band = 2.5;
+  // Drive the progress line and timecode without re-rendering every frame.
+  useEffect(() => {
+    let raf = 0;
+
+    const draw = () => {
+      const video = videoRef.current;
+      if (video && video.duration) {
+        const p = video.currentTime / video.duration;
+        if (barRef.current) barRef.current.style.transform = `scaleX(${p})`;
+        if (timeRef.current)
+          timeRef.current.textContent = formatTime(video.currentTime);
+      }
+      if (playing) raf = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, [playing]);
+
+  const toggle = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) video.play().catch(() => {});
+    else video.pause();
+  };
 
   return (
-    <section className="mx-auto grid w-full max-w-[1600px] grid-cols-1 items-center gap-[clamp(36px,6vw,80px)] bg-white px-[clamp(16px,4vw,32px)] py-[clamp(56px,8vw,112px)] lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,1.08fr)] lg:px-[clamp(40px,4vw,64px)] 2xl:px-16 min-[1800px]:max-w-[1720px]">
-      {/* TEXT */}
-      <div className="flex w-full flex-col items-start text-left lg:max-w-[650px] xl:max-w-[700px]">
-        <span className="site-kicker text-[10px] font-medium uppercase tracking-[0.14em] text-neutral-500 sm:text-[11px]">
-          Studio
-        </span>
+    <section aria-labelledby="about-heading" className="bg-white text-neutral-950">
+      <h2 id="about-heading" className="sr-only">
+        About BRANDWORKS
+      </h2>
 
-        <h3
-          ref={headingRef}
-          className="mt-4 w-full max-w-[680px] font-secondary text-[clamp(20px,5.8vw,28px)] font-medium leading-[1.38] tracking-[-0.025em] sm:mt-5 sm:max-w-[720px] sm:text-[clamp(22px,3.3vw,27px)] sm:leading-[1.36] md:max-w-[760px] md:text-[clamp(24px,2.8vw,28px)] md:leading-[1.34] lg:max-w-[620px] lg:text-[clamp(25px,2vw,28px)] lg:leading-[1.32] xl:max-w-[680px] 2xl:max-w-[720px] 2xl:text-[29px]"
-        >
-          {ABOUT_WORDS.map((word, index) => {
-            const wordStart = index / total;
-            const wordEnd = (index + band) / total;
-            const wordProgress = (progress - wordStart) / (wordEnd - wordStart);
+      <div className="mx-auto w-full max-w-[1600px] px-[clamp(16px,4vw,64px)] py-[clamp(64px,9vw,128px)] min-[1800px]:max-w-[1720px]">
+        <div className="grid grid-cols-1 gap-y-10 lg:grid-cols-12 lg:gap-x-8">
+          {/* Video column */}
+          <figure className="lg:col-span-5">
+            <div
+              onClick={toggle}
+              className="relative aspect-[16/10] w-full cursor-pointer overflow-hidden rounded-[4px] bg-neutral-100 lg:aspect-[4/3]"
+            >
+              <video
+                ref={videoRef}
+                src={mediaUrl("brandworktransition.mp4")}
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-hidden="true"
+                onPlay={() => setPlaying(true)}
+                onPause={() => setPlaying(false)}
+                onLoadedMetadata={(e) =>
+                  setDuration(formatTime(e.currentTarget.duration))
+                }
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+            </div>
+ 
+          </figure>
 
-            return (
-              <span
-                key={`${word}-${index}`}
-                className="transition-colors duration-150 ease-out"
-                style={{ color: mixColor(wordProgress) }}
-              >
-                {word}{" "}
+          {/* Copy column */}
+          <div className="flex flex-col justify-end lg:col-span-7 lg:pl-[clamp(0px,3vw,48px)]">
+            <p className="font-primary text-[clamp(24px,6.2vw,32px)] font-normal leading-[1.22] tracking-[-0.02em] text-neutral-950 sm:text-[clamp(28px,4.2vw,38px)] lg:text-[clamp(28px,2.5vw,42px)] lg:leading-[1.16]">
+              {ABOUT_TEXT}
+            </p>
+
+            <a
+              href={ctaHref}
+              className="group mt-8 inline-flex min-h-[44px] items-center gap-3 self-start text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-950 lg:mt-10"
+            >
+              <span className="site-ui relative text-[13px] font-medium">
+                More about BRANDWORKS
+                <span
+                  aria-hidden="true"
+                  className="absolute -bottom-1 left-0 h-px w-full origin-left bg-neutral-950 transition-transform duration-300 ease-out group-hover:origin-right group-hover:scale-x-0"
+                />
               </span>
-            );
-          })}
-        </h3>
-
-        <a
-          href="#"
-          className="group mt-7 inline-flex items-center gap-2 border-b border-neutral-900 pb-1 text-neutral-900 transition-all duration-300 ease-out active:opacity-60 sm:mt-8 sm:min-h-[44px] sm:min-w-[154px] sm:justify-center sm:rounded-[3px] sm:border sm:bg-neutral-900 sm:px-5 sm:pb-0 sm:text-white sm:hover:bg-white sm:hover:text-neutral-900 lg:mt-9"
-        >
-          <span className="site-ui whitespace-nowrap text-[12px] font-medium sm:text-[13px]">
-            More about BRANDWORKS
-          </span>
-
-          <span className="text-[14px] transition-transform duration-300 group-hover:translate-x-1">
-            →
-          </span>
-        </a>
-      </div>
-
-      <div className="relative h-[365px] w-[572px] max-w-full overflow-hidden rounded-[8px] bg-neutral-100">
-        <video
-          src={mediaUrl("brandworktransition.mp4")}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          className="absolute inset-0 block h-full w-full object-cover object-center opacity-100"
-        />
-
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="white"
-          strokeWidth={1.5}
-          aria-hidden="true"
-          className="absolute bottom-3 left-3 h-5 w-5 sm:bottom-4 sm:left-4 sm:h-[22px] sm:w-[22px] lg:bottom-5 lg:left-5 lg:h-6 lg:w-6"
-        >
-          <rect x="2" y="2" width="8" height="8" />
-          <rect x="14" y="2" width="8" height="8" />
-          <rect x="2" y="14" width="8" height="8" />
-          <rect x="14" y="14" width="8" height="8" />
-        </svg>
+              <svg
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+                className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-1"
+              >
+                <path
+                  d="M1 8h13M9 3l5 5-5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.25}
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -1,4 +1,7 @@
 const USERNAME_PATTERN = /^[a-z0-9._-]{3,32}$/
+const EMAIL_LOGIN_PATTERN =
+  /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/
+const MAX_EMAIL_LOGIN_LENGTH = 254
 
 /**
  * Normalizes a submitted username/login ID for storage and lookup.
@@ -18,8 +21,13 @@ export function validateUsername(username: string): string | null {
     return 'Username is required.'
   }
   const normalized = normalizeUsername(username)
-  if (!USERNAME_PATTERN.test(normalized)) {
-    return 'Username must be 3-32 characters and may only contain lowercase letters, numbers, dots, underscores, and hyphens.'
+  const isUsername = USERNAME_PATTERN.test(normalized)
+  const isEmailLogin =
+    normalized.length <= MAX_EMAIL_LOGIN_LENGTH &&
+    EMAIL_LOGIN_PATTERN.test(normalized)
+
+  if (!isUsername && !isEmailLogin) {
+    return 'Login ID must be a 3-32 character username or a valid email address.'
   }
   return null
 }

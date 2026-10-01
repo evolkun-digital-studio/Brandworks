@@ -22,6 +22,7 @@ export const MEDIA_FILES = {
   "Artboard 3@3x (1).png": "Artboard 3@3x (1).png",
   "Artboard 5.png": "Artboard 5.png",
   "Artboard 7 (1).png": "Artboard 7 (1).png",
+  "Asset 4@4x.webp": "Asset 4@4x.webp",
   "Asset 7@4x.png": "Asset 7@4x.png",
   "logo mock up.png": "logo mock up.png",
   "Beginning.jpg": "Beginning.jpg",

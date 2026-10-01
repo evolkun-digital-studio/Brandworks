@@ -37,6 +37,8 @@ import ServicesPage from "./pages/servicePage";
 import CinematographyPage from "./pages/services/CinematographyPage";
 import PhotographyPage from "./pages/services/PhotographyPage";
 import GraphicDesignPage from "./pages/services/GraphicDesignPage";
+import SeoPage from "./pages/services/SeoPage";
+import ContactPage from "./pages/ContactPage";
 // Route-level code splitting (Phase 10, Part 13): AdminRoutes pulls in
 // the entire CMS — react-markdown's admin preview, the SEO analyzer,
 // every admin page — none of which a public visitor has any reason to
@@ -132,9 +134,11 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/services/videography" element={<CinematographyPage />} />
         <Route path="/services/photography" element={<PhotographyPage />} />
         <Route path="/services/graphic-design" element={<GraphicDesignPage />} />
+        <Route path="/services/seo" element={<SeoPage />} />
         <Route path="/blog" element={<EditorialIndexPage kind="blog" />} />
         <Route
           path="/blog/:slug"

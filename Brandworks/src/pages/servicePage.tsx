@@ -294,7 +294,7 @@ function usePageSeo() {
     setMeta('og:type', 'website', true)
     setMeta(
       'og:url',
-      'https://brandworks.com/services',
+      'https://brandworks.me/services',
       true,
     )
 
@@ -313,7 +313,7 @@ function usePageSeo() {
       document.head.appendChild(canonical)
     }
 
-    canonical.href = 'https://brandworks.com/services'
+    canonical.href = 'https://brandworks.me/services'
 
     const schema = {
       '@context': 'https://schema.org',
@@ -323,13 +323,13 @@ function usePageSeo() {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://brandworks.com/',
+          item: 'https://brandworks.me/',
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Services',
-          item: 'https://brandworks.com/services',
+          item: 'https://brandworks.me/services',
         },
       ],
     }
@@ -643,7 +643,7 @@ export default function ServicesPage() {
                 className="grid gap-8 py-10 md:grid-cols-[0.65fr_1.35fr] md:py-12"
               >
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-400">
+                  <p className="text-[14px] uppercase tracking-[0.12em] text-neutral-900">
                     {group.name}
                   </p>
 
