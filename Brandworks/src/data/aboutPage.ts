@@ -165,8 +165,8 @@ export const ABOUT_TEAM = {
   description: 'Different disciplines. One creative process.',
   members: [
     {
-      name: 'Aarav Mehta',
-      role: 'Founder / Creative Director',
+      name: 'Yuvraj Singh Thapa',
+      role: 'Founder',
       speciality: 'Brand direction and creative concepts',
       ratio: '4/5',
       image: {
@@ -174,12 +174,12 @@ export const ABOUT_TEAM = {
         srcSet: `${portrait01Small} 640w, ${portrait01} 960w`,
         width: 960,
         height: 1200,
-        alt: 'Portrait of Aarav Mehta',
+        alt: 'Portrait of Yuvraj Thapa',
       },
     },
     {
-      name: 'Naina Kapoor',
-      role: 'Strategy & Marketing',
+      name: 'Md Hasnain',
+      role: 'UI/UX Designer & SEO specialist',
       speciality: 'Positioning, reputation and growth',
       ratio: '2/3',
       image: {
@@ -187,12 +187,12 @@ export const ABOUT_TEAM = {
         srcSet: `${portrait02Small} 560w, ${portrait02} 904w`,
         width: 904,
         height: 1200,
-        alt: 'Portrait of Naina Kapoor',
+        alt: 'Portrait of Md Hasnain',
       },
     },
     {
-      name: 'Kabir Rao',
-      role: 'Photography / Film',
+      name: 'Rahul Uniyal',
+      role: 'Full-Stack Developer',
       speciality: 'Campaign stills and brand films',
       ratio: '3/4',
       image: {
@@ -200,12 +200,12 @@ export const ABOUT_TEAM = {
         srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
         width: 904,
         height: 1200,
-        alt: 'Portrait of Kabir Rao',
+        alt: 'Portrait of Rahul',
         position: '50% 30%',
       },
     },
     {
-      name: 'Meera Iyer',
+      name: 'Ujjwal',
       role: 'Design & Motion',
       speciality: 'Identity systems and animation',
       ratio: '4/5',
@@ -214,7 +214,7 @@ export const ABOUT_TEAM = {
         srcSet: `${portrait04Small} 560w, ${portrait04} 904w`,
         width: 904,
         height: 1200,
-        alt: 'Portrait of Meera Iyer',
+        alt: 'Portrait of Ujjwal',
         position: '50% 35%',
       },
     },
