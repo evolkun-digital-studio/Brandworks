@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
@@ -76,17 +76,6 @@ function Media({
   )
 }
 
-/** Small uppercase section index: "02 — Who We Are". */
-function Label({ number, children, className }: { number: string; children: string; className?: string }) {
-  return (
-    <p data-reveal="fade" className={`section-label about-label ${className ?? ''}`}>
-      <span className="about-label__number">{number}</span>
-      <span aria-hidden="true"> — </span>
-      {children}
-    </p>
-  )
-}
-
 /** One masked line (or phrase) of display type. */
 function MaskLine({ children, className }: { children: string; className?: string }) {
   return (
@@ -106,10 +95,6 @@ function AboutHero() {
   return (
     <section className="about-hero" aria-labelledby="about-hero-heading" data-reveal-group>
       <div className="section-container">
-        <div className="about-hero__meta" data-reveal="fade"> 
-          <span className="section-label about-label about-hero__location">{ABOUT_HERO.location}</span>
-        </div>
-
         <h1 id="about-hero-heading" className="about-hero__heading">
           <MaskLine>{first}</MaskLine> <MaskLine>{rest.join(' ')}</MaskLine>
         </h1>
@@ -135,7 +120,6 @@ function AboutIntro() {
     <section className="about-intro about-surface" aria-labelledby="about-intro-heading">
       <div className="section-container">
         <div className="about-intro__head" data-reveal-group>
-          <Label number="02">{ABOUT_INTRO.label}</Label>
           <h2 id="about-intro-heading" className="about-statement">
             <MaskLine className="about-statement__lead">{ABOUT_INTRO.statement.lead}</MaskLine>{' '}
             <MaskLine>{ABOUT_INTRO.statement.idea}</MaskLine>
@@ -169,11 +153,11 @@ function AboutIntro() {
 }
 
 function Stage({ stage, className }: { stage: JourneyStage; className: string }) {
+  const titleId = useId()
+
   return (
-    <article data-reveal="fade" className={`about-stage ${className}`} aria-labelledby={`about-stage-${stage.number}`}>
-      <h3 id={`about-stage-${stage.number}`} className="section-label about-stage__title">
-        <span className="about-stage__number">{stage.number}</span>
-        <span aria-hidden="true"> — </span>
+    <article data-reveal="fade" className={`about-stage ${className}`} aria-labelledby={titleId}>
+      <h3 id={titleId} className="section-label about-stage__title">
         {stage.title}
       </h3>
       <p className="about-stage__text">{stage.text}</p>
@@ -189,9 +173,6 @@ function AboutJourney() {
     <section className="about-journey about-surface" aria-labelledby="about-journey-heading">
       <div className="section-container">
         <header className="section-grid about-journey__head" data-reveal-group>
-          <Label number="03" className="about-journey__label">
-            {ABOUT_JOURNEY.label}
-          </Label>
           <div className="about-journey__intro">
             <h2 id="about-journey-heading" className="about-heading">
               <MaskLine>{ABOUT_JOURNEY.heading}</MaskLine>
@@ -223,14 +204,11 @@ function AboutJourney() {
           </div>
 
           <div className="section-grid about-journey__row about-journey__row--three" data-reveal-group>
-            <Stage stage={strategy} className="about-stage--left" />
-          </div>
-
-          <div className="section-grid about-journey__row about-journey__row--wide" data-reveal-group>
+            <Stage stage={strategy} className="about-stage--left about-stage--center" />
             <Media
               image={images.road}
-              className="about-journey__image about-journey__image--wide"
-              sizes="(min-width: 1440px) 1100px, (min-width: 1024px) 80vw, 100vw"
+              className="about-journey__image about-journey__image--technology"
+              sizes="(min-width: 1024px) 38vw, (min-width: 768px) 46vw, 100vw"
               parallax
             />
           </div>
@@ -256,7 +234,6 @@ function AboutStatement() {
             parallax
           />
           <div className="about-brand__copy">
-            <Label number="04">{ABOUT_STATEMENT.label}</Label>
             <h2 id="about-brand-heading" className="about-heading about-brand__heading">
               <MaskLine>{ABOUT_STATEMENT.heading}</MaskLine>
             </h2>
@@ -278,7 +255,6 @@ function AboutPrinciples() {
     <section className="about-principles about-green" aria-labelledby="about-principles-heading">
       <div className="section-container">
         <header className="about-principles__head" data-reveal-group>
-          <Label number="05">{ABOUT_PRINCIPLES.label}</Label>
           <h2 id="about-principles-heading" className="about-statement about-principles__heading">
             <MaskLine>{ABOUT_PRINCIPLES.heading}</MaskLine>
           </h2>
@@ -338,7 +314,6 @@ function AboutTeam() {
       <div className="section-container">
         <div className="section-grid about-team__grid">
           <header className="about-team__intro" data-reveal-group>
-            <Label number="06">{ABOUT_TEAM.label}</Label>
             <h2 id="about-team-heading" className="about-statement about-team__heading">
               <MaskLine>{ABOUT_TEAM.heading}</MaskLine>
             </h2>

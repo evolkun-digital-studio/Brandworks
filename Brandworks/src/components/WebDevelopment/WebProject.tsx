@@ -1,8 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { WebProject as WebProjectData, WebProjectImage } from '../../data/webDevelopment'
 
-const pad = (n: number) => String(n).padStart(2, '0')
-
 /** A line of text inside its own mask, so it can slide in and out of view. */
 function Line({ children }: { children: ReactNode }) {
   return (
@@ -59,10 +57,6 @@ function WebProject({ project, index, total }: Props) {
       style={{ '--wdr-z': total - index } as CSSProperties}
     >
       <p className="wdr-kicker">
-        <Line>
-          <span className="wdr-kicker__index">{pad(index + 1)}</span>
-          <span className="wdr-kicker__total"> / {pad(total)}</span>
-        </Line>
         <Line>{type}</Line>
       </p>
 

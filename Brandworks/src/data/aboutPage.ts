@@ -5,11 +5,10 @@ import { mediaUrl } from '../media'
 // rewriting the story or swapping a portrait never means touching the
 // layout.
 
-const studioPortrait = mediaUrl("studio-portrait.webp")
-const studioPortraitSmall = mediaUrl("studio-portrait-640.webp")
 const beginningStill = mediaUrl("Beginning.jpg")
 const studioStill = mediaUrl("studio.jpg")
-const technologyStill = mediaUrl("technology.jpg")
+const technologyStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/creative_2.jpg"
+const websiteDevStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website_dev.jpg"
 const bottleStill = mediaUrl("photo-04.webp")
 const bottleStillSmall = mediaUrl("photo-04-640.webp")
 const portrait01 = mediaUrl("photo-01.webp")
@@ -36,13 +35,13 @@ export const ABOUT_HERO = {
   heading: 'About Us',
   description: 'The people, thinking and journey behind BrandWorks.',
   image: {
-    src: studioPortrait,
-    srcSet: `${studioPortraitSmall} 640w, ${studioPortrait} 960w`,
-    width: 960,
-    height: 1200,
-    alt: 'A hand holding a product up to warm studio light during a BrandWorks shoot',
+    src: studioStill,
+    width: 6000,
+    height: 4000,
+    alt: 'A lit photo studio set with an armchair and plant on a paper backdrop',
+    // Landscape shot in a 4:5 frame: centre on the lit chair and lamps.
+    position: '66% 60%',
   } satisfies AboutImage,
-  location: 'India / Worldwide',
 }
 
 export const ABOUT_INTRO = {
@@ -75,7 +74,6 @@ export const ABOUT_INTRO = {
 }
 
 export type JourneyStage = {
-  number: string
   title: string
   text: string
 }
@@ -86,22 +84,18 @@ export const ABOUT_JOURNEY = {
   description: 'From an idea to an interdisciplinary creative studio.',
   stages: [
     {
-      number: '01',
       title: 'The Beginning',
       text: 'BrandWorks began with one goal — to close the gap between good creative work and clear brand thinking.',
     },
     {
-      number: '02',
       title: 'Building the Studio',
       text: 'What started with creative execution expanded into photography, films, design, content, social media and digital experiences.',
     },
     {
-      number: '03',
       title: 'Strategy Meets Creative',
       text: 'We began bringing strategy, reputation, performance and technology into the same creative process.',
     },
     {
-      number: '04',
       title: 'Where We Are Now',
       text: 'Today, BrandWorks works across disciplines to build brands that are clearer, more consistent and easier to remember.',
     },
@@ -134,11 +128,10 @@ export const ABOUT_STATEMENT = {
   text: 'We wanted to build a studio where every discipline contributes to the same idea.',
   signature: 'The BrandWorks Studio',
   image: {
-    src: bottleStill,
-    srcSet: `${bottleStillSmall} 640w, ${bottleStill} 1200w`,
-    width: 1200,
+    src: websiteDevStill,
+    width: 1600,
     height: 1200,
-    alt: 'A single white bottle lit against a black studio backdrop',
+    alt: 'BrandWorks studio image showing the creative team and working environment',
   } satisfies AboutImage,
 }
 
@@ -172,8 +165,8 @@ export const ABOUT_TEAM = {
   description: 'Different disciplines. One creative process.',
   members: [
     {
-      name: 'Aarav Mehta',
-      role: 'Founder / Creative Director',
+      name: 'Yuvraj Singh Thapa',
+      role: 'Founder',
       speciality: 'Brand direction and creative concepts',
       ratio: '4/5',
       image: {
@@ -181,12 +174,12 @@ export const ABOUT_TEAM = {
         srcSet: `${portrait01Small} 640w, ${portrait01} 960w`,
         width: 960,
         height: 1200,
-        alt: 'Portrait of Aarav Mehta',
+        alt: 'Portrait of Yuvraj Thapa',
       },
     },
     {
-      name: 'Naina Kapoor',
-      role: 'Strategy & Marketing',
+      name: 'Md Hasnain',
+      role: 'UI/UX Designer & SEO specialist',
       speciality: 'Positioning, reputation and growth',
       ratio: '2/3',
       image: {
@@ -194,12 +187,12 @@ export const ABOUT_TEAM = {
         srcSet: `${portrait02Small} 560w, ${portrait02} 904w`,
         width: 904,
         height: 1200,
-        alt: 'Portrait of Naina Kapoor',
+        alt: 'Portrait of Md Hasnain',
       },
     },
     {
-      name: 'Kabir Rao',
-      role: 'Photography / Film',
+      name: 'Rahul Uniyal',
+      role: 'Full-Stack Developer',
       speciality: 'Campaign stills and brand films',
       ratio: '3/4',
       image: {
@@ -207,12 +200,12 @@ export const ABOUT_TEAM = {
         srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
         width: 904,
         height: 1200,
-        alt: 'Portrait of Kabir Rao',
+        alt: 'Portrait of Rahul',
         position: '50% 30%',
       },
     },
     {
-      name: 'Meera Iyer',
+      name: 'Ujjwal',
       role: 'Design & Motion',
       speciality: 'Identity systems and animation',
       ratio: '4/5',
@@ -221,7 +214,7 @@ export const ABOUT_TEAM = {
         srcSet: `${portrait04Small} 560w, ${portrait04} 904w`,
         width: 904,
         height: 1200,
-        alt: 'Portrait of Meera Iyer',
+        alt: 'Portrait of Ujjwal',
         position: '50% 35%',
       },
     },

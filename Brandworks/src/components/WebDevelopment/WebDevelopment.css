@@ -175,7 +175,8 @@
 
 .wdr-kicker {
   display: flex;
-  justify-content: space-between;
+  /* Only the project type remains; keep it on the right where it sat. */
+  justify-content: flex-end;
   gap: 16px;
   margin: 0 0 14px;
   font-size: 11px;
@@ -184,14 +185,6 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-muted);
-}
-
-.wdr-kicker__index {
-  color: var(--color-bw-lime);
-}
-
-.wdr-kicker__total {
-  color: var(--wdr-faint);
 }
 
 .wdr-mask {

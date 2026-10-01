@@ -15,13 +15,10 @@ import { mediaUrl } from '../media'
 // for a 'spread' project should be a 9:16-ish portrait capture of the same
 // site.
 
-const gm02 = mediaUrl("gm-02.webp")
-const gm02Small = mediaUrl("gm-02-800.webp")
-const gm05 = mediaUrl("gm-05.webp")
-const gm05Small = mediaUrl("gm-05-560.webp")
-const gm06 = mediaUrl("gm-06.webp")
-const gm06Small = mediaUrl("gm-06-800.webp")
-const coastRoad = mediaUrl("campaign-aerial.jpg")
+const websiteOne = mediaUrl("website .png")
+const projectTwoMain = mediaUrl("project 2.webp")
+const projectTwoCrop = mediaUrl("project_2.webp")
+const projectThree = mediaUrl("project_3.webp")
 
 export type WebProjectImage = {
   src: string
@@ -72,11 +69,10 @@ export const WEB_PROJECTS: WebProject[] = [
     year: '2026',
     layout: 'landscape',
     image: {
-      src: gm02,
-      srcSet: `${gm02Small} 800w, ${gm02} 1200w`,
-      width: 1200,
-      height: 904,
-      alt: 'Placeholder artwork for a BrandWorks website project',
+      src: websiteOne,
+      width: 1536,
+      height: 1024,
+      alt: 'Jellystar streetwear website homepage with a model in a hooded sweatshirt',
     },
   },
   {
@@ -87,19 +83,20 @@ export const WEB_PROJECTS: WebProject[] = [
     year: '2026',
     layout: 'spread',
     image: {
-      src: gm06,
-      srcSet: `${gm06Small} 800w, ${gm06} 1200w`,
-      width: 1200,
-      height: 904,
-      alt: 'Placeholder artwork for a BrandWorks platform project on desktop',
+      src: projectTwoMain,
+      width: 4000,
+      height: 6000,
+      alt: 'A dark-themed web app shown on a monitor, laptop and phone on a desk',
+      // Portrait shot in a wide frame: keep the three screens in view.
+      position: '65% 50%',
     },
     secondary: {
-      src: gm05,
-      srcSet: `${gm05Small} 560w, ${gm05} 904w`,
-      width: 904,
-      height: 1200,
-      alt: 'Placeholder artwork for the same platform project on mobile',
-      position: '50% 30%',
+      src: projectTwoCrop,
+      width: 4843,
+      height: 3632,
+      alt: 'A hand holding a phone showing a city data dashboard app',
+      // Landscape shot in a 9:16 frame: centre on the phone.
+      position: '48% 50%',
     },
   },
   {
@@ -110,10 +107,12 @@ export const WEB_PROJECTS: WebProject[] = [
     year: '2026',
     layout: 'bleed',
     image: {
-      src: coastRoad,
-      width: 1200,
-      height: 800,
-      alt: 'Placeholder artwork for a BrandWorks brand website project',
+      src: projectThree,
+      width: 12513,
+      height: 5363,
+      alt: 'A web dashboard on a laptop beside a monitor showing its code in a dark studio',
+      // Very wide shot: keep the laptop and monitor in view on narrower frames.
+      position: '62% 50%',
     },
   },
 ]
