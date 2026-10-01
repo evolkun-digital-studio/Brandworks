@@ -8,11 +8,9 @@ import { useReducedMotion } from 'motion/react'
 const showreelPoster = mediaUrl("footer-showreel-poster.webp")
 import { matches } from './lib/scrollMotion'
 import './Footer.css'
+import LOGO_SRC from '../brandWorkFONT/Asset 4@4x.png'
 
 gsap.registerPlugin(useGSAP)
-
-const LOGO_SRC =
-  mediaUrl("ChatGPT Image Sep 23, 2026, 03_32_46 PM.png")
 
 // Pexels video 39105126, served from the Pexels CDN until copies are
 // uploaded to the media bucket.

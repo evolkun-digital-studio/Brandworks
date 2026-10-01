@@ -1,33 +1,34 @@
 import { mediaUrl } from './media'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
-const photo9 = mediaUrl("Photo9.png")
-const photo10 = mediaUrl("Photo10.png")
-const photo11 = mediaUrl("Photo11.png")
 import { clamp01, lerp, matches, sample, smoothstep, write } from './lib/scrollMotion'
+// Not yet uploaded to the Photography/ folder that mediaUrl() serves from,
+// so these are referenced at the bucket root by full URL.
+const R2_ROOT = 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev'
+const rootImage = (file: string) => `${R2_ROOT}/${encodeURIComponent(file)}`
 const results = [
   {
-    image: photo9,
+    image: rootImage('discovery.jpg'),
     stat: 'Visibility',
     label: 'How often and where the brand is being discovered.',
   },
   {
-    image: photo10,
+    image: mediaUrl("enga.webp"),
     stat: 'Engagement',
     label: 'How audiences respond to content and campaigns.',
   },
   {
-    image: photo11,
+    image: rootImage('search (2).jpg'),
     stat: 'Search',
     label: 'Rankings, demand, traffic and search presence.',
   },
   {
-    image: photo9,
+    image: rootImage('reputation.jpg'),
     stat: 'Reputation',
     label: 'What appears around the brand and the people behind it.',
   },
   {
-    image: photo10,
+    image: mediaUrl("performance.jpg"),
     stat: 'Performance',
     label: 'Leads, conversions and campaign efficiency.',
   },

@@ -6,6 +6,18 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { useReducedMotion } from 'motion/react'
 import { Link } from 'react-router-dom'
+// Web-sized copies of the R2 originals (WebP, ~2× each slot's on-screen width).
+import studioExperiment from '../../assets/graphic-design/studio-experiment.webp'
+import businessCardMockup from '../../assets/graphic-design/business-card-mockup.webp'
+import businessCardSoko from '../../assets/graphic-design/business-card-soko.webp'
+import softlyKeyVisual from '../../assets/graphic-design/softly-key-visual.webp'
+import staticThinkingCard from '../../assets/graphic-design/static-thinking-card.webp'
+import artDirection from '../../assets/graphic-design/art-direction.webp'
+import printPublication from '../../assets/graphic-design/print-publication.webp'
+import staticThinkingMotion from '../../assets/graphic-design/static-thinking-motion.webp'
+import pottBillboard from '../../assets/graphic-design/pott-billboard.webp'
+import brandWalkInto from '../../assets/graphic-design/brand-walk-into.webp'
+import frameTension from '../../assets/graphic-design/frame-tension.webp'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -16,39 +28,48 @@ type Project = {
   kind: 'Client' | 'Studio'
   year: string
   ratio: string
+  /** 'contain' shows the whole image in its frame, without the parallax crop. */
+  fit?: 'contain'
+  /** CSS object-position, for steering the crop; defaults to centre. */
+  position?: string
+  /** Frame colour behind a 'contain' image; defaults to the grey placeholder. */
+  background?: string
 }
 
 const projects: Project[] = [
   {
     image:
-      mediaUrl("photo-1549490349-8643362247b5.jpg"),
+      businessCardSoko,
     type: 'Identity / Packaging',
     title: 'A clear identity, made tangible.',
     kind: 'Client',
     year: '2026',
     ratio: 'aspect-[4/5]',
+    fit: 'contain',
   },
   {
     image:
-      mediaUrl("photo-1558655146-9f40138edfeb.jpg"),
+      softlyKeyVisual,
     type: 'Campaign / Key visual',
     title: 'A world built from one idea.',
     kind: 'Studio',
     year: '2026',
-    ratio: 'aspect-[5/4]',
+    ratio: 'aspect-[4/5]',
+    fit: 'contain',
   },
   {
     image:
-      mediaUrl("photo-1561070791-2526d30994b5.jpg"),
+      staticThinkingCard,
     type: 'Motion / Title sequence',
     title: 'Static thinking, set in motion.',
     kind: 'Client',
     year: '2026',
     ratio: 'aspect-[4/5]',
+    fit: 'contain',
   },
   {
     image:
-      mediaUrl("photo-1553484771-047a44eee27b.jpg"),
+      mediaUrl("client.webp"),
     type: 'Social / Content system',
     title: 'One system. Every touchpoint.',
     kind: 'Client',
@@ -57,7 +78,7 @@ const projects: Project[] = [
   },
   {
     image:
-      mediaUrl("photo-1513364776144-60967b0f800f.jpg"),
+      mediaUrl("vcvcvcvcv.jpg"),
     type: 'Illustration / Visual language',
     title: 'Built to be recognised.',
     kind: 'Studio',
@@ -66,7 +87,7 @@ const projects: Project[] = [
   },
   {
     image:
-      mediaUrl("photo-1561214115-f2f134cc4912.jpg"),
+      artDirection,
     type: 'Art direction / Brand world',
     title: 'A visual language people remember.',
     kind: 'Client',
@@ -75,25 +96,29 @@ const projects: Project[] = [
   },
   {
     image:
-      mediaUrl("photo-1572044162444-ad60f128bdea.jpg"),
+      printPublication,
     type: 'Print / Publication',
     title: 'Details that reward attention.',
     kind: 'Studio',
     year: '2025',
     ratio: 'aspect-[4/5]',
+    fit: 'contain',
   },
   {
     image:
-      mediaUrl("photo-1559028012-481c04fa702d.jpg"),
+      mediaUrl("logo and color palette.png"),
     type: 'Digital / Interface',
     title: 'A useful visual rhythm.',
     kind: 'Client',
     year: '2025',
-    ratio: 'aspect-[5/4]',
+    ratio: 'aspect-[4/5]',
+    // A brand sheet on white: show it whole, on a matching white frame.
+    fit: 'contain',
+    background: '#fff',
   },
   {
     image:
-      mediaUrl("photo-1545235617-9465d2a55698.jpg"),
+      frameTension,
     type: 'Campaign / Photography',
     title: 'A frame with a little tension.',
     kind: 'Client',
@@ -102,12 +127,13 @@ const projects: Project[] = [
   },
   {
     image:
-      mediaUrl("photo-1567016432779-094069958ea5.jpg"),
+      brandWalkInto,
     type: 'Spatial / Experience',
     title: 'A brand you can walk into.',
     kind: 'Studio',
     year: '2025',
     ratio: 'aspect-[3/2]',
+    fit: 'contain',
   },
 ]
 
@@ -155,12 +181,6 @@ const process = [
     text: 'The system is translated into useful formats, assets and guidelines for the real world.',
   },
 ]
-
-const heroVideo =
-  mediaUrl("3571937-sd_1280_720_30fps.mp4")
-
-const motionVideo =
-  mediaUrl("3129595-hd_1920_1080_25fps.mp4")
 
 function Arrow({ down = false }: { down?: boolean }) {
   return (
@@ -510,15 +530,15 @@ export default function GraphicDesignPage() {
   return (
     <main
       ref={pageRef}
-      className="overflow-hidden bg-[#f7f7f4] text-[#111]"
+      className="overflow-hidden  text-[#111]"
     >
       {/* =========================================================
           HERO
       ========================================================= */}
 
-      <section className="relative bg-[#f7f7f4] pb-[clamp(70px,10vw,150px)] pt-[clamp(110px,12vw,175px)]">
+      <section className="relative  pb-[clamp(70px,10vw,150px)] pt-[clamp(110px,12vw,100px)]">
         <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
-          <div className="border-t border-black/15 pt-4">
+          {/* <div className="border-t border-black/15 pt-4">
             <div
               data-hero-kicker
               className="flex items-center justify-between gap-5 text-[10px] uppercase tracking-[0.16em]"
@@ -530,7 +550,7 @@ export default function GraphicDesignPage() {
                 <span>BrandWorks / Studio Practice</span>
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="mt-[clamp(50px,7vw,100px)] grid items-end gap-10 md:grid-cols-12">
             <div className="md:col-span-8">
@@ -574,37 +594,27 @@ export default function GraphicDesignPage() {
             data-hero-canvas
             className="relative mt-[clamp(70px,9vw,130px)] h-[clamp(540px,64vw,850px)]"
           >
-            <div className="absolute left-0 top-0 text-[9px] uppercase tracking-[0.16em] text-black/45">
-              Visual study 001
-            </div>
-
             {/* MAIN FRAME */}
 
             <div
               data-hero-main
               className="absolute left-[4%] top-[7%] h-[71%] w-[68%] overflow-hidden bg-[#deded8] max-md:left-0 max-md:top-[8%] max-md:h-[62%] max-md:w-[88%]"
             >
-              <video
+              <img
                 data-hero-main-image
                 className="h-[112%] w-full -translate-y-[6%] object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-                poster={mediaUrl("photo-1558655146-9f40138edfeb.jpg")}
-                aria-label="BrandWorks graphic design motion study"
-              >
-                <source src={heroVideo} type="video/mp4" />
-              </video>
+                src={studioExperiment}
+                width={2000}
+                height={1333}
+                alt="A white photo studio with softbox lights, a backdrop and a desk"
+                decoding="async"
+                draggable={false}
+              />
 
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/50 to-transparent p-[clamp(18px,2.5vw,36px)] text-white">
                 <div>
                   <p className="m-0 text-[9px] uppercase tracking-[0.15em] text-white/60">
                     Studio experiment
-                  </p>
-
-                  <p className="mb-0 mt-2 text-[15px]">
-                    Form / Colour / Motion
                   </p>
                 </div>
 
@@ -623,14 +633,12 @@ export default function GraphicDesignPage() {
               <div className="aspect-[4/5] overflow-hidden bg-[#d8d8d2]">
                 <img
                   className="h-full w-full object-cover"
-                  src={mediaUrl("photo-1513364776144-60967b0f800f.jpg")}
-                  alt="BrandWorks visual design study"
+                  src={businessCardMockup}
+                  width={1000}
+                  height={667}
+                  alt="Front and back of a sage green business card on a stone surface"
+                  style={{ objectPosition: '52% 50%' }}
                 />
-              </div>
-
-              <div className="mt-3 flex justify-between gap-5 text-[9px] uppercase tracking-[0.13em]">
-                <span>Direction / 02</span>
-                <span className="text-black/45">2026</span>
               </div>
             </div>
 
@@ -649,17 +657,6 @@ export default function GraphicDesignPage() {
               data-hero-detail
               className="absolute bottom-[16%] left-0 hidden h-px w-[16%] bg-black/25 md:block"
             />
-
-            <div
-              data-hero-detail
-              className="absolute bottom-[13%] left-0 hidden text-[9px] uppercase leading-[1.7] tracking-[0.13em] text-black/45 md:block"
-            >
-              Ideas
-              <br />
-              Systems
-              <br />
-              Motion
-            </div>
           </div>
         </div>
       </section>
@@ -668,20 +665,11 @@ export default function GraphicDesignPage() {
           POINT OF VIEW
       ========================================================= */}
 
-      <section className="bg-white py-[clamp(90px,12vw,180px)]">
+      <section className="bg-white py-[clamp(90px,10vw,90px)]">
         <div
           data-section-intro
           className="mx-auto grid w-full max-w-[1440px] gap-9 px-[clamp(20px,5vw,80px)] md:grid-cols-12"
         >
-          <div
-            data-intro-child
-            className="md:col-span-3"
-          >
-            <p className="m-0 text-[10px] font-medium uppercase tracking-[0.16em] text-black/45">
-              Point of view
-            </p>
-          </div>
-
           <div className="md:col-span-8 md:col-start-5">
             <h2
               data-intro-child
@@ -720,36 +708,23 @@ export default function GraphicDesignPage() {
 
       <section
         id="selected-work"
-        className="bg-[#f7f7f4] py-[clamp(90px,12vw,180px)]"
+        className="py-[clamp(90px,12vw,180px)]"
       >
         <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
           <div
             data-section-intro
-            className="grid gap-8 border-t border-black/15 pt-5 md:grid-cols-12"
+            className="grid gap-8 "
           >
-            <div
-              data-intro-child
-              className="md:col-span-4"
-            >
-              <div className="flex items-center gap-3">
-                <span className="h-2 w-2 bg-[#ccff00]" />
-
-                <p className="m-0 text-[10px] font-medium uppercase tracking-[0.16em]">
-                  Selected frames
-                </p>
-              </div>
-            </div>
-
             <div className="md:col-span-7 md:col-start-6">
               <h2
                 data-intro-child
                 className="m-0 max-w-[720px] font-[400] text-[clamp(36px,4.5vw,54px)] leading-[0.93] tracking-[-0.055em] [font-family:Grimblade,serif]"
               >
                 Client work.
-                <br />
+                
                 Studio work.
                 <br />
-                <span className="text-black/35">
+                <span className="text-black/85">
                   Same level of intent.
                 </span>
               </h2>
@@ -774,40 +749,53 @@ export default function GraphicDesignPage() {
                 <div
                   data-project-mask
                   className={`relative overflow-hidden bg-[#ddd] ${project.ratio}`}
+                  style={project.background ? { backgroundColor: project.background } : undefined}
                 >
-                  <img
-                    data-project-image
-                    src={project.image}
-                    alt={project.title}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    className="absolute -top-[7%] left-0 h-[114%] w-full object-cover will-change-transform"
-                  />
+                  {project.fit === 'contain' ? (
+                    // Shown whole: no oversize and no parallax, so nothing is cropped.
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      className="absolute inset-0 h-full w-full object-contain"
+                    />
+                  ) : (
+                    <img
+                      data-project-image
+                      src={project.image}
+                      alt={project.title}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      className="absolute -top-[7%] left-0 h-[114%] w-full object-cover will-change-transform"
+                      style={project.position ? { objectPosition: project.position } : undefined}
+                    />
+                  )}
 
                   <div className="absolute inset-0 bg-black/0 transition-colors duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:bg-black/[0.07]" />
 
                   <div className="absolute inset-x-0 top-0 flex items-start justify-between p-[clamp(14px,1.8vw,22px)]">
-                    <span className="text-[9px] uppercase tracking-[0.15em] text-white">
+                    {/* <span className="text-[9px] uppercase tracking-[0.15em] text-white">
                       {String(index + 1).padStart(2, '0')}
-                    </span>
+                    </span> */}
 
                     <span className="translate-y-2 text-[9px] uppercase tracking-[0.14em] text-white opacity-0 transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-y-0 group-hover:opacity-100">
                       View frame ↗
                     </span>
                   </div>
 
-                  <div className="absolute bottom-4 left-4 translate-y-3 opacity-0 transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-y-0 group-hover:opacity-100">
+                  {/* <div className="absolute bottom-4 left-4 translate-y-3 opacity-0 transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-y-0 group-hover:opacity-100">
                     <span className="inline-flex bg-[#ccff00] px-3 py-2 text-[9px] uppercase tracking-[0.13em] text-black">
                       {project.kind} project
                     </span>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div
                   data-project-meta
                   className="mt-[18px]"
                 >
-                  <div className="flex items-center justify-between gap-5 border-t border-black/15 pt-3">
+                  {/* <div className="flex items-center justify-between gap-5 border-t border-black/15 pt-3">
                     <p className="m-0 text-[9px] uppercase tracking-[0.14em] text-black/48">
                       {project.type}
                     </p>
@@ -816,7 +804,7 @@ export default function GraphicDesignPage() {
                       <span>{project.kind}</span>
                       <span>{project.year}</span>
                     </div>
-                  </div>
+                  </div> */}
 
                   <h3 className="mb-0 mt-4 max-w-[520px] font-[400] text-[clamp(24px,2.5vw,35px)] leading-[0.98] tracking-[-0.04em] [font-family:Grimblade,serif]">
                     {project.title}
@@ -896,14 +884,9 @@ export default function GraphicDesignPage() {
         <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
           <div
             data-section-intro
-            className="grid gap-8 border-t border-white/20 pt-5 md:grid-cols-12"
+            className="grid gap-8 "
           >
-            <p
-              data-intro-child
-              className="m-0 text-[10px] uppercase tracking-[0.16em] text-white/45 md:col-span-4"
-            >
-              Motion studies
-            </p>
+          
 
             <div className="md:col-span-7 md:col-start-6">
               <h2
@@ -934,20 +917,17 @@ export default function GraphicDesignPage() {
               className="group md:col-span-7"
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-white/5">
-                <video
+                <img
                   className="h-full w-full object-cover opacity-90 transition duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.025] group-hover:opacity-100"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  aria-label="BrandWorks title sequence motion study"
-                >
-                  <source src={heroVideo} type="video/mp4" />
-                </video>
+                  src={staticThinkingMotion}
+                  width={1800}
+                  height={1200}
+                  alt="A man in a suit sitting in thought in a bright studio"
+                  loading="lazy"
+                  decoding="async"
+                />
 
-                <span className="absolute left-4 top-4 text-[9px] uppercase tracking-[0.15em]">
-                  01 / Motion
-                </span>
+             
               </div>
 
               <div className="mt-4 flex items-end justify-between gap-6">
@@ -970,20 +950,18 @@ export default function GraphicDesignPage() {
               className="group md:col-span-4 md:col-start-9 md:mt-[120px]"
             >
               <div className="relative aspect-[4/5] overflow-hidden bg-white/5">
-                <video
+                <img
                   className="h-full w-full object-cover opacity-85 transition duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.025] group-hover:opacity-100"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  aria-label="BrandWorks brand film motion study"
-                >
-                  <source src={motionVideo} type="video/mp4" />
-                </video>
+                  src={pottBillboard}
+                  width={1400}
+                  height={1126}
+                  alt="A red typographic billboard on a white wall as a car passes"
+                  // Landscape shot in a 4:5 frame: keep the billboard in view.
+                  style={{ objectPosition: '80% 50%' }}
+                  loading="lazy"
+                  decoding="async"
+                />
 
-                <span className="absolute left-4 top-4 text-[9px] uppercase tracking-[0.15em]">
-                  02 / Film
-                </span>
               </div>
 
               <div className="mt-4">
@@ -1004,7 +982,7 @@ export default function GraphicDesignPage() {
           PROCESS
       ========================================================= */}
 
-      <section className="bg-[#f7f7f4] py-[clamp(90px,12vw,180px)]">
+      <section className="  py-[clamp(90px,12vw,180px)]">
         <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
           <div
             data-section-intro

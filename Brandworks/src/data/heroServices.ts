@@ -228,11 +228,11 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
     media: {
       kind: 'video',
       src: mediaUrl("Idea - Cinematic Video _ Shot on Canon EOS250D.mp4"),
-      poster: originalImage(mediaUrl("ChatGPT Image Sep 21, 2026, 12_05_00 PM.png"), {
-        width: 1122,
-        height: 1402,
-        alt: 'Filmmaker operating a cinema camera on set',
-        position: '50% 32%',
+      poster: originalImage(mediaUrl("first.webp"), {
+        width: 1535,
+        height: 862,
+        alt: 'Close-up of a face with eyes lit by a band of warm light',
+        position: '50% 50%',
       }),
     },
   },

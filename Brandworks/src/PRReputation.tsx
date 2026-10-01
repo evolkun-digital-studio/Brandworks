@@ -5,13 +5,13 @@ import type { Variants } from 'motion/react'
 import { SectionContainer } from './SectionPrimitives'
 
 const MEDIA = {
-  src: mediaUrl("ChatGPT_Image_Sep_21_2026_03_09_11_PM.webp"),
+  src: mediaUrl("PR.jpg"),
   sizes:
     '(min-width: 1440px) 1050px, (min-width: 1024px) 72vw, (min-width: 768px) 66vw, calc(100vw - 40px)',
-  width: 1586,
-  height: 992,
+  width: 6154,
+  height: 4216,
   alt:
-    'BrandWorks PR and founder reputation editorial composition with founder features and press coverage',
+    'A team working on laptops around a shared table in a sunlit studio',
 }
 
 const POINTS = [
