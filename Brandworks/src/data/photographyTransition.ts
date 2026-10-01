@@ -1,3 +1,4 @@
+import { mediaUrl } from '../media'
 // Content and scroll timeline for the Featured Work → Photography bridge.
 
 export type TypographyStage = {
@@ -15,7 +16,7 @@ export const TYPOGRAPHY_STAGES: TypographyStage[] = [
   {
     id: 'perception',
     text: 'PERCEPTION',
-    image: 'https://ik.imagekit.io/rxoyjxx4c/ChatGPT%20Image%20Sep%2021,%202026,%2005_22_18%20PM.png',
+    image: mediaUrl("ChatGPT Image Sep 21, 2026, 05_22_18 PM.png"),
     width: 1672,
     height: 941,
     alt: 'Perception visual',
@@ -25,7 +26,7 @@ export const TYPOGRAPHY_STAGES: TypographyStage[] = [
   {
     id: 'becomes',
     text: 'BECOMES',
-    image: 'https://ik.imagekit.io/rxoyjxx4c/ChatGPT%20Image%20Sep%2021,%202026,%2005_19_10%20PM.png',
+    image: mediaUrl("ChatGPT Image Sep 21, 2026, 05_19_10 PM.png"),
     width: 1916,
     height: 821,
     alt: 'Creative transformation visual',
@@ -35,7 +36,7 @@ export const TYPOGRAPHY_STAGES: TypographyStage[] = [
   {
     id: 'reality',
     text: 'REALITY',
-    image: 'https://ik.imagekit.io/rxoyjxx4c/ChatGPT%20Image%20Sep%2021,%202026,%2005_23_56%20PM.png',
+    image: mediaUrl("ChatGPT Image Sep 21, 2026, 05_23_56 PM.png"),
     width: 1672,
     height: 941,
     alt: 'Final creative outcome',

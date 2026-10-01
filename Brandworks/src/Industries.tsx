@@ -1,3 +1,4 @@
+import { mediaUrl } from './media'
 import { motion, useReducedMotion } from 'motion/react'
 import { FadeUp } from './FadeUp'
 import LazyBackgroundVideo from './LazyBackgroundVideo'
@@ -10,7 +11,7 @@ const industries = [
     description:
       'We work across identity, photography, film, web, search and campaigns to help developments and real estate companies present themselves clearly.',
     video:
-      'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4',
+      mediaUrl("hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4"),
   },
 ]
 

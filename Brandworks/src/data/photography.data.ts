@@ -1,8 +1,9 @@
-import campaignMotion from '../assets/social/campaign-motion.jpg'
-import photo01 from '../assets/hero/photo-01.webp'
-import photo02 from '../assets/hero/photo-02.webp'
-import photo03 from '../assets/hero/photo-03.webp'
-import photo04 from '../assets/hero/photo-04.webp'
+import { mediaUrl } from '../media'
+const campaignMotion = mediaUrl("campaign-motion.jpg")
+const photo01 = mediaUrl("photo-01.webp")
+const photo02 = mediaUrl("photo-02.webp")
+const photo03 = mediaUrl("photo-03.webp")
+const photo04 = mediaUrl("photo-04.webp")
 
 export type Photograph = {
   id: string

@@ -1,3 +1,4 @@
+import { mediaUrl } from './media'
 import { useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -19,32 +20,30 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     id: 'intro',
-    image: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=1920&q=75',
+    image: mediaUrl("brand.avif"),
     at: 0,
   },
   {
     id: 'see',
-    image: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=1920&q=75',
+    image: mediaUrl("eye.avif"),
     at: 1.55,
   },
   {
     id: 'hear',
-    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1920&q=75',
+    image: mediaUrl("hear (2).jpg"),
     at: 3,
   },
   {
     id: 'understand',
-    image: 'https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?auto=format&fit=crop&w=1920&q=75',
+    image: mediaUrl("understand.jpg"),
     at: 4.55,
-  },
-  {
-    id: 'final',
-    image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1920&q=75',
-    at: 6.35,
   },
 ]
 
-const [, SEE_AT, HEAR_AT, UNDERSTAND_AT, FINAL_AT] = SLIDES.map((slide) => slide.at)
+const [, SEE_AT, HEAR_AT, UNDERSTAND_AT] = SLIDES.map((slide) => slide.at)
+
+// The closing text step has no backdrop of its own; the last picture stays.
+const FINAL_AT = 6.35
 
 // Crossfade length in timeline units, the same scale as the text tweens.
 const BG_FADE = 1
@@ -960,39 +959,6 @@ export default function BrandStatementPrecision() {
                   UNDERSTAND
                 </div>
               </div>
-
-            </div>
-
-            {/* Final complete statement */}
-            <div className="bw2-final">
-
-              <div className="bw2-final-copy">
-
-                <div className="bw2-final-mask">
-                  <div className="bw2-final-line">
-                    A brand is built through
-                  </div>
-                </div>
-
-                <div className="bw2-final-mask">
-                  <div className="bw2-final-line">
-                    what people repeatedly
-                  </div>
-                </div>
-
-                <div className="bw2-final-mask">
-                  <div className="bw2-final-line bw2-final-line--strong">
-                    see, hear and understand.
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="bw2-final-rule" />
-
-              {/* <div className="bw2-final-meta">
-                perception becomes memory
-              </div> */}
 
             </div>
 

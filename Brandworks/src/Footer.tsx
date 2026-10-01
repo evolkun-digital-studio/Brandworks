@@ -1,24 +1,26 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { mediaUrl } from './media'
+import { useCallback, useEffect, useRef } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { useReducedMotion } from 'motion/react'
-import showreelPoster from './assets/footer-showreel-poster.webp'
+const showreelPoster = mediaUrl("footer-showreel-poster.webp")
 import { matches } from './lib/scrollMotion'
 import './Footer.css'
 
 gsap.registerPlugin(useGSAP)
 
 const LOGO_SRC =
-  'https://ik.imagekit.io/rxoyjxx4c/ChatGPT%20Image%20Sep%2023,%202026,%2003_32_46%20PM.png'
+  mediaUrl("ChatGPT Image Sep 23, 2026, 03_32_46 PM.png")
 
-// Web copies of Pexels video 4488715.
+// Pexels video 39105126, served from the Pexels CDN until copies are
+// uploaded to the media bucket.
 // Phones get the lighter encode; the choice is made once,
 // when the video is first attached.
 const SHOWREEL = {
-  desktop: '/video/footer-showreel-1080.mp4',
-  mobile: '/video/footer-showreel-540.mp4',
+  desktop: 'https://videos.pexels.com/video-files/39105126/16638118_1920_1080_30fps.mp4',
+  mobile: 'https://videos.pexels.com/video-files/39105126/16638112_1280_720_30fps.mp4',
 }
 
 /** Where the fullscreen cursor follows the pointer instead of a button. */

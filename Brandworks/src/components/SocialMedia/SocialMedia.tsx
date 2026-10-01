@@ -1,9 +1,10 @@
+import { mediaUrl } from '../../media'
 import { useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
 import { useGSAP } from '@gsap/react'
-import { SectionContainer, SectionDescription, SectionHeading, SectionLabel } from '../../SectionPrimitives'
+import { SectionContainer, SectionDescription, SectionHeading } from '../../SectionPrimitives'
 import { SOCIAL_REELS, SOCIAL_SECTION } from '../../data/socialMedia'
 import SocialPhone from './SocialPhone'
 import ReelFeed from './ReelFeed'
@@ -88,7 +89,7 @@ function SocialMedia() {
   return (
     <section ref={sectionRef} id="social-media" aria-labelledby="social-media-heading" className="social-section">
       <div className="social-pattern" aria-hidden="true">
-        <div className="social-pattern__layer" />
+        <div className="social-pattern__layer" style={{ backgroundImage: `url("${mediaUrl("pattern @4x.png")}")` }} />
       </div>
 
       <SectionContainer className="social-layout">

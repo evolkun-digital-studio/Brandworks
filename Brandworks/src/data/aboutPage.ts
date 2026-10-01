@@ -1,26 +1,25 @@
+import { mediaUrl } from '../media'
 // Content and media for the About page (components/AboutPage).
 //
 // Every line of copy and every photograph the page shows lives here, so
 // rewriting the story or swapping a portrait never means touching the
 // layout.
 
-import studioPortrait from '../assets/about/studio-portrait.webp'
-import studioPortraitSmall from '../assets/about/studio-portrait-640.webp'
-import craftStill from '../assets/graphics/gm-01.webp'
-import craftStillSmall from '../assets/graphics/gm-01-560.webp'
-import sphereStill from '../assets/graphics/gm-04.webp'
-import sphereStillSmall from '../assets/graphics/gm-04-800.webp'
-import coastRoad from '../assets/social/campaign-aerial.jpg'
-import bottleStill from '../assets/hero/photo-04.webp'
-import bottleStillSmall from '../assets/hero/photo-04-640.webp'
-import portrait01 from '../assets/hero/photo-01.webp'
-import portrait01Small from '../assets/hero/photo-01-640.webp'
-import portrait02 from '../assets/graphics/gm-03.webp'
-import portrait02Small from '../assets/graphics/gm-03-560.webp'
-import portrait03 from '../assets/graphics/gm-05.webp'
-import portrait03Small from '../assets/graphics/gm-05-560.webp'
-import portrait04 from '../assets/about/team-04.webp'
-import portrait04Small from '../assets/about/team-04-560.webp'
+const studioPortrait = mediaUrl("studio-portrait.webp")
+const studioPortraitSmall = mediaUrl("studio-portrait-640.webp")
+const beginningStill = mediaUrl("Beginning.jpg")
+const studioStill = mediaUrl("studio.jpg")
+const technologyStill = mediaUrl("technology.jpg")
+const bottleStill = mediaUrl("photo-04.webp")
+const bottleStillSmall = mediaUrl("photo-04-640.webp")
+const portrait01 = mediaUrl("photo-01.webp")
+const portrait01Small = mediaUrl("photo-01-640.webp")
+const portrait02 = mediaUrl("gm-03.webp")
+const portrait02Small = mediaUrl("gm-03-560.webp")
+const portrait03 = mediaUrl("gm-05.webp")
+const portrait03Small = mediaUrl("gm-05-560.webp")
+const portrait04 = mediaUrl("team-04.webp")
+const portrait04Small = mediaUrl("team-04-560.webp")
 
 export type AboutImage = {
   src: string
@@ -109,24 +108,22 @@ export const ABOUT_JOURNEY = {
   ] satisfies JourneyStage[],
   images: {
     beginning: {
-      src: craftStill,
-      srcSet: `${craftStillSmall} 560w, ${craftStill} 967w`,
-      width: 967,
-      height: 1200,
-      alt: 'A black product tube standing on cracked concrete in hard afternoon light',
+      src: beginningStill,
+      width: 2656,
+      height: 3542,
+      alt: 'A traveller in a hat and dark coat, luggage beside him, raising a hand to hail a ride on a city street',
     },
     studio: {
-      src: sphereStill,
-      srcSet: `${sphereStillSmall} 800w, ${sphereStill} 1200w`,
-      width: 1200,
-      height: 904,
-      alt: 'A glass sphere resting on a pale paper backdrop',
+      src: studioStill,
+      width: 6000,
+      height: 4000,
+      alt: 'A photo studio set with lights and softboxes around an armchair and plant on a paper backdrop',
     },
     road: {
-      src: coastRoad,
-      width: 1200,
-      height: 800,
-      alt: 'Aerial view of a road winding along a rocky coastline',
+      src: technologyStill,
+      width: 6000,
+      height: 4000,
+      alt: 'Close-up of code on a laptop screen above a dimly lit keyboard',
     },
   } satisfies Record<string, AboutImage>,
 }

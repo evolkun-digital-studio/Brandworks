@@ -1,6 +1,7 @@
+import { mediaUrl } from '../../media'
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
-import backdropPoster from '../../assets/footer-showreel-poster.webp'
+const backdropPoster = mediaUrl("footer-showreel-poster.webp")
 import './WebDesignHero.css'
 
 /*
@@ -33,7 +34,7 @@ const RESIZE_DEBOUNCE = 220
 const DEVICE_SETTLE = 800
 const SCAN_DURATION = 2.8
 // Seen only through frosted glass, so the light encode is plenty.
-const BACKDROP_VIDEO = '/video/footer-showreel-540.mp4'
+const BACKDROP_VIDEO = mediaUrl("footer-showreel-540.mp4")
 
 type Box = { x: number; y: number; w: number; h: number }
 type Point = { x: number; y: number }

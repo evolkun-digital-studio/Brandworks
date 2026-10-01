@@ -1,3 +1,4 @@
+import { mediaUrl } from '../media'
 /**
  * TEMPORARY DEMO ASSETS — CREATIVE STUDIO AESTHETIC
  * Replace with final BrandWorks team/work media later.
@@ -12,7 +13,7 @@ export const creativeProductionMedia = {
       title: 'Graphic Designer at Work',
       // High-res photo of designer working at desk with monitor
       imageUrl:
-        'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=900&h=1100&fit=crop',
+        mediaUrl("photo-1561070791-2526d30994b5.jpg"),
       type: 'candid' as const,
     },
     {
@@ -20,7 +21,7 @@ export const creativeProductionMedia = {
       title: 'Team Collaboration',
       // Medium shot of team reviewing work together
       imageUrl:
-        'https://images.unsplash.com/photo-1552664730-d307ca884978?w=700&h=850&fit=crop',
+        mediaUrl("photo-1552664730-d307ca884978.jpg"),
       type: 'candid' as const,
     },
     {
@@ -28,21 +29,21 @@ export const creativeProductionMedia = {
       title: 'Motion Specialist',
       // Smaller supporting image of someone working on motion
       imageUrl:
-        'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=720&fit=crop',
+        mediaUrl("photo-1517694712202-14dd9538aa97.jpg"),
       type: 'candid' as const,
     },
     {
       id: 'developer-coding',
       title: 'Developer at Desk',
       imageUrl:
-        'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&h=600&fit=crop',
+        mediaUrl("photo-1517694712202-14dd9538aa97.jpg"),
       type: 'candid' as const,
     },
     {
       id: 'editor-workspace',
       title: 'Video Editor',
       imageUrl:
-        'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=600&fit=crop',
+        mediaUrl("photo-1574375927938-d5a98e8ffe85.jpg"),
       type: 'candid' as const,
     },
   ],
@@ -54,14 +55,14 @@ export const creativeProductionMedia = {
       title: 'Studio Monitor Workspace',
       // Creative studio desk with multiple monitors and equipment
       imageUrl:
-        'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=900&fit=crop',
+        mediaUrl("photo-1519389950473-47ba0277781c.jpg"),
       type: 'workspace' as const,
     },
     {
       id: 'studio-workspace-alt',
       title: 'Creative Workstation',
       imageUrl:
-        'https://images.unsplash.com/photo-1522869635100-ce306c19cf82?w=1200&h=900&fit=crop',
+        mediaUrl("photo-1522869635100-ce306c19cf82.jpg"),
       type: 'workspace' as const,
     },
   ],
@@ -73,14 +74,14 @@ export const creativeProductionMedia = {
       title: 'Graphic Composition',
       // Bold, modern graphic design composition
       imageUrl:
-        'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1400&h=1000&fit=crop',
+        mediaUrl("photo-1561070791-2526d30994b5.jpg"),
       type: 'static' as const,
     },
     {
       id: 'graphic-design-02',
       title: 'Design System',
       imageUrl:
-        'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1400&h=1000&fit=crop',
+        mediaUrl("photo-1561070791-2526d30994b5.jpg"),
       type: 'static' as const,
     },
   ],
@@ -92,7 +93,7 @@ export const creativeProductionMedia = {
       title: 'Motion Composition',
       // Creative motion/animation video
       videoUrl:
-        'https://videos.pexels.com/video-files/3571937/3571937-sd_640_360_30fps.mp4',
+        mediaUrl("3571937-sd_640_360_30fps.mp4"),
       type: 'video' as const,
     },
   ],
@@ -138,7 +139,7 @@ export const creativeProductionMedia = {
       title: 'Design Output',
       // Showcase of final design output
       imageUrl:
-        'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1200&h=900&fit=crop',
+        mediaUrl("photo-1561070791-2526d30994b5.jpg"),
       type: 'image' as const,
     },
     {
@@ -146,7 +147,7 @@ export const creativeProductionMedia = {
       title: 'Motion Execution',
       // Motion result video
       videoUrl:
-        'https://videos.pexels.com/video-files/3571937/3571937-sd_640_360_30fps.mp4',
+        mediaUrl("3571937-sd_640_360_30fps.mp4"),
       type: 'video' as const,
     },
   ],
@@ -154,15 +155,15 @@ export const creativeProductionMedia = {
   // CREATIVE WALL: Synthesis of all disciplines shown together
   creativeWall: {
     // Team image (top-left area of creative wall)
-    team: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=700&fit=crop',
+    team: mediaUrl("photo-1552664730-d307ca884978.jpg"),
 
     // Campaign/graphic design (center-left, larger area)
     campaign:
-      'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop',
+      mediaUrl("photo-1561070791-2526d30994b5.jpg"),
 
     // Video/motion element (right side)
     video:
-      'https://videos.pexels.com/video-files/3571937/3571937-sd_640_360_30fps.mp4',
+      mediaUrl("3571937-sd_640_360_30fps.mp4"),
 
     // Code snippet displayed in wall composition
     code: `const createDesignSystem = () => {
@@ -178,6 +179,6 @@ export const creativeProductionMedia = {
 
     // Detail image (bottom-right corner)
     detail:
-      'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=400&fit=crop',
+      mediaUrl("photo-1561070791-2526d30994b5.jpg"),
   },
 };

@@ -1,32 +1,33 @@
+import { mediaUrl } from '../media'
 // Content and media for the homepage hero (components/Hero).
 //
 // Every service the hero can preview lives here, so swapping a photo,
 // a film or a line of copy never means touching the components.
 
-import photo01 from '../assets/hero/photo-01.webp'
-import photo01Small from '../assets/hero/photo-01-640.webp'
-import photo02 from '../assets/hero/photo-02.webp'
-import photo02Small from '../assets/hero/photo-02-480.webp'
-import photo03 from '../assets/hero/photo-03.webp'
-import photo03Small from '../assets/hero/photo-03-480.webp'
-import photo04 from '../assets/hero/photo-04.webp'
-import photo04Small from '../assets/hero/photo-04-640.webp'
-import galleryPhoto02 from '../Photo/Photo2.jpg'
-import galleryPhoto03 from '../Photo/Photo3.jpg'
-import galleryPhoto04 from '../Photo/Photo4.png'
-import galleryPhoto05 from '../Photo/Photo5.png'
-import galleryPhoto06 from '../Photo/Photo6.png'
-import galleryPhoto07 from '../Photo/Photo7.png'
-import galleryPhoto08 from '../Photo/Photo8.png'
-import galleryPhoto09 from '../Photo/Photo9.png'
-import galleryPhoto10 from '../Photo/Photo10.png'
-import galleryPhoto11 from '../Photo/Photo11.png'
-import galleryPhoto12 from '../Photo/Photo12.png'
-import galleryPhoto13 from '../Photo/Photo13.png'
-import motionLifestyle from '../assets/social/campaign-motion.jpg'
-import cinematicAction from '../assets/social/campaign-action.jpg'
-import experimentalCreative from '../assets/graphics/gm-06-800.webp'
-import socialAerial from '../assets/social/campaign-aerial.jpg'
+const photo01 = mediaUrl("photo-01.webp")
+const photo01Small = mediaUrl("photo-01-640.webp")
+const photo02 = mediaUrl("photo-02.webp")
+const photo02Small = mediaUrl("photo-02-480.webp")
+const photo03 = mediaUrl("photo-03.webp")
+const photo03Small = mediaUrl("photo-03-480.webp")
+const photo04 = mediaUrl("photo-04.webp")
+const photo04Small = mediaUrl("photo-04-640.webp")
+const galleryPhoto02 = mediaUrl("Photo2.jpg")
+const galleryPhoto03 = mediaUrl("Photo3.jpg")
+const galleryPhoto04 = mediaUrl("moisturizer mock up.png")
+const galleryPhoto05 = mediaUrl("Photo5.png")
+const galleryPhoto06 = mediaUrl("Photo6.png")
+const galleryPhoto07 = mediaUrl("Photo7.png")
+const galleryPhoto08 = mediaUrl("Photo8.png")
+const galleryPhoto09 = mediaUrl("Photo9.png")
+const galleryPhoto10 = mediaUrl("Photo10.png")
+const galleryPhoto11 = mediaUrl("Photo11.png")
+const galleryPhoto12 = mediaUrl("Photo12.png")
+const galleryPhoto13 = mediaUrl("Photo13.png")
+const motionLifestyle = mediaUrl("campaign-motion.jpg")
+const cinematicAction = mediaUrl("campaign-action.jpg")
+const experimentalCreative = mediaUrl("gm-06-800.webp")
+const socialAerial = mediaUrl("campaign-aerial.jpg")
 
 export type HeroImage = {
   src: string
@@ -73,20 +74,9 @@ export type HeroService = {
   media: HeroMedia
 }
 
-const IMAGEKIT = 'https://ik.imagekit.io/rxoyjxx4c'
-const CLOUDINARY_VIDEO = 'https://res.cloudinary.com/dpjdnoqii/video/upload'
-
-// Image transformations only (never video — see socialMedia.ts). `c-at_max`
-// stops ImageKit upscaling past the uploaded file.
-const imagekit = (file: string, width: number) =>
-  `${IMAGEKIT}/${file}?tr=w-${width},c-at_max,q-80,f-auto`
-
-function imagekitImage(file: string, widths: number[], image: Omit<HeroImage, 'src' | 'srcSet'>): HeroImage {
-  return {
-    ...image,
-    src: imagekit(file, widths[widths.length - 1]),
-    srcSet: widths.map((w) => `${imagekit(file, w)} ${w}w`).join(', '),
-  }
+// R2 serves original files. Pre-generated local variants retain their srcsets below.
+function originalImage(file: string, image: Omit<HeroImage, 'src' | 'srcSet'>): HeroImage {
+  return { ...image, src: file }
 }
 
 export const HERO_SERVICE_ORDER: HeroServiceId[] = [
@@ -159,9 +149,9 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
         {
           id: 'aerolink-campaign',
           src: galleryPhoto04,
-          width: 1200,
-          height: 1200,
-          alt: 'Aerolink campaign photograph',
+          width: 1254,
+          height: 1254,
+          alt: 'Softly moisturizer jar product photograph',
         },
         {
           id: 'riaaj-vintage-campaign',
@@ -237,8 +227,8 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
     serviceList: 'Brand Films · Campaigns · Commercials · Short-form',
     media: {
       kind: 'video',
-      src: '/video/Idea - Cinematic Video _ Shot on Canon EOS250D.mp4',
-      poster: imagekitImage('ChatGPT%20Image%20Sep%2021,%202026,%2012_05_00%20PM.png', [640, 960, 1122], {
+      src: mediaUrl("Idea - Cinematic Video _ Shot on Canon EOS250D.mp4"),
+      poster: originalImage(mediaUrl("ChatGPT Image Sep 21, 2026, 12_05_00 PM.png"), {
         width: 1122,
         height: 1402,
         alt: 'Filmmaker operating a cinema camera on set',
@@ -298,15 +288,15 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
           alt: 'Cinematic action portrait surrounded by a ring of light',
         },
       ],
-      image: imagekitImage('ChatGPT%20Image%20Sep%2024,%202026,%2011_20_21%20AM.png', [480, 720, 1086], {
+      image: originalImage(mediaUrl("ChatGPT Image Sep 24, 2026, 11_20_21 AM.png"), {
         width: 1086,
         height: 1448,
         alt: 'BrandWorks Instagram profile on a phone, surrounded by growth, engagement and content-plan cards',
       }),
       video: {
-        src: `${CLOUDINARY_VIDEO}/v1790229512/Screen_Recording_20260924_112309_Instagram_ppz2yx.mp4`,
+        src: mediaUrl("Screen_Recording_20260924_112309_Instagram_ppz2yx.mp4"),
         // Cloudinary's first frame as a still, shown until the recording plays.
-        poster: `${CLOUDINARY_VIDEO}/so_0,w_720,q_auto,f_auto/v1790229512/Screen_Recording_20260924_112309_Instagram_ppz2yx.jpg`,
+        poster: mediaUrl("Screen_Recording_20260924_112309_Instagram_ppz2yx.jpg"),
         label: 'Screen recording of an Instagram reel being scrolled',
       },
     },
@@ -319,7 +309,7 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
     serviceList: 'Positioning · Media · Search · Content',
     media: {
       kind: 'image',
-      image: imagekitImage('ChatGPT%20Image%20Sep%2021,%202026,%2011_56_00%20AM.png', [640, 960, 1122], {
+      image: originalImage(mediaUrl("ChatGPT Image Sep 21, 2026, 11_56_00 AM.png"), {
         width: 1122,
         height: 1402,
         alt: 'Black and white editorial portrait of a founder',

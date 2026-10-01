@@ -1,22 +1,11 @@
+import { mediaUrl } from './media'
 import { motion, useReducedMotion } from 'motion/react'
 import type { Variants } from 'motion/react'
 
 import { SectionContainer } from './SectionPrimitives'
 
-const CLOUDINARY_UPLOAD =
-  'https://res.cloudinary.com/dmzo1kt0d/image/upload'
-
-const IMAGE_PATH =
-  'v1789994866/ChatGPT_Image_Sep_21_2026_03_09_11_PM.webp'
-
 const MEDIA = {
-  src: `${CLOUDINARY_UPLOAD}/${IMAGE_PATH}`,
-  srcSet: [640, 960, 1280, 1586]
-    .map(
-      (w) =>
-        `${CLOUDINARY_UPLOAD}/f_auto,q_auto,w_${w}/${IMAGE_PATH} ${w}w`,
-    )
-    .join(', '),
+  src: mediaUrl("ChatGPT_Image_Sep_21_2026_03_09_11_PM.webp"),
   sizes:
     '(min-width: 1440px) 1050px, (min-width: 1024px) 72vw, (min-width: 768px) 66vw, calc(100vw - 40px)',
   width: 1586,
@@ -137,7 +126,6 @@ export default function PRReputation() {
               <div className="relative overflow-hidden bg-[#ddd]">
                 <img
                   src={MEDIA.src}
-                  srcSet={MEDIA.srcSet}
                   sizes={MEDIA.sizes}
                   width={MEDIA.width}
                   height={MEDIA.height}

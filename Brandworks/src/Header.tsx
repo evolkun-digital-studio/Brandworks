@@ -1,8 +1,9 @@
+import { mediaUrl } from './media'
 import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import './Header.css'
 
-const LOGO_SRC = 'https://ik.imagekit.io/rxoyjxx4c/ChatGPT%20Image%20Sep%2023,%202026,%2003_32_46%20PM.png'
+const LOGO_SRC = mediaUrl("brandworkLogo.png")
 
 const navLinks:{ label: string; href: string }[] = [
   { label: 'Home', href: '/' },

@@ -1,21 +1,16 @@
+import { mediaUrl } from '../media'
 // Content for the Graphic & Motion section (components/GraphicsMotion).
 //
 // Cards share one height and take their width from the artwork's own
 // proportions, so alternating portrait and landscape pieces gives the
 // gallery its rhythm. Replace a project here and the layout follows.
 
-import gm01 from '../assets/graphics/gm-01.webp'
-import gm01Small from '../assets/graphics/gm-01-560.webp'
-import gm02 from '../assets/graphics/gm-02.webp'
-import gm02Small from '../assets/graphics/gm-02-800.webp'
-import gm03 from '../assets/graphics/gm-03.webp'
-import gm03Small from '../assets/graphics/gm-03-560.webp'
-import gm04 from '../assets/graphics/gm-04.webp'
-import gm04Small from '../assets/graphics/gm-04-800.webp'
-import gm05 from '../assets/graphics/gm-05.webp'
-import gm05Small from '../assets/graphics/gm-05-560.webp'
-import gm06 from '../assets/graphics/gm-06.webp'
-import gm06Small from '../assets/graphics/gm-06-800.webp'
+const gm01 = mediaUrl("identity.jpg")
+const gm02 = mediaUrl("scrolling.jpg")
+const gm03 = mediaUrl("ideas.jpg")
+const gm04 = mediaUrl("creative.jpg")
+const gm05 = mediaUrl("movment.jpg")
+const gm06 = mediaUrl("recognization.jpg")
 
 export type GraphicsProject = {
   id: string
@@ -39,10 +34,10 @@ export const GRAPHICS_PROJECTS: GraphicsProject[] = [
   {
     id: '01',
     image: gm01,
-    srcSet: `${gm01Small} 560w, ${gm01} 967w`,
-    width: 967,
-    height: 1200,
-    alt: 'Matte black tube packaging lit by hard window shadows',
+    srcSet: `${gm01} 6760w`,
+    width: 6760,
+    height: 4507,
+    alt: 'Hand holding a phone showing a portrait with a motion-blurred face',
     category: 'Brand Systems',
     title: 'Identity made visually consistent.',
     meta: 'Identity / Packaging / 2026',
@@ -50,10 +45,10 @@ export const GRAPHICS_PROJECTS: GraphicsProject[] = [
   {
     id: '02',
     image: gm02,
-    srcSet: `${gm02Small} 800w, ${gm02} 1200w`,
-    width: 1200,
-    height: 904,
-    alt: 'Bold geometric campaign composition with spheres on colour blocks',
+    srcSet: `${gm02} 3800w`,
+    width: 3800,
+    height: 2138,
+    alt: 'Man in a blue blazer cheering with raised fists at a laptop in a bright office',
     category: 'Campaign Design',
     title: 'Ideas turned into scroll-stopping visual worlds.',
     meta: 'Campaign / Key Visual / 2026',
@@ -61,10 +56,10 @@ export const GRAPHICS_PROJECTS: GraphicsProject[] = [
   {
     id: '03',
     image: gm03,
-    srcSet: `${gm03Small} 560w, ${gm03} 904w`,
-    width: 904,
-    height: 1200,
-    alt: 'Portrait with a motion-smeared orange streak across the eyes',
+    srcSet: `${gm03} 5184w`,
+    width: 5184,
+    height: 3888,
+    alt: 'Hand sketching ideas with an orange marker on a glass board',
     category: 'Motion Design',
     title: 'Static ideas built to move.',
     meta: 'Motion / Title Sequence / 2025',
@@ -72,10 +67,10 @@ export const GRAPHICS_PROJECTS: GraphicsProject[] = [
   {
     id: '04',
     image: gm04,
-    srcSet: `${gm04Small} 800w, ${gm04} 1200w`,
-    width: 1200,
-    height: 904,
-    alt: 'Glass sphere resting on a pale sketched surface',
+    srcSet: `${gm04} 3924w`,
+    width: 3924,
+    height: 5026,
+    alt: 'Designer in headphones sketching at a wooden desk beside a window',
     category: 'Social Graphics',
     title: 'Content systems designed for everyday relevance.',
     meta: 'Social / Content System / 2026',
@@ -83,10 +78,10 @@ export const GRAPHICS_PROJECTS: GraphicsProject[] = [
   {
     id: '05',
     image: gm05,
-    srcSet: `${gm05Small} 560w, ${gm05} 904w`,
-    width: 904,
-    height: 1200,
-    alt: 'Portrait distorted by rippling holographic waves',
+    srcSet: `${gm05} 5472w`,
+    width: 5472,
+    height: 3648,
+    alt: 'Close-up of a rising line chart on a dark screen',
     category: 'Animation',
     title: 'Movement that gives the message another dimension.',
     meta: 'Animation / Loop / 2025',
@@ -94,10 +89,10 @@ export const GRAPHICS_PROJECTS: GraphicsProject[] = [
   {
     id: '06',
     image: gm06,
-    srcSet: `${gm06Small} 800w, ${gm06} 1200w`,
-    width: 1200,
-    height: 904,
-    alt: 'Spectrum of coloured light streaks rising from black',
+    srcSet: `${gm06} 5282w`,
+    width: 5282,
+    height: 3521,
+    alt: 'Small gold trophy cup on a black base against a plain grey backdrop',
     category: 'Art Direction',
     title: 'A visual language people can recognise.',
     meta: 'Art Direction / Brand World / 2026',
