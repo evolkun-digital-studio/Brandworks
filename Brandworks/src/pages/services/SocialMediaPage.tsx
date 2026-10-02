@@ -144,7 +144,7 @@ function ReelViewer({ selection, onDismiss }: { selection: ViewerSelection; onDi
             <div className="bwsm-viewer__bar">
               <div>
                 <p id="bwsm-viewer-title">{selection.reel.caption}</p>
-                <span>{selection.reel.category}</span>
+                {/* <span>{selection.reel.category}</span> */}
               </div>
               <button ref={closeRef} type="button" onClick={() => setOpen(false)}>Close ×</button>
             </div>
@@ -173,8 +173,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
     mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
       const track = section.querySelector<HTMLElement>('[data-social-track]')
       const progress = section.querySelector<HTMLElement>('[data-social-progress]')
+      const intro = section.querySelector<HTMLElement>('[data-social-intro]')
       const cards = gsap.utils.toArray<HTMLElement>('[data-social-card]', section)
-      if (!track || !progress) return
+      if (!track || !progress || !intro) return
 
       const distance = () => Math.max(0, track.scrollWidth - window.innerWidth * 0.61)
       gsap.set(progress, { scaleX: 0, transformOrigin: 'left center' })
@@ -190,6 +191,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       })
 
       timeline
+        .to(intro, { autoAlpha: 0, y: -24, duration: 0.07, ease: 'power1.out' }, 0)
         .to(track, { x: () => -distance(), ease: 'none' }, 0)
         .to(progress, { scaleX: 1, ease: 'none' }, 0)
         .to(section, { backgroundColor: '#dbe1e5', duration: 0.25 }, 0)
@@ -222,11 +224,13 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
   return (
     <section ref={sectionRef} className="bwsm-rail" id="social-work" aria-labelledby="bwsm-rail-title">
       <div className="bwsm-rail__sticky">
-        <div className="bwsm-rail__intro">
-          <Label>Selected social work</Label>
-          <h1 id="bwsm-rail-title">We make<br />brands social.</h1>
-          <p>Strategy, content and community designed to feel like one connected brand.</p>
-          <div className="bwsm-rail__count"><strong>04</strong><span>projects</span></div>
+        <div className="bwsm-rail__intro" data-social-intro>
+          <h1 id="bwsm-rail-title">
+            <span>We make</span>
+            <span>brands social.</span>
+          </h1>
+          {/* <p>Strategy, content and community designed to feel like one connected brand.</p>
+          <div className="bwsm-rail__count"><strong>04</strong><span>projects</span></div> */}
         </div>
 
         <div className="bwsm-rail__viewport">
@@ -241,9 +245,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
                 aria-label={`View ${reel.caption}`}
               >
                 <MediaFrame reel={reel} priority={index === 0} />
-                <span className="bwsm-reel-card__number">0{index + 1}</span>
+                {/* <span className="bwsm-reel-card__number">0{index + 1}</span> */}
                 <span className="bwsm-reel-card__title">{reel.caption}</span>
-                <span className="bwsm-reel-card__category">{reel.category}</span>
+                {/* <span className="bwsm-reel-card__category">{reel.category}</span> */}
               </button>
             ))}
             <a className="bwsm-reel-card bwsm-reel-card--more" href="#social-process" data-social-card>
@@ -266,16 +270,19 @@ function ImpactTransition() {
     const section = sectionRef.current
     if (!section) return
     const mm = gsap.matchMedia()
-    mm.add('(prefers-reduced-motion: no-preference)', () => {
-      const bolt = section.querySelector<HTMLElement>('[data-impact-bolt]')
+    mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
+      const wipe = section.querySelector<HTMLElement>('[data-impact-wipe]')
+      const mark = section.querySelector<HTMLElement>('[data-impact-mark]')
       const lineOne = section.querySelector<HTMLElement>('[data-impact-one]')
       const lineTwo = section.querySelector<HTMLElement>('[data-impact-two]')
-      if (!bolt || !lineOne || !lineTwo) return
+      if (!wipe || !mark || !lineOne || !lineTwo) return
 
       gsap.timeline({
         scrollTrigger: { trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.65 },
       })
-        .fromTo(bolt, { scale: 0.18, rotate: -8 }, { scale: 13, rotate: 6, ease: 'power2.inOut' }, 0)
+        .fromTo(mark, { scale: 0.55, rotate: -6 }, { scale: 1.08, rotate: 0, duration: 0.32, ease: 'power2.out' }, 0)
+        .fromTo(wipe, { scale: 0 }, { scale: 18, duration: 0.62, ease: 'power2.inOut' }, 0.18)
+        .to(mark, { scale: 1.36, opacity: 0, duration: 0.2, ease: 'power2.in' }, 0.43)
         .fromTo(lineOne, { yPercent: 120, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.22 }, 0.58)
         .fromTo(lineTwo, { yPercent: 120, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.22 }, 0.72)
     })
@@ -285,7 +292,10 @@ function ImpactTransition() {
   return (
     <section ref={sectionRef} className="bwsm-impact" aria-label="Think first. Hit strong.">
       <div className="bwsm-impact__sticky">
-        <div className="bwsm-impact__bolt" data-impact-bolt />
+        <div className="bwsm-impact__wipe" data-impact-wipe />
+        <div className="bwsm-impact__mark" data-impact-mark aria-hidden="true">
+          <img src={mediaUrl('Asset 4@4x.webp')} alt="" />
+        </div>
         <h2>
           <span><i data-impact-one>Think first.</i></span>
           <span><i data-impact-two>Hit strong.</i></span>
@@ -297,6 +307,7 @@ function ImpactTransition() {
 
 function ExpertiseSection() {
   const sectionRef = useRef<HTMLElement>(null)
+  const [showCaseCard, setShowCaseCard] = useState(true)
 
   useGSAP(() => {
     const section = sectionRef.current
@@ -333,7 +344,7 @@ function ExpertiseSection() {
         <div className="bwsm-expertise__intro">
           <Label>Our expertise</Label>
           <h2 id="bwsm-expertise-title">Reasoning<br />to better:<br /><span>resonating.</span></h2>
-          <p>Social only works when strategy, creative and community learn from each other.</p>
+          {/* <p>Social only works when strategy, creative and community learn from each other.</p> */}
         </div>
 
         <div className="bwsm-expertise__deck">
@@ -356,11 +367,52 @@ function ExpertiseSection() {
           ))}
         </div>
 
-        <aside className="bwsm-case-card">
-          <span>What we build</span>
-          <strong>Connected<br />brand presence.</strong>
-          <a href="#social-process">See the method <Arrow /></a>
-        </aside>
+        <AnimatePresence mode="wait">
+          {showCaseCard ? (
+            <motion.aside
+              key="case-card"
+              className="bwsm-case-card"
+              initial={{ x: 60, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '120%', opacity: 0 }}
+              transition={{ duration: 0.42, ease: EASE }}
+              drag="x"
+              dragSnapToOrigin
+              dragConstraints={{ left: 0, right: 220 }}
+              dragElastic={{ left: 0, right: 0.35 }}
+              onDragEnd={(_, info) => {
+                if (info.offset.x > 80 || info.velocity.x > 500) setShowCaseCard(false)
+              }}
+            >
+              <button
+                type="button"
+                className="bwsm-case-card__close"
+                aria-label="Dismiss project note"
+                onClick={() => setShowCaseCard(false)}
+              >
+                ×
+              </button>
+              <span>What we build</span>
+              <strong>Connected<br />brand presence.</strong>
+              <div className="bwsm-case-card__footer">
+                <a href="#social-process">See the method <Arrow /></a>
+                <span aria-hidden="true">Drag right →</span>
+              </div>
+            </motion.aside>
+          ) : (
+            <motion.button
+              key="case-card-restore"
+              type="button"
+              className="bwsm-case-card__restore"
+              initial={{ x: 40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 40, opacity: 0 }}
+              onClick={() => setShowCaseCard(true)}
+            >
+              Show note <span aria-hidden="true">←</span>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   )
@@ -395,7 +447,9 @@ function ProcessSection() {
       <div className="bwsm-process__sticky">
         <div className="bwsm-process__intro">
           <Label>Method & process</Label>
-          <h2 id="bwsm-process-title">We will<br />always prefer<br />this order.</h2>
+          <h2 id="bwsm-process-title">
+            We will<br />always prefer<br /><span>this order.</span>
+          </h2>
           <p>Clear thinking before constant output.</p>
         </div>
 

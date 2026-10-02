@@ -19,7 +19,7 @@ const campaignStill = mediaUrl("campaign-still.webp")
 
 export type SocialReel = {
   id: string
-  category: string
+  // category: string
   caption: string
   src: string
   /** The reel's first frame, shown until the video can play. Without one, the video's own first frame shows. */
@@ -29,28 +29,28 @@ export type SocialReel = {
 export const SOCIAL_REELS: SocialReel[] = [
   {
     id: '01',
-    category: 'Reel / Social',
+    // category: 'Reel / Social',
     caption: 'Creative built for attention.',
     src: original("Jnco southpole shorts drop Saturday May 10th _ - All Shorts will be available this Saturday at .mp4"),
     poster: reel01Poster,
   },
   {
     id: '02',
-    category: 'Brand content',
+    // category: 'Brand content',
     caption: 'Consistency turns content into identity.',
     src: original("Carhartt has become a global symbol of authentic workwear, embraced not only by workers but also.mp4"),
     poster: reel02Poster,
   },
   {
     id: '03',
-    category: 'Campaign',
+    // category: 'Campaign',
     caption: 'Concept, content and distribution working together.',
     src: original("Collection of polo Harrington jacket Polo Ralph Lauren Harrington Jacket Bomber Nylon Classic Po.mp4"),
     poster: reel03Poster,
   },
   {
     id: '04',
-    category: 'Product drop',
+    // category: 'Product drop',g
     caption: 'Building anticipation before launch.',
     src: original("Dropping soon _ Vintage 90s classic coogi multicolor 3D knit sweater All sizes are available fo.mp4"),
   },
