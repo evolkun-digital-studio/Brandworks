@@ -227,7 +227,7 @@ function WebDevelopment() {
     { scope: sectionRef, dependencies: [reduceMotion], revertOnUpdate: true },
   )
 
-  const { label, heading, description, capabilities } = WEB_SECTION
+  const { label, heading } = WEB_SECTION
 
   return (
     <section ref={sectionRef} id="web-design-development" aria-labelledby="web-development-heading" className="wdr">
@@ -243,15 +243,6 @@ function WebDevelopment() {
                 </span>
               ))}
             </SectionHeading>
-
-            <div className="wdr-intro__aside">
-              <SectionDescription className="wdr-intro__item wdr-description">{description}</SectionDescription>
-              <ul className="wdr-intro__item wdr-capabilities" aria-label="Capabilities">
-                {capabilities.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
           </div>
         </header>
 

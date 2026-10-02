@@ -1,140 +1,134 @@
-import { mediaUrl } from './media'
-import { useRef } from 'react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useGSAP } from '@gsap/react'
+import { mediaUrl } from "./media";
+import { useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger);
 
 type Slide = {
-  id: string
-  image: string
+  id: string;
+  image: string;
   /** Timeline position where the previous text starts leaving and this
    *  slide's image starts crossfading in. The text exits below read the
    *  same value, so the two can't drift apart. */
-  at: number
-}
+  at: number;
+};
 
 // Placeholder photography — replace `image` with BrandWorks work.
 // One full-banner backdrop per text step, in order.
 const SLIDES: Slide[] = [
   {
-    id: 'intro',
+    id: "intro",
     image: mediaUrl("brand.avif"),
     at: 0,
   },
   {
-    id: 'see',
+    id: "see",
     image: mediaUrl("eye.avif"),
     at: 1.55,
   },
   {
-    id: 'hear',
+    id: "hear",
     image: mediaUrl("hear (2).jpg"),
     at: 3,
   },
   {
-    id: 'understand',
+    id: "understand",
     image: mediaUrl("understand.jpg"),
     at: 4.55,
   },
-]
+];
 
-const [, SEE_AT, HEAR_AT, UNDERSTAND_AT] = SLIDES.map((slide) => slide.at)
+const [, SEE_AT, HEAR_AT, UNDERSTAND_AT] = SLIDES.map((slide) => slide.at);
 
 // The closing text step has no backdrop of its own; the last picture stays.
-const FINAL_AT = 6.35
+const FINAL_AT = 6.35;
 
 // Crossfade length in timeline units, the same scale as the text tweens.
-const BG_FADE = 1
+const BG_FADE = 1;
 
 export default function BrandStatementPrecision() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const stageRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
-      const mm = gsap.matchMedia()
+      const mm = gsap.matchMedia();
 
-      mm.add('(prefers-reduced-motion: no-preference)', () => {
-        const eyebrow = '.bw2-eyebrow'
-        const introTop = '.bw2-intro-top'
-        const introBottom = '.bw2-intro-bottom'
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const eyebrow = ".bw2-eyebrow";
+        const introTop = ".bw2-intro-top";
+        const introBottom = ".bw2-intro-bottom";
 
-        const wordSee = '.bw2-see'
-        const wordHear = '.bw2-hear'
-        const wordUnderstand = '.bw2-understand'
+        const wordSee = ".bw2-see";
+        const wordHear = ".bw2-hear";
+        const wordUnderstand = ".bw2-understand";
 
-        const wordSeeWrap = '.bw2-see-wrap'
-        const wordHearWrap = '.bw2-hear-wrap'
-        const wordUnderstandWrap = '.bw2-understand-wrap'
+        const wordSeeWrap = ".bw2-see-wrap";
+        const wordHearWrap = ".bw2-hear-wrap";
+        const wordUnderstandWrap = ".bw2-understand-wrap";
 
-        const counter = '.bw2-counter'
-        const finalStatement = '.bw2-final'
-        const finalLine = '.bw2-final-line'
+        const counter = ".bw2-counter";
+        const finalStatement = ".bw2-final";
+        const finalLine = ".bw2-final-line";
 
         gsap.set(eyebrow, {
           opacity: 0,
           y: 15,
-        })
+        });
 
         gsap.set([introTop, introBottom], {
           yPercent: 110,
           opacity: 0,
-        })
+        });
 
-        gsap.set(
-          [wordSeeWrap, wordHearWrap, wordUnderstandWrap],
-          {
-            clipPath: 'inset(0 0 100% 0)',
-          }
-        )
+        gsap.set([wordSeeWrap, wordHearWrap, wordUnderstandWrap], {
+          clipPath: "inset(0 0 100% 0)",
+        });
 
-        gsap.set(
-          [wordSee, wordHear, wordUnderstand],
-          {
-            yPercent: 110,
-            scale: 1.12,
-          }
-        )
+        gsap.set([wordSee, wordHear, wordUnderstand], {
+          yPercent: 110,
+          scale: 1.12,
+        });
 
         gsap.set([wordHearWrap, wordUnderstandWrap], {
           autoAlpha: 0,
-        })
+        });
 
         gsap.set(counter, {
           opacity: 0,
-        })
+        });
 
         gsap.set(finalStatement, {
           autoAlpha: 0,
-        })
+        });
 
         gsap.set(finalLine, {
           yPercent: 110,
           opacity: 0,
-        })
+        });
 
         const bgLayers = gsap.utils.toArray<HTMLElement>(
-          '.bw2-bg-layer',
-          sectionRef.current
-        )
+          ".bw2-bg-layer",
+          sectionRef.current,
+        );
 
         gsap.set(bgLayers.slice(1), {
           opacity: 0,
           scale: 1.04,
-        })
+        });
 
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: sectionRef.current,
-            start: 'top top',
-            end: '+=380%',
+            start: "top top",
+            end: "+=380%",
             pin: stageRef.current,
             scrub: 1.15,
             anticipatePin: 1,
           },
-        })
+        });
 
         // -------------------------------------------------
         // 01 — INTRO
@@ -146,10 +140,10 @@ export default function BrandStatementPrecision() {
             opacity: 1,
             y: 0,
             duration: 0.7,
-            ease: 'power3.out',
+            ease: "power3.out",
           },
-          0
-        )
+          0,
+        );
 
         tl.to(
           introTop,
@@ -157,10 +151,10 @@ export default function BrandStatementPrecision() {
             yPercent: 0,
             opacity: 1,
             duration: 1,
-            ease: 'power4.out',
+            ease: "power4.out",
           },
-          0.15
-        )
+          0.15,
+        );
 
         tl.to(
           introBottom,
@@ -168,10 +162,10 @@ export default function BrandStatementPrecision() {
             yPercent: 0,
             opacity: 1,
             duration: 1,
-            ease: 'power4.out',
+            ease: "power4.out",
           },
-          0.28
-        )
+          0.28,
+        );
 
         tl.to(
           counter,
@@ -179,8 +173,8 @@ export default function BrandStatementPrecision() {
             opacity: 1,
             duration: 0.45,
           },
-          0.5
-        )
+          0.5,
+        );
 
         // intro leaves
         tl.to(
@@ -189,10 +183,10 @@ export default function BrandStatementPrecision() {
             yPercent: -105,
             opacity: 0,
             duration: 0.8,
-            ease: 'power3.inOut',
+            ease: "power3.inOut",
           },
-          SEE_AT
-        )
+          SEE_AT,
+        );
 
         // -------------------------------------------------
         // 02 — SEE
@@ -201,12 +195,12 @@ export default function BrandStatementPrecision() {
         tl.to(
           wordSeeWrap,
           {
-            clipPath: 'inset(0 0 0% 0)',
+            clipPath: "inset(0 0 0% 0)",
             duration: 0.75,
-            ease: 'power4.inOut',
+            ease: "power4.inOut",
           },
-          1.8
-        )
+          1.8,
+        );
 
         tl.to(
           wordSee,
@@ -214,30 +208,30 @@ export default function BrandStatementPrecision() {
             yPercent: 0,
             scale: 1,
             duration: 0.95,
-            ease: 'expo.out',
+            ease: "expo.out",
           },
-          1.8
-        )
+          1.8,
+        );
 
         tl.to(
-          '.bw2-counter-current',
+          ".bw2-counter-current",
           {
-            textContent: '01',
+            textContent: "01",
             snap: { textContent: 1 },
             duration: 0.1,
           },
-          1.8
-        )
+          1.8,
+        );
 
         tl.to(
           wordSee,
           {
-            letterSpacing: '-0.055em',
+            letterSpacing: "-0.055em",
             duration: 0.8,
-            ease: 'power2.out',
+            ease: "power2.out",
           },
-          2.1
-        )
+          2.1,
+        );
 
         // SEE exits
         tl.to(
@@ -246,20 +240,20 @@ export default function BrandStatementPrecision() {
             yPercent: -112,
             scale: 0.94,
             duration: 0.75,
-            ease: 'power4.in',
+            ease: "power4.in",
           },
-          HEAR_AT
-        )
+          HEAR_AT,
+        );
 
         tl.to(
           wordSeeWrap,
           {
-            clipPath: 'inset(100% 0 0 0)',
+            clipPath: "inset(100% 0 0 0)",
             duration: 0.65,
-            ease: 'power4.inOut',
+            ease: "power4.inOut",
           },
-          HEAR_AT
-        )
+          HEAR_AT,
+        );
 
         // -------------------------------------------------
         // 03 — HEAR
@@ -269,10 +263,10 @@ export default function BrandStatementPrecision() {
           wordHearWrap,
           {
             autoAlpha: 1,
-            clipPath: 'inset(100% 0 0 0)',
+            clipPath: "inset(100% 0 0 0)",
           },
-          3.35
-        )
+          3.35,
+        );
 
         tl.set(
           wordHear,
@@ -280,18 +274,18 @@ export default function BrandStatementPrecision() {
             yPercent: -115,
             scale: 1.12,
           },
-          3.35
-        )
+          3.35,
+        );
 
         tl.to(
           wordHearWrap,
           {
-            clipPath: 'inset(0% 0 0 0)',
+            clipPath: "inset(0% 0 0 0)",
             duration: 0.8,
-            ease: 'power4.inOut',
+            ease: "power4.inOut",
           },
-          3.35
-        )
+          3.35,
+        );
 
         tl.to(
           wordHear,
@@ -299,20 +293,20 @@ export default function BrandStatementPrecision() {
             yPercent: 0,
             scale: 1,
             duration: 0.95,
-            ease: 'expo.out',
+            ease: "expo.out",
           },
-          3.35
-        )
+          3.35,
+        );
 
         tl.to(
-          '.bw2-counter-current',
+          ".bw2-counter-current",
           {
-            textContent: '02',
+            textContent: "02",
             snap: { textContent: 1 },
             duration: 0.1,
           },
-          3.35
-        )
+          3.35,
+        );
 
         tl.to(
           wordHear,
@@ -320,20 +314,20 @@ export default function BrandStatementPrecision() {
             yPercent: 112,
             scale: 0.94,
             duration: 0.75,
-            ease: 'power4.in',
+            ease: "power4.in",
           },
-          UNDERSTAND_AT
-        )
+          UNDERSTAND_AT,
+        );
 
         tl.to(
           wordHearWrap,
           {
-            clipPath: 'inset(0 0 100% 0)',
+            clipPath: "inset(0 0 100% 0)",
             duration: 0.7,
-            ease: 'power4.inOut',
+            ease: "power4.inOut",
           },
-          UNDERSTAND_AT
-        )
+          UNDERSTAND_AT,
+        );
 
         // -------------------------------------------------
         // 04 — UNDERSTAND
@@ -343,51 +337,51 @@ export default function BrandStatementPrecision() {
           wordUnderstandWrap,
           {
             autoAlpha: 1,
-            clipPath: 'inset(0 50% 0 50%)',
+            clipPath: "inset(0 50% 0 50%)",
           },
-          4.9
-        )
+          4.9,
+        );
 
         tl.set(
           wordUnderstand,
           {
             yPercent: 0,
             scale: 1.14,
-            letterSpacing: '0.035em',
+            letterSpacing: "0.035em",
           },
-          4.9
-        )
+          4.9,
+        );
 
         tl.to(
           wordUnderstandWrap,
           {
-            clipPath: 'inset(0 0% 0 0%)',
+            clipPath: "inset(0 0% 0 0%)",
             duration: 1,
-            ease: 'power4.inOut',
+            ease: "power4.inOut",
           },
-          4.9
-        )
+          4.9,
+        );
 
         tl.to(
           wordUnderstand,
           {
             scale: 1,
-            letterSpacing: '-0.06em',
+            letterSpacing: "-0.06em",
             duration: 1.3,
-            ease: 'expo.out',
+            ease: "expo.out",
           },
-          5
-        )
+          5,
+        );
 
         tl.to(
-          '.bw2-counter-current',
+          ".bw2-counter-current",
           {
-            textContent: '03',
+            textContent: "03",
             snap: { textContent: 1 },
             duration: 0.1,
           },
-          4.9
-        )
+          4.9,
+        );
 
         // -------------------------------------------------
         // 05 — RESET + FINAL SENTENCE
@@ -399,10 +393,10 @@ export default function BrandStatementPrecision() {
             scale: 1.06,
             opacity: 0,
             duration: 0.75,
-            ease: 'power3.inOut',
+            ease: "power3.inOut",
           },
-          FINAL_AT
-        )
+          FINAL_AT,
+        );
 
         tl.to(
           [eyebrow, counter],
@@ -410,16 +404,16 @@ export default function BrandStatementPrecision() {
             opacity: 0,
             duration: 0.45,
           },
-          6.4
-        )
+          6.4,
+        );
 
         tl.set(
           finalStatement,
           {
             autoAlpha: 1,
           },
-          6.7
-        )
+          6.7,
+        );
 
         tl.to(
           finalLine,
@@ -428,27 +422,27 @@ export default function BrandStatementPrecision() {
             opacity: 1,
             stagger: 0.1,
             duration: 1,
-            ease: 'power4.out',
+            ease: "power4.out",
           },
-          6.72
-        )
+          6.72,
+        );
 
         tl.fromTo(
-          '.bw2-final-rule',
+          ".bw2-final-rule",
           {
             scaleX: 0,
           },
           {
             scaleX: 1,
             duration: 0.9,
-            transformOrigin: 'center center',
-            ease: 'power4.inOut',
+            transformOrigin: "center center",
+            ease: "power4.inOut",
           },
-          7.1
-        )
+          7.1,
+        );
 
         tl.fromTo(
-          '.bw2-final-meta',
+          ".bw2-final-meta",
           {
             opacity: 0,
             y: 10,
@@ -457,35 +451,35 @@ export default function BrandStatementPrecision() {
             opacity: 1,
             y: 0,
             duration: 0.65,
-            ease: 'power3.out',
+            ease: "power3.out",
           },
-          7.35
-        )
+          7.35,
+        );
 
         // -------------------------------------------------
         // BACKDROPS — one per text step, on the same timeline
         // -------------------------------------------------
 
         // Added last so the text alone decides how long the timeline is.
-        const total = tl.duration()
+        const total = tl.duration();
 
         bgLayers.forEach((layer, index) => {
-          const start = SLIDES[index].at
-          const next = SLIDES[index + 1]
-          const leaves = next ? next.at + BG_FADE : total
+          const start = SLIDES[index].at;
+          const next = SLIDES[index + 1];
+          const leaves = next ? next.at + BG_FADE : total;
 
           // slow push-in for as long as this picture is on screen
           tl.to(
-            layer.querySelector('img'),
+            layer.querySelector("img"),
             {
               scale: 1.03,
               duration: leaves - start,
-              ease: 'none',
+              ease: "none",
             },
-            start
-          )
+            start,
+          );
 
-          if (index === 0) return
+          if (index === 0) return;
 
           // Fades in over the previous picture, which stays opaque
           // underneath until this one covers it — no dip to the background.
@@ -495,42 +489,42 @@ export default function BrandStatementPrecision() {
               opacity: 1,
               scale: 1,
               duration: BG_FADE,
-              ease: 'power3.inOut',
+              ease: "power3.inOut",
             },
-            start
-          )
+            start,
+          );
 
           tl.set(
             bgLayers[index - 1],
             {
               opacity: 0,
             },
-            start + BG_FADE
-          )
-        })
-      })
+            start + BG_FADE,
+          );
+        });
+      });
 
-      mm.add('(prefers-reduced-motion: reduce)', () => {
+      mm.add("(prefers-reduced-motion: reduce)", () => {
         gsap.set(
           [
-            '.bw2-eyebrow',
-            '.bw2-intro-top',
-            '.bw2-intro-bottom',
-            '.bw2-final-line',
-            '.bw2-final-meta',
+            ".bw2-eyebrow",
+            ".bw2-intro-top",
+            ".bw2-intro-bottom",
+            ".bw2-final-line",
+            ".bw2-final-meta",
           ],
           {
             opacity: 1,
             y: 0,
             yPercent: 0,
-          }
-        )
-      })
+          },
+        );
+      });
 
-      return () => mm.revert()
+      return () => mm.revert();
     },
-    { scope: sectionRef }
-  )
+    { scope: sectionRef },
+  );
 
   return (
     <>
@@ -896,7 +890,6 @@ export default function BrandStatementPrecision() {
 
       <section ref={sectionRef} className="bw2-section">
         <div ref={stageRef} className="bw2-stage">
-
           {/* Full-banner backdrops */}
           <div className="bw2-bg" aria-hidden="true">
             {SLIDES.map((slide) => (
@@ -915,64 +908,41 @@ export default function BrandStatementPrecision() {
           </div>
 
           <div className="bw2-shell">
-
-         y   <div className="bw2-counter">
-              <span className="bw2-counter-current">00</span>
-              <span>/</span>
-              <span>03</span>
+           
+            <div className="bw2-counter">
+               
             </div>
-
             {/* Intro */}
             <div className="bw2-intro">
-
               <div className="bw2-intro-mask">
-                <div className="bw2-intro-top">
-                  A brand is built through
-                </div>
+                <div className="bw2-intro-top">A brand is built through</div>
               </div>
 
               <div className="bw2-intro-mask">
-                <div className="bw2-intro-bottom">
-                  what people repeatedly
-                </div>
+                <div className="bw2-intro-bottom">what people repeatedly</div>
               </div>
-
             </div>
-
             {/* Main kinetic words */}
             <div className="bw2-word-stage">
-
               <div className="bw2-word-wrap bw2-see-wrap">
-                <div className="bw2-word bw2-see">
-                  SEE
-                </div>
+                <div className="bw2-word bw2-see">SEE</div>
               </div>
 
               <div className="bw2-word-wrap bw2-hear-wrap">
-                <div className="bw2-word bw2-hear">
-                  HEAR
-                </div>
+                <div className="bw2-word bw2-hear">HEAR</div>
               </div>
 
               <div className="bw2-word-wrap bw2-understand-wrap">
-                <div className="bw2-word bw2-understand">
-                  UNDERSTAND
-                </div>
+                <div className="bw2-word bw2-understand">UNDERSTAND</div>
               </div>
-
             </div>
-
             {/* Bottom progression */}
             <div className="bw2-progress">
-              <span className="bw2-progress-caption">
-                Scroll to reveal
-              </span>
+              <span className="bw2-progress-caption">Scroll to reveal</span>
             </div>
-
           </div>
-
         </div>
       </section>
     </>
-  )
+  );
 }

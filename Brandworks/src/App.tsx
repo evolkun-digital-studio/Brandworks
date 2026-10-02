@@ -12,7 +12,7 @@ import Hero from "./Hero";
 import BrandStatement from "./HumanLedBrandIntelligence";
 import Services from "./Services";
 import About from "./About";
-import Photography from "./Work";
+import Photography from "./Photography";
 import Work from "./WorkWithImpact";
 
 import Videography from "./Videography";
@@ -31,7 +31,7 @@ import {
   EditorialIndexPage,
 } from "./editorial/EditorialPages";
 import NotFound from "./NotFound";
-import AboutPage from "./components/AboutPage/AboutPage";
+import AboutPage from "./pages/AboutPage/AboutPage";
 import WebsiteSectionProps from "./Seo";
 import ServicesPage from "./pages/servicePage";
 import CinematographyPage from "./pages/services/CinematographyPage";

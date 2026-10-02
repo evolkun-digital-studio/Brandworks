@@ -253,7 +253,7 @@ export default function WorkPage() {
       <section
         id="project-index"
         aria-label="Selected project index"
-        className="grid grid-cols-2 gap-x-[clamp(28px,5vw,80px)] bg-[#ccff00cd] px-[clamp(20px,2.4vw,48px)] pb-[clamp(72px,8vw,120px)] pt-[clamp(64px,7vw,100px)] max-md:flex max-md:flex-col max-md:gap-12 max-md:pb-18 max-md:pt-14"
+        className="grid grid-cols-2 gap-x-[clamp(28px,5vw,80px)] bg-[#000000] px-[clamp(20px,2.4vw,48px)] pb-[clamp(72px,8vw,120px)] pt-[clamp(64px,7vw,100px)] max-md:flex max-md:flex-col max-md:gap-12 max-md:pb-18 max-md:pt-14"
       >
         <div className="flex min-w-0 flex-col gap-[clamp(72px,8vw,120px)] max-md:contents">
           {leftColumn.map((project) => (
@@ -280,7 +280,7 @@ export default function WorkPage() {
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -16, filter: "blur(6px)" }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className="m-0 whitespace-nowrap font-primary text-[clamp(34px,5vw,132px)] leading-[0.95] tracking-[-0.04em] text-black"
+              className="m-0 whitespace-nowrap font-primary text-[clamp(34px,5vw,132px)] leading-[0.95] tracking-[-0.04em] text-[#a3cc00]"
             >
               {activeProject.title}
             </motion.p>
