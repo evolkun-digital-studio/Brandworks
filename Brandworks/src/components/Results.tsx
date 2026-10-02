@@ -1,7 +1,7 @@
-import { mediaUrl } from './media'
+import { mediaUrl } from '../lib/media'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
-import { clamp01, lerp, matches, sample, smoothstep, write } from './lib/scrollMotion'
+import { clamp01, lerp, matches, sample, smoothstep, write } from '../lib/scrollMotion'
 // Not yet uploaded to the Photography/ folder that mediaUrl() serves from,
 // so these are referenced at the bucket root by full URL.
 const R2_ROOT = 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev'

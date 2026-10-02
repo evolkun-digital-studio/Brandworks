@@ -1,4 +1,4 @@
-import { mediaUrl } from "./media";
+import { mediaUrl } from "../lib/media";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import type { RefObject } from "react";
@@ -21,7 +21,7 @@ import {
   sample,
   smoothstep,
   write,
-} from "./lib/scrollMotion";
+} from "../lib/scrollMotion";
 import { color } from "motion";
 
 type Project = {
@@ -1236,9 +1236,9 @@ function WorkCanvas() {
           aria-hidden="true"
           className="pointer-events-none invisible absolute inset-0 z-0 flex flex-col items-center justify-center px-4 text-center opacity-0"
         >
-          <span className={GIANT_CLASS} style={{ color: '#beee00' }}>
-  Across the
-</span>
+          <span className={GIANT_CLASS} style={{ color: "#beee00" }}>
+            Across the
+          </span>
 
           <span
             className="block"

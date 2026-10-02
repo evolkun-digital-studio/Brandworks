@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 // Web Design & Development — the homepage "digital reel"
 // (components/WebDevelopment). Content only: the component reads this and
 // nothing else, so replacing a project is a data edit, never a layout edit.

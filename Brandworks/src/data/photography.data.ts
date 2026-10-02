@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 const campaignMotion = mediaUrl("campaign-motion.jpg")
 const photo01 = mediaUrl("photo-01.webp")
 const photo02 = mediaUrl("photo-02.webp")

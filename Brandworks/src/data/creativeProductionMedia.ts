@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 /**
  * TEMPORARY DEMO ASSETS — CREATIVE STUDIO AESTHETIC
  * Replace with final BrandWorks team/work media later.

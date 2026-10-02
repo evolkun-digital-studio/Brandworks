@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 import type { EditorialPost } from './types'
 
 

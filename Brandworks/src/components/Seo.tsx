@@ -1130,44 +1130,44 @@ export default function WebsiteSection({
 
         <div className="mt-4 sm:mt-6 md:mt-8 lg:mt-10">
           {/* ESSENTIAL 01 */}
-         <Chapter
-  number="01"
-  label="Search Demand"
-  title="Start with what people are looking for."
-  figure={<SearchFigure />}
->
-  <p>
-    We study keywords, questions, topics and search intent to understand where
-    genuine demand exists.
-  </p>
-</Chapter>
+          <Chapter
+            number="01"
+            label="Search Demand"
+            title="Start with what people are looking for."
+            figure={<SearchFigure />}
+          >
+            <p>
+              We study keywords, questions, topics and search intent to
+              understand where genuine demand exists.
+            </p>
+          </Chapter>
 
           {/* ESSENTIAL 02 */}
           <Chapter
-  number="02"
-  label="Technical Foundation"
-  title="Make the site easy to crawl and understand."
-  figureFirst
-  figure={<AuditFigure />}
->
-  <p>
-    Technical structure, indexing, performance, schema and internal linking
-    give search systems a cleaner picture of the website.
-  </p>
-</Chapter>
+            number="02"
+            label="Technical Foundation"
+            title="Make the site easy to crawl and understand."
+            figureFirst
+            figure={<AuditFigure />}
+          >
+            <p>
+              Technical structure, indexing, performance, schema and internal
+              linking give search systems a cleaner picture of the website.
+            </p>
+          </Chapter>
 
           {/* ESSENTIAL 03 */}
           <Chapter
-  number="03"
-  label="Ongoing Visibility"
-  title="Measure. Improve. Repeat."
-  figure={<LoopFigure />}
->
-  <p>
-    We track rankings, search visibility, traffic and emerging AI citations,
-    then use the data to decide what should happen next.
-  </p>
-</Chapter>
+            number="03"
+            label="Ongoing Visibility"
+            title="Measure. Improve. Repeat."
+            figure={<LoopFigure />}
+          >
+            <p>
+              We track rankings, search visibility, traffic and emerging AI
+              citations, then use the data to decide what should happen next.
+            </p>
+          </Chapter>
         </div>
 
         <Closing ctaHref={ctaHref} />

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react'
-import HeroMedia from './components/Hero/HeroMedia'
-import HeroCaption from './components/Hero/HeroCaption'
-import ServiceSwitcher from './components/Hero/ServiceSwitcher'
-import type { HeroServiceId } from './data/heroServices'
-import { DEFAULT_HERO_SERVICE, HERO_SERVICE_ORDER } from './data/heroServices'
-import './components/Hero/Hero.css'
+import HeroMedia from './HeroMedia'
+import HeroCaption from './HeroCaption'
+import ServiceSwitcher from './ServiceSwitcher'
+import type { HeroServiceId } from '../../data/heroServices'
+import { DEFAULT_HERO_SERVICE, HERO_SERVICE_ORDER } from '../../data/heroServices'
+import './Hero.css'
 
 type IdleWindow = Window & {
   requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number

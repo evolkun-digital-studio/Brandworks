@@ -1,4 +1,4 @@
-import { mediaUrl } from './media'
+import { mediaUrl } from '../../lib/media'
 import { useCallback, useEffect, useRef } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { Link } from 'react-router-dom'
@@ -6,9 +6,10 @@ import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { useReducedMotion } from 'motion/react'
 const showreelPoster = mediaUrl("footer-showreel-poster.webp")
-import { matches } from './lib/scrollMotion'
+import { matches } from '../../lib/scrollMotion'
 import './Footer.css'
-import LOGO_SRC from '../brandWorkFONT/Asset 4@4x.png'
+
+const LOGO_SRC = '/brandworks.svg'
 
 gsap.registerPlugin(useGSAP)
 

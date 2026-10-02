@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 // Content and media for the About page (components/AboutPage).
 //
 // Every line of copy and every photograph the page shows lives here, so

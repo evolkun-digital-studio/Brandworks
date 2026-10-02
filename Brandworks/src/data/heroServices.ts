@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 // Content and media for the homepage hero (components/Hero).
 //
 // Every service the hero can preview lives here, so swapping a photo,

@@ -1,4 +1,4 @@
-import { mediaUrl } from '../../media'
+import { mediaUrl } from '../../lib/media'
 import { useEffect, useRef } from 'react'
 import Lenis from 'lenis'
 import gsap from 'gsap'

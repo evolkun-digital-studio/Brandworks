@@ -8,31 +8,31 @@ import {
   setLinkTag,
   setMetaTag,
 } from "./blog/lib/documentHead";
-import Hero from "./Hero";
-import BrandStatement from "./HumanLedBrandIntelligence";
-import Services from "./Services";
-import About from "./About";
-import Photography from "./Photography";
-import Work from "./WorkWithImpact";
+import Hero from "./components/Hero/Hero";
+import BrandStatement from "./components/HumanLedBrandIntelligence";
+import Services from "./components/Service/Services";
+import About from "./components/About";
+import Photography from "./components/Photography";
+import Work from "./components/WorkWithImpact";
 
-import Videography from "./Videography";
+import Videography from "./components/Videography";
 import GraphicsMotionExperience from "./components/GraphicsMotion/GraphicsMotionExperience";
-import PRReputation from "./PRReputation";
+import PRReputation from "./components/PrReputation";
 import SocialMedia from "./components/SocialMedia/SocialMedia";
 import WebDevelopment from "./components/WebDevelopment/WebDevelopment";
 // import Photography from './Photography'
-import Capabilities from "./Capabilities";
-import Results from "./Results";
-import FAQs from "./FAQs";
-import Industries from "./Industries";
-import Testimonials from "./Testimonials";
+import Capabilities from "./components/Capabilities";
+import Results from "./components/Results";
+import FAQs from "./components/Faq/FAQs";
+import Industries from "./components/Industries";
+import Testimonials from "./components/Testimonial/Testimonials";
 import {
   EditorialArticlePage,
   EditorialIndexPage,
 } from "./editorial/EditorialPages";
 import NotFound from "./NotFound";
 import AboutPage from "./pages/AboutPage/AboutPage";
-import WebsiteSectionProps from "./Seo";
+import WebsiteSectionProps from "./components/Seo";
 import ServicesPage from "./pages/servicePage";
 import CinematographyPage from "./pages/services/CinematographyPage";
 import PhotographyPage from "./pages/services/PhotographyPage";

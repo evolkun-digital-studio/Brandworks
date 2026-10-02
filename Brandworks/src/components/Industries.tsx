@@ -1,8 +1,8 @@
 import { motion, useReducedMotion } from 'motion/react'
-import { FadeUp } from './FadeUp'
-import LazyBackgroundVideo from './LazyBackgroundVideo'
-import { trackEvent } from './analytics/analytics'
-import { AnalyticsEvents } from './analytics/events'
+import { FadeUp } from '../FadeUp'
+import LazyBackgroundVideo from '../LazyBackgroundVideo'
+import { trackEvent } from '../analytics/analytics'
+import { AnalyticsEvents } from '../analytics/events'
 
 const industries = [
   {

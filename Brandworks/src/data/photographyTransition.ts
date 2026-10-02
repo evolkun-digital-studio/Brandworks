@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 // Content and scroll timeline for the Featured Work → Photography bridge.
 
 export type TypographyStage = {

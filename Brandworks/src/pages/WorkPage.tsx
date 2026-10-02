@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Link } from "react-router-dom";
-import { mediaUrl } from "../media";
+import { mediaUrl } from "../lib/media";
 
 interface Project {
   id: number;

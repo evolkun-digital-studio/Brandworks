@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 // Content for the Social Media section (components/SocialMedia).
 
 // The reels and their posters are not on the R2 bucket: the videos are

@@ -12,7 +12,7 @@ import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SOCIAL_REELS, type SocialReel } from '../../data/socialMedia'
-import { mediaUrl } from '../../media'
+import { mediaUrl } from '../../lib/media'
 import './SocialMediaPage.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
