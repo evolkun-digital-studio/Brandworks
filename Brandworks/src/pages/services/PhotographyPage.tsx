@@ -1,368 +1,67 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
-import { createPortal } from 'react-dom'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import {
-  heroPhotograph,
-  photographs,
-  photographyCapabilities,
-  productionProcess,
-  photographySeo,
-  type Photograph,
-} from '../../data/photography.data'
+import { heroPhotograph, photographySeo } from '../../data/photography.data'
+import { closingGrid, frames, sphereTiles, wall, wallIntro, type FrameKey } from '../../data/photographyArchive'
+import { PhotographyProjectTransition, type Selection, type ViewerPhoto } from '../../components/PhotographyWall/PhotographyWall'
+import { useArchiveMode } from '../../components/PhotoArchive/useArchiveMode'
 import './PhotographyPage.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
-const EASE = [0.22, 1, 0.36, 1] as const
-const useBrowserLayoutEffect =
-  typeof window === 'undefined' ? useEffect : useLayoutEffect
-
-type ViewerSelection = { photograph: Photograph; trigger: HTMLElement }
-type OpenPhotograph = (photograph: Photograph, trigger: HTMLElement) => void
-
-function Label({ children }: { children: ReactNode }) {
-  return <p className="bwp-label">{children}</p>
-}
-
-function Arrow() {
-  return <span className="bwp-arrow" aria-hidden="true">{'\u2197'}</span>
-}
+const InteractivePhotoArchive = lazy(() => import('../../components/PhotoArchive/InteractivePhotoArchive'))
 
 /**
- * Fixed frame geometry, a real loading state, cached-image detection and an
- * error state. A missing asset never leaves an endlessly pulsing skeleton.
- * GSAP animates wrappers, not this image's CSS opacity animation.
+ * One photograph. The figure takes scroll parallax, `.bwp-media` takes the
+ * entrance and the img takes the hover scale, so the three transforms never
+ * fight over the same element. With `onOpen` the photo becomes a button that
+ * opens the viewer.
  */
-function Photo({
-  photograph,
-  priority = false,
-  decorative = false,
-  fit = 'cover',
-  sizes = '(min-width: 1280px) 720px, (min-width: 1024px) 56vw, 100vw',
-}: {
-  photograph: Photograph
-  priority?: boolean
-  decorative?: boolean
-  fit?: 'cover' | 'contain'
-  sizes?: string
+function Photo({ id, sizes, eager = false, className = '', style, depth, drift, onOpen }: {
+  id: FrameKey
+  sizes: string
+  eager?: boolean
+  className?: string
+  style?: CSSProperties
+  /** Wall parallax in yPercent and horizontal drift in px. */
+  depth?: number
+  drift?: number
+  onOpen?: (key: FrameKey, trigger: HTMLButtonElement) => void
 }) {
-  const imageRef = useRef<HTMLImageElement>(null)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-
-  useEffect(() => {
-    const image = imageRef.current
-    setStatus(
-      image?.complete ? (image.naturalWidth > 0 ? 'ready' : 'error') : 'loading',
-    )
-  }, [photograph.src])
-
-  return (
-    <div className="bwp-photo" data-status={status} aria-busy={status === 'loading'}>
-      <span className="bwp-skeleton" aria-hidden="true" />
-      <img
-        ref={imageRef}
-        src={photograph.src}
-        srcSet={photograph.srcSet}
-        sizes={photograph.srcSet ? sizes : undefined}
-        alt={decorative ? '' : photograph.alt}
-        width={photograph.width}
-        height={photograph.height}
-        loading={priority ? 'eager' : 'lazy'}
-        fetchPriority={priority ? 'high' : 'auto'}
-        decoding="async"
-        onLoad={() => setStatus('ready')}
-        onError={() => setStatus('error')}
-        style={{ objectPosition: photograph.position ?? '50% 50%', objectFit: fit }}
-      />
-      {status === 'error' && (
-        <span className="bwp-media-error" role={decorative ? undefined : 'img'}
-          aria-label={decorative ? undefined : photograph.alt}>
-          Image unavailable
-        </span>
-      )}
-    </div>
-  )
-}
-
-/** Local, original adaptation of Animate UI's sliding-counter motion pattern. */
-function FrameCounter({ value, reduced }: { value: number; reduced: boolean }) {
-  return (
-    <span className="bwp-counter" aria-hidden="true">
-      <AnimatePresence initial={false} mode="popLayout">
-        <motion.span
-          key={value}
-          initial={{ y: reduced ? 0 : '100%', opacity: reduced ? 1 : 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: reduced ? 0 : '-100%', opacity: 0 }}
-          transition={{ duration: reduced ? 0 : 0.38, ease: EASE }}
-        >
-          {String(value).padStart(2, '0')}
-        </motion.span>
-      </AnimatePresence>
+  const photo = frames[id]
+  const media = (
+    <span className="bwp-media" data-bwp-reveal data-bww-media style={{ '--natural': `${photo.width} / ${photo.height}` } as CSSProperties}>
+      <img src={photo.src} srcSet={photo.srcSet} sizes={sizes} alt={photo.alt}
+        width={photo.width} height={photo.height} loading={eager ? 'eager' : 'lazy'} decoding="async"
+        draggable={false} style={photo.focus ? { objectPosition: photo.focus } : undefined} />
     </span>
   )
-}
-
-/**
- * A real modal, rather than a visually modal div: native focus containment and
- * background inertness, Escape, focus restoration, scroll locking and exit motion.
- * The dialog pattern is informed by Animate UI; this is NOT a Radix import.
- */
-function PhotoViewer({
-  selection,
-  onDismiss,
-}: {
-  selection: ViewerSelection
-  onDismiss: () => void
-}) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
-  const [open, setOpen] = useState(true)
-  const reduced = Boolean(useReducedMotion())
-
-  useBrowserLayoutEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    const root = document.documentElement
-    const body = document.body
-    const previousOverflow = root.style.overflow
-    const previousPadding = body.style.paddingRight
-    const gap = window.innerWidth - root.clientWidth
-    if (gap > 0) {
-      body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + gap}px`
-    }
-    root.style.overflow = 'hidden'
-    dialog.showModal()
-    closeButtonRef.current?.focus({ preventScroll: true })
-    return () => {
-      if (dialog.open) dialog.close()
-      root.style.overflow = previousOverflow
-      body.style.paddingRight = previousPadding
-      if (selection.trigger.isConnected) selection.trigger.focus({ preventScroll: true })
-    }
-  }, [selection.trigger])
-
-  return createPortal(
-    <dialog
-      ref={dialogRef}
-      className="bwp-dialog"
-      aria-labelledby="bwp-viewer-title"
-      data-lenis-prevent="true"
-      onCancel={(event) => { event.preventDefault(); setOpen(false) }}
-    >
-      <AnimatePresence onExitComplete={onDismiss}>
-        {open && (
-          <motion.div
-            className="bwp-viewer-surface"
-            key="viewer"
-            initial={{ opacity: reduced ? 1 : 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduced ? 0 : 0.24 }}
-            onClick={(event) => {
-              if (event.target === event.currentTarget) setOpen(false)
-            }}
-          >
-            <div className="bwp-viewer-toolbar">
-              <p id="bwp-viewer-title">{selection.photograph.title}</p>
-              <button ref={closeButtonRef} type="button" onClick={() => setOpen(false)}>
-                Close <span aria-hidden="true">{'\u00d7'}</span>
-              </button>
-            </div>
-            <motion.figure
-              className="bwp-viewer-figure"
-              initial={{ scale: reduced ? 1 : 0.96, y: reduced ? 0 : 12 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: reduced ? 1 : 0.985 }}
-              transition={{ duration: reduced ? 0 : 0.48, ease: EASE }}
-            >
-              <Photo photograph={selection.photograph} fit="contain" priority sizes="92vw" />
-              <figcaption>{selection.photograph.category}</figcaption>
-            </motion.figure>
-            <p className="bwp-viewer-help">Full frame. Press Escape to close.</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </dialog>,
-    document.body,
-  )
-}
-
-function SelectedPhotography({ onOpen }: { onOpen: OpenPhotograph }) {
-  const sectionRef = useRef<HTMLElement>(null)
-  const activeRef = useRef(0)
-  const [active, setActive] = useState(0)
-  const reduced = Boolean(useReducedMotion())
-
-  useGSAP(() => {
-    const section = sectionRef.current
-    if (!section) return
-    const media = gsap.matchMedia()
-
-    media.add(
-      '(min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference)',
-      () => {
-        const layers = gsap.utils.toArray<HTMLElement>('[data-bwp-layer]', section)
-        const rows = gsap.utils.toArray<HTMLElement>('[data-bwp-chapter]', section)
-        const progress = section.querySelector<HTMLElement>('[data-bwp-progress]')
-        if (layers.length < 2 || rows.length !== layers.length) return
-
-        // Progressive enhancement: without this class, every photo is inline.
-        section.classList.add('bwp-story--enhanced')
-        const last = layers.length - 1
-        gsap.set(layers, { clipPath: 'inset(0% 0% 100% 0%)' })
-        gsap.set(layers[0], { clipPath: 'inset(0% 0% 0% 0%)' })
-
-        const timeline = gsap.timeline({
-          defaults: { ease: 'none' },
-          scrollTrigger: {
-            trigger: rows[0],
-            start: 'center 60%',
-            endTrigger: rows[last],
-            end: 'center 60%',
-            scrub: 0.55,
-            invalidateOnRefresh: true,
-          },
-          onUpdate() {
-            // Discrete state only: no React render on every scroll pixel.
-            const next = Math.min(last, Math.floor(timeline.time() + 0.24))
-            if (next !== activeRef.current) {
-              activeRef.current = next
-              setActive(next)
-            }
-          },
-        })
-
-        layers.slice(1).forEach((layer, offset) => {
-          const index = offset + 1
-          const imagePlane = layer.querySelector<HTMLElement>('[data-bwp-plane]')
-          // The previous image stays underneath. Forward and reverse scrolling
-          // expose the NEXT frame continuously, rather than triggering a fade.
-          timeline.to(layer, {
-            clipPath: 'inset(0% 0% 0% 0%)', duration: 0.62,
-          }, index - 0.62)
-          if (imagePlane) {
-            timeline.fromTo(imagePlane,
-              { yPercent: 2, scale: 1.045 },
-              { yPercent: 0, scale: 1, duration: 0.62, immediateRender: true },
-              index - 0.62,
-            )
-          }
-        })
-        if (progress) {
-          timeline.fromTo(progress,
-            { scaleX: 1 / layers.length },
-            { scaleX: 1, duration: last, transformOrigin: 'left center' }, 0,
-          )
-        }
-
-        return () => {
-          section.classList.remove('bwp-story--enhanced')
-          // GSAP matchMedia owns and reverts its own timelines and triggers.
-        }
-      },
-    )
-    return () => media.revert()
-  }, { scope: sectionRef })
-
   return (
-    <section className="bwp-story bwp-section" ref={sectionRef} id="selected-photography"
-      aria-labelledby="bwp-work-heading">
-      <div className="bwp-container">
-        <header className="bwp-section-head">
-          <div>
-            <Label>Selected photography</Label>
-            <h2 id="bwp-work-heading">Different subjects.<br />One consistent eye.</h2>
-          </div>
-          <a className="bwp-text-link" href="#photography-practice">Explore the practice <Arrow /></a>
-        </header>
-        <div className="bwp-story-grid">
-          <div className="bwp-story-stage" aria-hidden="true">
-            <div className="bwp-story-frame">
-              {photographs.map((photograph, index) => (
-                <div className="bwp-story-layer" data-bwp-layer key={photograph.id}
-                  style={{ zIndex: index + 1 }}>
-                  <div className="bwp-image-plane" data-bwp-plane>
-                    <Photo photograph={photograph} decorative />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="bwp-story-meter">
-              <FrameCounter value={active + 1} reduced={reduced} />
-              <span className="bwp-story-track"><span data-bwp-progress /></span>
-              <span>{String(photographs.length).padStart(2, '0')}</span>
-            </div>
-          </div>
-          <div className="bwp-story-chapters">
-            {photographs.map((photograph, index) => (
-              <article key={photograph.id} className="bwp-chapter" data-bwp-chapter
-                data-active={active === index}>
-                <button className="bwp-inline-photo" type="button"
-                  aria-label={`View full photograph: ${photograph.title}`}
-                  onClick={(event) => onOpen(photograph, event.currentTarget)}>
-                  <Photo photograph={photograph} sizes="(min-width: 700px) 48vw, 100vw" />
-                </button>
-                <span className="bwp-chapter-number">{String(index + 1).padStart(2, '0')}</span>
-                <h3>{photograph.title}</h3>
-                <p className="bwp-chapter-category">{photograph.category}</p>
-                {/* <p className="bwp-chapter-description">{photograph.description}</p> */}
-                <button type="button" className="bwp-text-link"
-                  onClick={(event) => onOpen(photograph, event.currentTarget)}>
-                  View photograph <Arrow />
-                </button>
-              </article>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/** Inspira Expandable Gallery interaction, rewritten for React and this palette.
- * Flex changes happen on explicit pointer/focus interaction, not on page scroll.
- * Touch devices receive a two-column grid, not collapsed hover-only panels.
- */
-function ContactSheet({ onOpen }: { onOpen: OpenPhotograph }) {
-  const [active, setActive] = useState(0)
-  return (
-    <div className="bwp-contact-sheet">
-      {photographs.map((photograph, index) => (
-        <button type="button" key={photograph.id} className="bwp-contact-panel"
-          data-active={active === index}
-          onPointerEnter={(event) => { if (event.pointerType === 'mouse') setActive(index) }}
-          onFocus={() => setActive(index)}
-          onClick={(event) => onOpen(photograph, event.currentTarget)}
-          aria-label={`View full photograph: ${photograph.title}`}>
-          <span className="bwp-contact-image"><Photo photograph={photograph} decorative sizes="50vw" /></span>
-          <span className="bwp-contact-caption">
-            <span>{String(index + 1).padStart(2, '0')}</span>
-            <span>{photograph.title}</span>
-            <Arrow />
-          </span>
+    <figure className={`bwp-photo ${className}`} style={style} data-depth={depth} data-drift={drift}>
+      {onOpen ? (
+        <button type="button" className="bwp-open" aria-label={`Open photograph: ${photo.alt}`}
+          onClick={(event) => onOpen(id, event.currentTarget)}>
+          {media}
         </button>
-      ))}
-    </div>
+      ) : media}
+      <figcaption>{photo.label}</figcaption>
+    </figure>
   )
 }
 
-/**
- * Scoped client metadata, with restoration on unmount. Pass your REAL origin.
- * Omit siteUrl to skip canonical/schema; never point them at a guessed domain.
- * For production SEO, use your shared head manager and prerender this route.
- */
+/** The homepage wall's viewer, fed from an archive frame. */
+function viewerPhoto(key: FrameKey): ViewerPhoto {
+  const { label, alt, width, height, src, thumb } = frames[key]
+  const [category, title = category] = label.split(' / ')
+  return { title, category, alt, width, height, image: thumb, hero: src }
+}
+
+const sphereFrames = [...new Set(sphereTiles.map((tile) => tile.key))]
+
+const span = (columns: number, of: number) => `${((columns / of) * 100).toFixed(1)}vw`
+
 function usePhotographyMetadata(siteUrl?: string) {
   useEffect(() => {
     const previousTitle = document.title
@@ -394,7 +93,7 @@ function usePhotographyMetadata(siteUrl?: string) {
         const parsed = new URL(siteUrl)
         if (parsed.protocol === 'https:' || parsed.protocol === 'http:') origin = parsed.origin
       }
-    } catch { /* Leave canonical unset until a valid production URL is supplied. */ }
+    } catch {  }
     if (origin) {
       const url = `${origin}${photographySeo.pathname}`
       const image = new URL(heroPhotograph.src, origin).href
@@ -433,153 +132,136 @@ function usePhotographyMetadata(siteUrl?: string) {
 
 export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
   const rootRef = useRef<HTMLElement>(null)
-  const [viewer, setViewer] = useState<ViewerSelection | null>(null)
-  const openPhotograph = useCallback<OpenPhotograph>((photograph, trigger) => {
-    setViewer({ photograph, trigger })
-  }, [])
-  const dismissViewer = useCallback(() => setViewer(null), [])
+  const indexRef = useRef<HTMLUListElement>(null)
+  const mode = useArchiveMode()
+  const spatial = mode !== 'off'
+  const [selection, setSelection] = useState<(Selection & { key: FrameKey }) | null>(null)
+  const close = useCallback(() => setSelection(null), [])
   usePhotographyMetadata(siteUrl)
+
+  const open = useCallback((key: FrameKey, trigger: HTMLButtonElement) => {
+    const media = trigger.querySelector('[data-bww-media]') ?? trigger
+    setSelection({ key, project: viewerPhoto(key), trigger, bounds: media.getBoundingClientRect() })
+  }, [])
+  // A click on a sphere tile opens through the same button the keyboard uses.
+  const openFromSphere = useCallback((tile: string) => {
+    const key = sphereTiles.find((slot) => slot.id === tile)?.key
+    const trigger = key && indexRef.current?.querySelector<HTMLButtonElement>(`[data-frame="${key}"]`)
+    if (key && trigger) open(key, trigger)
+  }, [open])
 
   useGSAP(() => {
     const root = rootRef.current
     if (!root) return
     const media = gsap.matchMedia()
+
     media.add('(prefers-reduced-motion: no-preference)', () => {
-      // Entrance is not dependent on a user scrolling. One title animation only.
-      if (root.getBoundingClientRect().top > -100) {
-        gsap.fromTo(root.querySelectorAll('[data-bwp-title]'),
-          { yPercent: 112 },
-          { yPercent: 0, duration: 0.86, stagger: 0.07, ease: 'power4.out' },
-        )
-      }
-      // Reveal only secondary blocks; never blanket-hide the whole page.
-      gsap.utils.toArray<HTMLElement>('[data-bwp-reveal]', root).forEach((element) => {
-        if (element.getBoundingClientRect().top < window.innerHeight * 0.92) return
-        gsap.fromTo(element, { y: 18, opacity: 0 }, {
-          y: 0, opacity: 1, duration: 0.72, ease: 'power3.out',
-          scrollTrigger: { trigger: element, start: 'top 91%', once: true },
-        })
+      // Barely-there entrance: a short rise and fade, staggered per batch.
+      const reveals = gsap.utils.toArray<HTMLElement>('[data-bwp-reveal]', root)
+      gsap.set(reveals, { opacity: 0, y: 20 })
+      ScrollTrigger.batch(reveals, {
+        start: 'top 96%', once: true,
+        onEnter: (batch) => gsap.to(batch, { opacity: 1, y: 0, duration: 0.8, stagger: 0.05, ease: 'power2.out', overwrite: true }),
+      })
+
+      // The full-bleed frame slides slowly inside its window.
+      gsap.utils.toArray<HTMLElement>('.bwp-feature img', root).forEach((image) => {
+        gsap.fromTo(image, { yPercent: -6 }, { yPercent: 6, ease: 'none',
+          scrollTrigger: { trigger: image.closest('.bwp-feature'), start: 'top bottom', end: 'bottom top', scrub: 1 } })
       })
     })
-    media.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
-      const stage = root.querySelector<HTMLElement>('[data-bwp-hero]')
-      const mask = root.querySelector<HTMLElement>('[data-bwp-hero-mask]')
-      const plane = root.querySelector<HTMLElement>('[data-bwp-hero-plane]')
-      if (!stage || !mask || !plane) return
-      // Container Scroll idea, without the original 3D rotation or device frame.
-      // The frame keeps its layout size. Only its crop and inner scale change.
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: stage, start: 'clamp(top 85%)', end: 'clamp(top 15%)',
-          scrub: 0.8, invalidateOnRefresh: true,
-        },
+
+    // Wall parallax for the DOM fallback: each frame drifts at its own pace,
+    // so the archive reads as layered paper rather than a scrolling grid.
+    if (!spatial) media.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
+      const wallElement = root.querySelector('.bwp-wall')
+      gsap.utils.toArray<HTMLElement>('.bwp-wall [data-depth]', root).forEach((figure) => {
+        const depth = Number(figure.dataset.depth)
+        const drift = Number(figure.dataset.drift ?? 0)
+        gsap.fromTo(figure, { yPercent: depth, x: -drift }, { yPercent: -depth, x: drift, ease: 'none',
+          scrollTrigger: { trigger: wallElement, start: 'top bottom', end: 'bottom top', scrub: 1 } })
       })
-      timeline.fromTo(mask,
-        { clipPath: 'inset(5% 16% 5% 16%)' },
-        { clipPath: 'inset(0% 0% 0% 0%)', duration: 1, ease: 'none' }, 0,
-      ).fromTo(plane,
-        { scale: 1.075 },
-        { scale: 1, duration: 1, ease: 'none' }, 0,
-      )
     })
+
     let alive = true
-    // One post-font refresh, not a global refresh for every image load.
     document.fonts?.ready.then(() => { if (alive) ScrollTrigger.refresh() })
     return () => { alive = false; media.revert() }
-  }, { scope: rootRef })
+  }, { scope: rootRef, dependencies: [spatial], revertOnUpdate: true })
+
+  const [ic, ics, ir, irs] = wallIntro
 
   return (
     <main ref={rootRef} className="bwp-page">
-      <section className="bwp-hero bwp-container" aria-labelledby="bwp-page-heading">
-        <div className="bwp-hero-copy">
-          <div>
-            <Label>Photography</Label>
-            <h1 id="bwp-page-heading">
-              <span className="bwp-title-mask"><span data-bwp-title>Photography that</span></span>
-              <span className="bwp-title-mask"><span data-bwp-title>shapes perception.</span></span>
-            </h1>
+      {mode !== 'off' ? (
+        <section className="bwp-hero" aria-labelledby="bwp-title">
+          <Suspense fallback={null}>
+            <InteractivePhotoArchive mode={mode} opened={selection?.key ?? null} onOpen={openFromSphere} indexRef={indexRef} />
+          </Suspense>
+          <div className="bwp-hero-edge" aria-hidden="true" />
+          <div className="bwp-hero-ui">
+            <h1 id="bwp-title">Images that make<br /> people stop.</h1>
+            <p className="bwp-hint" aria-hidden="true"><span>Drag to explore</span><span>Scroll to continue</span></p>
           </div>
-          {/* <div className="bwp-hero-description">
-            <p>Commercial, campaign and editorial photography built around how a brand,
-              product, place or person needs to be remembered.</p>
-            <a className="bwp-text-link" href="#selected-photography">View selected photography <Arrow /></a>
-          </div> */}
-        </div>
-        <figure className="bwp-hero-figure">
-          <div className="bwp-hero-stage" data-bwp-hero>
-            <button className="bwp-hero-mask" data-bwp-hero-mask type="button"
-              aria-label="View featured photograph in full"
-              onClick={(event) => openPhotograph(heroPhotograph, event.currentTarget)}>
-              <div className="bwp-image-plane" data-bwp-hero-plane>
-                <Photo photograph={heroPhotograph} priority sizes="(min-width: 1280px) 1200px, 96vw" />
-              </div>
-            </button>
-          </div>
-          {/* <figcaption><span>BrandWorks / Photography</span><span>Direction. Production. Image.</span></figcaption> */}
-        </figure>
-      </section>
-
-      <section className="bwp-perspective bwp-container bwp-section" aria-labelledby="bwp-perspective-heading">
-        <Label>Our perspective</Label>
-        <div data-bwp-reveal>
-          <h2 id="bwp-perspective-heading">The image should say something<br className="bwp-desktop-break" /> before the copy has to.</h2>
-          <p>We approach photography as part of the brand system. Light, casting,
-            environment, composition and post-production should all reinforce the same perception.</p>
-        </div>
-      </section>
-
-      <SelectedPhotography onOpen={openPhotograph} />
-
-      <section className="bwp-practice bwp-section" id="photography-practice" aria-labelledby="bwp-practice-heading">
-        <div className="bwp-container">
-          <header className="bwp-section-head" data-bwp-reveal>
-            <div><Label>Photography practice</Label><h2 id="bwp-practice-heading">Built around what the<br />brand needs to show.</h2></div>
-            {/* <p>Commercial photography, editorial thinking.<br />Explore a frame to see the full image.</p> */}
-          </header>
-          <ContactSheet onOpen={openPhotograph} />
-          <ul className="bwp-capabilities" aria-label="Photography services">
-            {photographyCapabilities.map((capability, index) => (
-              <li key={capability}><span>{String(index + 1).padStart(2, '0')}</span>{capability}</li>
+          {/* The sphere's photographs for screen readers and keyboard; focusing
+              one turns the sphere to it. Each proxy marks where its photo sits
+              on screen, so the viewer opens from and closes back to it. */}
+          <ul className="bwp-sphere-index" ref={indexRef} aria-label="Photographs">
+            {sphereFrames.map((key) => (
+              <li key={key}>
+                <button type="button" data-frame={key} aria-label={`Open photograph: ${frames[key].alt}`}
+                  onClick={(event) => open(key, event.currentTarget)}>
+                  <span className="bwp-proxy" data-proxy={key} data-bww-media />
+                </button>
+              </li>
             ))}
           </ul>
-        </div>
-      </section>
-
-      <section className="bwp-process bwp-container bwp-section" aria-labelledby="bwp-process-heading">
-        <header data-bwp-reveal><Label>Production process</Label><h2 id="bwp-process-heading">From brief to final image.</h2></header>
-        <div className="bwp-process-list">
-          {productionProcess.map((step) => (
-            <article key={step.number} data-bwp-reveal>
-              <span>{step.number}</span><h3>{step.title}</h3><p>{step.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="bwp-context bwp-section" aria-labelledby="bwp-context-heading">
-        <div className="bwp-container bwp-context-grid">
-          <Label>Commercial photography</Label>
-          <div data-bwp-reveal>
-            <h2 id="bwp-context-heading">A visual direction that holds together.</h2>
-            <p>BrandWorks provides commercial photography, brand photography, campaign
-              imagery, product photography, editorial portraits and hospitality photography.
-              Projects can include creative direction, location planning, casting, styling,
-              lighting, retouching and final image delivery.</p>
-            <p>Photography can also connect with our <Link to="/services/videography">videography</Link>,
-              {' '}<Link to="/services/graphic-design">graphic design</Link> and
-              {' '}<Link to="/services/content-creation">content creation</Link>, keeping one
-              visual language across a campaign.</p>
+        </section>
+      ) : (
+        <section className="bwp-archive" aria-labelledby="bwp-title">
+          <div className="bwp-wall">
+            <header className="bwp-intro" style={{ '--c': ic, '--cs': ics, '--r': ir, '--rs': irs } as CSSProperties}>
+              {/* <p className="bwp-label">Photography</p> */}
+              <h1 id="bwp-title">Images that make<br /> people stop.</h1>
+            </header>
+            {wall.map(({ key, at: [c, cs, r, rs], depth, drift, wide }) => {
+              // Tablet keeps the mixed sizes on a 12-column grid, at a readable scale.
+              const tc = cs <= 3 ? 3 : cs <= 5 ? 4 : 6
+              const tr = Math.max(2, Math.round((tc * rs) / cs))
+              return (
+                <Photo key={key} id={key} eager={r < 8} className={wide ? 'is-wide' : ''} onOpen={open}
+                  sizes={`(max-width: 767px) ${wide ? '100vw' : '50vw'}, (max-width: 1023px) ${span(tc, 12)}, ${span(cs, 24)}`}
+                  style={{ '--c': c, '--cs': cs, '--r': r, '--rs': rs, '--tc': tc, '--tr': tr } as CSSProperties}
+                  depth={depth} drift={drift} />
+              )
+            })}
           </div>
+        </section>
+      )}
+
+      <section className="bwp-sequence" aria-label="Selected frames">
+        <div className="bwp-seq-pair">
+          <Photo id="denim" sizes="(max-width: 767px) 100vw, 46vw" />
+          <Photo id="wave" sizes="(max-width: 767px) 100vw, 34vw" />
         </div>
+        <Photo id="jellystar" className="bwp-seq-campaign" sizes="(max-width: 767px) 100vw, 76vw" />
       </section>
 
-      <section className="bwp-cta bwp-section" aria-labelledby="bwp-cta-heading">
-        <div className="bwp-container bwp-cta-inner">
-          <div><Label>Start a shoot</Label><h2 id="bwp-cta-heading">What should your next<br />image say?</h2></div>
-          <Link className="bwp-cta-link" to="/contact">Start a conversation <Arrow /></Link>
-        </div>
+      <Photo id="arcade" className="bwp-feature" sizes="100vw" />
+
+      <section className="bwp-closing" aria-label="More frames">
+        {closingGrid.map(({ key, at: [c, cs], ratio, offset = 0, wide }) => (
+          <Photo key={key} id={key} className={wide ? 'is-wide' : ''}
+            sizes={`(max-width: 767px) ${wide ? '100vw' : '50vw'}, ${span(cs, 12)}`}
+            style={{ '--c': c, '--cs': cs, '--ratio': ratio, '--offset': `${offset}rem` } as CSSProperties} />
+        ))}
       </section>
-      {viewer && <PhotoViewer selection={viewer} onDismiss={dismissViewer} />}
+
+      <section className="bwp-cta" aria-labelledby="bwp-cta-heading">
+        <h2 id="bwp-cta-heading">Have something worth shooting?</h2>
+        <Link className="bwp-cta-link" to="/contact">Start a project <span aria-hidden="true">{'→'}</span></Link>
+      </section>
+
+      {selection && <PhotographyProjectTransition selection={selection} onClose={close} />}
     </main>
   )
 }

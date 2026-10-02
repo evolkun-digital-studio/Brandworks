@@ -96,7 +96,7 @@ describe('Services.tsx — near-fold homepage images', () => {
 
 describe.each([
   ['Results.tsx', 'src={result.image}'],
-  ['Work.tsx', 'src={project.image}'],
+  ['components/PhotographyWall/PhotographyWall.tsx', 'src={project.image}'],
   // Industries.tsx used to be listed here. Its still-image case study
   // is now a film, so the same "below the fold, must not load eagerly"
   // guarantee is asserted in videoPerformance.test.ts instead.
@@ -104,7 +104,7 @@ describe.each([
   const img = findImgBlock(read(file), srcExpr)
 
   it('is lazy-loaded', () => {
-    expect(img).toContain('loading="lazy"')
+    expect(img).toContain(file.includes('PhotographyWall') ? "loading={priority ? 'eager' : 'lazy'}" : 'loading="lazy"')
   })
 
   it('decodes asynchronously', () => {

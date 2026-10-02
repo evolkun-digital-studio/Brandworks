@@ -1,815 +1,363 @@
-/* BrandWorks photography. Scoped styles: existing header/footer remain untouched. */
-.bwp-page,
-.bwp-dialog {
-  --bwp-lime: #ccff00;
-  --bwp-ink: black;
-  --bwp-silver: #c8c8c8;
-  --bwp-graphite: #49494a;
-  --bwp-paper: #fff;
-  --bwp-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --bwp-gutter: clamp(20px, 3.2vw, 40px);
-  /* Set these to your actual persistent header height if necessary. */
-  --bwp-header-offset: 88px;
-  --bwp-sticky-top: 104px;
-  font-family: inherit;
-  -webkit-font-smoothing: antialiased;
-}
+/*
+ * Photography archive. Dark, image-led, almost no copy: the photographs are
+ * the content. Frames sit inside a fixed box (grid area or aspect-ratio)
+ * and crop with object-fit, so nothing shifts while images load.
+ */
 .bwp-page {
-  background: var(--bwp-paper);
-  color: var(--bwp-ink);
+  --bwp-bg: #080808;
+  --bwp-text: #f2f2f2;
+  --bwp-muted: rgba(255, 255, 255, 0.55);
+  --bwp-line: rgba(255, 255, 255, 0.12);
+  --bwp-lime: var(--color-bw-lime, #cefd10);
+  --bwp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bwp-gutter: clamp(12px, 1.4vw, 24px);
+  --bwp-gap: clamp(2px, 0.35vw, 6px);
+  /* Clears the floating site header (20px offset + 64px bar). */
+  --bwp-header-offset: 84px;
+  background: var(--bwp-bg);
+  color: var(--bwp-text);
+  font-family: var(--font-secondary);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
 }
-/* Do not add overflow:hidden to this page or its parents: the gallery is sticky. */
-.bwp-page *,
-.bwp-dialog * {
-  box-sizing: border-box;
-}
-.bwp-page :where(h1, h2, h3, p, figure, ul) {
-  margin: 0;
-}
-.bwp-page :where(a, button),
-.bwp-dialog button {
-  -webkit-tap-highlight-color: transparent;
-}
-.bwp-page a {
-  color: inherit;
-  text-decoration: none;
-}
-.bwp-page button,
-.bwp-dialog button {
-  font: inherit;
-  color: inherit;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  background: none;
-  cursor: pointer;
-}
-.bwp-page :where(a, button):focus-visible,
-.bwp-dialog button:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 5px;
-}
-.bwp-page ::selection {
-  background: var(--bwp-lime);
-  color: var(--bwp-ink);
-}
-.bwp-container {
-  width: 100%;
-  max-width: 1280px;
-  margin-inline: auto;
-  padding-inline: var(--bwp-gutter);
-}
-.bwp-section {
-  padding-block: clamp(52px, 6vw, 84px);
-}
-.bwp-page :where(section[id]) {
-  scroll-margin-top: calc(var(--bwp-header-offset) + 16px);
-}
-.bwp-page h1,
-.bwp-page h2,
-.bwp-page h3 {
-  font-weight: 500;
-  font-style: normal;
-  text-wrap: balance;
-}
-.bwp-page h1 {
-  font-size: clamp(32px, 4.2vw, 52px);
-  line-height: 1.07;
-  letter-spacing: -0.046em;
-}
-.bwp-page h2 {
-  font-size: clamp(27px, 3vw, 38px);
-  line-height: 1.12;
-  letter-spacing: -0.036em;
-}
-.bwp-page h3 {
-  font-size: clamp(23px, 2.4vw, 30px);
-  line-height: 1.16;
-  letter-spacing: -0.027em;
-}
+.bwp-page * { box-sizing: border-box; }
+.bwp-page :where(h1, h2, p, figure) { margin: 0; }
+.bwp-page ::selection { background: var(--bwp-lime); color: #000; }
+
 .bwp-label {
   font-size: 11px;
-  line-height: 1.5;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--bwp-graphite);
-}
-.bwp-page p:not(.bwp-label) {
-  text-wrap: pretty;
-}
-.bwp-text-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 20px;
-  min-height: 44px;
-  font-size: 14px;
-  line-height: 1.5;
-}
-.bwp-arrow {
-  display: inline-block;
-  transition: transform 0.4s var(--bwp-ease);
-}
-:where(.bwp-text-link, .bwp-cta-link, .bwp-contact-panel):is(
-    :hover,
-    :focus-visible
-  )
-  .bwp-arrow {
-  transform: translate(3px, -3px);
-}
-.bwp-text-link {
-  position: relative;
-}
-.bwp-text-link::after {
-  content: "";
-  position: absolute;
-  bottom: 6px;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0.2);
-  transform-origin: left;
-  transition: transform 0.45s var(--bwp-ease);
-}
-.bwp-text-link:is(:hover, :focus-visible)::after {
-  transform: scaleX(1);
-}
-
-/* Media: no animated layout dimensions, no indefinite fake loading. */
-.bwp-photo {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: var(--bwp-silver);
-}
-.bwp-photo img {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.bwp-skeleton {
-  position: absolute;
-  inset: 0;
-  background: var(--bwp-silver);
-}
-.bwp-photo[data-status="loading"] .bwp-skeleton {
-  animation: bwp-loading 1.8s ease-in-out infinite;
-}
-.bwp-photo[data-status="ready"] .bwp-skeleton {
-  visibility: hidden;
-}
-.bwp-photo[data-status="error"] img {
-  visibility: hidden;
-}
-.bwp-photo[data-status="error"] .bwp-skeleton {
-  animation: none;
-}
-.bwp-media-error {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--bwp-graphite);
-  font-size: 13px;
-}
-@keyframes bwp-loading {
-  0%,
-  100% {
-    opacity: 0.8;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-.bwp-image-plane {
-  width: 100%;
-  height: 100%;
-}
-
-/* HERO. The crop opens while its containing rectangle stays the same size. */
-.bwp-hero {
-  padding-top: calc(var(--bwp-header-offset) + 32px);
-}
-.bwp-hero-copy {
-  display: grid;
-  grid-template-columns: 1.18fr 0.82fr;
-  align-items: end;
-  gap: 48px;
-  margin-bottom: 32px;
-}
-.bwp-hero-copy > div:first-child {
-  grid-column: 1 / -1;
-}
-.bwp-hero-copy .bwp-label {
-  margin-bottom: 16px;
-}
-.bwp-hero-copy h1 {
-  text-align: center;
-}
-.bwp-title-mask {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.14em;
-  margin-bottom: -0.14em;
-}
-.bwp-title-mask > span {
-  display: block;
-}
-.bwp-hero-description {
-  max-width: 410px;
-  justify-self: end;
-}
-.bwp-hero-description > p {
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--bwp-graphite);
-}
-.bwp-hero-description .bwp-text-link {
-  margin-top: 12px;
-}
-.bwp-hero-stage {
-  height: clamp(280px, 58svh, 620px);
-  position: relative;
-}
-.bwp-hero-mask {
-  display: block;
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-.bwp-hero-mask:focus-visible {
-  outline-offset: -5px !important;
-  outline-color: var(--bwp-lime) !important;
-}
-.bwp-hero-figure > figcaption {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 14px;
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--bwp-graphite);
-}
-.bwp-perspective {
-  display: grid;
-  grid-template-columns: 0.55fr 1.45fr;
-  gap: 48px;
-}
-.bwp-perspective > div {
-  max-width: 720px;
-}
-.bwp-perspective p:not(.bwp-label) {
-  margin-top: 18px;
-  max-width: 590px;
-  font-size: 16px;
-  line-height: 1.75;
-  color: var(--bwp-graphite);
-}
-
-/* SELECTED WORK. Inline photos are the base mode, including no-JS/reduced motion. */
-.bwp-story {
-  background: var(--bwp-ink);
-  color: white;
-}
-.bwp-story .bwp-label {
-  color: var(--bwp-silver);
-}
-.bwp-section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 36px;
-  margin-bottom: 36px;
-}
-.bwp-section-head h2 {
-  margin-top: 14px;
-}
-.bwp-section-head > p {
-  max-width: 360px;
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--bwp-graphite);
-}
-.bwp-story .bwp-section-head {
-  padding-bottom: 28px;
-  border-bottom: 1px solid var(--bwp-graphite);
-}
-.bwp-story .bwp-text-link {
-  color: white;
-}
-.bwp-story .bwp-text-link::after {
-  background: var(--bwp-lime);
-}
-.bwp-story-stage {
-  display: none;
-}
-.bwp-story-chapters {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 40px 24px;
-}
-.bwp-chapter {
-  min-width: 0;
-}
-.bwp-inline-photo {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  margin-bottom: 24px;
-  overflow: hidden;
-}
-.bwp-chapter-number {
-  display: block;
-  font-size: 11px;
-  color: var(--bwp-lime);
-  margin-bottom: 12px;
-  font-variant-numeric: tabular-nums;
-}
-.bwp-chapter-category {
-  margin-top: 10px !important;
-  font-size: 12px;
-  color: var(--bwp-silver);
-  line-height: 1.6;
-}
-.bwp-chapter-description {
-  margin-top: 16px !important;
-  max-width: 340px;
-  color: var(--bwp-silver);
-  font-size: 15px;
-  line-height: 1.8;
-}
-.bwp-chapter .bwp-text-link {
-  margin-top: 12px;
-}
-.bwp-story-frame {
-  position: relative;
-  height: min(60svh, 600px);
-  width: 100%;
-  overflow: hidden;
-  background: var(--bwp-graphite);
-}
-.bwp-story-layer {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-.bwp-story-meter {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-top: 17px;
-  color: var(--bwp-silver);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-.bwp-story-track {
-  display: block;
-  position: relative;
-  flex: 1;
-  height: 1px;
-  background: var(--bwp-graphite);
-}
-.bwp-story-track > span {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: var(--bwp-lime);
-  transform-origin: left;
-}
-.bwp-counter {
-  display: inline-grid;
-  overflow: hidden;
-  width: 2.3ch;
-  height: 1.4em;
   line-height: 1.4;
-}
-.bwp-counter > span {
-  display: block;
-  grid-area: 1 / 1;
-}
-
-@media (min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference) {
-  .bwp-story--enhanced .bwp-story-grid {
-    display: grid;
-    grid-template-columns: 1.26fr 0.74fr;
-    gap: 72px;
-    align-items: start;
-  }
-  .bwp-story--enhanced .bwp-story-stage {
-    display: block;
-    position: sticky;
-    top: var(--bwp-sticky-top);
-  }
-  .bwp-story--enhanced .bwp-story-chapters {
-    display: block;
-    padding-bottom: max(0px, calc(60svh - 360px));
-  }
-  .bwp-story--enhanced .bwp-inline-photo {
-    display: none;
-  }
-  .bwp-story--enhanced .bwp-chapter {
-    min-height: max(340px, 43svh);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 34px 0;
-    border-top: 1px solid var(--bwp-graphite);
-  }
-  .bwp-story--enhanced .bwp-chapter:last-child {
-    border-bottom: 1px solid var(--bwp-graphite);
-  }
-  .bwp-story--enhanced .bwp-chapter h3 {
-    color: var(--bwp-silver);
-    transition: color 0.25s ease;
-  }
-  .bwp-story--enhanced .bwp-chapter[data-active="true"] h3 {
-    color: white;
-  }
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bwp-muted);
 }
 
-/* EXPANDABLE CONTACT SHEET. Hover/focus opens a frame, click opens the photograph. */
-.bwp-practice {
-  background: var(--bwp-paper);
-}
-.bwp-contact-sheet {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 28px 14px;
-}
-.bwp-contact-panel {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  text-align: left;
-}
-.bwp-contact-image {
+/* ---- Frame ---------------------------------------------------------- */
+
+.bwp-photo { position: relative; min-width: 0; transition: opacity 0.35s ease; }
+.bwp-open {
   display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: zoom-in;
+}
+.bwp-open:focus-visible { outline: 2px solid var(--bwp-text); outline-offset: 2px; }
+.bwp-media {
   position: relative;
+  display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  height: 100%;
   overflow: hidden;
+  background: #121212;
 }
-.bwp-contact-image .bwp-photo {
-  transition: transform 0.75s var(--bwp-ease);
-}
-.bwp-contact-panel:is(:hover, :focus-visible) .bwp-contact-image .bwp-photo {
-  transform: scale(1.025);
-}
-.bwp-contact-caption {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 10px;
+.bwp-media img {
+  position: absolute;
+  inset: 0;
+  display: block;
   width: 100%;
-  min-height: 52px;
-  padding-top: 14px;
-  font-size: 12px;
-  line-height: 1.5;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  filter: brightness(0.9);
+  transition: transform 0.9s var(--bwp-ease), filter 0.6s ease;
 }
-.bwp-contact-caption > span:first-child {
+.bwp-photo figcaption {
+  position: absolute;
+  left: 10px;
+  bottom: 9px;
   font-size: 10px;
-  padding-top: 2px;
-  color: var(--bwp-graphite);
-  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
 }
-.bwp-contact-caption > span:nth-child(2) {
+@media (hover: hover) and (pointer: fine) {
+  .bwp-photo:not(.bwp-feature):is(:hover, :focus-within) img { transform: scale(1.03); filter: brightness(1.05); }
+  .bwp-photo:is(:hover, :focus-within) figcaption { opacity: 1; transform: none; }
+  /* The rest of the set steps back while one frame is looked at. */
+  :is(.bwp-wall, .bwp-seq-pair, .bwp-closing):has(.bwp-photo:hover) > .bwp-photo:not(:hover) { opacity: 0.78; }
+}
+@media (hover: none) {
+  .bwp-photo figcaption { display: none; }
+}
+
+/* ---- 1. Archive wall ------------------------------------------------- */
+
+.bwp-archive {
+  position: relative;
+  container-type: inline-size;
+  padding: calc(var(--bwp-header-offset) + clamp(20px, 3vw, 48px)) 0 clamp(48px, 6vw, 96px);
+}
+.bwp-wall {
+  /* Square row unit: one column's width, so spans map to aspect ratios. */
+  --u: calc((100cqw - 2 * var(--bwp-gutter) - 23 * var(--bwp-gap)) / 24);
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  grid-auto-rows: var(--u);
+  gap: var(--bwp-gap);
+  padding-inline: var(--bwp-gutter);
+}
+.bwp-wall > * {
+  grid-column: var(--c) / span var(--cs);
+  grid-row: var(--r) / span var(--rs);
+}
+.bwp-intro {
+  position: relative;
+  z-index: 2;
+  align-self: start;
+  /* Dragging the WebGL field can slide photographs under the headline. */
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.55);
+}
+.bwp-intro h1 {
+  margin-top: 14px;
+  font-family: var(--font-primary);
+  font-size: clamp(30px, 3.4vw, 52px);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
-@media (min-width: 900px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .bwp-contact-sheet {
-    display: flex;
-    gap: 16px;
-  }
-  .bwp-contact-panel {
-    flex: 1 1 0;
-    transition: flex-grow 0.7s var(--bwp-ease);
-  }
-  .bwp-contact-panel[data-active="true"] {
-    flex-grow: 2.35;
-  }
-  .bwp-contact-image {
-    aspect-ratio: auto;
-    height: clamp(290px, 32vw, 430px);
-  }
-  .bwp-contact-panel[data-active="true"] .bwp-contact-caption {
-    border-top: 2px solid var(--bwp-lime);
-    padding-top: 12px;
-  }
-  .bwp-contact-caption {
-    min-height: 64px;
-  }
+
+/* ---- 1b. Spatial hero (WebGL, mouse-driven screens) ------------------ */
+
+/* A fullscreen window into a sphere of photographs, drawn by the canvas. */
+.bwp-hero {
+  position: relative;
+  height: 100svh;
+  min-height: 560px;
+  overflow: clip;
+  background: var(--bwp-bg);
 }
-.bwp-capabilities {
-  list-style: none;
+/* The sphere's photographs as a list for screen readers and keyboard users;
+   the canvas shows focus by turning to and lifting the photo. */
+.bwp-sphere-index {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
   padding: 0;
-  margin-top: 36px !important;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 40px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  list-style: none;
 }
-.bwp-capabilities li {
-  display: flex;
-  align-items: baseline;
-  gap: 22px;
-  min-height: 60px;
-  padding-block: 18px;
-  border-bottom: 1px solid var(--bwp-silver);
-  font-size: 16px;
-  line-height: 1.5;
+/* Kept on the photo's on-screen box so the viewer opens from it and closes back to it. */
+.bwp-proxy { position: fixed; pointer-events: none; }
+
+/* No z-index: the canvas paints under the edge blur, the caption above it. */
+.bwp-gl {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  user-select: none;
 }
-.bwp-capabilities li > span {
-  color: var(--bwp-graphite);
+.bwp-gl.is-dragging { cursor: grabbing; }
+.bwp-gl-caption {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
   font-size: 10px;
-  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.bwp-gl-caption.is-visible { opacity: 1; }
+
+/* The sphere softens toward the screen edges: a light blur that deepens at
+   the very rim, with a touch of shade, like the falloff of a lens. */
+.bwp-hero-edge {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.bwp-hero-edge::before,
+.bwp-hero-edge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.bwp-hero-edge::before {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 52%, #000 82%);
+  mask-image: radial-gradient(ellipse at center, transparent 52%, #000 82%);
+}
+.bwp-hero-edge::after {
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 68%, #000 100%);
+  mask-image: radial-gradient(ellipse at center, transparent 68%, #000 100%);
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(8, 8, 8, 0.38) 100%);
 }
 
-/* PRODUCTION + BUSINESS CONTEXT. Subordinate to the actual imagery. */
-.bwp-process {
-  border-top: 1px solid var(--bwp-silver);
-  display: grid;
-  grid-template-columns: 0.7fr 1.3fr;
-  gap: 56px;
+.bwp-hero-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: calc(var(--bwp-header-offset) + 20px) var(--bwp-gutter) 20px;
+  pointer-events: none;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.7);
 }
-.bwp-process h2 {
-  margin-top: 14px;
+/* Soft shade at the top and bottom edges so the header and hints stay legible. */
+.bwp-hero-ui::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(rgba(8, 8, 8, 0.55), transparent 22%, transparent 86%, rgba(8, 8, 8, 0.5));
 }
-.bwp-process-list {
-  border-top: 1px solid var(--bwp-silver);
+.bwp-hero-ui h1 {
+  font-family: var(--font-primary);
+  font-size: clamp(20px, 1.8vw, 28px);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
 }
-.bwp-process-list article {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  gap: 9px 22px;
-  padding-block: 24px;
-  border-bottom: 1px solid var(--bwp-silver);
-}
-.bwp-process-list article > span {
-  font-size: 10px;
-  color: var(--bwp-graphite);
-  padding-top: 5px;
-}
-.bwp-process-list h3 {
-  font-size: 21px;
-}
-.bwp-process-list article > p {
-  grid-column: 2;
-  max-width: 490px;
-  font-size: 15px;
-  line-height: 1.75;
-  color: var(--bwp-graphite);
-}
-.bwp-context {
-  background: white;
-}
-.bwp-context-grid {
-  display: grid;
-  grid-template-columns: 0.55fr 1.45fr;
-  gap: 48px;
-}
-.bwp-context-grid > div {
-  max-width: 710px;
-}
-.bwp-context p:not(.bwp-label) {
-  font-size: 16px;
-  line-height: 1.8;
-  margin-top: 20px;
-  color: var(--bwp-graphite);
-}
-.bwp-context p > a {
-  color: var(--bwp-ink);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.bwp-cta {
-  background: var(--bwp-ink);
-  color: white;
-}
-.bwp-cta .bwp-label {
-  color: var(--bwp-silver);
-}
-.bwp-cta-inner {
+.bwp-hint {
   display: flex;
   justify-content: space-between;
-  align-items: end;
-  gap: 32px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ---- 2. Larger sequence --------------------------------------------- */
+
+.bwp-sequence {
+  display: grid;
+  gap: clamp(8px, 1vw, 16px);
+  padding: clamp(32px, 5vw, 80px) var(--bwp-gutter);
+}
+.bwp-seq-pair {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(8px, 1vw, 16px);
+  align-items: start;
+}
+.bwp-seq-pair > :first-child { grid-column: 2 / span 5; }
+.bwp-seq-pair > :first-child .bwp-media { aspect-ratio: 2 / 3; }
+.bwp-seq-pair > :last-child { grid-column: 8 / span 4; margin-top: clamp(48px, 14vw, 240px); }
+.bwp-seq-pair > :last-child .bwp-media { aspect-ratio: 3 / 4; }
+.bwp-seq-campaign { width: 78%; justify-self: end; }
+.bwp-seq-campaign .bwp-media { aspect-ratio: 3 / 2; }
+
+/* ---- 3. Full-bleed feature ------------------------------------------ */
+
+.bwp-feature .bwp-media { height: clamp(420px, 85svh, 1080px); }
+/* Taller than its window so it can slide on scroll without exposing edges. */
+.bwp-feature .bwp-media img { inset: -7% 0 auto; height: 114%; filter: none; }
+.bwp-feature figcaption { left: var(--bwp-gutter); bottom: 16px; }
+
+/* ---- 4. Closing grid ------------------------------------------------ */
+
+.bwp-closing {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--bwp-gap);
+  row-gap: clamp(8px, 1vw, 16px);
+  align-items: start;
+  padding: clamp(48px, 7vw, 112px) var(--bwp-gutter) 0;
+}
+.bwp-closing > .bwp-photo { grid-column: var(--c) / span var(--cs); margin-top: var(--offset); }
+.bwp-closing .bwp-media { aspect-ratio: var(--ratio); }
+
+/* ---- 5. CTA --------------------------------------------------------- */
+
+.bwp-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 40px;
+  margin: clamp(64px, 9vw, 140px) var(--bwp-gutter) 0;
+  padding: 28px 0 clamp(48px, 6vw, 88px);
+  border-top: 1px solid var(--bwp-line);
 }
 .bwp-cta h2 {
-  margin-top: 14px;
+  font-family: var(--font-primary);
+  font-size: clamp(24px, 2.4vw, 36px);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 .bwp-cta-link {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 28px;
-  background: var(--bwp-lime);
-  color: var(--bwp-ink) !important;
-  padding: 16px 20px;
-  min-height: 52px;
-  font-size: 14px;
-}
-
-/* Full-frame viewer. Styles duplicated under this prefix because it is portaled. */
-.bwp-dialog {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  width: 100%;
-  height: 100dvh;
-  max-width: none;
-  max-height: none;
-  background: transparent;
-  color: white;
-  overflow: hidden;
-}
-.bwp-dialog::backdrop {
-  background: transparent;
-}
-.bwp-viewer-surface {
-  background: rgba(35, 31, 32, 0.97);
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 20px;
-  height: 100%;
-  padding: 22px clamp(18px, 4vw, 60px);
-  overscroll-behavior: contain;
-}
-.bwp-viewer-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  font-size: 14px;
-}
-.bwp-viewer-toolbar p {
-  margin: 0;
-}
-.bwp-viewer-toolbar button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  min-width: 86px;
+  gap: 12px;
   min-height: 44px;
+  font-size: 14px;
+  color: var(--bwp-text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--bwp-line);
+  transition: border-color 0.4s ease;
 }
-.bwp-viewer-toolbar button > span {
-  font-size: 24px;
-}
-.bwp-viewer-figure {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 16px;
-}
-.bwp-viewer-figure .bwp-photo {
-  background: transparent;
-}
-.bwp-viewer-figure .bwp-photo img {
-  object-position: center !important;
-}
-.bwp-viewer-figure figcaption {
-  text-align: center;
-  font-size: 12px;
-  color: var(--bwp-silver);
-}
-.bwp-viewer-help {
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--bwp-silver);
-  text-align: center;
-  margin: 0;
+.bwp-cta-link span { transition: transform 0.45s var(--bwp-ease); }
+.bwp-cta-link:hover { border-color: var(--bwp-text); }
+.bwp-cta-link:is(:hover, :focus-visible) span { transform: translateX(4px); }
+.bwp-cta-link:focus-visible { outline: 2px solid var(--bwp-text); outline-offset: 5px; }
+
+/* ---- Tablet: mixed sizes on 12 columns, packed densely --------------- */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .bwp-wall {
+    --bwp-gap: 5px;
+    --u: calc((100cqw - 2 * var(--bwp-gutter) - 11 * var(--bwp-gap)) / 12);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-flow: dense;
+  }
+  .bwp-wall > .bwp-photo { grid-column: span var(--tc); grid-row: span var(--tr); }
+  .bwp-wall > .bwp-intro { grid-column: 1 / -1; grid-row: span 2; }
 }
 
-@media (max-width: 1023px) {
-  .bwp-hero-copy {
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 30px;
-  }
-  .bwp-process {
-    gap: 32px;
-  }
-  .bwp-perspective,
-  .bwp-context-grid {
-    grid-template-columns: 0.4fr 1.4fr;
-    gap: 32px;
-  }
-}
+/* ---- Mobile: readable 2-column editorial grid ------------------------ */
+
 @media (max-width: 767px) {
-  .bwp-page {
-    --bwp-header-offset: 64px;
+  .bwp-page { --bwp-header-offset: 82px; --bwp-gutter: 12px; --bwp-gap: 4px; }
+  .bwp-wall {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: auto;
+    grid-auto-flow: dense;
   }
-  .bwp-hero {
-    padding-top: calc(var(--bwp-header-offset) + 28px);
-  }
-  .bwp-hero-copy,
-  .bwp-perspective,
-  .bwp-context-grid,
-  .bwp-process {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-  .bwp-hero-description {
-    justify-self: start;
-    max-width: 480px;
-  }
-  .bwp-hero-stage {
-    height: auto;
-    aspect-ratio: 4 / 5;
-    max-height: 560px;
-  }
-  .bwp-hero-figure > figcaption {
-    font-size: 10px;
-    gap: 10px;
-  }
-  .bwp-hero-description > p,
-  .bwp-perspective p:not(.bwp-label),
-  .bwp-context p:not(.bwp-label) {
-    font-size: 15px;
-  }
-  .bwp-section-head {
-    align-items: start;
-    flex-direction: column;
-    gap: 20px;
-    margin-bottom: 28px;
-  }
-  .bwp-section-head .bwp-text-link {
-    margin-top: -8px;
-  }
-  .bwp-capabilities {
-    gap: 0 24px;
-  }
-  .bwp-capabilities li {
-    font-size: 14px;
-    gap: 12px;
-  }
-  .bwp-process-list article {
-    padding-block: 22px;
-  }
-  .bwp-cta-inner {
-    flex-direction: column;
-    align-items: start;
-    gap: 28px;
-  }
-  .bwp-desktop-break {
-    display: none;
-  }
+  .bwp-wall > * { grid-column: auto; grid-row: auto; }
+  .bwp-wall > .bwp-intro { grid-column: 1 / -1; margin-bottom: 16px; }
+  .bwp-wall .bwp-media { height: auto; aspect-ratio: 4 / 5; }
+  .bwp-wall > .is-wide { grid-column: 1 / -1; }
+  .bwp-wall > .is-wide .bwp-media { aspect-ratio: var(--natural); }
+
+  .bwp-seq-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .bwp-seq-pair > :first-child, .bwp-seq-pair > :last-child { grid-column: auto; }
+  .bwp-seq-pair > :last-child { margin-top: 48px; }
+  .bwp-seq-campaign { width: 100%; }
+  .bwp-feature .bwp-media { height: 70svh; }
+
+  .bwp-closing { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: dense; row-gap: 8px; }
+  .bwp-closing > .bwp-photo { grid-column: auto; margin-top: 0; }
+  .bwp-closing > .is-wide { grid-column: 1 / -1; }
+
+  .bwp-cta { flex-direction: column; align-items: flex-start; }
 }
-@media (max-width: 579px) {
-  .bwp-story-chapters {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-  .bwp-inline-photo {
-    aspect-ratio: 4 / 3;
-    margin-bottom: 20px;
-  }
-  .bwp-chapter-description {
-    max-width: none;
-  }
-  .bwp-contact-caption {
-    gap: 7px;
-    font-size: 11px;
-  }
-  .bwp-contact-caption .bwp-arrow {
-    display: none;
-  }
-  .bwp-capabilities {
-    grid-template-columns: 1fr;
-  }
-  .bwp-viewer-surface {
-    gap: 12px;
-    padding-block: 12px 20px;
-  }
-}
+
 @media (prefers-reduced-motion: reduce) {
-  .bwp-page *,
-  .bwp-page *::before,
-  .bwp-page *::after,
-  .bwp-dialog *,
-  .bwp-dialog *::before,
-  .bwp-dialog *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-  .bwp-story-stage {
-    display: none !important;
-  }
-  .bwp-story-chapters {
-    display: grid !important;
-  }
-  .bwp-inline-photo {
-    display: block !important;
-  }
-  .bwp-contact-image .bwp-photo {
-    transform: none !important;
-  }
+  .bwp-photo, .bwp-media img, .bwp-photo figcaption, .bwp-cta-link span { transition: none; }
 }
