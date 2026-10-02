@@ -52,9 +52,9 @@ function Header() {
     }
   }, [])
 
-  // Only the homepage opens on the full-bleed photographic hero; every
+  // The homepage and photography page open on full-bleed dark imagery; every
   // other public page starts on white, so the header keeps dark ink there.
-  const isDarkHero = pathname === '/' || pathname === '/work'
+  const isDarkHero = pathname === '/' || pathname === '/services/photography'
   const tone = isDarkHero ? 'is-on-dark' : 'is-on-light'
 
   return (

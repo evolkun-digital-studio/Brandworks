@@ -5,9 +5,11 @@ import {
   useId,
   useRef,
   useState,
-  type ElementType,
   type ReactNode,
 } from "react";
+
+/** Plain HTML tags only: React Three Fiber widens a bare ElementType to every Three.js JSX element. */
+type RevealTag = "div" | "section" | "article" | "figure" | "p" | "span" | "li";
 
 export interface WebsiteSectionProps {
   className?: string;
@@ -260,18 +262,20 @@ function RevealGroup({
   className = "",
   children,
 }: {
-  as?: ElementType;
+  as?: RevealTag;
   threshold?: number;
   className?: string;
   children: ReactNode;
 }) {
-  const [ref, inView] = useInView<HTMLElement>(threshold);
+  const [ref, inView] = useInView<HTMLDivElement>(threshold);
+  // Typed as a div so the ref fits; it renders whichever RevealTag was passed.
+  const Element = Tag as "div";
 
   return (
     <RevealContext.Provider value={inView}>
-      <Tag ref={ref} className={className}>
+      <Element ref={ref} className={className}>
         {children}
-      </Tag>
+      </Element>
     </RevealContext.Provider>
   );
 }
@@ -284,7 +288,7 @@ function Reveal({
   className = "",
   children,
 }: {
-  as?: ElementType;
+  as?: RevealTag;
   delay?: number;
   distance?: number;
   duration?: number;
