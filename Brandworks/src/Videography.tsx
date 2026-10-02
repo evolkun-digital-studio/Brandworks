@@ -102,7 +102,7 @@ export default function Videography() {
         }
       );
     });
-    
+
     return () => {
       clearTimeout(timeoutId);
       ScrollTrigger.getAll().forEach(t => t.kill());
@@ -122,7 +122,7 @@ export default function Videography() {
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              video.play().catch(() => {});
+              video.play().catch(() => { });
             } else {
               video.pause();
             }
@@ -150,7 +150,7 @@ export default function Videography() {
       <h2 id="videography-heading" className="sr-only">
         Cinematography
       </h2>
-      
+
       <div className="flex flex-col relative w-full overflow-visible">
         {VIDEO_PROJECTS.map((project, index) => (
           <article
@@ -158,11 +158,10 @@ export default function Videography() {
             ref={(el) => (rowsRef.current[index] = el)}
             // The overlap formula: Desktop uses 120vh & -20vh, Mobile uses 105vh & -5vh.
             // The last item uses 100vh so it doesn't leave a gap before the next section/footer.
-            className={`relative w-full ${
-              index === VIDEO_PROJECTS.length - 1
+            className={`relative w-full ${index === VIDEO_PROJECTS.length - 1
                 ? "min-h-[100vh]"
                 : "min-h-[105vh] md:min-h-[120vh]"
-            } ${index > 0 ? "mt-[-5vh] md:mt-[-20vh]" : ""}`}
+              } ${index > 0 ? "mt-[-5vh] md:mt-[-20vh]" : ""}`}
             style={{ zIndex: index + 1 }}
           >
             <div className="project-sticky sticky top-0 h-screen w-full overflow-hidden">
@@ -179,8 +178,8 @@ export default function Videography() {
                 />
               </div>
               <div className="absolute inset-0 bg-black/[0.08]" />
-              
-              {/* Optional Intro Text on the first project */}
+
+              {/* Optional Intro T on the first project */}
               {index === 0 && (
                 <div className="pointer-events-none absolute inset-x-[4vw] top-1/2 -translate-y-1/2 md:inset-x-[5vw] z-10">
                   <div className="overflow-hidden">
