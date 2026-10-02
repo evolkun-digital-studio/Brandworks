@@ -121,9 +121,9 @@ export function Home() {
       <WebsiteSectionProps />
       <Capabilities />
       <Results />
+      <Industries />
       <FAQs />
       {/* <Blog /> */}
-      <Industries />
       <Testimonials />
     </main>
   );

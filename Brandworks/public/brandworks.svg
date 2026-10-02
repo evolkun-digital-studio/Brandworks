@@ -4,12 +4,12 @@
     <style>
       .cls-1 {
         fill: #49494a;
-        animation: brandworks-ink 12s ease-in-out 10s infinite;
+        animation: brandworks-ink 18s ease-in-out 10s infinite;
       }
 
       .cls-2 {
         fill: #fff;
-        animation: brandworks-spark 12s ease-in-out 10s infinite;
+        animation: brandworks-spark 18s ease-in-out 10s infinite;
       }
 
       .cls-3 {
@@ -19,7 +19,7 @@
 
       .cls-4, .cls-5 {
         fill: #cf0;
-        animation: brandworks-accent 12s ease-in-out 10s infinite;
+        animation: brandworks-accent 18s ease-in-out 10s infinite;
       }
 
       .cls-5 {
@@ -28,23 +28,23 @@
 
       @keyframes brandworks-ink {
         0%, 100% { fill: #49494a; }
-        25% { fill: #6c3bff; }
-        50% { fill: #ff4f87; }
-        75% { fill: #007f73; }
+        25% { fill: #2f3335; }
+        50% { fill: #737779; }
+        75% { fill: #3e433f; }
       }
 
       @keyframes brandworks-accent {
         0%, 100% { fill: #cf0; }
-        25% { fill: #00d9ff; }
-        50% { fill: #ffb000; }
-        75% { fill: #ff5a36; }
+        25% { fill: #b8e600; }
+        50% { fill: #dcff66; }
+        75% { fill: #a6c72a; }
       }
 
       @keyframes brandworks-spark {
         0%, 100% { fill: #fff; }
-        25% { fill: #ffe95b; }
-        50% { fill: #9affef; }
-        75% { fill: #f6b4ff; }
+        25% { fill: #eceee8; }
+        50% { fill: #dfe8c1; }
+        75% { fill: #f4f5f1; }
       }
 
       @media (prefers-reduced-motion: reduce) {
