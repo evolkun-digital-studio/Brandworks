@@ -32,4 +32,13 @@ describe('Header — logo link', () => {
     )
     expect(html).toContain('href="/blog"')
   })
+
+  it('renders a real link to the work page in the primary nav', () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>,
+    )
+    expect(html).toContain('href="/work"')
+  })
 })

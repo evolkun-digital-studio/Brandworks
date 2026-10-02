@@ -613,7 +613,7 @@ export default function ServicesPage() {
 
       {/*  GROUPED CAPABILITIES */}
 
-      <section
+      {/* <section
         aria-labelledby="capability-groups-title"
         className="border-t border-neutral-200"
       >
@@ -695,7 +695,7 @@ export default function ServicesPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* 
           INTEGRATED AGENCY MESSAGE */}

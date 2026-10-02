@@ -9,7 +9,7 @@ const navLinks:{ label: string; href: string }[] = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Services', href: '/services' },
-  { label: 'Work', href: '#' },
+  { label: 'Work', href: '/work' },
   { label: 'Insights', href: '/blog' },
 ]
 
@@ -54,7 +54,7 @@ function Header() {
 
   // Only the homepage opens on the full-bleed photographic hero; every
   // other public page starts on white, so the header keeps dark ink there.
-  const isDarkHero = pathname === '/'
+  const isDarkHero = pathname === '/' || pathname === '/work'
   const tone = isDarkHero ? 'is-on-dark' : 'is-on-light'
 
   return (
