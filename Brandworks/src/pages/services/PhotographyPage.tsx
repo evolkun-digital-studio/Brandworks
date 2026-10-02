@@ -200,7 +200,7 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
           <div className="bwp-hero-edge" aria-hidden="true" />
           <div className="bwp-hero-ui">
             <h1 id="bwp-title">Images that make<br /> people stop.</h1>
-            <p className="bwp-hint" aria-hidden="true"><span>Drag to explore</span><span>Scroll to continue</span></p>
+            <p className="bwp-hint" aria-hidden="true"><span></span><span>Scroll to continue</span></p>
           </div>
           {/* The sphere's photographs for screen readers and keyboard; focusing
               one turns the sphere to it. Each proxy marks where its photo sits
