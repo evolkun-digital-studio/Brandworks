@@ -263,48 +263,6 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
   )
 }
 
-function ImpactTransition() {
-  const sectionRef = useRef<HTMLElement>(null)
-
-  useGSAP(() => {
-    const section = sectionRef.current
-    if (!section) return
-    const mm = gsap.matchMedia()
-    mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
-      const wipe = section.querySelector<HTMLElement>('[data-impact-wipe]')
-      const mark = section.querySelector<HTMLElement>('[data-impact-mark]')
-      const lineOne = section.querySelector<HTMLElement>('[data-impact-one]')
-      const lineTwo = section.querySelector<HTMLElement>('[data-impact-two]')
-      if (!wipe || !mark || !lineOne || !lineTwo) return
-
-      gsap.timeline({
-        scrollTrigger: { trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.65 },
-      })
-        .fromTo(mark, { scale: 0.55, rotate: -6 }, { scale: 1.08, rotate: 0, duration: 0.32, ease: 'power2.out' }, 0)
-        .fromTo(wipe, { scale: 0 }, { scale: 18, duration: 0.62, ease: 'power2.inOut' }, 0.18)
-        .to(mark, { scale: 1.36, opacity: 0, duration: 0.2, ease: 'power2.in' }, 0.43)
-        .fromTo(lineOne, { yPercent: 120, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.22 }, 0.58)
-        .fromTo(lineTwo, { yPercent: 120, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.22 }, 0.72)
-    })
-    return () => mm.revert()
-  }, { scope: sectionRef })
-
-  return (
-    <section ref={sectionRef} className="bwsm-impact" aria-label="Think first. Hit strong.">
-      <div className="bwsm-impact__sticky">
-        <div className="bwsm-impact__wipe" data-impact-wipe />
-        <div className="bwsm-impact__mark" data-impact-mark aria-hidden="true">
-          <img src={mediaUrl('Asset 4@4x.webp')} alt="" />
-        </div>
-        <h2>
-          <span><i data-impact-one>Think first.</i></span>
-          <span><i data-impact-two>Hit strong.</i></span>
-        </h2>
-      </div>
-    </section>
-  )
-}
-
 function ExpertiseSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const [showCaseCard, setShowCaseCard] = useState(true)
@@ -550,7 +508,6 @@ export default function SocialMediaPage({ siteUrl }: { siteUrl?: string }) {
   return (
     <main className="bwsm-page">
       <ProjectRail onOpen={openReel} />
-      <ImpactTransition />
       <ExpertiseSection />
       <ProcessSection />
       <WhySection />
