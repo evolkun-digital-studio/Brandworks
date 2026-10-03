@@ -200,7 +200,7 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
           <div className="bwp-hero-edge" aria-hidden="true" />
           <div className="bwp-hero-ui">
             <h1 id="bwp-title">Images that make<br /> people stop.</h1>
-            <p className="bwp-hint" aria-hidden="true"><span></span><span>Scroll to continue</span></p>
+            {/* <p className="bwp-hint" aria-hidden="true"><span></span><span>Scroll to continue</span></p> */}
           </div>
           {/* The sphere's photographs for screen readers and keyboard; focusing
               one turns the sphere to it. Each proxy marks where its photo sits
@@ -241,7 +241,7 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
       <section className="bwp-sequence" aria-label="Selected frames">
         <div className="bwp-seq-pair">
           <Photo id="denim" sizes="(max-width: 767px) 100vw, 46vw" />
-          <Photo id="wave" sizes="(max-width: 767px) 100vw, 34vw" />
+          <Photo id="lovegen" sizes="(max-width: 767px) 100vw, 34vw" />
         </div>
         <Photo id="jellystar" className="bwp-seq-campaign" sizes="(max-width: 767px) 100vw, 76vw" />
       </section>

@@ -45,6 +45,7 @@ export const frames = {
   reader: frame('reader', 'Lifestyle / Editorial', 'Person reading a broadsheet against a wall papered with newsprint', 1067, 1600),
   studio: frame('studio', 'Studio / Interior', 'Dark photography studio with lighting stands and a single chair', 1600, 1067),
   spectrum: frame('photo12', 'Light study', 'Vertical bands of multicoloured light emerging from black', 1200, 904),
+  lovegen: frame('lovegen', 'Experimental / Portrait', 'Model in wide light-wash cargo jeans holding a cream Lovegen T-shirt up in front of her face', 1067, 1600),
   orange: frame('photo8', 'Experimental / Portrait', 'Portrait in teal with orange motion streaks across the face', 904, 1200),
   trophy: frame('trophy', 'Product / Still life', 'Gold trophy on a black base against a pale grey wall', 1600, 1067),
   tube: frame('photo5', 'Product / Beauty', 'Black skincare tube on a textured stone pedestal', 967, 1200),
