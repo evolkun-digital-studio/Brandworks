@@ -23,7 +23,6 @@
 .pm-section { padding-block: clamp(64px, 7vw, 112px); scroll-margin-top: 110px; }
 .pm-section + .pm-section > .pm-container { position: relative; }
 .pm-page .pm-label { display: flex; align-items: center; gap: 18px; font-size: 10px; line-height: 1.5; letter-spacing: .16em; text-transform: uppercase; color: inherit; margin-bottom: 26px; }
-.pm-label > span:first-child { color: var(--pm-muted); }
 .pm-page .pm-lead { font-size: clamp(17px, 1.7vw, 21px); line-height: 1.65; }
 .pm-page .pm-small { font-size: 12px; line-height: 1.8; }
 .pm-measure { max-width: 740px; margin-bottom: 32px !important; }

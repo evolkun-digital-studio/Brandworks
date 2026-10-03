@@ -88,7 +88,7 @@ function Section({ number, label, title, children, className = '', id }: { numbe
   const sectionId = id ?? `pm-section-${number}`
   return <section id={sectionId} className={`pm-section ${className}`} aria-labelledby={`${sectionId}-title`} tabIndex={-1}>
     <div className="pm-container">
-      <p className="pm-label"><span>{number}</span>{label}</p>
+      <p className="pm-label">{label}</p>
       {title ? <h2 id={`${sectionId}-title`}>{title}</h2> : <h2 id={`${sectionId}-title`} className="sr-only">{label}</h2>}
       {children}
     </div>
@@ -250,7 +250,7 @@ export default function PerformanceMarketingPage() {
 
   return <main ref={rootRef} className="pm-page font-secondary">
     <section className="pm-hero pm-container" aria-labelledby="pm-title">
-      <div><p className="pm-label"><span>01</span>Performance Marketing</p><h1 id="pm-title">Media spend should create momentum, not just impressions.</h1><p className="pm-lead">We combine paid media, creative, data and conversion strategy to turn advertising budgets into measurable business growth.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="#pm-approach" className="pm-text-link">Explore Our Approach <span aria-hidden="true">↓</span></Link></div><p className="pm-hero-signature">BrandWorks / Strategy + Design + Technology</p></div>
+      <div><p className="pm-label">Performance Marketing</p><h1 id="pm-title">Media spend should create momentum, not just impressions.</h1><p className="pm-lead">We combine paid media, creative, data and conversion strategy to turn advertising budgets into measurable business growth.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="#pm-approach" className="pm-text-link">Explore Our Approach <span aria-hidden="true">↓</span></Link></div><p className="pm-hero-signature">BrandWorks / Strategy + Design + Technology</p></div>
       <CampaignField />
     </section>
 
