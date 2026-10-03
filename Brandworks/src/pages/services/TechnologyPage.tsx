@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useReducedMotion } from 'motion/react'
 import SystemField from '../../components/Technology/SystemField'
 import CapabilityVisual from '../../components/Technology/CapabilityVisual'
+import RibbonTrace from '../../components/Technology/RibbonTrace'
 import { EVOLKUN_URL } from '../../config/evolkun'
 import {
   removeLinkTag,
@@ -453,8 +454,8 @@ function WorkflowExample({ reduced }: { reduced: boolean }) {
 
       gsap.set(track, { '--p': 0 })
       gsap.set(q('.bwt-flow__progress'), { strokeDashoffset: 1 })
-      gsap.set(q('.bwt-step__node'), { backgroundColor: '#0a0a0a', borderColor: 'rgba(255,255,255,0.4)' })
-      gsap.set(q('.bwt-step__label'), { color: 'rgba(255,255,255,0.42)' })
+      gsap.set(q('.bwt-step__node'), { backgroundColor: '#ffffff', borderColor: 'rgba(17,17,17,0.3)' })
+      gsap.set(q('.bwt-step__label'), { color: 'rgba(17,17,17,0.42)' })
 
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
@@ -472,10 +473,10 @@ function WorkflowExample({ reduced }: { reduced: boolean }) {
         const at = i / (steps.length - 1)
         tl.to(
           step.querySelector('.bwt-step__node'),
-          { backgroundColor: '#ccff00', borderColor: '#ccff00', duration: 0.04 },
+          { backgroundColor: '#cefd10', borderColor: '#111111', duration: 0.04 },
           Math.max(0, at - 0.02),
         )
-        tl.to(step.querySelector('.bwt-step__label'), { color: '#ffffff', duration: 0.06 }, Math.max(0, at - 0.02))
+        tl.to(step.querySelector('.bwt-step__label'), { color: '#111111', duration: 0.06 }, Math.max(0, at - 0.02))
       })
     },
     { scope: sectionRef, dependencies: [reduced], revertOnUpdate: true },
@@ -774,6 +775,7 @@ export default function TechnologyPage() {
 
   return (
     <main ref={pageRef} className="bwt-page">
+      <RibbonTrace reducedMotion={reduced} />
       <Hero reduced={reduced} />
       <Intro />
       <Capabilities />

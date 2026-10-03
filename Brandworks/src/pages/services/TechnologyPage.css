@@ -1,27 +1,31 @@
 /*
  * BrandWorks Technology. Scoped to .bwt-page; the shared header and footer
- * are untouched. Near-black and white throughout, with the BrandWorks lime
- * reserved for signals, the selected item and hover.
+ * are untouched. A white editorial page in ink; the BrandWorks lime belongs
+ * to the scroll-drawn ribbon (RibbonTrace) and a few filled accents only —
+ * as a hairline or as text it disappears on white.
  *
  * Every animated element's resting state here is its *final* state; the
  * GSAP setup in TechnologyPage.tsx sets the starting states itself, so with
  * reduced motion (or no JS) the page simply shows the finished layout.
  */
 .bwt-page {
-  --bwt-black: #0a0a0a;
-  --bwt-charcoal: #131313;
-  --bwt-muted: rgba(255, 255, 255, 0.64);
-  --bwt-faint: rgba(255, 255, 255, 0.42);
-  --bwt-line: rgba(255, 255, 255, 0.12);
-  --bwt-lime: #ccff00;
+  --bwt-ink: #111111;
+  --bwt-paper: #ffffff;
+  --bwt-soft: #f4f4f1;
+  --bwt-muted: rgba(17, 17, 17, 0.66);
+  --bwt-faint: rgba(17, 17, 17, 0.52);
+  --bwt-line: rgba(17, 17, 17, 0.1);
+  --bwt-lime: var(--color-bw-lime, #cefd10);
   --bwt-gutter: clamp(24px, 5vw, 80px);
   --bwt-ease: cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   /* clip, not hidden: hidden would turn this into a scroll container and
      break the sticky hero/story stages. */
   overflow-x: clip;
-  background: var(--bwt-black);
-  color: #fff;
+  /* Own stacking context: ribbon back layer → sections → ribbon front layer. */
+  isolation: isolate;
+  background: var(--bwt-paper);
+  color: var(--bwt-ink);
   font-family: var(--font-secondary);
   -webkit-font-smoothing: antialiased;
 }
@@ -47,13 +51,20 @@
 }
 
 .bwt-page :where(a, button):focus-visible {
-  outline: 2px solid var(--bwt-lime);
+  outline: 2px solid var(--bwt-ink);
   outline-offset: 4px;
 }
 
 .bwt-page ::selection {
   background: var(--bwt-lime);
-  color: var(--bwt-black);
+  color: var(--bwt-ink);
+}
+
+/* Sections sit above the ribbon's back layer and stay transparent, so the
+   ribbon reads through them; only deliberate panels occlude it. */
+.bwt-page > section {
+  position: relative;
+  z-index: 1;
 }
 
 .bwt-page :where(section[id]) {
@@ -77,8 +88,8 @@
 }
 
 .bwt-page h2:not(.bwt-label) {
-  font-size: clamp(36px, 4.2vw, 60px);
-  line-height: 1.02;
+  font-size: clamp(36px, 4.5vw, 66px);
+  line-height: 1;
   letter-spacing: -0.04em;
 }
 
@@ -94,11 +105,10 @@
 
 .bwt-page .bwt-label {
   font-family: var(--font-secondary);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.5;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--bwt-faint);
 }
 
@@ -152,6 +162,7 @@
 /* Links are text: a hairline underline, lime on hover, the arrow nudges. */
 .bwt-text-link {
   position: relative;
+  z-index: 0;
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -162,7 +173,7 @@
 }
 
 .bwt-text-link--primary {
-  color: #fff;
+  color: var(--bwt-ink);
   font-size: clamp(16px, 1.2vw, 18px);
 }
 
@@ -172,19 +183,26 @@
   right: 0;
   bottom: 10px;
   left: 0;
+  z-index: -1;
   height: 1px;
   background: currentColor;
   opacity: 0.35;
-  transition: opacity 0.3s ease;
+  transition:
+    height 0.3s var(--bwt-ease),
+    background-color 0.3s ease,
+    opacity 0.3s ease;
 }
 
+/* Hover: ink text, the hairline swells into a lime marker stroke. */
 a.bwt-text-link:hover,
 a.bwt-text-link:focus-visible {
-  color: var(--bwt-lime);
+  color: var(--bwt-ink);
 }
 
 a.bwt-text-link:hover::after,
 a.bwt-text-link:focus-visible::after {
+  height: 8px;
+  background: var(--bwt-lime);
   opacity: 1;
 }
 
@@ -218,63 +236,63 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 
 .bwt-v-line {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.22);
+  stroke: rgba(17, 17, 17, 0.24);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
 .bwt-v-faint {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.09);
+  stroke: rgba(17, 17, 17, 0.1);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
 .bwt-v-node {
-  fill: var(--bwt-black);
-  stroke: rgba(255, 255, 255, 0.55);
+  fill: var(--bwt-paper);
+  stroke: rgba(17, 17, 17, 0.6);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
 .bwt-v-block {
-  fill: rgba(255, 255, 255, 0.025);
-  stroke: rgba(255, 255, 255, 0.26);
+  fill: var(--bwt-paper);
+  stroke: rgba(17, 17, 17, 0.22);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
 .bwt-v-accent {
-  fill: var(--bwt-black);
-  stroke: var(--bwt-lime);
-  stroke-width: 1.2;
+  fill: var(--bwt-lime);
+  stroke: var(--bwt-ink);
+  stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
 .bwt-v-dot {
-  fill: var(--bwt-lime);
+  fill: var(--bwt-ink);
 }
 
 .bwt-v-row {
-  fill: rgba(255, 255, 255, 0.06);
+  fill: rgba(17, 17, 17, 0.05);
 }
 
 .bwt-v-text {
-  stroke: rgba(255, 255, 255, 0.24);
+  stroke: rgba(17, 17, 17, 0.18);
   stroke-width: 4;
   stroke-linecap: round;
 }
 
 .bwt-v-label {
-  fill: rgba(255, 255, 255, 0.62);
+  fill: rgba(17, 17, 17, 0.66);
   font-family: var(--font-secondary);
   font-size: 12px;
 }
 
-/* A short lime dash travelling along its path; runs only inside .is-live. */
+/* A short ink dash travelling along its path; runs only inside .is-live. */
 .bwt-v-signal {
   fill: none;
-  stroke: var(--bwt-lime);
+  stroke: var(--bwt-ink);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-dasharray: 0.07 1.4;
@@ -299,7 +317,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 }
 
 .bwt-v-bar {
-  fill: rgba(255, 255, 255, 0.18);
+  fill: rgba(17, 17, 17, 0.12);
   transform-box: fill-box;
   transform-origin: bottom;
   animation: bwt-bar 3.2s ease-in-out infinite alternate;
@@ -308,6 +326,9 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 
 .bwt-v-bar.is-lime {
   fill: var(--bwt-lime);
+  stroke: var(--bwt-ink);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .is-live .bwt-v-bar {
@@ -320,6 +341,52 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
   }
   to {
     transform: scaleY(1);
+  }
+}
+
+/* ------------------------------------------------------------ ribbon -- */
+
+/* One flat lime ribbon through the whole page (RibbonTrace). Both layers
+   span the page; the front one is clipped to a few zones over visuals. */
+.bwt-ribbon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bwt-ribbon--back {
+  z-index: 0;
+}
+
+.bwt-ribbon--front {
+  z-index: 2;
+}
+
+.bwt-ribbon__path {
+  fill: none;
+  stroke: var(--bwt-lime);
+  /* A supporting stroke, never heavier than the hero type: ≤ 58px. */
+  stroke-width: clamp(28px, 3.5vw, 58px);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Hidden until the first scroll draws it (RibbonTrace). */
+  visibility: hidden;
+}
+
+@media (max-width: 1023px) {
+  .bwt-ribbon__path {
+    stroke-width: clamp(24px, 4vw, 42px);
+  }
+}
+
+@media (max-width: 767px) {
+  .bwt-ribbon__path {
+    stroke-width: clamp(18px, 6vw, 30px);
   }
 }
 
@@ -362,16 +429,16 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 .bwt-hero__title {
   max-width: 11.5em;
   margin-top: 26px;
-  font-size: clamp(52px, 6vw, 84px);
-  line-height: 0.98;
+  font-size: clamp(48px, 6vw, 88px);
+  line-height: 0.96;
   letter-spacing: -0.045em;
 }
 
 .bwt-hero__copy {
-  max-width: 34em;
+  max-width: 32em;
   margin-top: clamp(24px, 2.6vw, 36px);
   color: var(--bwt-muted);
-  font-size: clamp(16px, 1.25vw, 18px);
+  font-size: clamp(16px, 1.3vw, 20px);
   line-height: 1.6;
 }
 
@@ -388,7 +455,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 /* ------------------------------------------------------------ 02 intro -- */
 
 .bwt-intro {
-  padding-block: clamp(120px, 14vw, 200px) clamp(100px, 10vw, 150px);
+  padding-block: clamp(96px, 11vw, 170px) clamp(80px, 8vw, 130px);
 }
 
 .bwt-intro__grid {
@@ -413,19 +480,18 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 }
 
 .bwt-intro__copy {
-  max-width: 40em;
+  max-width: 36em;
   margin-top: clamp(32px, 3.6vw, 52px);
   margin-left: auto;
   color: var(--bwt-muted);
-  font-size: clamp(16px, 1.2vw, 18px);
+  font-size: clamp(16px, 1.3vw, 20px);
   line-height: 1.65;
 }
 
 /* ------------------------------------------------------ 03 capabilities -- */
 
 .bwt-caps {
-  padding-block: clamp(110px, 11vw, 160px) clamp(130px, 13vw, 190px);
-  border-top: 1px solid var(--bwt-line);
+  padding-block: clamp(88px, 9vw, 140px) clamp(110px, 11vw, 170px);
 }
 
 .bwt-caps__head {
@@ -465,7 +531,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
   left: 0;
   width: 100%;
   height: 1px;
-  background: var(--bwt-lime);
+  background: var(--bwt-ink);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.7s var(--bwt-ease);
@@ -483,11 +549,11 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 }
 
 .bwt-cap.is-active .bwt-cap__num {
-  color: var(--bwt-lime);
+  color: var(--bwt-ink);
 }
 
 .bwt-cap__text h3 {
-  color: rgba(255, 255, 255, 0.44);
+  color: rgba(17, 17, 17, 0.36);
   transition: color 0.5s ease;
 }
 
@@ -501,23 +567,26 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 }
 
 .bwt-cap.is-active h3 {
-  color: #fff;
+  color: var(--bwt-ink);
 }
 
 .bwt-cap.is-active p {
   color: var(--bwt-muted);
 }
 
+/* A solid paper panel: the ribbon slips behind it and out the other side. */
 .bwt-caps__visual {
   position: sticky;
   top: 14svh;
   height: min(72svh, 640px);
+  background: var(--bwt-soft);
+  border-radius: 4px;
 }
 
 
 .bwt-cap-visual {
   position: absolute;
-  inset: 64px 0 0;
+  inset: clamp(28px, 3.4vw, 52px);
   opacity: 0;
   transform: translateY(18px);
   clip-path: inset(0 0 14% 0);
@@ -538,7 +607,6 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 .bwt-story {
   position: relative;
   height: 320svh;
-  border-top: 1px solid var(--bwt-line);
 }
 
 .bwt-story__stage {
@@ -586,7 +654,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 .bwt-story__line {
   max-width: 26em;
   color: var(--bwt-muted);
-  font-size: clamp(16px, 1.2vw, 18px);
+  font-size: clamp(16px, 1.3vw, 20px);
   line-height: 1.6;
 }
 
@@ -608,7 +676,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 
 .bwt-story__signal {
   fill: none;
-  stroke: var(--bwt-lime);
+  stroke: var(--bwt-ink);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-dasharray: 0.08 1.4;
@@ -618,21 +686,20 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 
 .bwt-story__ring {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.35);
+  stroke: rgba(17, 17, 17, 0.4);
   stroke-width: 1;
   stroke-dasharray: 1 2;
   vector-effect: non-scaling-stroke;
 }
 
 .bwt-story__think {
-  fill: rgba(255, 255, 255, 0.82);
+  fill: var(--bwt-ink);
 }
 
 /* ---------------------------------------------------------- 05 workflow -- */
 
 .bwt-flow {
-  padding-block: clamp(130px, 14vw, 200px) clamp(110px, 11vw, 170px);
-  border-top: 1px solid var(--bwt-line);
+  padding-block: clamp(96px, 11vw, 170px) clamp(96px, 10vw, 150px);
 }
 
 .bwt-flow__head h2 {
@@ -662,7 +729,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
   z-index: 1;
   width: 14px;
   height: 14px;
-  border: 1px solid var(--bwt-lime);
+  border: 1px solid var(--bwt-ink);
   border-radius: 50%;
   background: var(--bwt-lime);
 }
@@ -676,7 +743,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 
 .bwt-step__label {
   max-width: 10em;
-  color: #fff;
+  color: var(--bwt-ink);
   font-size: clamp(14px, 1.1vw, 16px);
   line-height: 1.4;
 }
@@ -706,11 +773,11 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 }
 
 .bwt-flow__base {
-  stroke: rgba(255, 255, 255, 0.16);
+  stroke: rgba(17, 17, 17, 0.14);
 }
 
 .bwt-flow__progress {
-  stroke: var(--bwt-lime);
+  stroke: var(--bwt-ink);
   stroke-dasharray: 1 2;
   stroke-dashoffset: 0;
 }
@@ -723,15 +790,14 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--bwt-lime);
+  background: var(--bwt-ink);
   transform: translate(-50%, -50%);
 }
 
 /* -------------------------------------------------------------- 06 data -- */
 
 .bwt-data {
-  padding-block: clamp(120px, 12vw, 180px);
-  background: var(--bwt-charcoal);
+  padding-block: clamp(96px, 10vw, 160px);
 }
 
 .bwt-data__grid {
@@ -750,13 +816,15 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
   max-width: 30em;
   margin-top: clamp(24px, 2.6vw, 36px);
   color: var(--bwt-muted);
-  font-size: clamp(16px, 1.2vw, 18px);
+  font-size: clamp(16px, 1.3vw, 20px);
   line-height: 1.6;
 }
 
+/* The dashboard is a solid paper panel the ribbon passes behind. */
 .bwt-dash {
-  padding: 22px 0 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  padding: clamp(22px, 2.4vw, 34px) clamp(22px, 2.6vw, 40px) clamp(8px, 1vw, 14px);
+  border-radius: 4px;
+  background: var(--bwt-soft);
 }
 
 
@@ -790,8 +858,11 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 }
 
 .bwt-dash__change {
-  color: var(--bwt-lime);
-  font-size: 15px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--bwt-lime);
+  color: var(--bwt-ink);
+  font-size: 14px;
   letter-spacing: 0;
 }
 
@@ -805,7 +876,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 
 .bwt-dash__spark-line {
   fill: none;
-  stroke: var(--bwt-lime);
+  stroke: var(--bwt-ink);
   stroke-width: 1.5;
   stroke-dasharray: 1 2;
   stroke-dashoffset: 0;
@@ -849,14 +920,14 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 .bwt-dash__fill {
   display: block;
   height: 100%;
-  background: var(--bwt-lime);
+  background: var(--bwt-ink);
   transform-origin: left;
 }
 
 /* --------------------------------------------------------------- 07 ERP -- */
 
 .bwt-erp {
-  padding-block: clamp(140px, 15vw, 210px) clamp(100px, 10vw, 150px);
+  padding-block: clamp(110px, 12vw, 180px) clamp(96px, 10vw, 150px);
 }
 
 .bwt-erp__grid {
@@ -875,7 +946,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
   max-width: 30em;
   margin-top: clamp(24px, 2.6vw, 36px);
   color: var(--bwt-muted);
-  font-size: clamp(16px, 1.2vw, 18px);
+  font-size: clamp(16px, 1.3vw, 20px);
   line-height: 1.6;
 }
 
@@ -895,7 +966,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 }
 
 .bwt-erp__core {
-  fill: #fff;
+  fill: var(--bwt-ink);
   font-size: 14px;
 }
 
@@ -913,8 +984,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 /* ----------------------------------------------------------- 08 Evolkun -- */
 
 .bwt-partner {
-  padding-block: clamp(130px, 13vw, 190px);
-  background: #000;
+  padding-block: clamp(110px, 12vw, 180px) clamp(120px, 13vw, 200px);
 }
 
 .bwt-partner__rule {
@@ -922,12 +992,13 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
   width: 72px;
   height: 1px;
   margin-bottom: 32px;
-  background: var(--bwt-lime);
+  background: var(--bwt-ink);
 }
 
 .bwt-page .bwt-partner__title {
+  max-width: 14em;
   margin-top: 20px;
-  font-size: clamp(44px, 5.4vw, 80px);
+  font-size: clamp(44px, 6vw, 92px);
   line-height: 1;
   letter-spacing: -0.045em;
 }
@@ -945,7 +1016,7 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 .bwt-partner__copy {
   max-width: 34em;
   color: var(--bwt-muted);
-  font-size: clamp(16px, 1.2vw, 18px);
+  font-size: clamp(16px, 1.3vw, 20px);
   line-height: 1.6;
 }
 

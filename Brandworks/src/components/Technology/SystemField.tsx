@@ -41,7 +41,9 @@ type Edge = {
 /** Nodes per column of the organised system, inputs → outputs. */
 const LAYERS = [5, 7, 9, 7, 5]
 const SMOOTHING = 0.12
-const LIME = '204, 255, 0'
+const LIME = '206, 253, 16'
+/** Drawn on the white page: structure in ink, lime only as filled signal discs. */
+const INK = '17, 17, 17'
 
 function seeded(seed: number) {
   let s = seed
@@ -161,8 +163,8 @@ export default function SystemField({ progress, reducedMotion, className }: Syst
         const [bx, by] = pos[e.b]
         const live = e.rnd < signalDensity && drawn >= 1
         ctx.strokeStyle = live
-          ? `rgba(${LIME}, ${0.14 + organise * 0.16})`
-          : `rgba(255, 255, 255, ${0.08 + organise * 0.1})`
+          ? `rgba(${INK}, ${0.24 + organise * 0.2})`
+          : `rgba(${INK}, ${0.09 + organise * 0.1})`
         ctx.beginPath()
         ctx.moveTo(ax, ay)
         const steps = 14
@@ -177,13 +179,13 @@ export default function SystemField({ progress, reducedMotion, className }: Syst
         if (live) {
           const t = reducedMotion ? 0.5 + e.rnd * 0.4 : (time * e.speed + e.rnd * 7) % 1
           const [x, y] = pointOn(ax, ay, bx, by, t)
-          ctx.fillStyle = `rgba(${LIME}, 0.16)`
-          ctx.beginPath()
-          ctx.arc(x, y, 5, 0, Math.PI * 2)
-          ctx.fill()
           ctx.fillStyle = `rgb(${LIME})`
           ctx.beginPath()
-          ctx.arc(x, y, 1.7, 0, Math.PI * 2)
+          ctx.arc(x, y, 4.5, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.fillStyle = `rgb(${INK})`
+          ctx.beginPath()
+          ctx.arc(x, y, 1.6, 0, Math.PI * 2)
           ctx.fill()
         }
       }
@@ -194,15 +196,22 @@ export default function SystemField({ progress, reducedMotion, className }: Syst
         const [x, y] = pos[i]
         if (n.core && p > 0.5) {
           const ring = clamp01((p - 0.5) / 0.2)
-          ctx.strokeStyle = `rgba(${LIME}, ${0.5 * ring})`
+          ctx.strokeStyle = `rgba(${INK}, ${0.55 * ring})`
           ctx.beginPath()
           ctx.arc(x, y, 8 + ring * 6, 0, Math.PI * 2)
           ctx.stroke()
         }
         const output = n.layer === LAYERS.length - 1 && complete > 0
+        if (output) {
+          // Finished outputs: a lime disc with an ink core.
+          ctx.fillStyle = `rgba(${LIME}, ${complete})`
+          ctx.beginPath()
+          ctx.arc(x, y, n.size + 3.5 * complete, 0, Math.PI * 2)
+          ctx.fill()
+        }
         ctx.fillStyle = n.core || output
-          ? `rgba(${LIME}, ${n.core ? 0.95 : 0.35 + complete * 0.6})`
-          : `rgba(255, 255, 255, ${0.32 + organise * 0.5})`
+          ? `rgb(${INK})`
+          : `rgba(${INK}, ${0.3 + organise * 0.45})`
         ctx.beginPath()
         ctx.arc(x, y, n.core ? 3.4 : n.size, 0, Math.PI * 2)
         ctx.fill()
