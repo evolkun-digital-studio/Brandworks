@@ -101,7 +101,7 @@
   outline-offset: 2px;
 }
 
-/* Label and count across the top, clear of the camera island. */
+/* Label across the top, clear of the camera island. */
 .reel-feed-chrome {
   position: absolute;
   z-index: 2;
@@ -132,35 +132,4 @@
   height: 1.7cqw;
   border-radius: 999px;
   background: var(--color-bw-lime);
-}
-
-.reel-feed-chrome__count {
-  display: inline-flex;
-  gap: 0.35em;
-  font-variant-numeric: tabular-nums;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-/* The current number rolls up behind a mask when the reel changes. */
-.reel-feed-chrome__index {
-  display: inline-block;
-  overflow: hidden;
-  color: #fff;
-}
-
-.reel-feed-chrome__digits {
-  display: inline-block;
-  animation: reel-count-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes reel-count-in {
-  from {
-    transform: translateY(110%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reel-feed-chrome__digits {
-    animation: none;
-  }
 }

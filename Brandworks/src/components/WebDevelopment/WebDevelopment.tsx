@@ -11,7 +11,6 @@ import './WebDevelopment.css'
 gsap.registerPlugin(ScrollTrigger)
 
 const TOTAL = WEB_PROJECTS.length
-const pad = (n: number) => String(n).padStart(2, '0')
 
 /** Enough room for the pinned stage to read as a stage; smaller screens stack. */
 const CINEMATIC = '(min-width: 768px) and (min-height: 560px)'
@@ -195,8 +194,6 @@ function WebDevelopment() {
           time += PASS
         })
 
-        reel.fromTo(q('.wdr-progress__fill'), { scaleX: 0 }, { scaleX: 1, duration: time }, 0)
-
         return () => {
           gsap.killTweensOf(allLines)
           gsap.set(allLines, { clearProps: 'transform' })
@@ -277,14 +274,6 @@ function WebDevelopment() {
         {/* One caption rule for the stage, rather than one per stacked
             project — those would stay drawn over the work beneath them. */}
         <span className="wdr-caption-rule wdr-chrome" aria-hidden="true" />
-
-        <div className="wdr-progress wdr-chrome" aria-hidden="true">
-          <span>01</span>
-          <span className="wdr-progress__track">
-            <span className="wdr-progress__fill" />
-          </span>
-          <span>{pad(TOTAL)}</span>
-        </div>
       </div>
     </section>
   )

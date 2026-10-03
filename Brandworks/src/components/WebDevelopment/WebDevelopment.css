@@ -142,8 +142,7 @@
 }
 
 .wdr-window,
-.wdr-caption-rule,
-.wdr-progress {
+.wdr-caption-rule {
   display: none;
 }
 
@@ -484,36 +483,4 @@
   right: var(--wdr-side);
   height: 1px;
   background: var(--wdr-rule);
-}
-
-.wdr.is-cinematic .wdr-progress {
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  position: absolute;
-  left: var(--wdr-side);
-  right: var(--wdr-side);
-  /* Near the stage's foot, but never far below the caption (portrait). */
-  bottom: max(clamp(20px, 4svh, 40px), calc(var(--wdr-bottom) - 150px));
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  font-variant-numeric: tabular-nums;
-  color: var(--wdr-faint);
-}
-
-.wdr-progress__track {
-  position: relative;
-  flex: 1;
-  height: 1px;
-  background: var(--wdr-rule);
-}
-
-.wdr-progress__fill {
-  position: absolute;
-  inset: 0;
-  background: var(--color-bw-lime);
-  transform-origin: left center;
 }

@@ -95,25 +95,6 @@ function Photo({
   )
 }
 
-/** Local, original adaptation of Animate UI's sliding-counter motion pattern. */
-function FrameCounter({ value, reduced }: { value: number; reduced: boolean }) {
-  return (
-    <span className="bwp-counter" aria-hidden="true">
-      <AnimatePresence initial={false} mode="popLayout">
-        <motion.span
-          key={value}
-          initial={{ y: reduced ? 0 : '100%', opacity: reduced ? 1 : 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: reduced ? 0 : '-100%', opacity: 0 }}
-          transition={{ duration: reduced ? 0 : 0.38, ease: EASE }}
-        >
-          {String(value).padStart(2, '0')}
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  )
-}
-
 /**
  * A real modal, rather than a visually modal div: native focus containment and
  * background inertness, Escape, focus restoration, scroll locking and exit motion.
@@ -203,7 +184,6 @@ function SelectedPhotography({ onOpen }: { onOpen: OpenPhotograph }) {
   const sectionRef = useRef<HTMLElement>(null)
   const activeRef = useRef(0)
   const [active, setActive] = useState(0)
-  const reduced = Boolean(useReducedMotion())
 
   useGSAP(() => {
     const section = sectionRef.current
@@ -215,7 +195,6 @@ function SelectedPhotography({ onOpen }: { onOpen: OpenPhotograph }) {
       () => {
         const layers = gsap.utils.toArray<HTMLElement>('[data-bwp-layer]', section)
         const rows = gsap.utils.toArray<HTMLElement>('[data-bwp-chapter]', section)
-        const progress = section.querySelector<HTMLElement>('[data-bwp-progress]')
         if (layers.length < 2 || rows.length !== layers.length) return
 
         // Progressive enhancement: without this class, every photo is inline.
@@ -260,12 +239,6 @@ function SelectedPhotography({ onOpen }: { onOpen: OpenPhotograph }) {
             )
           }
         })
-        if (progress) {
-          timeline.fromTo(progress,
-            { scaleX: 1 / layers.length },
-            { scaleX: 1, duration: last, transformOrigin: 'left center' }, 0,
-          )
-        }
 
         return () => {
           section.classList.remove('bwp-story--enhanced')
@@ -298,11 +271,6 @@ function SelectedPhotography({ onOpen }: { onOpen: OpenPhotograph }) {
                   </div>
                 </div>
               ))}
-            </div>
-            <div className="bwp-story-meter">
-              <FrameCounter value={active + 1} reduced={reduced} />
-              <span className="bwp-story-track"><span data-bwp-progress /></span>
-              <span>{String(photographs.length).padStart(2, '0')}</span>
             </div>
           </div>
           <div className="bwp-story-chapters">

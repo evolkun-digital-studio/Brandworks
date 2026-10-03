@@ -297,19 +297,11 @@ function ReelFeed({ reels, label }: { reels: SocialReel[]; label: string }) {
         ))}
       </div>
 
-      {/* Screen chrome above the reels: status dot, label and the count. */}
+      {/* Screen chrome above the reels: status dot and label. */}
       <div className="reel-feed-chrome" aria-hidden="true">
         <span className="reel-feed-chrome__label">
           <span className="reel-feed-chrome__dot" />
           {label}
-        </span>
-        <span className="reel-feed-chrome__count">
-          <span className="reel-feed-chrome__index">
-            <span key={active} className="reel-feed-chrome__digits">
-              {pad(active + 1)}
-            </span>
-          </span>
-          <span className="reel-feed-chrome__total">/ {pad(reels.length)}</span>
         </span>
       </div>
 

@@ -359,40 +359,6 @@
   inset: 0;
   overflow: hidden;
 }
-.bwp-story-meter {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-top: 17px;
-  color: var(--bwp-silver);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-.bwp-story-track {
-  display: block;
-  position: relative;
-  flex: 1;
-  height: 1px;
-  background: var(--bwp-graphite);
-}
-.bwp-story-track > span {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: var(--bwp-lime);
-  transform-origin: left;
-}
-.bwp-counter {
-  display: inline-grid;
-  overflow: hidden;
-  width: 2.3ch;
-  height: 1.4em;
-  line-height: 1.4;
-}
-.bwp-counter > span {
-  display: block;
-  grid-area: 1 / 1;
-}
 
 @media (min-width: 1024px) and (min-height: 680px) and (prefers-reduced-motion: no-preference) {
   .bwp-story--enhanced .bwp-story-grid {

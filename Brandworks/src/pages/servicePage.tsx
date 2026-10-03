@@ -499,20 +499,14 @@ export default function ServicesPage() {
                 />
               </div>
 
-              <div className="mt-5 flex items-start justify-between gap-5">
-                <div>
-                  <p className="text-sm font-medium">
-                    {activeService.title}
-                  </p>
+              <div className="mt-5">
+                <p className="text-sm font-medium">
+                  {activeService.title}
+                </p>
 
-                  <p className="mt-1 text-xs text-neutral-500">
-                    {activeService.group}
-                  </p>
-                </div>
-
-                <span className="text-xs text-neutral-400">
-                  {activeService.number} / 10
-                </span>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {activeService.group}
+                </p>
               </div>
             </div>
           </aside>

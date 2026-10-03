@@ -69,7 +69,6 @@ export default function BrandStatementPrecision() {
         const wordHearWrap = '.bw2-hear-wrap'
         const wordUnderstandWrap = '.bw2-understand-wrap'
 
-        const counter = '.bw2-counter'
         const finalStatement = '.bw2-final'
         const finalLine = '.bw2-final-line'
 
@@ -100,10 +99,6 @@ export default function BrandStatementPrecision() {
 
         gsap.set([wordHearWrap, wordUnderstandWrap], {
           autoAlpha: 0,
-        })
-
-        gsap.set(counter, {
-          opacity: 0,
         })
 
         gsap.set(finalStatement, {
@@ -173,15 +168,6 @@ export default function BrandStatementPrecision() {
           0.28
         )
 
-        tl.to(
-          counter,
-          {
-            opacity: 1,
-            duration: 0.45,
-          },
-          0.5
-        )
-
         // intro leaves
         tl.to(
           [introTop, introBottom],
@@ -215,16 +201,6 @@ export default function BrandStatementPrecision() {
             scale: 1,
             duration: 0.95,
             ease: 'expo.out',
-          },
-          1.8
-        )
-
-        tl.to(
-          '.bw2-counter-current',
-          {
-            textContent: '01',
-            snap: { textContent: 1 },
-            duration: 0.1,
           },
           1.8
         )
@@ -305,16 +281,6 @@ export default function BrandStatementPrecision() {
         )
 
         tl.to(
-          '.bw2-counter-current',
-          {
-            textContent: '02',
-            snap: { textContent: 1 },
-            duration: 0.1,
-          },
-          3.35
-        )
-
-        tl.to(
           wordHear,
           {
             yPercent: 112,
@@ -379,16 +345,6 @@ export default function BrandStatementPrecision() {
           5
         )
 
-        tl.to(
-          '.bw2-counter-current',
-          {
-            textContent: '03',
-            snap: { textContent: 1 },
-            duration: 0.1,
-          },
-          4.9
-        )
-
         // -------------------------------------------------
         // 05 — RESET + FINAL SENTENCE
         // -------------------------------------------------
@@ -405,7 +361,7 @@ export default function BrandStatementPrecision() {
         )
 
         tl.to(
-          [eyebrow, counter],
+          eyebrow,
           {
             opacity: 0,
             duration: 0.45,
@@ -635,21 +591,6 @@ export default function BrandStatementPrecision() {
           height: 5px;
           border-radius: 50%;
           background: #fff;
-        }
-
-        .bw2-counter {
-          display: flex;
-          align-items: baseline;
-          gap: 4px;
-
-          font-size: 10px;
-          line-height: 1;
-          letter-spacing: 0.12em;
-          color: rgba(255, 255, 255, 0.7);
-        }
-
-        .bw2-counter-current {
-          color: #fff;
         }
 
         /* ---------------------------------------
@@ -915,12 +856,6 @@ export default function BrandStatementPrecision() {
           </div>
 
           <div className="bw2-shell">
-
-         y   <div className="bw2-counter">
-              <span className="bw2-counter-current">00</span>
-              <span>/</span>
-              <span>03</span>
-            </div>
 
             {/* Intro */}
             <div className="bw2-intro">

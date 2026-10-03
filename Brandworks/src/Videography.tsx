@@ -195,7 +195,7 @@ export default function Videography() {
                   {project.line}
                 </p>
                 <span className="shrink-0 font-primary text-[8px] uppercase tracking-[0.18em] text-white/60 md:text-[9px]">
-                  {project.id} / {project.title}
+                  {project.title}
                 </span>
               </div>
             </div>

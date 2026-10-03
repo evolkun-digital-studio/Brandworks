@@ -20,7 +20,6 @@ const TOTAL = photographyImages.length
 const AUTO_CHANGE_DELAY = 3200
 const HOLD_SCROLL_SCREENS = 1
 const EXIT_SCROLL_SCREENS = 0.5
-const pad = (value: number) => String(value).padStart(2, '0')
 
 type Direction = 1 | -1
 type Viewport = 'desktop' | 'tablet' | 'mobile'
@@ -645,13 +644,6 @@ export default function PhotographyGallery() {
                       />
                     </button>
                   ))}
-                </div>
-
-                <div className="hidden h-12 min-w-[78px] items-center justify-center gap-1.5 rounded-[15px] bg-[rgba(42,28,23,0.72)] px-3 font-primary text-[9px] font-medium tracking-[0.06em] text-white backdrop-blur-xl min-[390px]:flex sm:min-w-[92px] sm:text-[10px]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#8f8a16]" aria-hidden="true" />
-                  <span>{pad(active + 1)}</span>
-                  <span className="text-white/30">/</span>
-                  <span className="text-white/55">{pad(TOTAL)}</span>
                 </div>
 
                 <button
