@@ -34,6 +34,7 @@ import AboutPage from "./pages/AboutPage/AboutPage";
 import WebsiteSectionProps from "./components/Seo";
 import ServicesPage from "./pages/servicePage";
 import CinematographyPage from "./pages/services/CinematographyPage";
+import TechnologyPage from "./pages/services/TechnologyPage";
 import PhotographyPage from "./pages/services/PhotographyPage";
 import GraphicDesignPage from "./pages/services/GraphicDesignPage";
 import SeoPage from "./pages/services/SeoPage";
@@ -139,6 +140,7 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/work" element={<WorkPage />} />
         <Route path="/services/videography" element={<CinematographyPage />} />
+        <Route path="/services/technology" element={<TechnologyPage />} />
         <Route path="/services/photography" element={<PhotographyPage />} />
         <Route path="/services/PRFounderReputationPage" element={<PRFounderReputationPage />} />
 

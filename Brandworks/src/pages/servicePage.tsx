@@ -196,21 +196,20 @@ const services: Service[] = [
   },
   {
     number: '10',
-    slug: 'web-design-development',
-    title: 'Web Design & Development',
-    shortTitle: 'Technology',
+    slug: 'technology',
+    title: 'Technology',
     group: 'Technology',
     description:
-      'High-performance websites and digital experiences combining UX, interface design, frontend development and technical SEO.',
+      'AI agents, business automation, dashboards, ERP and custom systems designed around the way a business actually operates.',
     capabilities: [
-      'UX & UI Design',
-      'Website Design',
-      'Frontend Development',
-      'Technical Performance',
+      'AI Agents & Automation',
+      'Workflow Automation',
+      'Data & Dashboards',
+      'ERP & Custom Systems',
     ],
     image: photo10,
     imageAlt:
-      'Web design and website development work by BrandWorks',
+      'Technology, AI and business automation services by BrandWorks',
   },
 ]
 
@@ -245,7 +244,7 @@ const serviceGroups = [
   {
     name: 'Technology',
     description:
-      'Digital experiences designed and developed around clarity, usability and performance.',
+      'AI, automation and custom systems built around the way the business works.',
   },
 ]
 
