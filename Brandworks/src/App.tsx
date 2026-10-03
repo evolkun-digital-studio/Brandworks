@@ -8,37 +8,39 @@ import {
   setLinkTag,
   setMetaTag,
 } from "./blog/lib/documentHead";
-import Hero from "./Hero";
-import BrandStatement from "./HumanLedBrandIntelligence";
-import Services from "./Services";
-import About from "./About";
-import Photography from "./Work";
-import Work from "./WorkWithImpact";
+import Hero from "./components/Hero/Hero";
+import BrandStatement from "./components/HumanLedBrandIntelligence";
+import Services from "./components/Service/Services";
+import About from "./components/About";
+import Photography from "./components/Photography";
+import Work from "./components/WorkWithImpact";
 
-import Videography from "./Videography";
+import Videography from "./components/Videography";
 import GraphicsMotionExperience from "./components/GraphicsMotion/GraphicsMotionExperience";
-import PRReputation from "./PRReputation";
+import PRReputation from "./components/PrReputation";
 import SocialMedia from "./components/SocialMedia/SocialMedia";
 import WebDevelopment from "./components/WebDevelopment/WebDevelopment";
 // import Photography from './Photography'
-import Capabilities from "./Capabilities";
-import Results from "./Results";
-import FAQs from "./FAQs";
-import Industries from "./Industries";
-import Testimonials from "./Testimonials";
+import Capabilities from "./components/Capabilities";
+import Results from "./components/Results";
+import FAQs from "./components/Faq/FAQs";
+import Industries from "./components/Industries";
+import Testimonials from "./components/Testimonial/Testimonials";
 import {
   EditorialArticlePage,
   EditorialIndexPage,
 } from "./editorial/EditorialPages";
 import NotFound from "./NotFound";
-import AboutPage from "./components/AboutPage/AboutPage";
-import WebsiteSectionProps from "./Seo";
+import AboutPage from "./pages/AboutPage/AboutPage";
+import WebsiteSectionProps from "./components/Seo";
 import ServicesPage from "./pages/servicePage";
 import CinematographyPage from "./pages/services/CinematographyPage";
 import PhotographyPage from "./pages/services/PhotographyPage";
 import GraphicDesignPage from "./pages/services/GraphicDesignPage";
 import SeoPage from "./pages/services/SeoPage";
+import SocialMediaPage from "./pages/services/SocialMediaPage";
 import ContactPage from "./pages/ContactPage";
+import WorkPage from "./pages/WorkPage";
 // Route-level code splitting (Phase 10, Part 13): AdminRoutes pulls in
 // the entire CMS — react-markdown's admin preview, the SEO analyzer,
 // every admin page — none of which a public visitor has any reason to
@@ -119,9 +121,9 @@ export function Home() {
       <WebsiteSectionProps />
       <Capabilities />
       <Results />
+      <Industries />
       <FAQs />
       {/* <Blog /> */}
-      <Industries />
       <Testimonials />
     </main>
   );
@@ -135,10 +137,12 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/work" element={<WorkPage />} />
         <Route path="/services/videography" element={<CinematographyPage />} />
         <Route path="/services/photography" element={<PhotographyPage />} />
         <Route path="/services/graphic-design" element={<GraphicDesignPage />} />
         <Route path="/services/seo" element={<SeoPage />} />
+        <Route path="/services/social-media" element={<SocialMediaPage />} />
         <Route path="/blog" element={<EditorialIndexPage kind="blog" />} />
         <Route
           path="/blog/:slug"

@@ -1,15 +1,14 @@
-import { mediaUrl } from './media'
 import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import './Header.css'
 
-const LOGO_SRC = mediaUrl("brandworkLogo.png")
+const LOGO_SRC = '/brandworks.svg'
 
 const navLinks:{ label: string; href: string }[] = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Services', href: '/services' },
-  { label: 'Work', href: '#' },
+  { label: 'Work', href: '/work' },
   { label: 'Insights', href: '/blog' },
 ]
 

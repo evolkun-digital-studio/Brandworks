@@ -1,4 +1,4 @@
-import { mediaUrl } from '../../media'
+import { mediaUrl } from '../../lib/media'
 import { useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'

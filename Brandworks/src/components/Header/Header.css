@@ -50,9 +50,9 @@
   --cta-border: #111;
 }
 
-/* Always preserve the supplied BrandWorks artwork's original colors. */
+/* Preserve the supplied artwork's colors without placing it inside a pill. */
 .site-header__logo {
-  filter: none;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.24));
 }
 
 .nav-pill {
@@ -84,22 +84,56 @@
   background: var(--pill-bg-hover);
 }
 
+/* A neutral smoky tint prevents the glass from disappearing over white while
+   the light inner edge keeps it defined over dark photography and video. */
+.nav-pill:not(.nav-pill--cta) {
+  border-color: rgba(255, 255, 255, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.04) 48%),
+    rgba(12, 14, 16, 0.38);
+  color: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  -webkit-backdrop-filter: blur(18px) saturate(155%);
+  backdrop-filter: blur(18px) saturate(155%);
+  mix-blend-mode: normal;
+}
+
+.nav-pill:not(.nav-pill--cta):hover {
+  border-color: rgba(255, 255, 255, 0.56);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.06) 48%),
+    rgba(12, 14, 16, 0.52);
+}
+
 .nav-pill--cta {
   height: 35px;
   padding: 0 20px;
-  border-color: var(--cta-border);
-  background: var(--cta-bg);
-  color: var(--cta-ink);
+  border-color: rgba(255, 255, 255, 0.42);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.04) 48%),
+    rgba(8, 10, 12, 0.66);
+  color: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.14),
+    0 8px 24px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.26);
+  -webkit-backdrop-filter: blur(18px) saturate(155%);
+  backdrop-filter: blur(18px) saturate(155%);
+  mix-blend-mode: normal;
 }
 
 .nav-pill--cta:hover {
-  border-color: var(--cta-bg-hover);
-  background: var(--cta-bg-hover);
-  color: var(--cta-ink-hover);
+  border-color: rgba(221, 255, 102, 0.9);
+  background: rgba(204, 255, 0, 0.9);
+  color: #111;
 }
 
 .nav-pill:focus-visible {
-  outline: 2px solid var(--pill-ink);
+  outline: 2px solid currentColor;
   outline-offset: 3px;
 }
 

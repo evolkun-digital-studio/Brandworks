@@ -1,4 +1,3 @@
-import { mediaUrl } from './media'
 import { forwardRef, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
@@ -20,25 +19,25 @@ const VIDEO_PROJECTS: VideoProject[] = [
     id: "01",
     title: "Brand Film",
     line: "Ideas, given movement.",
-    src: mediaUrl("CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4"),
+    src: "/video/CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4",
   },
   {
     id: "02",
     title: "Campaign Film",
     line: "Rhythm becomes direction.",
-    src: mediaUrl("Central Cee - Obsessed With You (Official Video).mp4"),
+    src: "/video/Central Cee - Obsessed With You (Official Video).mp4",
   },
   {
     id: "03",
     title: "Visual Story",
     line: "Every frame carries intent.",
-    src: mediaUrl("Idea - Cinematic Video _ Shot on Canon EOS250D.mp4"),
+    src: "/video/Idea - Cinematic Video _ Shot on Canon EOS250D.mp4",
   },
   {
     id: "04",
     title: "Creative Film",
     line: "The story keeps moving.",
-    src: mediaUrl("CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4"),
+    src: "/video/CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4",
   },
 ];
 
@@ -1176,7 +1175,6 @@ export default function Videography() {
           ref={introRef}
           className="pointer-events-none absolute inset-0 z-10"
         >
-
           <div className="absolute inset-x-[4vw] top-1/2 -translate-y-1/2 md:inset-x-[5vw]">
             <h2 id="videography-heading" className="sr-only">
               Cinemato graphy
@@ -1437,7 +1435,7 @@ export default function Videography() {
               aria-hidden="true"
             />
             <span className="font-primary text-[11px] font-medium tracking-[-0.01em] sm:text-[13px] max-[430px]:text-[9px]">
-              30FPS
+              60FPS
             </span>
             <span
               ref={timecodeRef}

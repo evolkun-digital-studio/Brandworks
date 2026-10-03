@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 // Content for the Graphic & Motion section (components/GraphicsMotion).
 //
 // Cards share one height and take their width from the artwork's own

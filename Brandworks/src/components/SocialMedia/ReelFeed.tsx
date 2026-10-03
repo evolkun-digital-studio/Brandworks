@@ -292,7 +292,6 @@ function ReelFeed({ reels, label }: { reels: SocialReel[]; label: string }) {
               aria-hidden="true"
             />
             <div className="social-reel__shade" aria-hidden="true" />
-            <p className="social-reel__category">{reel.category}</p>
           </article>
         ))}
       </div>

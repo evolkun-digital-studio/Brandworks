@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 // Content and media for the About page (components/AboutPage).
 //
 // Every line of copy and every photograph the page shows lives here, so
@@ -205,8 +205,64 @@ export const ABOUT_TEAM = {
       },
     },
     {
+      name: 'Rahul Koli',
+      role: 'Full-Stack Developer',
+      speciality: 'Campaign stills and brand films',
+      ratio: '3/4',
+      image: {
+        src: portrait03,
+        srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
+        width: 904,
+        height: 1200,
+        alt: 'Portrait of Rahul',
+        position: '50% 30%',
+      },
+    },
+    {
+      name: 'Navneet',
+      role: 'Frontend Developer',
+      speciality: 'Campaign stills and brand films',
+      ratio: '3/4',
+      image: {
+        src: portrait03,
+        srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
+        width: 904,
+        height: 1200,
+        alt: 'Portrait of Rahul',
+        position: '50% 30%',
+      },
+    },
+    {
+      name: 'Shreeya',
+      role: 'Graphic designer',
+      speciality: 'Campaign stills and brand films',
+      ratio: '3/4',
+      image: {
+        src: portrait03,
+        srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
+        width: 904,
+        height: 1200,
+        alt: 'Portrait of Rahul',
+        position: '50% 30%',
+      },
+    },
+    {
+      name: 'Nidhi',
+      role: 'Graphic Designer',
+      speciality: 'Campaign stills and brand films',
+      ratio: '3/4',
+      image: {
+        src: portrait03,
+        srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
+        width: 904,
+        height: 1200,
+        alt: 'Portrait of Rahul',
+        position: '50% 30%',
+      },
+    },
+    {
       name: 'Ujjwal',
-      role: 'Design & Motion',
+      role: 'Video Editor',
       speciality: 'Identity systems and animation',
       ratio: '4/5',
       image: {

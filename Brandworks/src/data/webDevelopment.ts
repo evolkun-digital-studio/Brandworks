@@ -1,4 +1,4 @@
-import { mediaUrl } from '../media'
+import { mediaUrl } from '../lib/media'
 // Web Design & Development — the homepage "digital reel"
 // (components/WebDevelopment). Content only: the component reads this and
 // nothing else, so replacing a project is a data edit, never a layout edit.
@@ -55,9 +55,6 @@ export type WebProject = {
 export const WEB_SECTION = {
   label: 'Web Design & Development',
   heading: ['Designed to be used.', 'Built to last.'],
-  description:
-    'From structure and UX to interface, motion and development, we create digital experiences that stay clear, fast and distinctly yours.',
-  capabilities: ['Strategy', 'UX/UI', 'Development', 'CMS', 'Performance'],
 } as const
 
 export const WEB_PROJECTS: WebProject[] = [

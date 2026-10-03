@@ -1,4 +1,4 @@
-import { mediaUrl } from '../../media'
+import { mediaUrl } from '../../lib/media'
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 const backdropPoster = mediaUrl("footer-showreel-poster.webp")

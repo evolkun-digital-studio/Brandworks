@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import BlogCard from './blog/components/BlogCard'
-import { getBlogs } from './blog/api/blogApi'
-import type { PublicBlogListItem } from './blog/api/types'
+import BlogCard from '../blog/components/BlogCard'
+import { getBlogs } from '../blog/api/blogApi'
+import type { PublicBlogListItem } from '../blog/api/types'
 
 function CardSkeleton() {
   return (

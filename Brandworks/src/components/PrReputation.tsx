@@ -1,8 +1,8 @@
-import { mediaUrl } from './media'
+import { mediaUrl } from '../lib/media'
 import { motion, useReducedMotion } from 'motion/react'
 import type { Variants } from 'motion/react'
 
-import { SectionContainer } from './SectionPrimitives'
+import { SectionContainer } from '../SectionPrimitives'
 
 const MEDIA = {
   src: mediaUrl("PR.jpg"),

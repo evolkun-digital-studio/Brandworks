@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 568.76 96.45">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #49494a;
+        animation: brandworks-ink 18s ease-in-out 10s infinite;
+      }
+
+      .cls-2 {
+        fill: #fff;
+        animation: brandworks-spark 18s ease-in-out 10s infinite;
+      }
+
+      .cls-3 {
+        font-family: Grimblade, Grimblade;
+        font-size: 74.12px;
+      }
+
+      .cls-4, .cls-5 {
+        fill: #cf0;
+        animation: brandworks-accent 18s ease-in-out 10s infinite;
+      }
+
+      .cls-5 {
+        letter-spacing: -.04em;
+      }
+
+      @keyframes brandworks-ink {
+        0%, 100% { fill: #49494a; }
+        25% { fill: #2f3335; }
+        50% { fill: #737779; }
+        75% { fill: #3e433f; }
+      }
+
+      @keyframes brandworks-accent {
+        0%, 100% { fill: #cf0; }
+        25% { fill: #b8e600; }
+        50% { fill: #dcff66; }
+        75% { fill: #a6c72a; }
+      }
+
+      @keyframes brandworks-spark {
+        0%, 100% { fill: #fff; }
+        25% { fill: #eceee8; }
+        50% { fill: #dfe8c1; }
+        75% { fill: #f4f5f1; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .cls-1, .cls-2, .cls-4, .cls-5 {
+          animation: none;
+        }
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <text class="cls-3" transform="translate(161.68 70.1)"><tspan class="cls-1" x="0" y="0">Brand</tspan><tspan class="cls-5" x="198.2" y="0">W</tspan><tspan class="cls-4" x="269.06" y="0">orks</tspan></text>
+    <g>
+      <path class="cls-1" d="M61.7,9.07c1.43,2.37,2.45,5.01,3.06,7.72,2.25,9.91-2.2,19.98-11.56,24.14-.82.37-1.68.63-2.53.92-.09.03-.57.25-.57.34,0,.47,2.14.77,2.38.84,1.08.3,2.16.62,3.23.97.91.3,1.82.62,2.73.96,6.19,2.34,11.03,5.48,14.48,11.27.41.68.8,1.71,1.12,2.43,1.56,3.58,2.25,7.53,2.25,11.42,0,4.62-.73,8.95-2.16,12.44-1.17,2.87-2.44,5.11-4.58,7.18-4.68,4.9-9.84,6.74-9.84,6.74h28.78l4.04-18.27,4.32,18.27h20.18L142.66,0h-22.97l-15.08,50.7L95.28,0h-45.19c1.3.4,1.32.53,2.17.86,4.11,1.6,7.25,4.58,9.44,8.21Z"/>
+      <g>
+        <path class="cls-4" d="M65.48,70.09c0,4.62-1.24,8.86-3.32,12.21-4.62,8.73-15.26,14.15-25.27,14.15H0v-52.71h30.61c9.06.09,26.68,2.9,32.22,15.32l.03.05c1.65,3.14,2.62,6.92,2.62,10.98Z"/>
+        <path class="cls-4" d="M54.33,21.87c0,3.83-1.04,7.34-2.77,10.13-3.83,7.24-12.64,11.74-20.95,11.74H0V0h25.02C32.39,0,47.46,2.23,52.13,12.7c0,.02.02.03.03.05,1.37,2.61,2.18,5.73,2.18,9.12Z"/>
+      </g>
+      <path class="cls-2" d="M80.33,60.55s0-11.88-2.05-16.61c-1.12-2.6-10.48-2.51-10.48-2.51,0,0,9.37,0,10.48-2.37,2.09-4.45,1.93-15.87,1.93-15.87,0,0,.33,11.26,2.24,15.87.98,2.37,10.4,2.37,10.4,2.37,0,0-9.32.11-10.4,2.61-2.12,4.9-2.12,16.52-2.12,16.52Z"/>
+    </g>
+  </g>
+</svg>
