@@ -72,12 +72,12 @@ const DESKTOP: Route = {
     // Data: between the copy and the dashboard, then behind it.
     { at: '.bwt-data', x: 0.36, y: 0.3, hx: 0.24, hy: 0.16 },
     { at: '.bwt-data', x: 0.78, y: 0.62, hx: 0.06, hy: 0.3 },
-    // ERP: one large loop around the system diagram.
-    { at: '.bwt-erp', x: 0.72, y: 0.1, hx: -0.18, hy: 0.06 },
-    { at: '.bwt-erp', x: 0.5, y: 0.52, hx: 0, hy: 0.26 },
-    { at: '.bwt-erp', x: 0.74, y: 0.94, hx: 0.2, hy: 0 },
-    { at: '.bwt-erp', x: 0.97, y: 0.5, hx: 0, hy: -0.28 },
-    { at: '.bwt-erp', x: 0.7, y: 0.2, hx: -0.22, hy: 0.04 },
+    // ERP: one broad sweep through the whitespace between the dashboard and
+    // the diagram — right to left, over the diagram and the heading — then
+    // out through the left edge, re-entering only below the copy. The
+    // diagram and its labels keep ≥ ~100px of clear space; nothing crosses.
+    { at: '.bwt-erp', x: 0.4, y: 0.06, hx: -0.3, hy: 0 },
+    { at: '.bwt-erp', x: -0.14, y: 0.3, hx: -0.12, hy: 0.2 },
     // Partner: down the left behind the title, then under the copy, past
     // the call to action and out through the right edge — the ribbon never
     // ends on screen.
@@ -88,8 +88,6 @@ const DESKTOP: Route = {
   front: [
     // Over the hero's system visual (right of the copy column).
     { at: '.bwt-hero', x0: 0.6, x1: 1, y0: 0.32, y1: 0.62 },
-    // Over the lower half of the ERP diagram.
-    { at: '.bwt-erp', x0: 0.52, x1: 1, y0: 0.6, y1: 1 },
   ],
 }
 
@@ -97,7 +95,7 @@ const DESKTOP: Route = {
  * Both routes begin and end off-canvas, so the round caps are only ever
  * seen on the drawing head, never as a dead end.
  *
- * Phones: the ribbon hugs one edge at a time (dipping off-canvas) and only
+ * Phones and tablets (the stacked, one-column layout): the ribbon hugs one edge at a time (dipping off-canvas) and only
  * changes sides in the whitespace between sections — or hidden behind the
  * dashboard panel — so it never sweeps diagonally across the copy.
  */
@@ -259,10 +257,13 @@ export default function RibbonTrace({ reducedMotion }: RibbonTraceProps) {
 
       let lastKey = ''
       const rebuild = () => {
-        const mobile = window.matchMedia('(max-width: 767px)').matches
+        // The desktop route is composed around the two-column layout; below
+        // 1024px the page stacks into one column, so tablets take the
+        // simpler edge-following route too.
+        const stacked = window.matchMedia('(max-width: 1023px)').matches
         const { d, width, height, zones } = buildRoute(
           container,
-          mobile ? MOBILE : DESKTOP,
+          stacked ? MOBILE : DESKTOP,
           reducedMotion,
         )
         const key = `${d}|${zones.length}`
