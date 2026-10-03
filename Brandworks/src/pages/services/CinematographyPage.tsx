@@ -21,6 +21,8 @@ type Film = {
 
 type PortraitFilm = {
   id: string
+  /** Pexels' 720x1280 rendition: sharper than any panel gets, and light
+   *  enough to decode three at once (the originals run up to 4K/60fps). */
   src: string
   /** Opening frame, shown until the clip can play. Pexels serves some of
    *  these as fragmented MP4s whose first frame sits several MB in, so
@@ -69,17 +71,17 @@ const SECTIONS: Section[] = [
     films: [
       {
         id: 'vertical-01',
-        src: 'https://www.pexels.com/download/video/20514305/',
+        src: 'https://www.pexels.com/download/video/20514305/?w=720&h=1280',
         poster: '/posters/vertical-20514305.jpg',
       },
       {
         id: 'vertical-02',
-        src: 'https://www.pexels.com/download/video/25899561/',
+        src: 'https://www.pexels.com/download/video/25899561/?w=720&h=1280',
         poster: '/posters/vertical-25899561.jpg',
       },
       {
         id: 'vertical-03',
-        src: 'https://www.pexels.com/download/video/31636370/',
+        src: 'https://www.pexels.com/download/video/31636370/?w=720&h=1280',
         poster: '/posters/vertical-31636370.jpg',
       },
     ],
@@ -248,7 +250,7 @@ export default function CinematographyPage() {
       gsap.set(media.slice(1).filter(Boolean), { yPercent: -MEDIA_DRIFT })
 
       // Playback follows the *rendered* positions (driven from the scrubbed
-      // timeline's own updates), so it never lags behind the scrub smoothing.
+      // timeline's own updates), so it never lags behind the scroll.
       const playing = new Set<number>()
       let inView = true
       const syncPlayback = () => {
@@ -355,7 +357,9 @@ export default function CinematographyPage() {
         pin: true,
         pinSpacing: true,
         anticipatePin: 1,
-        scrub: 0.6,
+        // Lenis (SmoothScroll) already eases the scroll itself; scrubbing
+        // straight to it avoids a second layer of lag on top of that glide.
+        scrub: true,
         invalidateOnRefresh: true,
       })
 

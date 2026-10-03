@@ -1,0 +1,1131 @@
+/*
+ * BrandWorks Technology. Scoped to .bwt-page; the shared header and footer
+ * are untouched. Near-black and white throughout, with the BrandWorks lime
+ * reserved for signals, the selected item and hover.
+ *
+ * Every animated element's resting state here is its *final* state; the
+ * GSAP setup in TechnologyPage.tsx sets the starting states itself, so with
+ * reduced motion (or no JS) the page simply shows the finished layout.
+ */
+.bwt-page {
+  --bwt-black: #0a0a0a;
+  --bwt-charcoal: #131313;
+  --bwt-muted: rgba(255, 255, 255, 0.64);
+  --bwt-faint: rgba(255, 255, 255, 0.42);
+  --bwt-line: rgba(255, 255, 255, 0.12);
+  --bwt-lime: #ccff00;
+  --bwt-gutter: clamp(24px, 5vw, 80px);
+  --bwt-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  /* clip, not hidden: hidden would turn this into a scroll container and
+     break the sticky hero/story stages. */
+  overflow-x: clip;
+  background: var(--bwt-black);
+  color: #fff;
+  font-family: var(--font-secondary);
+  -webkit-font-smoothing: antialiased;
+}
+
+.bwt-page *,
+.bwt-page *::before,
+.bwt-page *::after {
+  box-sizing: border-box;
+}
+
+.bwt-page :where(h1, h2, h3, p, ol, ul, li, dl, dt, dd, figure, figcaption) {
+  margin: 0;
+  padding: 0;
+}
+
+.bwt-page :where(ol, ul) {
+  list-style: none;
+}
+
+.bwt-page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bwt-page :where(a, button):focus-visible {
+  outline: 2px solid var(--bwt-lime);
+  outline-offset: 4px;
+}
+
+.bwt-page ::selection {
+  background: var(--bwt-lime);
+  color: var(--bwt-black);
+}
+
+.bwt-page :where(section[id]) {
+  scroll-margin-top: 24px;
+}
+
+.bwt-container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--bwt-gutter);
+}
+
+/* ---------------------------------------------------------------- type -- */
+
+.bwt-page h1,
+.bwt-page h2,
+.bwt-page h3 {
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+.bwt-page h2:not(.bwt-label) {
+  font-size: clamp(36px, 4.2vw, 60px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.bwt-page h3 {
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+}
+
+.bwt-page p {
+  text-wrap: pretty;
+}
+
+.bwt-page .bwt-label {
+  font-family: var(--font-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bwt-faint);
+}
+
+
+.bwt-mask {
+  display: block;
+  overflow: hidden;
+  /* Room for descenders inside the mask. */
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+
+.bwt-mask > span {
+  display: block;
+}
+
+.bwt-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+
+
+
+.bwt-arrow {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  flex: none;
+  transition: transform 0.3s var(--bwt-ease);
+}
+
+.bwt-arrow svg {
+  width: 100%;
+  height: 100%;
+}
+
+
+
+
+
+
+
+
+
+/* Links are text: a hairline underline, lime on hover, the arrow nudges. */
+.bwt-text-link {
+  position: relative;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  color: var(--bwt-muted);
+  font-size: 15px;
+  transition: color 0.3s ease;
+}
+
+.bwt-text-link--primary {
+  color: #fff;
+  font-size: clamp(16px, 1.2vw, 18px);
+}
+
+.bwt-text-link::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+a.bwt-text-link:hover,
+a.bwt-text-link:focus-visible {
+  color: var(--bwt-lime);
+}
+
+a.bwt-text-link:hover::after,
+a.bwt-text-link:focus-visible::after {
+  opacity: 1;
+}
+
+a.bwt-text-link:hover .bwt-arrow,
+a.bwt-text-link:focus-visible .bwt-arrow {
+  transform: translateX(3px);
+}
+
+a.bwt-text-link[target='_blank']:hover .bwt-arrow,
+a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
+  transform: translate(3px, -3px);
+}
+
+/* Evolkun links before VITE_EVOLKUN_URL is set: present, but not a link. */
+.is-unlinked {
+  cursor: default;
+}
+
+.is-unlinked.bwt-text-link::after {
+  display: none;
+}
+
+/* --------------------------------------------------------- line visuals -- */
+
+.bwt-v {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.bwt-v-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.bwt-v-faint {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.09);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.bwt-v-node {
+  fill: var(--bwt-black);
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.bwt-v-block {
+  fill: rgba(255, 255, 255, 0.025);
+  stroke: rgba(255, 255, 255, 0.26);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.bwt-v-accent {
+  fill: var(--bwt-black);
+  stroke: var(--bwt-lime);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.bwt-v-dot {
+  fill: var(--bwt-lime);
+}
+
+.bwt-v-row {
+  fill: rgba(255, 255, 255, 0.06);
+}
+
+.bwt-v-text {
+  stroke: rgba(255, 255, 255, 0.24);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.bwt-v-label {
+  fill: rgba(255, 255, 255, 0.62);
+  font-family: var(--font-secondary);
+  font-size: 12px;
+}
+
+/* A short lime dash travelling along its path; runs only inside .is-live. */
+.bwt-v-signal {
+  fill: none;
+  stroke: var(--bwt-lime);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.07 1.4;
+  stroke-dashoffset: 0.12;
+  opacity: 0;
+  animation: bwt-signal 2.8s linear infinite;
+  animation-play-state: paused;
+}
+
+.is-live .bwt-v-signal {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+@keyframes bwt-signal {
+  from {
+    stroke-dashoffset: 0.12;
+  }
+  to {
+    stroke-dashoffset: -1.15;
+  }
+}
+
+.bwt-v-bar {
+  fill: rgba(255, 255, 255, 0.18);
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: bwt-bar 3.2s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+
+.bwt-v-bar.is-lime {
+  fill: var(--bwt-lime);
+}
+
+.is-live .bwt-v-bar {
+  animation-play-state: running;
+}
+
+@keyframes bwt-bar {
+  from {
+    transform: scaleY(0.72);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* ------------------------------------------------------------- 01 hero -- */
+
+/* Tall track; the stage stays put while scroll builds the system. */
+.bwt-hero {
+  position: relative;
+  height: 260svh;
+}
+
+.bwt-hero__stage {
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100svh;
+  overflow: hidden;
+  align-items: center;
+}
+
+.bwt-hero__field {
+  position: absolute;
+  top: 50%;
+  right: var(--bwt-gutter);
+  display: block;
+  width: min(52vw, 820px);
+  height: min(76svh, 720px);
+  transform: translateY(-46%);
+  /* Fade the system's left edge out before it reaches the headline. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 8%, #000 38%);
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 8%, #000 38%);
+}
+
+.bwt-hero__inner {
+  position: relative;
+  z-index: 1;
+  padding-top: 64px;
+}
+
+.bwt-hero__title {
+  max-width: 11.5em;
+  margin-top: 26px;
+  font-size: clamp(52px, 6vw, 84px);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.bwt-hero__copy {
+  max-width: 34em;
+  margin-top: clamp(24px, 2.6vw, 36px);
+  color: var(--bwt-muted);
+  font-size: clamp(16px, 1.25vw, 18px);
+  line-height: 1.6;
+}
+
+.bwt-hero__actions {
+  display: flex;
+  margin-top: clamp(32px, 3.4vw, 48px);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 32px;
+}
+
+
+
+/* ------------------------------------------------------------ 02 intro -- */
+
+.bwt-intro {
+  padding-block: clamp(120px, 14vw, 200px) clamp(100px, 10vw, 150px);
+}
+
+.bwt-intro__grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--grid-gap, 32px);
+}
+
+.bwt-intro__grid > .bwt-label {
+  grid-column: 1 / span 3;
+  padding-top: 0.9em;
+}
+
+.bwt-intro__body {
+  grid-column: 4 / -1;
+}
+
+.bwt-page .bwt-intro__statement {
+  max-width: 18em;
+  font-size: clamp(32px, 3.7vw, 54px);
+  line-height: 1.06;
+}
+
+.bwt-intro__copy {
+  max-width: 40em;
+  margin-top: clamp(32px, 3.6vw, 52px);
+  margin-left: auto;
+  color: var(--bwt-muted);
+  font-size: clamp(16px, 1.2vw, 18px);
+  line-height: 1.65;
+}
+
+/* ------------------------------------------------------ 03 capabilities -- */
+
+.bwt-caps {
+  padding-block: clamp(110px, 11vw, 160px) clamp(130px, 13vw, 190px);
+  border-top: 1px solid var(--bwt-line);
+}
+
+.bwt-caps__head {
+  display: flex;
+  margin-bottom: clamp(40px, 5vw, 72px);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+
+.bwt-caps__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: clamp(48px, 7vw, 120px);
+  align-items: start;
+}
+
+.bwt-cap {
+  position: relative;
+  display: grid;
+  padding: clamp(26px, 2.6vw, 38px) 0;
+  border-top: 1px solid var(--bwt-line);
+  grid-template-columns: clamp(44px, 5vw, 72px) minmax(0, 1fr);
+  align-items: baseline;
+}
+
+.bwt-cap:last-child {
+  border-bottom: 1px solid var(--bwt-line);
+}
+
+/* The selected item's line grows in lime over the resting rule. */
+.bwt-cap::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--bwt-lime);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s var(--bwt-ease);
+}
+
+.bwt-cap.is-active::before {
+  transform: scaleX(1);
+}
+
+.bwt-cap__num {
+  color: var(--bwt-faint);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.5s ease;
+}
+
+.bwt-cap.is-active .bwt-cap__num {
+  color: var(--bwt-lime);
+}
+
+.bwt-cap__text h3 {
+  color: rgba(255, 255, 255, 0.44);
+  transition: color 0.5s ease;
+}
+
+.bwt-cap__text p {
+  max-width: 34em;
+  margin-top: 12px;
+  color: var(--bwt-faint);
+  font-size: 15px;
+  line-height: 1.6;
+  transition: color 0.5s ease;
+}
+
+.bwt-cap.is-active h3 {
+  color: #fff;
+}
+
+.bwt-cap.is-active p {
+  color: var(--bwt-muted);
+}
+
+.bwt-caps__visual {
+  position: sticky;
+  top: 14svh;
+  height: min(72svh, 640px);
+}
+
+
+.bwt-cap-visual {
+  position: absolute;
+  inset: 64px 0 0;
+  opacity: 0;
+  transform: translateY(18px);
+  clip-path: inset(0 0 14% 0);
+  transition:
+    opacity 0.6s ease,
+    transform 0.7s var(--bwt-ease),
+    clip-path 0.7s var(--bwt-ease);
+}
+
+.bwt-cap-visual.is-active {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0);
+}
+
+/* ------------------------------------------------------------ 04 story -- */
+
+.bwt-story {
+  position: relative;
+  height: 320svh;
+  border-top: 1px solid var(--bwt-line);
+}
+
+.bwt-story__stage {
+  position: sticky;
+  top: 0;
+  display: flex;
+  height: 100svh;
+  overflow: hidden;
+  align-items: center;
+}
+
+.bwt-story__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(40px, 6vw, 110px);
+  align-items: center;
+}
+
+.bwt-page .bwt-story__title {
+  display: grid;
+  margin-top: 22px;
+  font-size: clamp(48px, 5.8vw, 84px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.bwt-story__word {
+  display: block;
+}
+
+.bwt-story__lines {
+  display: grid;
+  margin-top: clamp(28px, 3vw, 44px);
+  gap: 10px;
+}
+
+.bwt-story.is-animated .bwt-story__lines {
+  gap: 0;
+}
+
+.bwt-story.is-animated .bwt-story__line {
+  grid-area: 1 / 1;
+}
+
+.bwt-story__line {
+  max-width: 26em;
+  color: var(--bwt-muted);
+  font-size: clamp(16px, 1.2vw, 18px);
+  line-height: 1.6;
+}
+
+.bwt-story__diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 78svh;
+  overflow: visible;
+}
+
+/* Drawn-on paths: no non-scaling stroke — combined with pathLength it
+   throws Chrome's dash positions off. */
+.bwt-story__path {
+  vector-effect: none;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 0;
+}
+
+.bwt-story__signal {
+  fill: none;
+  stroke: var(--bwt-lime);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.08 1.4;
+  stroke-dashoffset: -1.2;
+  opacity: 0;
+}
+
+.bwt-story__ring {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1;
+  stroke-dasharray: 1 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.bwt-story__think {
+  fill: rgba(255, 255, 255, 0.82);
+}
+
+/* ---------------------------------------------------------- 05 workflow -- */
+
+.bwt-flow {
+  padding-block: clamp(130px, 14vw, 200px) clamp(110px, 11vw, 170px);
+  border-top: 1px solid var(--bwt-line);
+}
+
+.bwt-flow__head h2 {
+  margin-top: 22px;
+}
+
+.bwt-flow__track {
+  --p: 1;
+  position: relative;
+  margin-top: clamp(72px, 8vw, 120px);
+}
+
+.bwt-flow__steps {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.bwt-step {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.bwt-step__node {
+  position: relative;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--bwt-lime);
+  border-radius: 50%;
+  background: var(--bwt-lime);
+}
+
+.bwt-step__num {
+  margin-top: 10px;
+  color: var(--bwt-faint);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bwt-step__label {
+  max-width: 10em;
+  color: #fff;
+  font-size: clamp(14px, 1.1vw, 16px);
+  line-height: 1.4;
+}
+
+/* The connecting line runs between the first and last node centres. */
+.bwt-flow__line {
+  position: absolute;
+  display: block;
+  overflow: visible;
+}
+
+.bwt-flow__line.is-horizontal {
+  top: 6px;
+  right: calc(100% / 12);
+  left: calc(100% / 12);
+  width: calc(100% - 100% / 6);
+  height: 2px;
+}
+
+.bwt-flow__line.is-vertical {
+  display: none;
+}
+
+.bwt-flow__base,
+.bwt-flow__progress {
+  stroke-width: 1;
+}
+
+.bwt-flow__base {
+  stroke: rgba(255, 255, 255, 0.16);
+}
+
+.bwt-flow__progress {
+  stroke: var(--bwt-lime);
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 0;
+}
+
+.bwt-flow__signal {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  left: calc(100% / 12 + var(--p) * (100% - 100% / 6));
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bwt-lime);
+  transform: translate(-50%, -50%);
+}
+
+/* -------------------------------------------------------------- 06 data -- */
+
+.bwt-data {
+  padding-block: clamp(120px, 12vw, 180px);
+  background: var(--bwt-charcoal);
+}
+
+.bwt-data__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(48px, 7vw, 120px);
+  align-items: center;
+}
+
+.bwt-page .bwt-data__head h2 {
+  margin-top: 22px;
+  font-size: clamp(36px, 3.8vw, 56px);
+}
+
+.bwt-data__copy {
+  max-width: 30em;
+  margin-top: clamp(24px, 2.6vw, 36px);
+  color: var(--bwt-muted);
+  font-size: clamp(16px, 1.2vw, 18px);
+  line-height: 1.6;
+}
+
+.bwt-dash {
+  padding: 22px 0 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+
+
+.bwt-dash__caption {
+  color: var(--bwt-faint);
+  font-size: 13px;
+}
+
+.bwt-dash__revenue {
+  padding: clamp(32px, 4vw, 52px) 0 clamp(20px, 2.4vw, 30px);
+}
+
+.bwt-dash__label {
+  color: var(--bwt-faint);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bwt-dash__big {
+  display: flex;
+  margin-top: 10px;
+  align-items: baseline;
+  gap: 16px;
+  font-size: clamp(44px, 5vw, 72px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.bwt-dash__change {
+  color: var(--bwt-lime);
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.bwt-dash__spark {
+  display: block;
+  width: 100%;
+  height: clamp(56px, 6vw, 84px);
+  margin-top: clamp(20px, 2.4vw, 32px);
+  overflow: visible;
+}
+
+.bwt-dash__spark-line {
+  fill: none;
+  stroke: var(--bwt-lime);
+  stroke-width: 1.5;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 0;
+}
+
+.bwt-dash__metrics {
+  display: grid;
+  border-top: 1px solid var(--bwt-line);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bwt-dash__metric {
+  display: grid;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--bwt-line);
+  gap: 10px;
+}
+
+.bwt-dash__metric:nth-child(odd) {
+  padding-right: 24px;
+}
+
+.bwt-dash__metric:nth-child(even) {
+  padding-left: 24px;
+  border-left: 1px solid var(--bwt-line);
+}
+
+.bwt-dash__value {
+  font-size: clamp(24px, 2.2vw, 32px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.bwt-dash__track {
+  display: block;
+  height: 2px;
+  background: var(--bwt-line);
+}
+
+.bwt-dash__fill {
+  display: block;
+  height: 100%;
+  background: var(--bwt-lime);
+  transform-origin: left;
+}
+
+/* --------------------------------------------------------------- 07 ERP -- */
+
+.bwt-erp {
+  padding-block: clamp(140px, 15vw, 210px) clamp(100px, 10vw, 150px);
+}
+
+.bwt-erp__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(48px, 7vw, 120px);
+  align-items: center;
+}
+
+.bwt-erp__text h2 {
+  max-width: 11em;
+  margin-top: 22px;
+}
+
+.bwt-erp__copy {
+  max-width: 30em;
+  margin-top: clamp(24px, 2.6vw, 36px);
+  color: var(--bwt-muted);
+  font-size: clamp(16px, 1.2vw, 18px);
+  line-height: 1.6;
+}
+
+.bwt-erp__diagram {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  margin-left: auto;
+  overflow: visible;
+}
+
+.bwt-erp__path {
+  vector-effect: none;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 0;
+}
+
+.bwt-erp__core {
+  fill: #fff;
+  font-size: 14px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* ----------------------------------------------------------- 08 Evolkun -- */
+
+.bwt-partner {
+  padding-block: clamp(130px, 13vw, 190px);
+  background: #000;
+}
+
+.bwt-partner__rule {
+  display: block;
+  width: 72px;
+  height: 1px;
+  margin-bottom: 32px;
+  background: var(--bwt-lime);
+}
+
+.bwt-page .bwt-partner__title {
+  margin-top: 20px;
+  font-size: clamp(44px, 5.4vw, 80px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.bwt-partner__foot {
+  display: flex;
+  margin-top: clamp(40px, 5vw, 72px);
+  padding-top: 28px;
+  border-top: 1px solid var(--bwt-line);
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.bwt-partner__copy {
+  max-width: 34em;
+  color: var(--bwt-muted);
+  font-size: clamp(16px, 1.2vw, 18px);
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------------ responsive -- */
+
+@media (max-width: 1023px) {
+  .bwt-caps__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Phones and tablets: the list carries the content; no floating visual. */
+  .bwt-caps__visual {
+    display: none;
+  }
+
+  .bwt-story__grid,
+  .bwt-data__grid,
+  .bwt-erp__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bwt-erp__diagram {
+    margin-inline: auto;
+  }
+
+  .bwt-intro__grid > .bwt-label {
+    grid-column: 1 / -1;
+    padding-top: 0;
+  }
+
+  .bwt-intro__body {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+  .bwt-story {
+    height: 280svh;
+  }
+
+  .bwt-story__grid {
+    gap: 28px;
+  }
+
+  .bwt-story__diagram {
+    max-height: 44svh;
+  }
+}
+
+@media (max-width: 760px) {
+  .bwt-hero {
+    height: 190svh;
+  }
+
+  .bwt-hero__stage {
+    align-items: flex-start;
+  }
+
+  .bwt-hero__inner {
+    padding-top: clamp(112px, 16svh, 150px);
+  }
+
+  .bwt-hero__title {
+    font-size: clamp(40px, 11vw, 52px);
+  }
+
+  /* No room beside the copy: the system becomes a faint backdrop behind
+     it, kept clear of the headline. */
+  .bwt-hero__field {
+    top: 30svh;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 70svh;
+    opacity: 0.32;
+    transform: none;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 35%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 35%);
+  }
+
+  /* Diagrams scale down with the screen; their labels must not. */
+  .bwt-story__diagram {
+    width: calc(100% + 1.2 * var(--bwt-gutter));
+    max-width: none;
+    margin-inline: calc(-0.6 * var(--bwt-gutter));
+  }
+
+  .bwt-story__diagram .bwt-v-label {
+    font-size: 17px;
+  }
+
+  .bwt-erp__diagram .bwt-v-label {
+    font-size: 16px;
+  }
+
+
+  .bwt-flow__steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 34px;
+  }
+
+  .bwt-step {
+    grid-template-columns: 14px auto minmax(0, 1fr);
+    justify-items: start;
+    align-items: center;
+    gap: 18px;
+    text-align: left;
+  }
+
+  .bwt-step__num {
+    margin-top: 0;
+  }
+
+  .bwt-step__label {
+    max-width: none;
+  }
+
+  .bwt-flow__line.is-horizontal {
+    display: none;
+  }
+
+  .bwt-flow__line.is-vertical {
+    top: 7px;
+    bottom: 7px;
+    left: 6px;
+    display: block;
+    width: 2px;
+    height: calc(100% - 14px);
+  }
+
+  .bwt-flow__signal {
+    top: calc(7px + var(--p) * (100% - 14px));
+    left: 7px;
+  }
+
+  .bwt-dash__metric:nth-child(even) {
+    padding-left: 16px;
+  }
+
+  .bwt-dash__metric:nth-child(odd) {
+    padding-right: 16px;
+  }
+
+  .bwt-partner__foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Reduced motion: no pinned tracks, no travelling signals; the finished
+   states above simply fade in. */
+@media (prefers-reduced-motion: reduce) {
+  .bwt-hero {
+    height: auto;
+  }
+
+  .bwt-hero__stage {
+    position: relative;
+    min-height: 100svh;
+    height: auto;
+  }
+
+  .bwt-story {
+    height: auto;
+  }
+
+  .bwt-story__stage {
+    position: relative;
+    height: auto;
+    padding-block: clamp(110px, 12vw, 170px);
+  }
+
+  .bwt-v-signal,
+  .bwt-v-bar {
+    animation: none;
+  }
+
+  .bwt-cap-visual,
+  .bwt-cap::before,
+  .bwt-arrow {
+    transition-duration: 0.01s;
+  }
+}
