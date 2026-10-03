@@ -41,14 +41,9 @@ import SeoPage from "./pages/services/SeoPage";
 import SocialMediaPage from "./pages/services/SocialMediaPage";
 import PerformanceMarketingPage from "./pages/services/PerformanceMarketingPage";
 import ContactPage from "./pages/ContactPage";
-import WorkPage from "./pages/WorkPage";
+import WorkPage from "./pages/WorkPage"; 
 import PRFounderReputationPage from './pages/PRFounderReputationPage'
 // Route-level code splitting (Phase 10, Part 13): AdminRoutes pulls in
-// the entire CMS — react-markdown's admin preview, the SEO analyzer,
-// every admin page — none of which a public visitor has any reason to
-// download. Lazy-loading it here means that code lands in its own
-// chunk, fetched only when someone actually navigates to /admin/*;
-// the public routes above are unaffected (still eager, still exactly
 // as before) and no route path or admin behavior changes.
 const AdminRoutes = lazy(() => import("./admin/AdminRoutes"));
 
@@ -139,7 +134,7 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/work" element={<WorkPage />} />
+        <Route path="/work" element={<WorkPage />} /> 
         <Route path="/services/videography" element={<CinematographyPage />} />
         <Route path="/services/technology" element={<TechnologyPage />} />
         <Route path="/services/photography" element={<PhotographyPage />} />
