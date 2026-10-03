@@ -1,11 +1,12 @@
 import { mediaUrl } from '../../lib/media'
 import { useEffect, useRef } from 'react'
-import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { useReducedMotion } from 'motion/react'
 import { Link } from 'react-router-dom'
+import CylinderGallery, { type GalleryProject } from '../../components/GraphicDesign/CylinderGallery'
+import { setupHoverTilt } from '../../components/GraphicDesign/hoverTilt'
 // Web-sized copies of the R2 originals (WebP, ~2× each slot's on-screen width).
 import studioExperiment from '../../assets/graphic-design/studio-experiment.webp'
 import businessCardMockup from '../../assets/graphic-design/business-card-mockup.webp'
@@ -21,20 +22,7 @@ import frameTension from '../../assets/graphic-design/frame-tension.webp'
 
 gsap.registerPlugin(ScrollTrigger)
 
-type Project = {
-  image: string
-  type: string
-  title: string
-  kind: 'Client' | 'Studio'
-  year: string
-  ratio: string
-  /** 'contain' shows the whole image in its frame, without the parallax crop. */
-  fit?: 'contain'
-  /** CSS object-position, for steering the crop; defaults to centre. */
-  position?: string
-  /** Frame colour behind a 'contain' image; defaults to the grey placeholder. */
-  background?: string
-}
+type Project = GalleryProject & { kind: 'Client' | 'Studio' }
 
 const projects: Project[] = [
   {
@@ -44,7 +32,7 @@ const projects: Project[] = [
     title: 'A clear identity, made tangible.',
     kind: 'Client',
     year: '2026',
-    ratio: 'aspect-[4/5]',
+    aspect: 4 / 5,
     fit: 'contain',
   },
   {
@@ -54,7 +42,7 @@ const projects: Project[] = [
     title: 'A world built from one idea.',
     kind: 'Studio',
     year: '2026',
-    ratio: 'aspect-[4/5]',
+    aspect: 4 / 5,
     fit: 'contain',
   },
   {
@@ -64,7 +52,7 @@ const projects: Project[] = [
     title: 'Static thinking, set in motion.',
     kind: 'Client',
     year: '2026',
-    ratio: 'aspect-[4/5]',
+    aspect: 4 / 5,
     fit: 'contain',
   },
   {
@@ -74,7 +62,7 @@ const projects: Project[] = [
     title: 'One system. Every touchpoint.',
     kind: 'Client',
     year: '2026',
-    ratio: 'aspect-[16/11]',
+    aspect: 16 / 11,
   },
   {
     image:
@@ -83,7 +71,7 @@ const projects: Project[] = [
     title: 'Built to be recognised.',
     kind: 'Studio',
     year: '2026',
-    ratio: 'aspect-[4/5]',
+    aspect: 4 / 5,
   },
   {
     image:
@@ -92,7 +80,7 @@ const projects: Project[] = [
     title: 'A visual language people remember.',
     kind: 'Client',
     year: '2026',
-    ratio: 'aspect-[3/2]',
+    aspect: 3 / 2,
   },
   {
     image:
@@ -101,7 +89,7 @@ const projects: Project[] = [
     title: 'Details that reward attention.',
     kind: 'Studio',
     year: '2025',
-    ratio: 'aspect-[4/5]',
+    aspect: 4 / 5,
     fit: 'contain',
   },
   {
@@ -111,7 +99,7 @@ const projects: Project[] = [
     title: 'A useful visual rhythm.',
     kind: 'Client',
     year: '2025',
-    ratio: 'aspect-[4/5]',
+    aspect: 4 / 5,
     // A brand sheet on white: show it whole, on a matching white frame.
     fit: 'contain',
     background: '#fff',
@@ -123,7 +111,7 @@ const projects: Project[] = [
     title: 'A frame with a little tension.',
     kind: 'Client',
     year: '2025',
-    ratio: 'aspect-[4/5]',
+    aspect: 4 / 5,
   },
   {
     image:
@@ -132,51 +120,34 @@ const projects: Project[] = [
     title: 'A brand you can walk into.',
     kind: 'Studio',
     year: '2025',
-    ratio: 'aspect-[3/2]',
+    aspect: 3 / 2,
     fit: 'contain',
   },
 ]
 
-const projectLayouts = [
-  'md:col-span-7',
-  'md:col-span-4 md:col-start-9 md:mt-[150px]',
-  'md:col-span-4 md:mt-[20px]',
-  'md:col-span-7 md:col-start-6 md:mt-[90px]',
-  'md:col-span-5 md:mt-[30px]',
-  'md:col-span-6 md:col-start-7 md:mt-[160px]',
-  'md:col-span-4',
-  'md:col-span-7 md:col-start-6 md:mt-[80px]',
-  'md:col-span-5 md:mt-[50px]',
-  'md:col-span-6 md:col-start-7 md:mt-[140px]',
-]
-
 const capabilities = [
-  ['01', 'Brand identity systems', 'Identity'],
-  ['02', 'Campaign concepts & key visuals', 'Campaign'],
-  ['03', 'Digital & social design', 'Digital'],
-  ['04', 'Motion graphics & animation', 'Motion'],
-  ['05', 'Packaging & print collateral', 'Physical'],
-  ['06', 'Art direction & visual worlds', 'Direction'],
+  ['Brand identity systems', 'Identity'],
+  ['Campaign concepts & key visuals', 'Campaign'],
+  ['Digital & social design', 'Digital'],
+  ['Motion graphics & animation', 'Motion'],
+  ['Packaging & print collateral', 'Physical'],
+  ['Art direction & visual worlds', 'Direction'],
 ]
 
 const process = [
   {
-    number: '01',
     title: 'Find the signal',
     text: 'We find the audience, tension and idea worth building the visual system around.',
   },
   {
-    number: '02',
     title: 'Build the language',
     text: 'Typography, colour, imagery, composition and behaviour become one recognisable system.',
   },
   {
-    number: '03',
     title: 'Give it movement',
     text: 'Motion is added where rhythm, pacing and interaction can strengthen the idea.',
   },
   {
-    number: '04',
     title: 'Make it usable',
     text: 'The system is translated into useful formats, assets and guidelines for the real world.',
   },
@@ -227,23 +198,6 @@ export default function GraphicDesignPage() {
   useGSAP(
     () => {
       if (reducedMotion) return
-
-      const lenis = new Lenis({
-        lerp: 0.08,
-        smoothWheel: true,
-        syncTouch: false,
-      })
-
-      const raf = (time: number) => {
-        lenis.raf(time * 1000)
-      }
-
-      const onScroll = () => {
-        ScrollTrigger.update()
-      }
-
-      gsap.ticker.add(raf)
-      lenis.on('scroll', onScroll)
 
       const ctx = gsap.context(() => {
         /*
@@ -383,77 +337,6 @@ export default function GraphicDesignPage() {
 
         /*
         --------------------------------------------------
-        PROJECTS
-        --------------------------------------------------
-        */
-
-        gsap.utils.toArray<HTMLElement>('[data-project]').forEach((card) => {
-          const imageMask =
-            card.querySelector<HTMLElement>('[data-project-mask]')
-          const image =
-            card.querySelector<HTMLImageElement>('[data-project-image]')
-          const meta = card.querySelector<HTMLElement>('[data-project-meta]')
-
-          if (imageMask) {
-            gsap.fromTo(
-              imageMask,
-              {
-                clipPath: 'inset(0 0 15% 0)',
-                opacity: 0,
-              },
-              {
-                clipPath: 'inset(0 0 0% 0)',
-                opacity: 1,
-                duration: 1.15,
-                ease: 'power3.out',
-                scrollTrigger: {
-                  trigger: card,
-                  start: 'top 84%',
-                  once: true,
-                },
-              },
-            )
-          }
-
-          if (meta) {
-            gsap.from(meta, {
-              y: 18,
-              opacity: 0,
-              duration: 0.75,
-              delay: 0.08,
-              ease: 'power3.out',
-              scrollTrigger: {
-                trigger: card,
-                start: 'top 82%',
-                once: true,
-              },
-            })
-          }
-
-          if (image) {
-            gsap.fromTo(
-              image,
-              {
-                yPercent: -4,
-                scale: 1.07,
-              },
-              {
-                yPercent: 5,
-                scale: 1.02,
-                ease: 'none',
-                scrollTrigger: {
-                  trigger: card,
-                  start: 'top bottom',
-                  end: 'bottom top',
-                  scrub: 0.8,
-                },
-              },
-            )
-          }
-        })
-
-        /*
-        --------------------------------------------------
         CAPABILITY ROWS
         --------------------------------------------------
         */
@@ -513,11 +396,14 @@ export default function GraphicDesignPage() {
         ScrollTrigger.refresh()
       }, pageRef)
 
+      // Global smooth scroll (Lenis) comes from PublicLayout's SmoothScroll.
+      const removeHoverTilt = pageRef.current
+        ? setupHoverTilt(pageRef.current)
+        : () => {}
+
       return () => {
         ctx.revert()
-        lenis.off('scroll', onScroll)
-        lenis.destroy()
-        gsap.ticker.remove(raf)
+        removeHoverTilt()
       }
     },
     {
@@ -530,7 +416,7 @@ export default function GraphicDesignPage() {
   return (
     <main
       ref={pageRef}
-      className="overflow-hidden  text-[#111]"
+      className="relative isolate overflow-hidden text-[#111]"
     >
       {/* =========================================================
           HERO
@@ -665,7 +551,7 @@ export default function GraphicDesignPage() {
           POINT OF VIEW
       ========================================================= */}
 
-      <section className="bg-white py-[clamp(90px,10vw,90px)]">
+      <section className="relative py-10 md:py-14">
         <div
           data-section-intro
           className="mx-auto grid w-full max-w-[1440px] gap-9 px-[clamp(20px,5vw,80px)] md:grid-cols-12"
@@ -703,118 +589,10 @@ export default function GraphicDesignPage() {
       </section>
 
       {/* =========================================================
-          WORK
+          WORK — pinned cylinder gallery (swipe row on mobile)
       ========================================================= */}
 
-      <section
-        id="selected-work"
-        className="py-[clamp(90px,12vw,180px)]"
-      >
-        <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
-          <div
-            data-section-intro
-            className="grid gap-8 "
-          >
-            <div className="md:col-span-7 md:col-start-6">
-              <h2
-                data-intro-child
-                className="m-0 max-w-[720px] font-[400] text-[clamp(36px,4.5vw,54px)] leading-[0.93] tracking-[-0.055em] [font-family:Grimblade,serif]"
-              >
-                Client work.
-                
-                Studio work.
-                <br />
-                <span className="text-black/85">
-                  Same level of intent.
-                </span>
-              </h2>
-
-              <p
-                data-intro-child
-                className="mt-7 max-w-[450px] text-[14px] leading-[1.7] text-black/55"
-              >
-                A changing collection of identities, campaigns, digital
-                graphics, motion experiments and visual directions.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-[clamp(80px,12vw,170px)] grid grid-cols-1 gap-y-[90px] md:grid-cols-12 md:gap-x-[clamp(24px,4vw,64px)] md:gap-y-[clamp(110px,16vw,230px)]">
-            {projects.map((project, index) => (
-              <article
-                data-project
-                key={`${project.title}-${index}`}
-                className={`group ${projectLayouts[index]}`}
-              >
-                <div
-                  data-project-mask
-                  className={`relative overflow-hidden bg-[#ddd] ${project.ratio}`}
-                  style={project.background ? { backgroundColor: project.background } : undefined}
-                >
-                  {project.fit === 'contain' ? (
-                    // Shown whole: no oversize and no parallax, so nothing is cropped.
-                    <img
-                      src={project.image}
-                      alt={project.title}
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      className="absolute inset-0 h-full w-full object-contain"
-                    />
-                  ) : (
-                    <img
-                      data-project-image
-                      src={project.image}
-                      alt={project.title}
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      className="absolute -top-[7%] left-0 h-[114%] w-full object-cover will-change-transform"
-                      style={project.position ? { objectPosition: project.position } : undefined}
-                    />
-                  )}
-
-                  <div className="absolute inset-0 bg-black/0 transition-colors duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover:bg-black/[0.07]" />
-
-                  <div className="absolute inset-x-0 top-0 flex items-start justify-between p-[clamp(14px,1.8vw,22px)]">
-                    {/* <span className="text-[9px] uppercase tracking-[0.15em] text-white">
-                      {String(index + 1).padStart(2, '0')}
-                    </span> */}
-
-                    <span className="translate-y-2 text-[9px] uppercase tracking-[0.14em] text-white opacity-0 transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-y-0 group-hover:opacity-100">
-                      View frame ↗
-                    </span>
-                  </div>
-
-                  {/* <div className="absolute bottom-4 left-4 translate-y-3 opacity-0 transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:translate-y-0 group-hover:opacity-100">
-                    <span className="inline-flex bg-[#ccff00] px-3 py-2 text-[9px] uppercase tracking-[0.13em] text-black">
-                      {project.kind} project
-                    </span>
-                  </div> */}
-                </div>
-
-                <div
-                  data-project-meta
-                  className="mt-[18px]"
-                >
-                  {/* <div className="flex items-center justify-between gap-5 border-t border-black/15 pt-3">
-                    <p className="m-0 text-[9px] uppercase tracking-[0.14em] text-black/48">
-                      {project.type}
-                    </p>
-
-                    <div className="flex gap-4 text-[9px] uppercase tracking-[0.14em] text-black/38">
-                      <span>{project.kind}</span>
-                      <span>{project.year}</span>
-                    </div>
-                  </div> */}
-
-                  <h3 className="mb-0 mt-4 max-w-[520px] font-[400] text-[clamp(24px,2.5vw,35px)] leading-[0.98] tracking-[-0.04em] [font-family:Grimblade,serif]">
-                    {project.title}
-                  </h3>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CylinderGallery projects={projects} />
 
       {/* =========================================================
           CAPABILITIES
@@ -822,7 +600,7 @@ export default function GraphicDesignPage() {
 
       <section
         data-capabilities
-        className="bg-white py-[clamp(90px,12vw,180px)]"
+        className="relative py-[clamp(40px,6vw,60px)]"
       >
         <div className="mx-auto grid w-full max-w-[1440px] gap-[70px] px-[clamp(20px,5vw,80px)] md:grid-cols-12">
           <div className="md:col-span-4">
@@ -846,17 +624,13 @@ export default function GraphicDesignPage() {
 
           <div className="md:col-span-7 md:col-start-6">
             <div className="border-t border-black/15">
-              {capabilities.map(([number, title, label]) => (
+              {capabilities.map(([title, label]) => (
                 <div
                   data-capability
                   key={title}
-                  className="group relative grid min-h-[92px] grid-cols-[42px_1fr_auto] items-center gap-5 overflow-hidden border-b border-black/15"
+                  className="group relative grid min-h-[92px] grid-cols-[1fr_auto] items-center gap-5 overflow-hidden border-b border-black/15"
                 >
                   <div className="absolute inset-0 origin-left scale-x-0 bg-[#ccff00] transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-x-100" />
-
-                  <span className="relative z-10 text-[9px] text-black/45">
-                    {number}
-                  </span>
 
                   <strong className="relative z-10 font-[400] text-[clamp(18px,2vw,25px)] tracking-[-0.025em]">
                     {title}
@@ -880,7 +654,7 @@ export default function GraphicDesignPage() {
           MOTION
       ========================================================= */}
 
-      <section className="bg-[#101010] py-[clamp(90px,11vw,160px)] text-white">
+      <section className="relative bg-[#101010] py-[clamp(90px,11vw,160px)] text-white">
         <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
           <div
             data-section-intro
@@ -916,9 +690,13 @@ export default function GraphicDesignPage() {
               data-motion-card
               className="group md:col-span-7"
             >
-              <div className="relative aspect-[16/10] overflow-hidden bg-white/5">
+              <div
+                data-tilt
+                className="relative aspect-[16/10] overflow-hidden bg-white/5"
+              >
                 <img
-                  className="h-full w-full object-cover opacity-90 transition duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.025] group-hover:opacity-100"
+                  data-tilt-inner
+                  className="h-full w-full object-cover opacity-90 transition-opacity duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:opacity-100"
                   src={staticThinkingMotion}
                   width={1800}
                   height={1200}
@@ -936,9 +714,9 @@ export default function GraphicDesignPage() {
                     Title sequence
                   </p>
 
-                  <h3 className="mb-0 mt-2 font-[400] text-[26px] leading-none tracking-[-0.035em] [font-family:Grimblade,serif]">
+                  {/* <h3 className="mb-0 mt-2 font-[400] text-[26px] leading-none tracking-[-0.035em] [font-family:Grimblade,serif]">
                     Static thinking, set in motion.
-                  </h3>
+                  </h3> */}
                 </div>
 
                 <span className="text-[10px] text-white/40">↗</span>
@@ -949,9 +727,13 @@ export default function GraphicDesignPage() {
               data-motion-card
               className="group md:col-span-4 md:col-start-9 md:mt-[120px]"
             >
-              <div className="relative aspect-[4/5] overflow-hidden bg-white/5">
+              <div
+                data-tilt
+                className="relative aspect-[4/5] overflow-hidden bg-white/5"
+              >
                 <img
-                  className="h-full w-full object-cover opacity-85 transition duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.025] group-hover:opacity-100"
+                  data-tilt-inner
+                  className="h-full w-full object-cover opacity-85 transition-opacity duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:opacity-100"
                   src={pottBillboard}
                   width={1400}
                   height={1126}
@@ -982,7 +764,7 @@ export default function GraphicDesignPage() {
           PROCESS
       ========================================================= */}
 
-      <section className="  py-[clamp(90px,12vw,180px)]">
+      <section className="relative py-[clamp(90px,12vw,180px)]">
         <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
           <div
             data-section-intro
@@ -1010,17 +792,11 @@ export default function GraphicDesignPage() {
           <div className="mt-[clamp(70px,9vw,120px)] border-t border-black/20">
             {process.map((step) => (
               <article
-                key={step.number}
+                key={step.title}
                 data-process-row
-                className="group grid gap-x-6 gap-y-5 border-b border-black/20 py-[clamp(30px,4vw,48px)] md:grid-cols-12 md:items-start"
+                className="grid gap-x-6 gap-y-5 border-b border-black/20 py-[clamp(30px,4vw,48px)] md:grid-cols-12 md:items-start"
               >
-                <div className="md:col-span-1">
-                  <span className="inline-flex h-8 w-8 items-center justify-center border border-black/20 text-[9px] transition-colors duration-400 group-hover:border-[#ccff00] group-hover:bg-[#ccff00]">
-                    {step.number}
-                  </span>
-                </div>
-
-                <h3 className="m-0 font-[400] text-[clamp(25px,2.6vw,34px)] leading-none tracking-[-0.04em] [font-family:Grimblade,serif] md:col-span-4">
+                <h3 className="m-0 font-[400] text-[clamp(25px,2.6vw,34px)] leading-none tracking-[-0.04em] [font-family:Grimblade,serif] md:col-span-5">
                   {step.title}
                 </h3>
 
@@ -1037,7 +813,7 @@ export default function GraphicDesignPage() {
           CTA
       ========================================================= */}
 
-      <section className="bg-[#ccff00]">
+      <section className="relative bg-[#ccff00]">
         <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
           <div className="grid min-h-[clamp(460px,52vw,700px)] items-center gap-12 py-[clamp(80px,10vw,140px)] md:grid-cols-12">
             <div className="md:col-span-3">

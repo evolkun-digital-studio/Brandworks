@@ -164,11 +164,6 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
         onEnter: (batch) => gsap.to(batch, { opacity: 1, y: 0, duration: 0.8, stagger: 0.05, ease: 'power2.out', overwrite: true }),
       })
 
-      // The full-bleed frame slides slowly inside its window.
-      gsap.utils.toArray<HTMLElement>('.bwp-feature img', root).forEach((image) => {
-        gsap.fromTo(image, { yPercent: -6 }, { yPercent: 6, ease: 'none',
-          scrollTrigger: { trigger: image.closest('.bwp-feature'), start: 'top bottom', end: 'bottom top', scrub: 1 } })
-      })
     })
 
     // Wall parallax for the DOM fallback: each frame drifts at its own pace,
@@ -200,7 +195,7 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
           <div className="bwp-hero-edge" aria-hidden="true" />
           <div className="bwp-hero-ui">
             <h1 id="bwp-title">Images that make<br /> people stop.</h1>
-            <p className="bwp-hint" aria-hidden="true"><span></span><span>Scroll to continue</span></p>
+            {/* <p className="bwp-hint" aria-hidden="true"><span></span><span>Scroll to continue</span></p> */}
           </div>
           {/* The sphere's photographs for screen readers and keyboard; focusing
               one turns the sphere to it. Each proxy marks where its photo sits
@@ -240,19 +235,16 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
 
       <section className="bwp-sequence" aria-label="Selected frames">
         <div className="bwp-seq-pair">
-          <Photo id="denim" sizes="(max-width: 767px) 100vw, 46vw" />
-          <Photo id="wave" sizes="(max-width: 767px) 100vw, 34vw" />
+          <Photo id="denim" sizes="50vw" />
+          <Photo id="lovegen" sizes="50vw" />
         </div>
-        <Photo id="jellystar" className="bwp-seq-campaign" sizes="(max-width: 767px) 100vw, 76vw" />
       </section>
 
-      <Photo id="arcade" className="bwp-feature" sizes="100vw" />
-
       <section className="bwp-closing" aria-label="More frames">
-        {closingGrid.map(({ key, at: [c, cs], ratio, offset = 0, wide }) => (
-          <Photo key={key} id={key} className={wide ? 'is-wide' : ''}
-            sizes={`(max-width: 767px) ${wide ? '100vw' : '50vw'}, ${span(cs, 12)}`}
-            style={{ '--c': c, '--cs': cs, '--ratio': ratio, '--offset': `${offset}rem` } as CSSProperties} />
+        {closingGrid.map(({ key, ratio }) => (
+          <Photo key={key} id={key}
+            sizes="(max-width: 767px) 50vw, 33.3vw"
+            style={{ '--ratio': ratio } as CSSProperties} />
         ))}
       </section>
 

@@ -85,7 +85,7 @@ export function PhotographyProjectTransition({ selection, onClose }: { selection
       onCancel={(event) => { event.preventDefault(); dismissRef.current() }}>
       <div className="bww-detail-background" onClick={() => dismissRef.current()} />
       <div className="bww-detail-toolbar" data-bww-detail-copy>
-        <span>BrandWorks / Photography</span>
+        <span>Photography</span>
         <button ref={closeRef} type="button" onClick={() => dismissRef.current()} aria-label="Close photograph and return to gallery">Back to gallery <span aria-hidden="true">×</span></button>
       </div>
       <div className="bww-detail-frame" ref={frameRef}>

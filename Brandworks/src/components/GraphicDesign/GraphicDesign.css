@@ -1,0 +1,154 @@
+/* Graphic Design page: the selected-work gallery.
+
+   The gallery is a native swipe row by default (mobile, reduced motion,
+   no JS). On desktop CylinderGallery sets data-mode="cylinder" and it
+   becomes a pinned stage with the cards placed around a cylinder. */
+
+.cyl__stage {
+  position: relative;
+}
+
+.cyl__captions {
+  display: none;
+}
+
+.cyl__track {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 8px clamp(20px, 5vw, 80px) 4px;
+  scroll-padding-inline: clamp(20px, 5vw, 80px);
+  scroll-snap-type: x mandatory;
+  perspective: 1100px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cyl__track::-webkit-scrollbar {
+  display: none;
+}
+
+.cyl__card {
+  flex: 0 0 auto;
+  width: min(85vw, 380px);
+  scroll-snap-align: center;
+}
+
+.cyl__media {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: #ddd;
+}
+
+.cyl__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cyl__img--contain {
+  object-fit: contain;
+}
+
+/* White dimming for cards turned away from the centre (set by JS). */
+.cyl__veil {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Hover reveal: plain type over a soft bottom fade, no box. */
+.cyl__reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: clamp(14px, 1.6vw, 22px);
+  color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.46), rgba(0, 0, 0, 0) 55%);
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cyl__media:hover .cyl__reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cyl__meta {
+  margin-top: 16px;
+}
+
+/* ---------- Cylinder (desktop) ---------- */
+
+.cyl[data-mode='cylinder'] .cyl__stage {
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  perspective: 1400px;
+  background: #fff;
+}
+
+.cyl[data-mode='cylinder'] .cyl__track {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: visible;
+  padding: 0;
+  perspective: none;
+  scroll-snap-type: none;
+  transform-style: preserve-3d;
+}
+
+.cyl[data-mode='cylinder'] .cyl__card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.cyl[data-mode='cylinder'] .cyl__media {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+/* Titles stay readable to screen readers; the caption below shows them. */
+.cyl[data-mode='cylinder'] .cyl__meta {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.cyl[data-mode='cylinder'] .cyl__captions {
+  position: absolute;
+  right: clamp(20px, 5vw, 80px);
+  bottom: clamp(24px, 4.5vh, 48px);
+  display: block;
+  width: min(400px, 38vw);
+  height: 96px;
+  overflow: hidden;
+}
+
+.cyl__caption {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
