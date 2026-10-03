@@ -296,7 +296,7 @@ function Member({ member, order }: { member: TeamMember; order: number }) {
         <div className="about-member__meta">
           <h3 className="about-member__name">{member.name}</h3>
           <p className="about-member__role">{member.role}</p>
-          <p className="about-member__speciality">{member.speciality}</p>
+          {/* <p className="about-member__speciality">{member.speciality}</p> */}
         </div>
       </div>
     </li>

@@ -59,7 +59,7 @@ export const frames = {
   sphere: frame('photo14', 'Still life / Glass', 'Clear glass sphere drawn in soft shadow on pale paper', 1200, 904),
   denim: frame('denim', 'Fashion / Lookbook', 'Model in wide cargo jeans holding a white T-shirt against a pale wall', 1067, 1600),
   jellystar: frame('jellystar', 'Brand / Campaign', 'Jellystar streetwear campaign: woman in a white hooded top with a chrome star logo beside the headline Not Just Clothes', 1536, 1024),
-  arcade: frame('arcade', 'Architecture / Retail', 'Empty monochrome shopping arcade receding to a vanishing point', 1600, 1067),
+  arcade: frame('arcade', 'or', 'Empty monochrome shopping arcade receding to a vanishing point', 1600, 1067),
   dropper: frame('dropper', 'Product / Beauty', 'Glass dropper releasing a drop of serum onto a pale surface', 1280, 1600),
   lotion: frame('lotion', 'Brand / Beauty', 'Fingers holding a dab of white lotion beside a Softly bottle against blue sky', 1280, 1600),
   jeansPocket: frame('jeans-pocket', 'Fashion / Product', 'Back pocket of black jeans with a star print and the Jellystar logo', 1080, 1350),

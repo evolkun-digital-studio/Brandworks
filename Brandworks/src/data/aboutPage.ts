@@ -247,7 +247,7 @@ export const ABOUT_TEAM = {
       },
     },
     {
-      name: 'Nidhi',
+      name: 'Vidhi',
       role: 'Graphic Designer',
       speciality: 'Campaign stills and brand films',
       ratio: '3/4',

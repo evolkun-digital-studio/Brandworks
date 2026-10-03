@@ -82,7 +82,7 @@
   pointer-events: none;
 }
 @media (hover: hover) and (pointer: fine) {
-  .bwp-photo:not(.bwp-feature):is(:hover, :focus-within) img { transform: scale(1.03); filter: brightness(1.05); }
+  .bwp-photo:is(:hover, :focus-within) img { transform: scale(1.03); filter: brightness(1.05); }
   .bwp-photo:is(:hover, :focus-within) figcaption { opacity: 1; transform: none; }
   /* The rest of the set steps back while one frame is looked at. */
   :is(.bwp-wall, .bwp-seq-pair, .bwp-closing):has(.bwp-photo:hover) > .bwp-photo:not(:hover) { opacity: 0.78; }
@@ -246,40 +246,25 @@
 
 .bwp-sequence {
   display: grid;
-  gap: clamp(8px, 1vw, 16px);
-  padding: clamp(32px, 5vw, 80px) var(--bwp-gutter);
+  gap: var(--bwp-gap);
+  padding: var(--bwp-gap) var(--bwp-gutter);
 }
 .bwp-seq-pair {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: clamp(8px, 1vw, 16px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bwp-gap);
   align-items: start;
 }
-.bwp-seq-pair > :first-child { grid-column: 2 / span 5; }
-.bwp-seq-pair > :first-child .bwp-media { aspect-ratio: 2 / 3; }
-.bwp-seq-pair > :last-child { grid-column: 8 / span 4; margin-top: clamp(48px, 14vw, 240px); }
-.bwp-seq-pair > :last-child .bwp-media { aspect-ratio: 3 / 4; }
-.bwp-seq-campaign { width: 78%; justify-self: end; }
-.bwp-seq-campaign .bwp-media { aspect-ratio: 3 / 2; }
-
-/* ---- 3. Full-bleed feature ------------------------------------------ */
-
-.bwp-feature .bwp-media { height: clamp(420px, 85svh, 1080px); }
-/* Taller than its window so it can slide on scroll without exposing edges. */
-.bwp-feature .bwp-media img { inset: -7% 0 auto; height: 114%; filter: none; }
-.bwp-feature figcaption { left: var(--bwp-gutter); bottom: 16px; }
+.bwp-seq-pair .bwp-media { aspect-ratio: 2 / 3; }
 
 /* ---- 4. Closing grid ------------------------------------------------ */
 
 .bwp-closing {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  columns: 3;
   column-gap: var(--bwp-gap);
-  row-gap: clamp(8px, 1vw, 16px);
-  align-items: start;
-  padding: clamp(48px, 7vw, 112px) var(--bwp-gutter) 0;
+  padding: 0 var(--bwp-gutter);
 }
-.bwp-closing > .bwp-photo { grid-column: var(--c) / span var(--cs); margin-top: var(--offset); }
+.bwp-closing > .bwp-photo { break-inside: avoid; margin-bottom: var(--bwp-gap); }
 .bwp-closing .bwp-media { aspect-ratio: var(--ratio); }
 
 /* ---- 5. CTA --------------------------------------------------------- */
@@ -345,15 +330,7 @@
   .bwp-wall > .is-wide { grid-column: 1 / -1; }
   .bwp-wall > .is-wide .bwp-media { aspect-ratio: var(--natural); }
 
-  .bwp-seq-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .bwp-seq-pair > :first-child, .bwp-seq-pair > :last-child { grid-column: auto; }
-  .bwp-seq-pair > :last-child { margin-top: 48px; }
-  .bwp-seq-campaign { width: 100%; }
-  .bwp-feature .bwp-media { height: 70svh; }
-
-  .bwp-closing { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: dense; row-gap: 8px; }
-  .bwp-closing > .bwp-photo { grid-column: auto; margin-top: 0; }
-  .bwp-closing > .is-wide { grid-column: 1 / -1; }
+  .bwp-closing { columns: 2; }
 
   .bwp-cta { flex-direction: column; align-items: flex-start; }
 }
