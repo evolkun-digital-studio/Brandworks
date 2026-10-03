@@ -13,8 +13,7 @@ import BrandStatement from "./components/HumanLedBrandIntelligence";
 import Services from "./components/Service/Services";
 import About from "./components/About";
 import Photography from "./components/Photography";
-import Work from "./components/WorkWithImpact";
-
+import Work from "./components/WorkWithImpact"; 
 import Videography from "./components/Videography";
 import GraphicsMotionExperience from "./components/GraphicsMotion/GraphicsMotionExperience";
 import PRReputation from "./components/PrReputation";
@@ -41,6 +40,7 @@ import SeoPage from "./pages/services/SeoPage";
 import SocialMediaPage from "./pages/services/SocialMediaPage";
 import ContactPage from "./pages/ContactPage";
 import WorkPage from "./pages/WorkPage";
+import PRFounderReputationPage from './pages/PRFounderReputationPage'
 // Route-level code splitting (Phase 10, Part 13): AdminRoutes pulls in
 // the entire CMS — react-markdown's admin preview, the SEO analyzer,
 // every admin page — none of which a public visitor has any reason to
@@ -140,6 +140,8 @@ function App() {
         <Route path="/work" element={<WorkPage />} />
         <Route path="/services/videography" element={<CinematographyPage />} />
         <Route path="/services/photography" element={<PhotographyPage />} />
+        <Route path="/services/PRFounderReputationPage" element={<PRFounderReputationPage />} />
+
         <Route path="/services/graphic-design" element={<GraphicDesignPage />} />
         <Route path="/services/seo" element={<SeoPage />} />
         <Route path="/services/social-media" element={<SocialMediaPage />} />

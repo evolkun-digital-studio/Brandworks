@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode, } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useGSAP } from '@gsap/react'
@@ -16,13 +9,10 @@ import { mediaUrl } from '../../lib/media'
 import './SocialMediaPage.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
-
 const EASE = [0.22, 1, 0.36, 1] as const
 const useBrowserLayoutEffect =
   typeof window === 'undefined' ? useEffect : useLayoutEffect
-
 type ViewerSelection = { reel: SocialReel; trigger: HTMLElement }
-
 const expertise = [
   {
     title: 'Social media strategy',
@@ -43,7 +33,6 @@ const expertise = [
     services: ['Publishing', 'Community', 'Reporting', 'Optimization'],
   },
 ]
-
 const processSteps = [
   ['01', 'Strategy', 'Define the audience, objectives and role social should play for the brand.'],
   ['02', 'Art direction', 'Build a recognizable visual and verbal system before production begins.'],
@@ -51,27 +40,22 @@ const processSteps = [
   ['04', 'Community', 'Publish, schedule, respond and keep the account culturally alive.'],
   ['05', 'Learn & refine', 'Turn performance signals into a smarter next cycle.'],
 ] as const
-
 function Label({ children }: { children: ReactNode }) {
   return <p className="bwsm-label">{children}</p>
 }
-
 function Arrow() {
   return <span className="bwsm-arrow" aria-hidden="true">↗</span>
 }
-
 function MediaFrame({ reel, priority = false }: { reel: SocialReel; priority?: boolean }) {
   const frameRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(
     reel.poster ? 'ready' : 'loading',
   )
-
   useEffect(() => {
     const frame = frameRef.current
     const video = videoRef.current
     if (!frame || !video) return
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) video.play().catch(() => undefined)
@@ -82,7 +66,6 @@ function MediaFrame({ reel, priority = false }: { reel: SocialReel; priority?: b
     observer.observe(frame)
     return () => observer.disconnect()
   }, [])
-
   return (
     <div ref={frameRef} className="bwsm-media" data-status={status} aria-busy={status === 'loading'}>
       <span className="bwsm-skeleton" aria-hidden="true" />
@@ -103,13 +86,11 @@ function MediaFrame({ reel, priority = false }: { reel: SocialReel; priority?: b
     </div>
   )
 }
-
 function ReelViewer({ selection, onDismiss }: { selection: ViewerSelection; onDismiss: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(true)
   const reduced = Boolean(useReducedMotion())
-
   useBrowserLayoutEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
@@ -123,7 +104,6 @@ function ReelViewer({ selection, onDismiss }: { selection: ViewerSelection; onDi
       if (selection.trigger.isConnected) selection.trigger.focus({ preventScroll: true })
     }
   }, [selection.trigger])
-
   return (
     <dialog
       ref={dialogRef}
@@ -161,25 +141,20 @@ function ReelViewer({ selection, onDismiss }: { selection: ViewerSelection; onDi
     </dialog>
   )
 }
-
 function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLElement) => void }) {
   const sectionRef = useRef<HTMLElement>(null)
-
   useGSAP(() => {
     const section = sectionRef.current
     if (!section) return
     const mm = gsap.matchMedia()
-
     mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
       const track = section.querySelector<HTMLElement>('[data-social-track]')
       const progress = section.querySelector<HTMLElement>('[data-social-progress]')
       const intro = section.querySelector<HTMLElement>('[data-social-intro]')
       const cards = gsap.utils.toArray<HTMLElement>('[data-social-card]', section)
       if (!track || !progress || !intro) return
-
       const distance = () => Math.max(0, track.scrollWidth - window.innerWidth * 0.61)
       gsap.set(progress, { scaleX: 0, transformOrigin: 'left center' })
-
       const timeline = gsap.timeline({
         scrollTrigger: {
           trigger: section,
@@ -189,7 +164,6 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           invalidateOnRefresh: true,
         },
       })
-
       timeline
         .to(intro, { autoAlpha: 0, y: -24, duration: 0.07, ease: 'power1.out' }, 0)
         .to(track, { x: () => -distance(), ease: 'none' }, 0)
@@ -197,7 +171,6 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         .to(section, { backgroundColor: '#dbe1e5', duration: 0.25 }, 0)
         .to(section, { backgroundColor: '#2b3117', duration: 0.25 }, 0.36)
         .to(section, { backgroundColor: '#e9a0a7', duration: 0.25 }, 0.76)
-
       cards.forEach((card, index) => {
         gsap.fromTo(
           card,
@@ -217,10 +190,8 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         )
       })
     })
-
     return () => mm.revert()
   }, { scope: sectionRef })
-
   return (
     <section ref={sectionRef} className="bwsm-rail" id="social-work" aria-labelledby="bwsm-rail-title">
       <div className="bwsm-rail__sticky">
@@ -232,7 +203,6 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           {/* <p>Strategy, content and community designed to feel like one connected brand.</p>
           <div className="bwsm-rail__count"><strong>04</strong><span>projects</span></div> */}
         </div>
-
         <div className="bwsm-rail__viewport">
           <div className="bwsm-rail__track" data-social-track>
             {SOCIAL_REELS.map((reel, index) => (
@@ -256,13 +226,11 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             </a>
           </div>
         </div>
-
         <div className="bwsm-rail__progress"><span data-social-progress /></div>
       </div>
     </section>
   )
 }
-
 function ExpertiseSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const [showCaseCard, setShowCaseCard] = useState(true)
@@ -270,29 +238,166 @@ function ExpertiseSection() {
   useGSAP(() => {
     const section = sectionRef.current
     if (!section) return
+
     const mm = gsap.matchMedia()
+
     mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
       const cards = gsap.utils.toArray<HTMLElement>('[data-expertise-card]', section)
       const panels = gsap.utils.toArray<HTMLElement>('[data-expertise-panel]', section)
-      if (cards.length < 2) return
+      const emojiSticker = section.querySelector<HTMLElement>('[data-expertise-emoji]')
 
-      gsap.set(cards, { zIndex: (index) => cards.length - index })
-      gsap.set(cards.slice(1), { yPercent: 8, scale: 0.94, rotate: (index) => index % 2 ? 3 : -3 })
-      gsap.set(panels.slice(1), { opacity: 0, y: 20 })
+      if (cards.length < 2 || panels.length !== cards.length) return
+
+      cards.forEach((card, index) => {
+        gsap.set(card, {
+          zIndex: cards.length - index,
+          xPercent: index === 0 ? 0 : 5 + index * 2.5,
+          yPercent: index === 0 ? 0 : 5 + index * 2,
+          scale: index === 0 ? 1 : 0.96 - index * 0.025,
+          rotate: index === 0 ? 0 : index % 2 ? 1.8 : -1.4,
+          filter: index === 0 ? 'brightness(1)' : `brightness(${0.92 - index * 0.05})`,
+          transformOrigin: '50% 88%',
+          force3D: true,
+          willChange: 'transform, filter',
+        })
+      })
+
+      panels.forEach((panel, index) => {
+        gsap.set(panel, {
+          autoAlpha: index === 0 ? 1 : 0,
+          y: index === 0 ? 0 : 22,
+          pointerEvents: index === 0 ? 'auto' : 'none',
+        })
+      })
+
+      if (emojiSticker) {
+        gsap.set(emojiSticker, { rotate: -7, transformOrigin: '50% 50%' })
+      }
 
       const timeline = gsap.timeline({
-        scrollTrigger: { trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.7 },
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.75,
+          invalidateOnRefresh: true,
+        },
       })
 
-      cards.slice(0, -1).forEach((card, index) => {
-        const next = cards[index + 1]
+      cards.slice(0, -1).forEach((currentCard, index) => {
+        const nextCard = cards[index + 1]
+        const currentPanel = panels[index]
+        const nextPanel = panels[index + 1]
+        const position = index
+
         timeline
-          .to(card, { xPercent: index % 2 ? 112 : -112, rotate: index % 2 ? 12 : -12, opacity: 0, duration: 0.8 }, index)
-          .to(next, { yPercent: 0, scale: 1, rotate: 0, duration: 0.8 }, index)
-          .to(panels[index], { opacity: 0, y: -16, duration: 0.24 }, index)
-          .to(panels[index + 1], { opacity: 1, y: 0, duration: 0.35 }, index + 0.25)
+          .to(
+            nextCard,
+            {
+              zIndex: 20 + index,
+              xPercent: 0,
+              yPercent: 0,
+              scale: 1,
+              rotate: 0,
+              filter: 'brightness(1)',
+              duration: 0.82,
+              ease: 'power2.out',
+            },
+            position,
+          )
+          .to(
+            currentCard,
+            {
+              xPercent: 7 + index * 1.5,
+              yPercent: -5 - index * 1.2,
+              scale: 0.94 - index * 0.015,
+              rotate: index % 2 ? -1.8 : 1.8,
+              filter: 'brightness(0.82)',
+              duration: 0.82,
+              ease: 'power2.out',
+            },
+            position,
+          )
+          .to(
+            currentPanel,
+            {
+              autoAlpha: 0,
+              y: -16,
+              duration: 0.2,
+              ease: 'power2.out',
+              onStart: () => {
+                currentPanel.style.pointerEvents = 'none'
+              },
+              onReverseComplete: () => {
+                currentPanel.style.pointerEvents = 'auto'
+              },
+            },
+            position + 0.06,
+          )
+          .to(
+            nextPanel,
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.34,
+              ease: 'power3.out',
+              onStart: () => {
+                nextPanel.style.pointerEvents = 'auto'
+              },
+              onReverseComplete: () => {
+                nextPanel.style.pointerEvents = 'none'
+              },
+            },
+            position + 0.3,
+          )
+
+        if (index > 0) {
+          timeline.to(
+            cards[index - 1],
+            {
+              xPercent: 11 + index * 1.5,
+              yPercent: -8 - index,
+              scale: 0.89,
+              filter: 'brightness(0.7)',
+              duration: 0.82,
+              ease: 'power2.out',
+            },
+            position,
+          )
+        }
+
+        if (emojiSticker) {
+          timeline
+            .to(
+              emojiSticker,
+              {
+                y: -5,
+                rotate: index % 2 ? -3 : -11,
+                scale: 1.045,
+                duration: 0.26,
+                ease: 'power2.out',
+              },
+              position + 0.22,
+            )
+            .to(
+              emojiSticker,
+              {
+                y: 0,
+                rotate: -7,
+                scale: 1,
+                duration: 0.32,
+                ease: 'power2.inOut',
+              },
+              position + 0.5,
+            )
+        }
       })
+
+      return () => {
+        gsap.set(cards, { clearProps: 'willChange,filter' })
+      }
     })
+
     return () => mm.revert()
   }, { scope: sectionRef })
 
@@ -301,7 +406,16 @@ function ExpertiseSection() {
       <div className="bwsm-expertise__sticky">
         <div className="bwsm-expertise__intro">
           <Label>Our expertise</Label>
-          <h2 id="bwsm-expertise-title">Reasoning<br />to better:<br /><span>resonating.</span></h2>
+          <h2 id="bwsm-expertise-title">
+            Reasoning<br />
+            to better:<br />
+            <span className="bwsm-expertise__resonating">resonating.</span>
+          </h2>
+          <span className="bwsm-expertise__emoji-sticker" data-expertise-emoji aria-hidden="true">
+            <span>📸</span>
+            <span>📱</span>
+            <span>📊</span>
+          </span>
           {/* <p>Social only works when strategy, creative and community learn from each other.</p> */}
         </div>
 
@@ -378,7 +492,6 @@ function ExpertiseSection() {
 
 function ProcessSection() {
   const sectionRef = useRef<HTMLElement>(null)
-
   useGSAP(() => {
     const section = sectionRef.current
     if (!section) return
@@ -387,7 +500,6 @@ function ProcessSection() {
       const cards = gsap.utils.toArray<HTMLElement>('[data-process-card]', section)
       gsap.set(cards, { zIndex: (index) => index + 1 })
       gsap.set(cards.slice(1), { yPercent: 115, rotate: (index) => index % 2 ? 2 : -2 })
-
       const timeline = gsap.timeline({
         scrollTrigger: { trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.65 },
       })
@@ -399,18 +511,16 @@ function ProcessSection() {
     })
     return () => mm.revert()
   }, { scope: sectionRef })
-
   return (
     <section ref={sectionRef} className="bwsm-process" id="social-process" aria-labelledby="bwsm-process-title">
       <div className="bwsm-process__sticky">
         <div className="bwsm-process__intro">
-          <Label>Method & process</Label>
+          {/* <Label>Method & process</Label> */}
           <h2 id="bwsm-process-title">
             We will<br />always prefer<br /><span>this order.</span>
           </h2>
-          <p>Clear thinking before constant output.</p>
+          {/* <p>Clear thinking before constant output.</p> */}
         </div>
-
         <div className="bwsm-process__deck">
           {processSteps.map(([number, title, description], index) => (
             <article key={number} data-process-card className={index % 2 ? 'is-dark' : 'is-lime'}>
@@ -420,7 +530,6 @@ function ProcessSection() {
             </article>
           ))}
         </div>
-
         <div className="bwsm-process__note">
           <strong>A clear, structured process.</strong>
           <p>Every post has a reason to exist, a consistent visual system and a lesson for what comes next.</p>
@@ -429,10 +538,8 @@ function ProcessSection() {
     </section>
   )
 }
-
 function WhySection() {
   const sectionRef = useRef<HTMLElement>(null)
-
   useGSAP(() => {
     const section = sectionRef.current
     if (!section) return
@@ -444,7 +551,6 @@ function WhySection() {
       scrollTrigger: { trigger: section, start: 'top 75%', end: 'center center', scrub: 0.6 },
     })
   }, { scope: sectionRef })
-
   return (
     <section ref={sectionRef} className="bwsm-why" aria-labelledby="bwsm-why-title">
       <h2 id="bwsm-why-title">Why choose<br />BrandWorks?</h2>
@@ -461,21 +567,18 @@ function WhySection() {
     </section>
   )
 }
-
 function useSocialMediaMetadata(siteUrl?: string) {
   useEffect(() => {
     const previousTitle = document.title
     const title = 'Social Media & Content Strategy | BrandWorks'
     const description = 'Strategic social media, content, reels and community management built as one connected brand system.'
     document.title = title
-
     const meta = document.head.querySelector<HTMLMetaElement>('meta[name="description"]')
     const previousDescription = meta?.content
     const descriptionTag = meta ?? document.createElement('meta')
     descriptionTag.name = 'description'
     descriptionTag.content = description
     if (!meta) document.head.appendChild(descriptionTag)
-
     let canonical: HTMLLinkElement | null = null
     try {
       if (siteUrl) {
@@ -488,7 +591,6 @@ function useSocialMediaMetadata(siteUrl?: string) {
     } catch {
       canonical = null
     }
-
     return () => {
       document.title = previousTitle
       if (meta && previousDescription !== undefined) meta.content = previousDescription
@@ -497,14 +599,11 @@ function useSocialMediaMetadata(siteUrl?: string) {
     }
   }, [siteUrl])
 }
-
 export default function SocialMediaPage({ siteUrl }: { siteUrl?: string }) {
   const [viewer, setViewer] = useState<ViewerSelection | null>(null)
   const openReel = useCallback((reel: SocialReel, trigger: HTMLElement) => setViewer({ reel, trigger }), [])
   const dismissViewer = useCallback(() => setViewer(null), [])
-
   useSocialMediaMetadata(siteUrl)
-
   return (
     <main className="bwsm-page">
       <ProjectRail onOpen={openReel} />
