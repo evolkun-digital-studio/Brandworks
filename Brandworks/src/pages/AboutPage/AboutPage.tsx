@@ -130,13 +130,8 @@ function AboutIntro() {
           <div data-reveal="fade" className="about-intro__studio">
             <p className="about-copy">{ABOUT_INTRO.studio}</p>
             <ul className="about-disciplines" aria-label="Disciplines">
-              {ABOUT_INTRO.disciplines.map((discipline, i) => (
-                <li key={discipline}>
-                  <span className="about-disciplines__number" aria-hidden="true">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  {discipline}
-                </li>
+              {ABOUT_INTRO.disciplines.map((discipline) => (
+                <li key={discipline}>{discipline}</li>
               ))}
             </ul>
           </div>

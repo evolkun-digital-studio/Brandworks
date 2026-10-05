@@ -169,16 +169,6 @@ function GalleryFilm({
       />
 
       <div className="absolute inset-0 bg-black/[0.06]" />
-
-      <div className="absolute inset-x-3 bottom-3 flex items-end justify-between gap-3 text-white md:inset-x-4 md:bottom-4">
-        <span className="font-primary text-[10px] font-medium tracking-[-0.01em]">
-          {project.title}
-        </span>
-
-        <span className="font-primary text-[8px] uppercase tracking-[0.16em] text-white/65">
-          {project.id}
-        </span>
-      </div>
     </div>
   );
 }

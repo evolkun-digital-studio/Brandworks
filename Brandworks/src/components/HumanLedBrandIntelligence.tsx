@@ -20,7 +20,7 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     id: "intro",
-    image: mediaUrl("brand.jpg"),
+    image: mediaUrl("first.jpg"),
     at: 0,
   },
   {

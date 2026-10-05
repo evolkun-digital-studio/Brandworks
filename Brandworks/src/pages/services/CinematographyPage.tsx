@@ -5,6 +5,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useReducedMotion } from 'motion/react'
 import { matches } from '../../lib/scrollMotion'
+import { SOCIAL_REELS } from '../../data/socialMedia'
 import './CinematographyPage.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -12,9 +13,8 @@ gsap.registerPlugin(ScrollTrigger)
 type Film = {
   kind: 'film'
   id: string
+  /** Accessible name only; nothing is shown on screen. */
   title: string
-  category: string
-  description: string
   /** One source fills the project; two split it into equal side-by-side panels. */
   sources: string[]
 }
@@ -22,10 +22,8 @@ type Film = {
 type PortraitFilm = {
   id: string
   src: string
-  /** Opening frame, shown until the clip can play. Pexels serves some of
-   *  these as fragmented MP4s whose first frame sits several MB in, so
-   *  without it the frame stays dark for seconds. */
-  poster: string
+  /** Opening frame, shown until the clip can play. */
+  poster?: string
   /** Crop anchor (object-position), for a source whose subject sits off-centre. */
   position?: string
 }
@@ -41,22 +39,18 @@ type Section = Film | PortraitSet
 
 const FALLBACK_VIDEO = 'https://www.pexels.com/download/video/7062390/'
 
-/** Every section of the showcase, in page order; numbers come from position. */
+/** Every section of the showcase, in page order. */
 const SECTIONS: Section[] = [
   {
     kind: 'film',
     id: 'brand-film',
     title: 'Brand Film',
-    category: 'Film / Campaign',
-    description: 'Visual storytelling shaped through movement, pace and atmosphere.',
     sources: ['https://www.pexels.com/download/video/6571651/'],
   },
   {
     kind: 'film',
     id: 'campaign',
     title: 'Campaign',
-    category: 'Direction / Film',
-    description: 'Campaign worlds designed to be remembered beyond the first frame.',
     sources: [
       'https://www.pexels.com/download/video/10397827/',
       'https://www.pexels.com/download/video/3804693/',
@@ -66,51 +60,31 @@ const SECTIONS: Section[] = [
     kind: 'portrait',
     id: 'vertical-stories',
     title: 'Vertical Stories',
-    films: [
-      {
-        id: 'vertical-01',
-        src: 'https://www.pexels.com/download/video/20514305/',
-        poster: '/posters/vertical-20514305.jpg',
-      },
-      {
-        id: 'vertical-02',
-        src: 'https://www.pexels.com/download/video/25899561/',
-        poster: '/posters/vertical-25899561.jpg',
-      },
-      {
-        id: 'vertical-03',
-        src: 'https://www.pexels.com/download/video/31636370/',
-        poster: '/posters/vertical-31636370.jpg',
-      },
-    ],
+    films: SOCIAL_REELS.slice(0, 3).map((reel) => ({
+      id: `reel-${reel.id}`,
+      src: reel.src,
+      poster: reel.poster,
+    })),
   },
   {
     kind: 'film',
     id: 'social-film',
     title: 'Social Film',
-    category: 'Social / Motion',
-    description: 'Fast, intentional storytelling made for the way people watch now.',
     sources: ['https://www.pexels.com/download/video/3804693/'],
   },
   {
     kind: 'film',
     id: 'product-story',
     title: 'Product Story',
-    category: 'Product / Detail',
-    description: 'Tactile product films where light, material and movement do the talking.',
     sources: ['https://www.pexels.com/download/video/7984186/'],
   },
   {
     kind: 'film',
     id: 'motion-lifestyle',
     title: 'Motion / Lifestyle',
-    category: 'Lifestyle / Editorial',
-    description: 'Human moments captured with an editorial eye and a natural rhythm.',
     sources: ['https://www.pexels.com/download/video/35233227/'],
   },
 ]
-
-const sectionNumber = (index: number) => String(index + 1).padStart(2, '0')
 
 function swapToFallback(event: SyntheticEvent<HTMLVideoElement>) {
   const video = event.currentTarget
@@ -162,13 +136,12 @@ function FilmMedia({ film, eager, reducedMotion }: FilmMediaProps) {
 
 type PortraitFilmsProps = {
   set: PortraitSet
-  number: string
 }
 
 /** Three portrait films side by side, moved and played as one showcase slide. */
-function PortraitFilms({ set, number }: PortraitFilmsProps) {
+function PortraitFilms({ set }: PortraitFilmsProps) {
   return (
-    <article className="film-project film-project--portrait" aria-labelledby={`${set.id}-title`}>
+    <article className="film-project film-project--portrait" aria-label={set.title}>
       <div className="portrait-films">
         <div className="portrait-film-grid">
           {set.films.map((film) => (
@@ -187,10 +160,6 @@ function PortraitFilms({ set, number }: PortraitFilmsProps) {
             </div>
           ))}
         </div>
-      </div>
-      <div className="portrait-films__label">
-        <span className="film-project__number">{number}</span>
-        <h2 id={`${set.id}-title`}>{set.title}</h2>
       </div>
     </article>
   )
@@ -398,26 +367,14 @@ export default function CinematographyPage() {
         <div className="film-stage">
           {SECTIONS.map((section, index) =>
             section.kind === 'portrait' ? (
-              <PortraitFilms key={section.id} set={section} number={sectionNumber(index)} />
+              <PortraitFilms key={section.id} set={section} />
             ) : (
               <article
                 key={section.id}
                 className="film-project"
-                aria-labelledby={`${section.id}-title`}
+                aria-label={section.title}
               >
                 <FilmMedia film={section} eager={index === 0} reducedMotion={reducedMotion} />
-                <div className="film-project__wash" aria-hidden="true" />
-
-                <div className="film-project__overlay">
-                  <div className="film-project__identity">
-                    <span className="film-project__number">{sectionNumber(index)}</span>
-                    <h2 id={`${section.id}-title`}>{section.title}</h2>
-                  </div>
-                  <div className="film-project__detail">
-                    <p className="film-project__category">{section.category}</p>
-                    <p className="film-project__description">{section.description}</p>
-                  </div>
-                </div>
               </article>
             ),
           )}

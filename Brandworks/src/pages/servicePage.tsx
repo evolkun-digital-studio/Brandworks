@@ -458,12 +458,8 @@ export default function ServicesPage() {
                   >
                     <Link
                       to={`/services/${service.slug}`}
-                      className="group grid min-h-[84px] grid-cols-[42px_1fr_auto] items-center gap-4 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-4 sm:min-h-[94px] sm:grid-cols-[52px_minmax(190px,0.72fr)_minmax(240px,1fr)_auto] sm:gap-5"
+                      className="group grid min-h-[84px] grid-cols-[1fr_auto] items-center gap-4 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-4 sm:min-h-[94px] sm:grid-cols-[minmax(190px,0.72fr)_minmax(240px,1fr)_auto] sm:gap-5"
                     >
-                      <span className="text-[11px] tabular-nums text-neutral-400">
-                        {service.number}
-                      </span>
-
                       <span className="text-[20px] font-medium leading-tight tracking-[-0.025em] sm:text-[22px]">
                         {service.shortTitle ??
                           service.title}
@@ -510,10 +506,6 @@ export default function ServicesPage() {
                     {activeService.group}
                   </p>
                 </div>
-
-                <span className="text-xs text-neutral-400">
-                  {activeService.number} / 10
-                </span>
               </div>
             </div>
           </aside>

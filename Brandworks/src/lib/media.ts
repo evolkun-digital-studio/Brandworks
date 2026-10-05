@@ -53,6 +53,7 @@ export const MEDIA_FILES = {
   "ChatGPT_Image_Sep_21_2026_03_09_11_PM.webp": "ChatGPT_Image_Sep_21_2026_03_09_11_PM.webp",
   "PR.jpg": "PR.jpg",
   "first.webp": "first.webp",
+  "first.jpg": "first.jpg",
   "performance.jpg": "performance.jpg",
   "enga.webp": "enga.webp",
   "project 2.webp": "project 2.webp",

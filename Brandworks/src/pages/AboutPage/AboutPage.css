@@ -274,15 +274,6 @@ body:has(.about-page) .site-header__logo {
   color: var(--about-ink);
 }
 
-.about-disciplines__number {
-  flex: none;
-  min-width: 2ch;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
-  color: var(--about-muted);
-}
-
 /* ------------------------------------------------------- 03 — our journey */
 
 .about-journey {
