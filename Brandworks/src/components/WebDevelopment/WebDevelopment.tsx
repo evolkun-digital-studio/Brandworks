@@ -269,13 +269,13 @@ function WebDevelopment() {
             project — those would stay drawn over the work beneath them. */}
         <span className="wdr-caption-rule wdr-chrome" aria-hidden="true" />
 
-        <div className="wdr-progress wdr-chrome" aria-hidden="true">
+        {/* <div className="wdr-progress wdr-chrome" aria-hidden="true">
           <span>01</span>
           <span className="wdr-progress__track">
             <span className="wdr-progress__fill" />
           </span>
           <span>{pad(TOTAL)}</span>
-        </div>
+        </div> */}
       </div>
     </section>
   )

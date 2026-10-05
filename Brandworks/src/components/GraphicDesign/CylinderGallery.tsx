@@ -18,6 +18,7 @@ export type GalleryProject = {
   position?: string
   /** Frame colour behind a 'contain' image; defaults to the grey placeholder. */
   background?: string
+  year?: string
 }
 
 /**

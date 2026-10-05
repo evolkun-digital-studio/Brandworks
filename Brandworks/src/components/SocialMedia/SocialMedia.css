@@ -114,3 +114,59 @@
     max-width: 36rem;
   }
 }
+
+/* Phones: the visitor is already holding a phone, so drop the mock-up and
+   show the reel itself, edge to edge like the app. The shell stays in the
+   tree only as the cqw container, so the reel UI keeps its proportions.
+   The height leaves a band of page above and below, because vertical
+   swipes on the reel change reels rather than scroll the page. */
+@media (max-width: 767px) {
+  .social-stage {
+    margin-inline: calc(50% - 50vw);
+  }
+
+  .social-stage .social-phone {
+    width: 100vw;
+    height: min(calc(100vw * 16 / 9), calc(100svh - 120px));
+    aspect-ratio: auto;
+  }
+
+  .social-stage .social-phone::before,
+  .social-stage .social-phone::after,
+  .social-stage .social-phone__frame {
+    display: none;
+  }
+
+  .social-stage .social-phone__screen {
+    inset: 0;
+    border-radius: 0;
+    -webkit-mask-image: none;
+  }
+
+  /* The device draws its own status bar, island and app bar. */
+  .social-stage .reel-status,
+  .social-stage .reel-nav {
+    display: none;
+  }
+
+  .social-stage .reel-feed {
+    --reel-nav-h: 0px;
+  }
+
+  .social-stage .reel-top {
+    padding-top: 3.2cqw;
+  }
+
+  .social-stage .reel-header {
+    padding-top: 0;
+  }
+
+  .social-stage .reel-actions,
+  .social-stage .reel-info {
+    bottom: 6cqw;
+  }
+
+  .social-stage .reel-toast {
+    bottom: 22cqw;
+  }
+}

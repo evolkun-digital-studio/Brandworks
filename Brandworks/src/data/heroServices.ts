@@ -24,7 +24,9 @@ const galleryPhoto10 = mediaUrl("Photo10.png")
 const galleryPhoto11 = mediaUrl("Photo11.png")
 const galleryPhoto12 = mediaUrl("Photo12.png")
 const galleryPhoto13 = mediaUrl("Photo13.png")
-const motionLifestyle = mediaUrl("campaign-motion.jpg")
+const photographyUrl = (file: string) =>
+  `https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/${file}`
+const motionLifestyle =mediaUrl("campaign-motion.jpg")
 const cinematicAction = mediaUrl("campaign-action.jpg")
 const experimentalCreative = mediaUrl("gm-06-800.webp")
 const socialAerial = mediaUrl("campaign-aerial.jpg")
@@ -215,6 +217,41 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
           width: 1200,
           height: 904,
           alt: 'BrandWorks editorial portfolio photograph',
+        },
+        {
+          id: 'artboard-14',
+          src: photographyUrl('Artboard%2014%403x.png'),
+          width: 3241,
+          height: 4051,
+          alt: 'BrandWorks campaign portfolio photograph',
+        },
+        {
+          id: 'artboard-2',
+          src: photographyUrl('Artboard%202.png'),
+          width: 1080,
+          height: 1350,
+          alt: 'BrandWorks brand portfolio photograph',
+        },
+        {
+          id: 'artboard-3',
+          src: photographyUrl('Artboard%203%403x%20(1).png'),
+          width: 1786,
+          height: 2527,
+          alt: 'BrandWorks product portfolio photograph',
+        },
+        {
+          id: 'studio-landscape-three',
+          src: photographyUrl('ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_31_57%20PM.png'),
+          width: 1536,
+          height: 1024,
+          alt: 'BrandWorks studio portfolio photograph',
+        },
+        {
+          id: 'artboard-7',
+          src: photographyUrl('Artboard%207%20(1).png'),
+          width: 1080,
+          height: 1350,
+          alt: 'BrandWorks editorial campaign photograph',
         },
       ],
     },

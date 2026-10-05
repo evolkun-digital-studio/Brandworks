@@ -160,7 +160,7 @@ export default function PRReputation() {
                     className="group grid grid-cols-[28px_1fr] gap-3 border-b border-black/10 py-4 sm:grid-cols-[32px_1fr] sm:py-5 md:grid-cols-[30px_1fr] md:gap-2.5 md:py-4 lg:grid-cols-[36px_1fr] lg:gap-3 lg:py-5 xl:py-6"
                   >
                     <span className="pt-[2px] font-primary text-[8px] uppercase tracking-[0.15em] text-black/28 transition-colors duration-300 group-hover:text-black/55 sm:text-[9px]">
-                      0{index + 1}
+                      
                     </span>
 
                     <div className="min-w-0">

@@ -1236,7 +1236,7 @@ function WorkCanvas() {
           aria-hidden="true"
           className="pointer-events-none invisible absolute inset-0 z-0 flex flex-col items-center justify-center px-4 text-center opacity-0"
         >
-          <span className={GIANT_CLASS} style={{ color: "#beee00" }}>
+          <span className={GIANT_CLASS} style={{ color: "#000" }}>
             Across the
           </span>
 
@@ -1247,7 +1247,7 @@ function WorkCanvas() {
             }}
           />
 
-          <span className={GIANT_CLASS}>studio.</span>
+          <span className={GIANT_CLASS} style={{ color: "#beee00" }}>studio.</span>
         </div>
 
         <div

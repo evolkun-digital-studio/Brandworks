@@ -20,12 +20,12 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     id: "intro",
-    image: mediaUrl("brand.avif"),
+    image: mediaUrl("brand.jpg"),
     at: 0,
   },
   {
     id: "see",
-    image: mediaUrl("eye.avif"),
+    image: mediaUrl("eye.png"),
     at: 1.55,
   },
   {
@@ -35,7 +35,7 @@ const SLIDES: Slide[] = [
   },
   {
     id: "understand",
-    image: mediaUrl("understand.jpg"),
+    image: mediaUrl("understand_2.jpg"),
     at: 4.55,
   },
 ];
@@ -671,12 +671,18 @@ export default function BrandStatementPrecision() {
           padding: 0.12em 0 0.18em;
         }
 
+        /* One size shared by the intro lines and SEE / HEAR / UNDERSTAND,
+           sized so UNDERSTAND still fits on one line. */
+        .bw2-section {
+          --bw2-type: clamp(3.5rem, 6vw, 6rem);
+        }
+
         .bw2-intro-top,
         .bw2-intro-bottom {
-          font-size: clamp(3.5rem, 7.5vw, 9rem);
+          font-size: var(--bw2-type);
           line-height: 0.86;
-          margin-bottom:15px;
-          font-weight: 400
+          margin-bottom: 15px;
+          font-weight: 400;
           will-change: transform, opacity;
         }
 
@@ -713,7 +719,7 @@ export default function BrandStatementPrecision() {
         .bw2-word {
           display: inline-block;
 
-          font-size: clamp(6rem, 18vw, 20rem);
+          font-size: var(--bw2-type);
           line-height: 0.72;
 
           font-weight: 500;
@@ -725,10 +731,6 @@ export default function BrandStatementPrecision() {
             transform,
             opacity,
             letter-spacing;
-        }
-
-        .bw2-understand {
-          font-size: clamp(4rem, 13.5vw, 15rem);
         }
 
         /* ---------------------------------------
@@ -833,12 +835,8 @@ export default function BrandStatementPrecision() {
             width: calc(100% - 36px);
           }
 
-          .bw2-word {
-            font-size: clamp(5rem, 21vw, 11rem);
-          }
-
-          .bw2-understand {
-            font-size: clamp(3.7rem, 15vw, 8rem);
+          .bw2-section {
+            --bw2-type: clamp(2.75rem, 8.5vw, 5rem);
           }
 
           .bw2-final-line {
@@ -855,18 +853,13 @@ export default function BrandStatementPrecision() {
             top: 24px;
           }
 
+          .bw2-section {
+            --bw2-type: clamp(2.2rem, 10.5vw, 3.75rem);
+          }
+
           .bw2-intro-top,
           .bw2-intro-bottom {
-            font-size: clamp(3rem, 13vw, 5.4rem);
             line-height: 0.92;
-          }
-
-          .bw2-word {
-            font-size: clamp(4.5rem, 24vw, 8rem);
-          }
-
-          .bw2-understand {
-            font-size: clamp(3.1rem, 17vw, 6.2rem);
           }
 
           .bw2-final-line {
@@ -938,7 +931,7 @@ export default function BrandStatementPrecision() {
             </div>
             {/* Bottom progression */}
             <div className="bw2-progress">
-              <span className="bw2-progress-caption">Scroll to reveal</span>
+              {/* <span className="bw2-progress-caption">Scroll to reveal</span> */}
             </div>
           </div>
         </div>

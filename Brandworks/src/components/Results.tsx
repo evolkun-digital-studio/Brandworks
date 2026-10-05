@@ -2,13 +2,9 @@ import { mediaUrl } from '../lib/media'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { clamp01, lerp, matches, sample, smoothstep, write } from '../lib/scrollMotion'
-// Not yet uploaded to the Photography/ folder that mediaUrl() serves from,
-// so these are referenced at the bucket root by full URL.
-const R2_ROOT = 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev'
-const rootImage = (file: string) => `${R2_ROOT}/${encodeURIComponent(file)}`
 const results = [
   {
-    image: rootImage('discovery.jpg'),
+    image: mediaUrl("Visibility.jpg"),
     stat: 'Visibility',
     label: 'How often and where the brand is being discovered.',
   },
@@ -18,12 +14,12 @@ const results = [
     label: 'How audiences respond to content and campaigns.',
   },
   {
-    image: rootImage('search (2).jpg'),
+    image: mediaUrl("search.jpg"),
     stat: 'Search',
     label: 'Rankings, demand, traffic and search presence.',
   },
   {
-    image: rootImage('reputation.jpg'),
+    image: mediaUrl("Reputation.jpg"),
     stat: 'Reputation',
     label: 'What appears around the brand and the people behind it.',
   },
@@ -141,12 +137,12 @@ function Header() {
       <h2 className="site-display mt-2 w-full max-w-[900px] text-balance text-center text-[clamp(2.25rem,10vw,4.75rem)] font-normal leading-[0.94] tracking-[-0.045em] text-neutral-950 sm:mt-3 sm:text-[clamp(2.75rem,7.5vw,4.75rem)] md:text-[clamp(3rem,5.5vw,4.75rem)] lg:text-[clamp(3.25rem,4.5vw,4.75rem)]">
         What we measure.
       </h2>
-      <p className="site-copy mt-3 w-full max-w-[620px] px-2 text-center text-[13px] leading-[1.55] text-neutral-600 sm:mt-4 sm:max-w-[680px] sm:px-0 sm:text-[14px] md:text-[15px] lg:text-[16px]">
+      {/* <p className="site-copy mt-3 w-full max-w-[620px] px-2 text-center text-[13px] leading-[1.55] text-neutral-600 sm:mt-4 sm:max-w-[680px] sm:px-0 sm:text-[14px] md:text-[15px] lg:text-[16px]">
         Depending on the engagement:
       </p>
       <p className="mt-2 w-full max-w-[620px] px-2 text-center text-[11px] font-normal leading-[1.45] tracking-[-0.01em] text-neutral-500 sm:max-w-[680px] sm:px-0 sm:text-[12px] md:mt-2.5 md:text-[13px]">
         Different work requires different measures.
-      </p>
+      </p> */}
     </>
   )
 }
@@ -234,12 +230,12 @@ function useCoverflow(
       const headerBottom = header ? header.offsetTop + header.offsetHeight : 0
       const stageGap =
         m.tier === 'mobile'
-          ? 16
+          ? 28
           : m.tier === 'tablet'
-            ? 24
+            ? 40
             : m.tier === 'laptop'
-              ? 32
-              : 40
+              ? 48
+              : 56
       m.stageTop = headerBottom + stageGap
       m.stageH = Math.max(220, m.vh - m.stageTop)
       const ratio = 413 / 480
@@ -544,7 +540,7 @@ function ResultsStatic() {
   return (
     <section className="mx-auto flex w-full max-w-[1320px] flex-col items-center bg-white px-4 py-14 text-center sm:px-6 sm:py-20 md:py-20 lg:px-8 lg:py-24">
       <Header />
-      <div className="mt-8 grid w-full grid-cols-1 gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-5 md:mt-12 lg:mt-14 lg:grid-cols-3 lg:gap-6">
+      <div className="mt-11 grid w-full grid-cols-1 gap-4 sm:mt-14 sm:grid-cols-2 sm:gap-5 md:mt-16 lg:mt-18 lg:grid-cols-3 lg:gap-6">
         {results.map((result) => (
           <div
             key={result.label}

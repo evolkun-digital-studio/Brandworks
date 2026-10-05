@@ -280,8 +280,8 @@ export default function PerformanceMarketingPage() {
     </Section>
 
     <Section number="05" label="The performance system" title="One campaign. Multiple systems working together." className="pm-dark pm-system" id="pm-system">
-      <div className="pm-system-layout"><div className="pm-system-aside"><p className="pm-small">The work behind the outcome</p><div className="pm-system-orbit" aria-hidden="true"><span /><span /><span /><strong data-pm-active-stage>Research</strong></div><p>Creative, media and technology move together. A weak link affects everything that follows.</p><Link to="/contact" className="pm-text-link">Build your system <span aria-hidden="true">↗</span></Link></div>
-        <ol className="pm-system-steps">{stages.map(([title, copy], index) => <li key={title} data-pm-stage={title} className={index === 0 ? 'is-active' : ''}><span>{String(index + 1).padStart(2, '0')}</span><div><h3>{title}</h3><p>{copy}</p></div><span className="pm-stage-marker" aria-hidden="true" /></li>)}</ol>
+      <div className="pm-system-layout"><div className="pm-system-aside"><div className="pm-system-orbit" aria-hidden="true"><span /><span /><span /><strong data-pm-active-stage>Research</strong></div><p>Creative, media and technology move together. A weak link affects everything that follows.</p><Link to="/contact" className="pm-text-link">Build your system <span aria-hidden="true">↗</span></Link></div>
+        <ol className="pm-system-steps">{stages.map(([title, copy],) => <li key={title} data-pm-stage={title}><span></span><div><h3>{title}</h3><p>{copy}</p></div><span className="pm-stage-marker" aria-hidden="true" /></li>)}</ol>
       </div>
     </Section>
 

@@ -7,12 +7,11 @@ import { useGSAP } from '@gsap/react'
 gsap.registerPlugin(ScrollTrigger)
 
 const photographyImages = [
-  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=2400&q=85',
-  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=2400&q=85',
-  'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=2400&q=85',
-  'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=2400&q=85',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=2400&q=85',
-  'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=2400&q=85',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Copy%20of%20img.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%2014%403x.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%203.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/vcvcvcvcv.jpg',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_31_57%20PM%20(1).png',
 ]
 
 const TOTAL = photographyImages.length
