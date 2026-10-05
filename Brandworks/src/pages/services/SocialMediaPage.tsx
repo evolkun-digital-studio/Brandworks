@@ -789,7 +789,7 @@ function StoryGroupCard({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -12, opacity: 0 }}
             transition={{ duration: 0.32, ease: EASE }}
-            className="mb-4 max-w-[88%] font-[var(--font-primary)] text-[clamp(24px,2.1vw,36px)] uppercase leading-[0.84] tracking-[-0.04em]"
+            className="mb-4 max-w-[88%] font-primary text-[clamp(24px,2.1vw,36px)] uppercase leading-[0.84] tracking-[-0.04em]"
           >
             {reel.caption}
           </motion.h3>
@@ -850,17 +850,12 @@ function StoryGroupCard({
 /* per vh read as plain page scrolling while the card stays centred.   */
 /* ------------------------------------------------------------------ */
 
-const CREAM = '#fbf5f2'
-const PINK = '#cd2a87'
-const BLUSH = '#f3b8d3'
-const BLUE = '#3692bb'
-// index 0 = team card in the slot, then one colour per rail card as it locks
-const RAIL_COLORS = ['#3692bb', '#3692bb', '#a6b8c1', '#3e4423', '#dca10d', '#7d5bb8', '#e593b8', '#e593b8']
+const WHITE = '#fff'
 const RAIL_START = 440
 const PER_CARD = 85
 const LAST_CARD_STOP = 0.57 // last card stops part-way over the previous one
 
-const STAGE_VARS = { '--slot-h': 'min(86svh, 860px)', '--slot-w': 'calc(var(--slot-h) * 0.665)' } as CSSProperties
+const STAGE_VARS = { '--slot-h': 'min(82svh, 500px)', '--slot-w': 'calc(var(--slot-h) * 0.665)' } as CSSProperties
 const SLOT: CSSProperties = { position: 'absolute', width: 'var(--slot-w)', height: 'var(--slot-h)', left: 'calc(50% - var(--slot-w) / 2)', top: 'calc(50% - var(--slot-h) / 2)' }
 const RAIL_ITEM: CSSProperties = { position: 'absolute', width: 'var(--slot-w)', height: 'var(--slot-h)', left: 0, top: 'calc(50% - var(--slot-h) / 2)' }
 
@@ -892,13 +887,11 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       const qa = (selector: string) => gsap.utils.toArray<HTMLElement>(selector, root)
 
       const stage = q('[data-stage]')
-      const stageBg = q('[data-stage-bg]')
       const railBg = q('[data-rail-bg]')
       const backdrop = q('[data-hero-backdrop]')
       const backdropImg = q('[data-hero-backdrop] img')
       const heroLetters = qa('[data-hero-letter]')
       const heroLines = qa('[data-hero-copy] [data-line]')
-      const humanWord = q('[data-hero-human]')
       const stickers = qa('[data-social-emoji]')
       const shells = qa('[data-social-photo-shell]')
       const shellIntro = qa('[data-shell-intro]')
@@ -915,7 +908,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       const flowSocial = q('[data-flow="social"]')
       const video = q<HTMLVideoElement>('[data-social-takeover-video]')
 
-      if (!stage || !stageBg || !railBg || !backdrop || shells.length < 3 || !flipInner || !flipFront || !flipBack || !teamCard || !railItems.length) return
+      if (!stage || !railBg || !backdrop || shells.length < 3 || !flipInner || !flipFront || !flipBack || !teamCard || !railItems.length) return
 
       const centerShell = shells[1]
       const leftShell = shells[0]
@@ -924,9 +917,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
 
       /* ---------- initial state ---------- */
       gsap.set(shells, { transformOrigin: '50% 50%', force3D: true })
-      gsap.set(centerShell, { scale: 0.79, zIndex: 30 })
-      gsap.set(leftShell, { x: () => -window.innerWidth * 0.175, y: () => window.innerHeight * 0.09, scale: 0.62, rotation: -5.5, zIndex: 10 })
-      gsap.set(backCard, { x: () => window.innerWidth * 0.175, y: () => window.innerHeight * 0.08, scale: 0.64, rotation: 5.2, zIndex: 10 })
+      gsap.set(centerShell, { scale: 1, zIndex: 30 })
+      gsap.set(leftShell, { x: () => -window.innerWidth * 0.175, y: () => window.innerHeight * 0.09, scale: 1, rotation: -5.5, zIndex: 10 })
+      gsap.set(backCard, { x: () => window.innerWidth * 0.175, y: () => window.innerHeight * 0.08, scale: 1, rotation: 5.2, zIndex: 10 })
       gsap.set(flipInner, { rotateY: 0, transformPerspective: 1800, transformOrigin: '50% 50%' })
       gsap.set(flipFront, { pointerEvents: 'auto' })
       gsap.set(flipBack, { pointerEvents: 'none' })
@@ -996,8 +989,6 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         })
         if (active !== lastActive) {
           lastActive = active
-          // the quick colour "jump" every time a new card locks into the slot
-          gsap.to(railBg, { backgroundColor: RAIL_COLORS[Math.min(active, RAIL_COLORS.length - 1)], duration: 0.45, ease: 'power2.out', overwrite: true })
           setRailIndex(active)
         }
       }
@@ -1032,21 +1023,16 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         if (el) tl.fromTo(el, { yPercent: from }, { yPercent: to, duration: Math.abs(from - to), ease: 'none' }, at)
       }
 
-      // 1. HERO → PINK: photos tuck behind the centre one, background fades to pink
+      // 1. Photos tuck behind the centre one while retaining their size
       flow(flowHeroBack, 0, -100, 0)
       flow(flowHeroCopy, 0, -100, 0)
       tl.to(backdrop, { autoAlpha: 0, duration: 35 }, 10)
-      tl.to(leftShell, { x: 0, y: 0, rotation: -2, scale: 0.95, duration: 55, ease: 'power2.inOut' }, 0)
-      tl.to(backCard, { x: 0, y: 0, rotation: 2, scale: 0.95, duration: 55, ease: 'power2.inOut' }, 0)
-      tl.to(centerShell, { scale: 1, duration: 55, ease: 'power2.inOut' }, 0)
+      tl.to(leftShell, { x: 0, y: 0, rotation: -2, duration: 55, ease: 'power2.inOut' }, 0)
+      tl.to(backCard, { x: 0, y: 0, rotation: 2, duration: 55, ease: 'power2.inOut' }, 0)
       tl.to(stickers, { autoAlpha: 0, scale: 0.6, duration: 20 }, 10)
-      tl.to(stageBg, { backgroundColor: PINK, duration: 40 }, 15)
-      if (humanWord) tl.to(humanWord, { color: '#fff0e8', duration: 40 }, 15)
 
       // 2. FLIP — the reel comes from the back of the photo
       tl.to(flipInner, { rotateY: 180, duration: 40, ease: 'power2.inOut' }, 55)
-      tl.to(centerShell, { scale: 1.04, duration: 20, ease: 'power2.out' }, 55)
-      tl.to(centerShell, { scale: 1, duration: 20, ease: 'power2.in' }, 75)
       tl.set([leftShell, backCard], { autoAlpha: 0 }, 60)
       tl.set(flipFront, { pointerEvents: 'none' }, 75)
       tl.set(flipBack, { pointerEvents: 'auto' }, 75)
@@ -1054,22 +1040,19 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       // 3. "We are the current" scrolls past while the video stays in the middle
       flow(flowPink, 100, -45, 80)
 
-      // 4. TEAM card swings over the video (hinged on its right edge), bg → blush → cream
+      // 4. TEAM card swings over the video (hinged on its right edge)
       tl.set(flipBack, { pointerEvents: 'none' }, 225)
       tl.fromTo(teamCard, { autoAlpha: 0 }, { autoAlpha: 1, duration: 6, immediateRender: false }, 225)
       tl.fromTo(teamCard, { rotateY: 88 }, { rotateY: 0, duration: 60, ease: 'power1.inOut', immediateRender: false }, 225)
-      tl.to(stageBg, { backgroundColor: BLUSH, duration: 25 }, 225)
-      tl.to(stageBg, { backgroundColor: CREAM, duration: 30 }, 250)
       // the cards underneath splay out as a little stack
-      tl.set(backCard, { autoAlpha: 1, x: 0, y: 0, rotation: 0, scale: 0.97 }, 255)
+      tl.set(backCard, { autoAlpha: 1, x: 0, y: 0, rotation: 0, scale: 1 }, 255)
       tl.to(centerShell, { x: () => -cardW() * 0.07, rotation: -3.5, duration: 35, ease: 'power2.out' }, 255)
-      tl.to(backCard, { x: () => cardW() * 0.07, rotation: 4, scale: 1, duration: 35, ease: 'power2.out' }, 255)
+      tl.to(backCard, { x: () => cardW() * 0.07, rotation: 4, duration: 35, ease: 'power2.out' }, 255)
       flow(flowElectric, 100, -50, 230)
 
-      // 5. "We make them social": bg → blue, stack tucks back in, title scrolls up and stays
+      // 5. "We make them social": stack tucks back in, title scrolls up and stays
       tl.to([centerShell, backCard], { x: 0, rotation: 0, duration: 20, ease: 'power2.inOut' }, 380)
       tl.set([centerShell, backCard], { autoAlpha: 0 }, 402)
-      tl.to(stageBg, { backgroundColor: BLUE, duration: 15 }, 382)
       flow(flowSocial, 100, 0, 370)
 
       // 6. Stories slide in from the right and stack on the slot
@@ -1098,32 +1081,33 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
 
   const tiltedSticker = 'pointer-events-none absolute z-50 rounded-[18px] bg-[#f8ded4] px-5 py-3 text-[18px] shadow-[0_12px_28px_rgba(16,17,15,0.12)]'
   const flowBox = 'pointer-events-none absolute inset-0 z-[30] will-change-transform'
+  const textHighlight = 'inline-block bg-[#ccff00] px-[0.08em] pb-[0.07em] pt-[0.03em] text-[#10110f]'
 
   return (
     <section className="bwsm-hero-rail relative" id="social-work" aria-label="BrandWorks social media">
       {/* ================= DESKTOP (pinned stage) ================= */}
       <div ref={desktopRef} className="relative hidden lg:block lg:motion-reduce:hidden" style={{ height: `${total + 100}vh` }}>
         <div data-stage className="relative h-[100svh] w-full overflow-hidden" style={STAGE_VARS}>
-          <div data-stage-bg className="absolute inset-0" style={{ backgroundColor: CREAM }} />
-          <div data-rail-bg className="absolute inset-0 opacity-0" style={{ backgroundColor: RAIL_COLORS[0] }} />
+          <div data-stage-bg className="absolute inset-0" style={{ backgroundColor: WHITE }} />
+          <div data-rail-bg className="absolute inset-0 opacity-0" style={{ backgroundColor: WHITE }} />
 
           {/* hero backdrop + wordmark (behind the photos, scrolls away) */}
           <div data-flow="hero-back" className="pointer-events-none absolute inset-0 z-[2] will-change-transform">
             <div className="absolute inset-x-0 top-[4svh] flex justify-center">
-              <div data-hero-backdrop className="h-[73svh] w-[91vw] max-w-[1620px] overflow-hidden rounded-[clamp(18px,1.6vw,28px)] bg-black/5 shadow-[0_28px_80px_rgba(16,17,15,0.08)]">
-                <div className="relative h-full w-full">
+              <div data-hero-backdrop className="h-[73svh] w-[91vw] max-w-[1620px] overflow-hidden   ">
+                {/* <div className="relative h-full w-full">
                   <img src={heroBackdrop} alt="" className="h-full w-full object-cover object-center opacity-40" loading="eager" />
-                  <div className="absolute inset-0 bg-[#fbf5f2]/50" />
-                  <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-[#fbf5f2] via-[#fbf5f2]/55 to-transparent" />
-                </div>
+                  <div className="absolute inset-0 bg-white/50" />
+                  <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-white via-white/55 to-transparent" />
+                </div> */}
               </div>
             </div>
             <div className="absolute inset-x-0 top-[3svh] flex justify-center">
-              <div aria-hidden="true" className="flex whitespace-nowrap font-primary text-[clamp(120px,19vw,220px)] uppercase leading-[0.74] tracking-[-0.075em] text-[#00000]">
+              {/* <div aria-hidden="true" className="flex whitespace-nowrap font-primary text-[clamp(120px,19vw,220px)] uppercase leading-[0.74] tracking-[-0.075em] text-[#00000]">
                 {'BRANDWORKS'.split('').map((letter, index) => (
                   <span key={index} data-hero-letter className="inline-block">{letter}</span>
                 ))}
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -1180,7 +1164,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
                 href="#social-process"
                 className="flex h-full w-full flex-col items-center justify-center rounded-[clamp(14px,1.2vw,22px)] bg-[#d72585] p-8 text-center text-white shadow-[0_20px_60px_rgba(0,0,0,.18)]"
               >
-                <span className="font-[var(--font-primary)] text-[clamp(42px,4vw,70px)] uppercase leading-[0.76] tracking-[-0.05em]">More<br />projects?</span>
+                <span className="font-primary text-[clamp(42px,4vw,70px)] uppercase leading-[0.76] tracking-[-0.05em]">More<br />projects?</span>
                 <small className="mt-7 rounded-full bg-white px-4 py-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#111]">Explore <Arrow /></small>
               </a>
             </div>
@@ -1189,9 +1173,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           {/* ---------- text that simply scrolls past ---------- */}
           <div data-flow="hero-copy" className={flowBox}>
             <div data-hero-copy className="absolute bottom-[5vh] left-[clamp(28px,3vw,58px)]">
-              <p className="mb-3 text-[11px] font-semibold text-[#9a9cb8]">Social media agency</p>
-              <h1 className="font-[var(--font-primary)] text-[clamp(52px,6vw,104px)] font-normal uppercase leading-[0.74] tracking-[-0.06em] text-[#db3188]">
-                <Lines lines={[<span key="h" data-hero-human>Human</span>, <span key="s" className="text-[#ee9bc3]">Social Club.</span>]} />
+              {/* <p className="mb-3 text-[11px] font-semibold text-[#10110f]">Social media agency</p> */}
+              <h1 className="font-primary text-[clamp(52px,5vw,84px)] font-normal uppercase leading-[0.74] tracking-[-0.06em] text-[#10110f]">
+                <Lines lines={[<span key="h" data-hero-human>Human</span>, <span key="s" className={textHighlight}>Social Club.</span>]} />
               </h1>
             </div>
             {/* <div data-hero-copy className="absolute bottom-[5vh] right-[clamp(28px,3vw,58px)] max-w-[240px] border-t border-black/15 pt-4">
@@ -1199,24 +1183,24 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             </div> */}
           </div>
 
-          <div data-flow="pink" className={`${flowBox} text-[#fff0e8]`}>
+          <div data-flow="pink" className={`${flowBox} text-[#10110f]`}>
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[6vh] max-w-[28vw]">
               <p className="mb-4 text-[22px]" style={EMOJI_FONT} aria-hidden="true">📱 ⚡️ 😜</p>
-              <h2 className="font-primary text-[clamp(44px,4vw,76px)] uppercase leading-[0.78] tracking-[-0.005em]">We are the<br />current,</h2>
+              <h2 className="font-primary text-[clamp(44px,4vw,46px)] uppercase leading-[0.78]  ">We are the<br />current,</h2>
             </div>
-            <div className="absolute right-[clamp(28px,3vw,58px)] top-[calc(6vh+44px)] max-w-[28vw] text-left text-[#f8b6d4]">
-              <h2 className="font-primary text-[clamp(44px,4vw,76px)] uppercase leading-[0.78] ">You are<br />the story.</h2>
+            <div className="absolute right-[clamp(28px,3vw,58px)] top-[calc(6vh+44px)] max-w-[28vw] text-left text-[#10110f]">
+              <h2 className="font-primary text-[clamp(44px,4vw,76px)] uppercase leading-[0.78] ">You are<br /><span className={textHighlight}>the story.</span></h2>
             </div>
           </div>
 
           <div data-flow="electric" className={flowBox}>
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[4vh] max-w-[29vw]">
               <span className="mb-5 inline-block rounded-[16px] bg-[#f8ded4] px-4 py-2.5 text-[20px] shadow-[0_10px_24px_rgba(16,17,15,.08)]" style={EMOJI_FONT} aria-hidden="true">📸 ⚡️ 😜</span>
-              <h2 className="font-primary text-[clamp(44px,4vw,56px)] uppercase leading-[0.78] tracking-[-0.025em] text-[#db3188]">
-                We<br />electrify<br /><span className="text-[#ee9bc3]">your networks,</span>
+              <h2 className="font-primary text-[clamp(44px,4vw,48px)] uppercase leading-[0.78] tracking-[-0.025em] text-[#10110f]">
+                We<br />electrify<br /><span className={textHighlight}>your networks,</span>
               </h2>
             </div>
-            <div className="absolute right-[clamp(28px,3vw,58px)] top-[8vh] max-w-[min(25vw,300px)] text-[#db3188]">
+            <div className="absolute right-[clamp(28px,3vw,58px)] top-[8vh] max-w-[min(25vw,300px)] text-[#10110f]">
               <p className="text-[13px] font-semibold leading-[1.45]">At BrandWorks, we believe social media is not just about publishing a few posts.</p>
               {/* <p className="mt-3 text-[12px] font-medium leading-[1.55] text-[#db3188]/75">
                 It&apos;s a story to tell, a strategy to build and an image to live up to — turning your channels into a real lever for visibility and growth, with people at the heart of every project.
@@ -1225,17 +1209,17 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             </div>
           </div>
 
-          <div data-flow="social" className={`${flowBox} z-[60] text-white`}>
+          <div data-flow="social" className={`${flowBox} z-[60] text-[#10110f]`}>
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[44%] max-w-[26vw]">
-              <span className="mb-4 inline-block rounded-[16px] bg-[#f8ded4] px-4 py-2.5 text-[20px]" style={EMOJI_FONT} aria-hidden="true">📱 💖 😎</span>
-              <h2 className="font-[var(--font-primary)] text-[clamp(44px,4.6vw,84px)] uppercase leading-[0.76] tracking-[-0.055em]">We<br />make them<br />social</h2>
+              <span className="mb-4 inline-block  bg-[#f8ded4] px-4 py-2.5 text-[20px]" style={EMOJI_FONT} aria-hidden="true">📱 💖 😎</span>
+              <h2 className="font-primary text-[clamp(44px,4.6vw,84px)] uppercase leading-[0.76] tracking-[-0.055em]">We<br />make them<br />social</h2>
               <div className="mt-4 flex -space-x-2">
                 {SOCIAL_REELS.slice(0, 4).map((reel) => (
-                  <span key={reel.id} className="size-8 overflow-hidden rounded-full border-2 border-white bg-white/20">
+                  <span key={reel.id} className="size-8 overflow-hidden  border-white ">
                     {reel.poster ? <img src={reel.poster} alt="" className="h-full w-full object-cover" /> : null}
                   </span>
                 ))}
-                <span className="grid size-8 place-items-center rounded-full border-2 border-white bg-[#db3188] text-[11px]">+{Math.max(2, SOCIAL_REELS.length - 4)}</span>
+                <span className="grid size-8 place-items-center   border-white bg-[#db3188] text-[11px]">+{Math.max(2, SOCIAL_REELS.length - 4)}</span>
               </div>
             </div>
           </div>
@@ -1243,16 +1227,16 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       </div>
 
       <div className="lg:hidden lg:motion-reduce:block">
-        <div className="relative min-h-[100svh] overflow-hidden bg-[#fbf5f2] px-5 pb-14 pt-24">
+        <div className="relative min-h-[100svh] overflow-hidden bg-white px-5 pb-14 pt-24">
           <div className="pointer-events-none absolute inset-x-0 top-8 flex justify-center">
-            <span className="whitespace-nowrap font-[var(--font-primary)] text-[26vw] uppercase leading-none tracking-[-0.07em] text-[#075b38] lg:text-[16vw]">BRANDWORKS</span>
+            <span className="whitespace-nowrap font-primary text-[26vw] uppercase leading-none tracking-[-0.07em] text-[#10110f] lg:text-[16vw]">BRANDWORKS</span>
           </div>
-          <div className="relative mx-auto mt-10 h-[58svh] min-h-[430px] w-full max-w-[430px]">
+          <div className="relative mx-auto mt-10 h-[min(78svh,500px)] min-h-[430px] w-full max-w-[430px]">
             {heroItems.map(({ reel, image }, index) => {
               const position = [
-                'left-0 top-[19%] h-[68%] w-[57%] -rotate-[6deg]',
-                'left-[16.5%] top-0 z-20 h-[88%] w-[67%]',
-                'right-0 top-[20%] h-[67%] w-[56%] rotate-[6deg]',
+                'left-0 top-0 h-full w-[67%] -rotate-[6deg]',
+                'left-[16.5%] top-0 z-20 h-full w-[67%]',
+                'right-0 top-0 h-full w-[67%] rotate-[6deg]',
               ][index]
               return (
                 <button key={reel.id} type="button" className={`absolute ${position}`} onClick={(event) => onOpen(reel, event.currentTarget)} aria-label={`View ${reel.caption}`}>
@@ -1264,38 +1248,38 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             })}
           </div>
           <div className="relative z-30 -mt-10">
-            <p className="mb-2 text-[11px] font-semibold text-[#9a9cb8]">Social media agency</p>
-            <h1 className="font-[var(--font-primary)] text-[16vw] uppercase leading-[0.75] tracking-[-0.06em] text-[#db3188] lg:text-[8vw]">
-              Human<br /><span className="text-[#ee9bc3]">Social Club.</span>
+            {/* <p className="mb-2 text-[11px] font-semibold text-[#10110f]">Social media agency</p> */}
+            <h1 className="font-primary text-[16vw] uppercase leading-[0.75] tracking-[-0.06em] text-[#10110f] lg:text-[8vw]">
+              Human<br /><span className={textHighlight}>Social Club.</span>
             </h1>
           </div>
         </div>
 
-        <div className="bg-[#cd2a87] px-5 py-16 text-[#fff0e8]">
-          <h2 className="font-[var(--font-primary)] text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[7vw]">We are the<br />current,</h2>
+        <div className="bg-white px-5 py-16 text-[#10110f]">
+          <h2 className="font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[7vw]">We are the<br />current,</h2>
           {playlist.length > 0 && (
-            <div className="mx-auto my-10 aspect-[9/16] w-full max-w-[400px]">
+            <div className="mx-auto my-10 aspect-[9/16] w-full max-w-[281.25px]">
               <HeroVideoPlayer reels={playlist} autoPlayInView />
             </div>
           )}
-          <h2 className="text-right font-[var(--font-primary)] text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] text-[#f8b6d4] lg:text-[7vw]">You are<br />the story.</h2>
+          <h2 className="text-right font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] text-[#10110f] lg:text-[7vw]">You are<br /><span className={textHighlight}>the story.</span></h2>
         </div>
 
-        <div className="bg-[#fbf5f2] px-5 py-16 text-[#db3188]">
-          <h2 className="font-[var(--font-primary)] text-[13vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[6.5vw]">We electrify<br /><span className="text-[#ee9bc3]">your networks,</span></h2>
-          <p className="mt-6 max-w-[420px] text-[14px] leading-[1.55] text-[#db3188]/75">
+        <div className="bg-white px-5 py-16 text-[#10110f]">
+          <h2 className="font-primary text-[13vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[6.5vw]">We electrify<br /><span className={textHighlight}>your networks,</span></h2>
+          <p className="mt-6 max-w-[420px] text-[14px] leading-[1.55] text-[#10110f]/75">
             Social is not a few posts a week. It&apos;s a story to tell, a strategy to build and an image to live up to.
           </p>
           <div className="mt-10 flex justify-center">
-            <TeamHoverCard image={teamPhoto} className="h-[min(70svh,620px)] w-full max-w-[420px]" />
+            <TeamHoverCard image={teamPhoto} className="h-[min(78svh,500px)] w-full max-w-[420px]" />
           </div>
         </div>
 
-        <div className="bg-[#3692bb] px-5 py-16 text-white">
-          <h2 className="font-[var(--font-primary)] text-[14vw] uppercase leading-[0.76] tracking-[-0.06em] lg:text-[7vw]">We make<br />them social.</h2>
+        <div className="bg-white px-5 py-16 text-[#10110f]">
+          <h2 className="font-primary text-[14vw] uppercase leading-[0.76] tracking-[-0.06em] lg:text-[7vw]">We make<br />them social.</h2>
           <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none]">
             {storyGroups.map((group) => (
-              <StoryGroupCard key={group.id} group={group} active onOpen={onOpen} className="h-[min(78svh,680px)] w-[82vw] max-w-[380px] snap-center" />
+              <StoryGroupCard key={group.id} group={group} active onOpen={onOpen} className="h-[min(78svh,500px)] w-[82vw] max-w-[380px] snap-center" />
             ))}
           </div>
         </div>
