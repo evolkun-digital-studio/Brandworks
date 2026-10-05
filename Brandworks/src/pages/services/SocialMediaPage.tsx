@@ -1244,7 +1244,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             <AppleEmojiRow names={['phone', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float absolute left-[12vw] top-[12vh] rotate-[5deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[12vh] max-w-[28vw]">
               <span className="mb-4 block h-[62px]" aria-hidden="true" />
-              <h2 className="font-primary text-[clamp(44px,4vw,46px)] uppercase leading-[0.78]  ">We are the<br />current,</h2>
+              <h2 className="font-primary text-[clamp(44px,5vw,112px)] uppercase leading-[0.78]  ">We are the<br />current,</h2>
             </div>
             <div className="absolute right-[clamp(28px,3vw,58px)] top-[calc(6vh+44px)] max-w-[28vw] text-left text-[#10110f]">
               <h2 className="font-primary text-[clamp(44px,4vw,76px)] uppercase leading-[0.78] ">You are<br /><span className={textHighlight}>the story.</span></h2>
@@ -1255,8 +1255,8 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             <AppleEmojiRow names={['camera', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float absolute left-[10vw] top-[11vh] rotate-[6deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[4vh] max-w-[29vw]">
               <span className="mb-5 block h-[62px]" aria-hidden="true" />
-              <h2 className="font-primary text-[clamp(44px,4vw,48px)] uppercase leading-[0.78] tracking-[-0.025em] text-[#10110f]">
-                We<br />electrify<br /><span className={textHighlight}>your networks,</span>
+              <h2 className="font-primary text-[clamp(44px,5vw,112px)] uppercase leading-[0.78] tracking-[-0.025em] text-[#10110f]">
+                We<br />electrify your<br /><span className={textHighlight}> networks,</span>
               </h2>
             </div>
             <div className="absolute right-[clamp(28px,3vw,58px)] top-[8vh] max-w-[min(25vw,300px)] text-[#10110f]">
@@ -1335,7 +1335,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         </div>
 
         <div className="bg-white px-5 py-16 text-[#10110f]">
-          <h2 className="font-primary text-[14vw] uppercase leading-[0.76] tracking-[-0.06em] lg:text-[7vw]">We make<br />them social.</h2>
+          <h2 className="font-primary text-[14vw] uppercase leading-[0.76] tracking-[-0.06em] lg:text-[10rem]">We make<br />them social.</h2>
           <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none]">
             {storyGroups.map((group) => (
               <StoryGroupCard key={group.id} group={group} active onOpen={onOpen} className="h-[min(78svh,500px)] w-[82vw] max-w-[380px] snap-center" />
