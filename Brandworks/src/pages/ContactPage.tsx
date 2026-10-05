@@ -1,3 +1,4 @@
+import { FormConsent } from './legal'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
@@ -652,6 +653,8 @@ export default function ContactPage() {
                       </span>
                     </button>
                   </div>
+
+                  <FormConsent className="mt-6" />
 
                   <AnimatePresence>
                     {status === 'error' && (

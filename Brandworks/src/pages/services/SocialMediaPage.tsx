@@ -1273,7 +1273,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
 
       // 6. Stories: background deepens, the title turns light so it stays readable
       tl.to(railBg, { backgroundColor: '#284c58', opacity: 1, duration: 18, ease: 'power2.out' }, RAIL_START - 16)
-      tl.to(stageBg, { backgroundColor: '#284c58', duration: 18, ease: 'power2.inOut' }, RAIL_START - 16)
+      tl.to(stageBg, { backgroundColor: '#fff8f6', duration: 18, ease: 'power2.inOut' }, RAIL_START - 16)
       if (flowSocial) tl.to(flowSocial, { color: '#fffaf7', duration: 18, ease: 'power2.inOut' }, RAIL_START - 16)
       //    first story: one cylinder turn off the team card…
       cylinder(teamCard, firstStory, RAIL_START, FIRST_STORY_TURN)
@@ -1352,7 +1352,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
                           onClick={(event) => onOpen(reel, event.currentTarget)}
                           aria-label={`View ${reel.caption}`}
                         >
-                          <span className="relative block h-full w-full overflow-hidden rounded-[clamp(16px,1.35vw,23px)] bg-[#dedbd6] shadow-[0_26px_65px_rgba(16,17,15,0.16)]">
+                          <span className={`relative block h-full w-full overflow-hidden rounded-[clamp(16px,1.35vw,23px)] bg-[#dedbd6] ${isCenter ? '' : 'shadow-[0_26px_65px_rgba(16,17,15,0.16)]'}`}>
                             <img src={image} alt="" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" loading="lazy" />
                           </span>
                         </button>
@@ -1438,7 +1438,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             </span>
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[4vh] max-w-[29vw]">
               <span className="mb-5 block h-[62px]" aria-hidden="true" />
-              <h2 className="font-primary text-[clamp(44px,5vw,112px)] uppercase leading-[0.8] tracking-[-0.025em]">
+              <h2 className="font-primary text-[clamp(36px,4vw,90px)] uppercase leading-[0.8] tracking-[-0.025em]">
                 <Lines lines={['We', 'electrify your', <Hl key="n">networks,</Hl>]} />
               </h2>
             </div>
@@ -1502,7 +1502,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
               ][index]
               return (
                 <button key={reel.id} type="button" className={`absolute ${position}`} onClick={(event) => onOpen(reel, event.currentTarget)} aria-label={`View ${reel.caption}`}>
-                  <span className="block h-full w-full overflow-hidden rounded-[20px] bg-[#ddd] shadow-[0_22px_55px_rgba(16,17,15,0.18)]">
+                  <span className={`block h-full w-full overflow-hidden rounded-[20px] bg-[#ddd] ${index === 1 ? '' : 'shadow-[0_22px_55px_rgba(16,17,15,0.18)]'}`}>
                     <img src={image} alt="" className="h-full w-full object-cover" loading="lazy" />
                   </span>
                 </button>
@@ -1528,7 +1528,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         </div>
 
         <div className="bg-[#c9dc2f] px-5 py-16 text-[#10110f]">
-          <h2 className="font-primary text-[13vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[6vw]">We electrify<br /><span className={textHighlight}>your networks,</span></h2>
+          <h2 className="font-primary text-[11vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[5vw]">We electrify<br /><span className={`${textHighlight} mt-[0.12em]`}>your networks,</span></h2>
           <p className="mt-6 max-w-[420px] text-[14px] leading-[1.55] text-[#10110f]/75">
             Social is not a few posts a week. It&apos;s a story to tell, a strategy to build and an image to live up to.
           </p>

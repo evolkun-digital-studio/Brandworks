@@ -8,6 +8,7 @@ import { useReducedMotion } from 'motion/react'
 const showreelPoster = mediaUrl("footer-showreel-poster.webp")
 import { matches } from '../../lib/scrollMotion'
 import './Footer.css'
+import { LegalLinks } from '../../pages/legal'
 
 const LOGO_SRC = '/brandworks.svg'
 
@@ -642,10 +643,11 @@ function Footer() {
         </span>
 
         <div className="footer-meta__center">
-          <a href="#">
-            ©2026 BRANDWORKS — Legal
-            Notice
-          </a>
+          <span>©2026 BRANDWORKS</span>
+          <LegalLinks
+            className="footer-legal"
+            linkClassName="footer-legal__link"
+          />
         </div>
 
         <span className="footer-meta__right">

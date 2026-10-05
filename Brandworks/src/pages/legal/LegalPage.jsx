@@ -269,7 +269,7 @@ export default function LegalPage({ title, description, path, source, lastUpdate
             <article className="max-w-[68ch] pb-24 pt-10 text-[17px] leading-[1.75] lg:pt-14 [&>p:first-of-type]:text-[1.25rem] [&>p:first-of-type]:leading-[1.6]">
               {todos.length > 0 && (
                 <div role="note" className="mb-12 border border-black bg-[#FFF3B0] p-5 text-[15px] leading-relaxed">
-                  <p className="font-semibold">Fill these in src/legal/legal.config.js before launch</p>
+                  <p className="font-semibold">Fill these in src/pages/legal/legal.config.js before launch</p>
                   <p className="mt-1 text-black/70">This box only appears on the dev server.</p>
                   <ul className="mt-3 list-disc space-y-1 pl-5 font-mono text-[13px]">
                     {todos.map((todo) => (
