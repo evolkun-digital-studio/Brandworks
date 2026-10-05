@@ -11,14 +11,7 @@ type IdleWindow = Window & {
   requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number
   cancelIdleCallback?: (handle: number) => void
 }
-
-/**
- * Full-viewport cinematic hero. The service capsules switch the
- * photography behind the copy in place; Photography (the default) shows
- * an interactive two-level editorial gallery, while the other services
- * show a single full-bleed frame or film.
- * The site Header floats over it from PublicLayout.
- */
+ 
 function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)

@@ -16,7 +16,7 @@ const industries = [
 ]
 
 const INDUSTRY_LIST = [
-  'Real Estate',
+  'Real Estates',
   'Technology',
   'Hospitality',
   'Consumer',
