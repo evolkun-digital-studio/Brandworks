@@ -399,7 +399,7 @@ export default function BrandStatementPrecision() {
         );
 
         tl.to(
-          [eyebrow, counter],
+          eyebrow,
           {
             opacity: 0,
             duration: 0.45,
@@ -629,21 +629,6 @@ export default function BrandStatementPrecision() {
           height: 5px;
           border-radius: 50%;
           background: #fff;
-        }
-
-        .bw2-counter {
-          display: flex;
-          align-items: baseline;
-          gap: 4px;
-
-          font-size: 10px;
-          line-height: 1;
-          letter-spacing: 0.12em;
-          color: rgba(255, 255, 255, 0.7);
-        }
-
-        .bw2-counter-current {
-          color: #fff;
         }
 
         /* ---------------------------------------
