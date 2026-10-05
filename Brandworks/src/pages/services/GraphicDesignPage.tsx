@@ -422,7 +422,7 @@ export default function GraphicDesignPage() {
           HERO
       ========================================================= */}
 
-      <section className="relative  pb-[clamp(70px,10vw,150px)] pt-[clamp(110px,12vw,100px)]">
+      <section className="relative pb-[clamp(32px,4vw,56px)] pt-[clamp(110px,12vw,100px)]">
         <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
           {/* <div className="border-t border-black/15 pt-4">
             <div
@@ -551,7 +551,7 @@ export default function GraphicDesignPage() {
           POINT OF VIEW
       ========================================================= */}
 
-      <section className="relative py-10 md:py-14">
+      <section className="relative pb-10 md:pb-14">
         <div
           data-section-intro
           className="mx-auto grid w-full max-w-[1440px] gap-9 px-[clamp(20px,5vw,80px)] md:grid-cols-12"
@@ -605,9 +605,9 @@ export default function GraphicDesignPage() {
         <div className="mx-auto grid w-full max-w-[1440px] gap-[70px] px-[clamp(20px,5vw,80px)] md:grid-cols-12">
           <div className="md:col-span-4">
             <div className="md:sticky md:top-[120px]">
-              <p className="m-0 text-[10px] uppercase tracking-[0.16em] text-black/45">
+              {/* <p className="m-0 text-[10px] uppercase tracking-[0.16em] text-black/45">
                 What we make
-              </p>
+              </p> */}
 
               <h2 className="mb-0 mt-5 max-w-[400px] font-[400] text-[clamp(34px,4vw,48px)] leading-[0.94] tracking-[-0.05em] [font-family:Grimblade,serif]">
                 One idea.
@@ -770,14 +770,14 @@ export default function GraphicDesignPage() {
             data-section-intro
             className="grid gap-8 md:grid-cols-12"
           >
-            <div
-              data-intro-child
-              className="md:col-span-4"
-            >
-              <p className="m-0 text-[10px] uppercase tracking-[0.16em] text-black/45">
-                How we work
-              </p>
-            </div>
+              {/* <div
+                data-intro-child
+                className="md:col-span-4"
+              >
+                <p className="m-0 text-[10px] uppercase tracking-[0.16em] text-black/45">
+                  How we work
+                </p>
+              </div> */}
 
             <h2
               data-intro-child

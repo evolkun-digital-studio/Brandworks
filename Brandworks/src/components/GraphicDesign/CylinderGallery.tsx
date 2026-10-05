@@ -10,8 +10,7 @@ export type GalleryProject = {
   image: string
   type: string
   title: string
-  year: string
-  /** Width / height of the frame in the cylinder. */
+    /** Width / height of the frame in the cylinder. */
   aspect: number
   /** 'contain' shows the whole image in its frame instead of cropping it. */
   fit?: 'contain'
@@ -19,9 +18,8 @@ export type GalleryProject = {
   position?: string
   /** Frame colour behind a 'contain' image; defaults to the grey placeholder. */
   background?: string
+  year?: string
 }
-
-const pad = (n: number) => String(n).padStart(2, '0')
 
 /**
  * Desktop: the stage pins for 2–3 viewports and vertical scroll turns
@@ -198,7 +196,7 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
     <section
       ref={sectionRef}
       id="selected-work"
-      className="cyl relative pb-[clamp(60px,8vw,120px)] pt-[clamp(90px,12vw,180px)]"
+      className="cyl relative pb-[clamp(24px,3vw,48px)] pt-[clamp(40px,5vw,72px)]"
     >
       <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]"
       >
@@ -266,7 +264,7 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
                 <div className="cyl__meta">
                   <p className="m-0 flex justify-between gap-4 text-[9px] uppercase tracking-[0.14em] text-black/45">
                     <span>{project.type}</span>
-                    <span>{project.year}</span>
+                    {/* <span>{project.year}</span> */}
                   </p>
                   <h3 className="mb-0 mt-3 font-[400] text-[clamp(22px,2.4vw,30px)] leading-[0.98] tracking-[-0.04em] [font-family:Grimblade,serif]">
                     {project.title}
@@ -277,16 +275,13 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
           </div>
 
           <div className="cyl__captions" aria-hidden="true">
-            {projects.map((project, i) => (
+            {projects.map((project) => (
               <div key={project.title} data-cyl-caption className="cyl__caption">
-                <p className="m-0 text-[10px] uppercase tracking-[0.16em] text-black/45">
-                  {pad(i + 1)} / {pad(projects.length)}
-                </p>
-                <p className="m-0 mt-3 text-[clamp(22px,2vw,30px)] leading-[1] tracking-[-0.04em] [font-family:Grimblade,serif]">
+                <p className="m-0 text-[clamp(22px,2vw,30px)] leading-[1] tracking-[-0.04em] [font-family:Grimblade,serif]">
                   {project.title}
                 </p>
                 <p className="m-0 mt-2 text-[9px] uppercase tracking-[0.14em] text-black/45">
-                  {project.type} · {project.year}
+                  {project.type} 
                 </p>
               </div>
             ))}

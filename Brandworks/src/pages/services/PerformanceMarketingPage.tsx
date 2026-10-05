@@ -88,7 +88,7 @@ function Section({ number, label, title, children, className = '', id }: { numbe
   const sectionId = id ?? `pm-section-${number}`
   return <section id={sectionId} className={`pm-section ${className}`} aria-labelledby={`${sectionId}-title`} tabIndex={-1}>
     <div className="pm-container">
-      <p className="pm-label"><span>{number}</span>{label}</p>
+      <p className="pm-label">{label}</p>
       {title ? <h2 id={`${sectionId}-title`}>{title}</h2> : <h2 id={`${sectionId}-title`} className="sr-only">{label}</h2>}
       {children}
     </div>
@@ -250,7 +250,7 @@ export default function PerformanceMarketingPage() {
 
   return <main ref={rootRef} className="pm-page font-secondary">
     <section className="pm-hero pm-container" aria-labelledby="pm-title">
-      <div><p className="pm-label"><span>01</span>Performance Marketing</p><h1 id="pm-title">Media spend should create momentum, not just impressions.</h1><p className="pm-lead">We combine paid media, creative, data and conversion strategy to turn advertising budgets into measurable business growth.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="#pm-approach" className="pm-text-link">Explore Our Approach <span aria-hidden="true">↓</span></Link></div><p className="pm-hero-signature">BrandWorks / Strategy + Design + Technology</p></div>
+      <div><p className="pm-label">Performance Marketing</p><h1 id="pm-title">Media spend should create momentum, not just impressions.</h1><p className="pm-lead">We combine paid media, creative, data and conversion strategy to turn advertising budgets into measurable business growth.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="#pm-approach" className="pm-text-link">Explore Our Approach <span aria-hidden="true">↓</span></Link></div><p className="pm-hero-signature">BrandWorks / Strategy + Design + Technology</p></div>
       <CampaignField />
     </section>
 
@@ -280,8 +280,8 @@ export default function PerformanceMarketingPage() {
     </Section>
 
     <Section number="05" label="The performance system" title="One campaign. Multiple systems working together." className="pm-dark pm-system" id="pm-system">
-      <div className="pm-system-layout"><div className="pm-system-aside"><p className="pm-small">The work behind the outcome</p><div className="pm-system-orbit" aria-hidden="true"><span /><span /><span /><strong data-pm-active-stage>Research</strong></div><p>Creative, media and technology move together. A weak link affects everything that follows.</p><Link to="/contact" className="pm-text-link">Build your system <span aria-hidden="true">↗</span></Link></div>
-        <ol className="pm-system-steps">{stages.map(([title, copy], index) => <li key={title} data-pm-stage={title} className={index === 0 ? 'is-active' : ''}><span>{String(index + 1).padStart(2, '0')}</span><div><h3>{title}</h3><p>{copy}</p></div><span className="pm-stage-marker" aria-hidden="true" /></li>)}</ol>
+      <div className="pm-system-layout"><div className="pm-system-aside"><div className="pm-system-orbit" aria-hidden="true"><span /><span /><span /><strong data-pm-active-stage>Research</strong></div><p>Creative, media and technology move together. A weak link affects everything that follows.</p><Link to="/contact" className="pm-text-link">Build your system <span aria-hidden="true">↗</span></Link></div>
+        <ol className="pm-system-steps">{stages.map(([title, copy],) => <li key={title} data-pm-stage={title}><span></span><div><h3>{title}</h3><p>{copy}</p></div><span className="pm-stage-marker" aria-hidden="true" /></li>)}</ol>
       </div>
     </Section>
 

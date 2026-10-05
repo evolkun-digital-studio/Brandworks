@@ -43,7 +43,7 @@ export type WebProject = {
   title: string
   type: string
   services: string[]
-  year: string
+  
   layout: WebProjectLayout
   image: WebProjectImage
   /** Only used by the 'spread' layout: the single mobile crop. */
@@ -63,7 +63,6 @@ export const WEB_PROJECTS: WebProject[] = [
     title: 'Project One',
     type: 'Digital Experience',
     services: ['UX/UI', 'Development', 'Motion'],
-    year: '2026',
     layout: 'landscape',
     image: {
       src: websiteOne,
@@ -77,7 +76,6 @@ export const WEB_PROJECTS: WebProject[] = [
     title: 'Project Two',
     type: 'Digital Platform',
     services: ['Design System', 'Development', 'CMS'],
-    year: '2026',
     layout: 'spread',
     image: {
       src: projectTwoMain,
@@ -101,7 +99,6 @@ export const WEB_PROJECTS: WebProject[] = [
     title: 'Project Three',
     type: 'Brand Website',
     services: ['Strategy', 'UX/UI', 'Development', 'Performance'],
-    year: '2026',
     layout: 'bleed',
     image: {
       src: projectThree,

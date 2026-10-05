@@ -55,7 +55,6 @@ const LINE_BREAKS: Record<string, string> = {
 };
 
 const TOTAL = services.length;
-const pad = (n: number) => String(n).padStart(2, "0");
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const GROTESK = "font-['Google_Sans_Flex','Helvetica',sans-serif]";
@@ -65,7 +64,6 @@ const DISPLAY = `${GROTESK} font-thin`;
 // The title is SemiBold, from the variable display cut (see .services-display).
 const TITLE_CLASS = `${GROTESK} whitespace-nowrap  text-[clamp(24px,7.2vw,46px)] leading-[0.98] tracking-[-0.035em] text-[#111] sm:text-[clamp(28px,5.5vw,38px)] md:text-[32px] lg:text-[clamp(28px,2.55vw,36px)] xl:text-[46px] 2xl:text-[46px]`;
 const LABEL_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.14em] text-[#777] uppercase`;
-const COUNTER_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.08em] text-[#888] tabular-nums`;
 
 // The runway's scroll progress (0 = stage pinned, 1 = released) is
 // mapped linearly onto the list: row 0 sits on the focus line at
@@ -240,7 +238,7 @@ function ServiceScrollIndex() {
            The roller's masked window then bleeds out to the viewport edge
            (--svc-bleed) for its full visible width. */}
         <div className="mx-auto grid h-full w-full max-w-[calc(1040px_+_14vw)] grid-cols-[max-content_auto_minmax(0,1fr)] gap-x-[clamp(20px,2vw,36px)] translate-x-[clamp(0px,2.5vw,40px)] px-[7vw] [--svc-bleed:max(7vw,calc((100vw_-_1040px)/2))]">
-          {/* Left: label + counter, title on the focus line, active detail. */}
+          {/* Left: title on the focus line, active detail. */}
           <div className="relative flex h-full items-center">
             <div className="relative w-full">
               <h2 id="our-services-heading" className={TITLE_CLASS}>
@@ -349,13 +347,8 @@ function ServiceRow({
     return blur < 0.05 ? "none" : `blur(${blur.toFixed(2)}px)`;
   });
   const scale = useTransform(distance, (d) => lookup(SCALE_BY_DISTANCE, d));
-  // The index tag cancels the row's scale so it stays a quiet 10px label.
-  const tagScale = useTransform(scale, (v) => 1 / v);
   const firstLine = LINE_BREAKS[name];
   const rest = firstLine ? name.slice(firstLine.length).trim() : name;
-  const split = rest.lastIndexOf(" ");
-  const head = split === -1 ? "" : rest.slice(0, split + 1);
-  const last = rest.slice(split + 1);
 
   return (
     <motion.li
@@ -369,19 +362,7 @@ function ServiceRow({
           <br />
         </>
       )}
-      {head}
-      {/* Small index tag riding the end of the name, like the reference's
-         country codes — bound to the last word so it never wraps alone. */}
-      <span className="whitespace-nowrap">
-        {last}
-        <motion.span
-          aria-hidden="true"
-          style={{ scale: tagScale, transformOrigin: "left center" }}
-          className="ml-[0.4em] inline-block align-top text-[10px] leading-[2.2] font-thin tracking-[0.08em] tabular-nums opacity-50"
-        >
-          {pad(index + 1)}
-        </motion.span>
-      </span>
+      {rest}
       <span className="sr-only">: {description}</span>
     </motion.li>
   );
@@ -403,7 +384,7 @@ function ServiceStack({ animated }: { animated: boolean }) {
       </div>
 
       <ul className="m-0 mt-12 list-none space-y-10 p-0 sm:mt-14 sm:space-y-11 lg:col-span-6 lg:col-start-7 lg:mt-0 lg:space-y-14">
-        {services.map((service, i) => (
+        {services.map((service) => (
           <motion.li
             key={service.name}
             initial={
@@ -415,11 +396,8 @@ function ServiceStack({ animated }: { animated: boolean }) {
             viewport={{ once: true, margin: "0px 0px -12% 0px" }}
             transition={{ duration: 0.7, ease: EASE }}
           >
-            <span aria-hidden="true" className={`block ${COUNTER_CLASS}`}>
-              {pad(i + 1)}
-            </span>
             <span
-              className={`${DISPLAY} mt-3 block text-[clamp(34px,10vw,50px)] leading-[1.1] tracking-[-0.035em] text-[#111] font-medium md:text-[clamp(38px,4.4vw,38px)]`}
+              className={`${DISPLAY} block text-[clamp(34px,10vw,50px)] leading-[1.1] tracking-[-0.035em] text-[#111] font-medium md:text-[clamp(38px,4.4vw,38px)]`}
             >
               {service.name}
             </span>

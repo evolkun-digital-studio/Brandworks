@@ -24,6 +24,26 @@ export type SocialReel = {
   src: string
   /** The reel's first frame, shown until the video can play. Without one, the video's own first frame shows. */
   poster?: string
+  /** Starting counts for the Instagram-style action rail. */
+  likes: number
+  shares: number
+  comments: ReelComment[]
+}
+
+export type ReelComment = {
+  id: string
+  user: string
+  text: string
+  /** Display age, e.g. "2d". */
+  time: string
+  likes: number
+}
+
+/** The account the reels are shown as posted from. */
+export const SOCIAL_ACCOUNT = {
+  handle: 'brandworks.studio',
+  avatar: mediaUrl('brandworkLogo.png'),
+  audio: 'Original audio',
 }
 
 export const SOCIAL_REELS: SocialReel[] = [
@@ -33,6 +53,13 @@ export const SOCIAL_REELS: SocialReel[] = [
     caption: 'Creative built for attention.',
     src: original("Jnco southpole shorts drop Saturday May 10th _ - All Shorts will be available this Saturday at .mp4"),
     poster: reel01Poster,
+    likes: 18400,
+    shares: 312,
+    comments: [
+      { id: 'c1', user: 'aanya.creates', text: 'The pacing on this is unreal 🔥', time: '2d', likes: 48 },
+      { id: 'c2', user: 'studio.marlow', text: 'Who shot this? The light is perfect', time: '2d', likes: 21 },
+      { id: 'c3', user: 'rohit.k', text: "Saturday can't come soon enough", time: '1d', likes: 9 },
+    ],
   },
   {
     id: '02',
@@ -40,6 +67,12 @@ export const SOCIAL_REELS: SocialReel[] = [
     caption: 'Consistency turns content into identity.',
     src: original("Carhartt has become a global symbol of authentic workwear, embraced not only by workers but also.mp4"),
     poster: reel02Poster,
+    likes: 9720,
+    shares: 145,
+    comments: [
+      { id: 'c1', user: 'workwear.daily', text: 'This is how you tell a brand story', time: '3d', likes: 34 },
+      { id: 'c2', user: 'meera.design', text: 'The colour grade 👌', time: '2d', likes: 12 },
+    ],
   },
   {
     id: '03',
@@ -47,12 +80,25 @@ export const SOCIAL_REELS: SocialReel[] = [
     caption: 'Concept, content and distribution working together.',
     src: original("Collection of polo Harrington jacket Polo Ralph Lauren Harrington Jacket Bomber Nylon Classic Po.mp4"),
     poster: reel03Poster,
+    likes: 26100,
+    shares: 508,
+    comments: [
+      { id: 'c1', user: 'northbound.co', text: 'Concept to cut, so clean', time: '4d', likes: 71 },
+      { id: 'c2', user: 'dev.frames', text: 'Transitions are smooth af', time: '3d', likes: 26 },
+      { id: 'c3', user: 'lia.moves', text: 'Need this jacket', time: '2d', likes: 8 },
+    ],
   },
   {
     id: '04',
     // category: 'Product drop',g
     caption: 'Building anticipation before launch.',
     src: original("Dropping soon _ Vintage 90s classic coogi multicolor 3D knit sweater All sizes are available fo.mp4"),
+    likes: 6350,
+    shares: 98,
+    comments: [
+      { id: 'c1', user: 'vintage.vault', text: 'The drop teaser we needed 👀', time: '1d', likes: 19 },
+      { id: 'c2', user: 'kabir.ss', text: 'Sizes?? 🙏', time: '20h', likes: 4 },
+    ],
   },
 ]
 

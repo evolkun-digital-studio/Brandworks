@@ -66,7 +66,7 @@ export const ABOUT_INTRO = {
     'SEO',
     'Technology',
   ],
-  approachLabel: 'Our Approach',
+  // approachLabel: 'Our Approach',
   approach: [
     "We don't create for the sake of creating.",
     'Every image, campaign, story and digital experience should help people understand, remember and trust the brand behind it.',
