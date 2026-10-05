@@ -5,6 +5,7 @@ import HeroCaption from './components/Hero/HeroCaption'
 import ServiceSwitcher from './components/Hero/ServiceSwitcher'
 import type { HeroServiceId } from './data/heroServices'
 import { DEFAULT_HERO_SERVICE, HERO_SERVICE_ORDER } from './data/heroServices'
+import { isIntroSettled, onIntroSettled } from './lib/introGate'
 import './components/Hero/Hero.css'
 
 type IdleWindow = Window & {
@@ -39,6 +40,14 @@ function Hero() {
     [warm],
   )
 
+  // The opening preloader covers the hero at first. Until it is completely
+  // gone the film stays unrequested and the background warm-up waits, so
+  // neither competes with the intro for bandwidth, decoding or frames.
+  // The poster is already in place underneath, so the reveal never shows
+  // a blank hero.
+  const [introSettled, setIntroSettled] = useState(isIntroSettled)
+  useEffect(() => onIntroSettled(() => setIntroSettled(true)), [])
+
   // Once the page has finished loading and gone quiet, fetch the other
   // services' stills in the background (never the film — that waits for
   // a click). Skipped when the visitor has asked to save data.
@@ -55,10 +64,13 @@ function Hero() {
       else timer = window.setTimeout(warmAll, 1500)
     }
 
-    if (document.readyState === 'complete') schedule()
-    else window.addEventListener('load', schedule, { once: true })
+    const stopWaiting = onIntroSettled(() => {
+      if (document.readyState === 'complete') schedule()
+      else window.addEventListener('load', schedule, { once: true })
+    })
 
     return () => {
+      stopWaiting()
       window.removeEventListener('load', schedule)
       if (idleHandle !== undefined) win.cancelIdleCallback?.(idleHandle)
       if (timer !== undefined) window.clearTimeout(timer)
@@ -99,7 +111,7 @@ function Hero() {
 
   return (
     <section ref={sectionRef} className="hero" data-service={activeId} aria-labelledby="hero-heading">
-      <HeroMedia activeId={activeId} mounted={mounted} inView={inView} reducedMotion={reducedMotion} />
+      <HeroMedia activeId={activeId} mounted={mounted} inView={inView && introSettled} reducedMotion={reducedMotion} />
       <div className="hero-overlay" aria-hidden="true" />
 
       <div ref={contentRef} className="hero-content">

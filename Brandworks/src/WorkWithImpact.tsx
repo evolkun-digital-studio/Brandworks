@@ -1,5 +1,6 @@
 import { mediaUrl } from './media'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { onIntroSettled } from './lib/introGate'
 
 import type { RefObject } from 'react'
 
@@ -1788,11 +1789,19 @@ function useCanvasLoop(
 
 
 
-    render(performance.now())
+    // This loop reads layout and writes styles every frame. Under the
+    // opening preloader the section is covered and off screen, so it
+    // starts only once the preloader is gone rather than competing with
+    // the intro for every frame.
+    const stopWaiting = onIntroSettled(() => {
+      if (alive) render(performance.now())
+    })
 
 
 
     return () => {
+
+      stopWaiting()
 
       alive = false
 

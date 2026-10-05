@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import type { HeroServiceId } from '../../data/heroServices'
 import { heroServices } from '../../data/heroServices'
+import { isIntroPending, onIntroDone } from '../../lib/introGate'
 
 gsap.registerPlugin(useGSAP)
 
@@ -43,6 +44,23 @@ function HeroCaption({ activeId, reducedMotion }: { activeId: HeroServiceId; red
       })
     },
     { dependencies: [activeId], scope: rootRef },
+  )
+
+  // First load under the opening preloader: hold the copy below its
+  // masks and let it rise as the preloader lifts away, rather than
+  // having it sit there fully set the moment the page is uncovered.
+  useGSAP(
+    (_, contextSafe) => {
+      if (reducedMotion || !isIntroPending()) return
+      const lines = gsap.utils.toArray<HTMLElement>('[data-reveal]', rootRef.current)
+      gsap.set(lines, { yPercent: 105, opacity: 0 })
+      return onIntroDone(
+        contextSafe!(() => {
+          gsap.to(lines, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'power4.out', stagger: 0.07, delay: 0.3 })
+        }),
+      )
+    },
+    { scope: rootRef },
   )
 
   // In: runs once the new copy is in the DOM.
