@@ -43,7 +43,8 @@ import PerformanceMarketingPage from "./pages/services/PerformanceMarketingPage"
 import ContactPage from "./pages/ContactPage";
 import WorkPage from "./pages/WorkPage"; 
 import PRFounderReputationPage from './pages/PRFounderReputationPage'
-// Route-level code splitting (Phase 10, Part 13): AdminRoutes pulls in
+import ConceptCreationPage from './pages/services/Conceptcreationpage'
+// Route-level code splitting (Phase 10, Part 13: AdminRoutes pulls in
 // as before) and no route path or admin behavior changes.
 const AdminRoutes = lazy(() => import("./admin/AdminRoutes"));
 
@@ -139,7 +140,7 @@ function App() {
         <Route path="/services/technology" element={<TechnologyPage />} />
         <Route path="/services/photography" element={<PhotographyPage />} />
         <Route path="/services/pr-founder-reputation" element={<PRFounderReputationPage />} />
-
+        <Route path="/services/Concept-creation" element={<ConceptCreationPage />} />
         <Route path="/services/graphic-design" element={<GraphicDesignPage />} />
         <Route path="/services/seo" element={<SeoPage />} />
         <Route path="/services/social-media" element={<SocialMediaPage />} />

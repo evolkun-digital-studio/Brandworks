@@ -6,10 +6,10 @@ import {
   useRef,
   useState,
   type ReactNode,
-  type MouseEvent as ReactMouseEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type CSSProperties,
   type HTMLAttributes,
+  type Ref,
 } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
@@ -21,23 +21,26 @@ import { mediaUrl } from '../../lib/media'
 import './SocialMediaPage.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
+// no re-layout jumps when the mobile URL bar shows/hides
+ScrollTrigger.config({ ignoreMobileResize: true })
 
 const EASE = [0.22, 1, 0.36, 1] as const
+// Motion is intentionally scroll-led; media never preloads before it is needed.
 const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 const APPLE_EMOJI_BASE = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@16.0.0/img/apple/64'
 const APPLE_EMOJI = {
-  desktop: '1f5a5-fe0f',
-  bolt: '26a1-fe0f',
-  headphones: '1f3a7',
-  movieCamera: '1f3a5',
-  fist: '1f44a',
-  phone: '1f4f1',
-  playful: '1f61c',
-  camera: '1f4f8',
-  heart: '1f496',
-  sunglasses: '1f60e',
-  chart: '1f4ca',
+ desktop: '1f4bb',        // 💻
+bolt: '2728',            // ✨
+headphones: '1f3b5',     // 🎵
+movieCamera: '1f3ac',    // 🎬
+fist: '270a',            // ✊
+phone: '260e-fe0f',      // ☎️
+playful: '1f92a',        // 🤪
+camera: '1f4f7',         // 📷
+heart: '2764-fe0f',      // ❤️
+sunglasses: '1f576-fe0f',// 🕶️
+chart: '1f4c8',          // 📈
 } as const
 
 type AppleEmojiName = keyof typeof APPLE_EMOJI
@@ -63,7 +66,7 @@ function AppleEmojiRow({ names, className = '', ...props }: { names: readonly Ap
 }
 
 type ViewerSelection = { reel: SocialReel; trigger: HTMLElement }
-type StoryGroup = { id: string; title: string; reels: SocialReel[] }
+type StoryGroup = { id: string; reels: SocialReel[] }
 
 const expertise = [
   {
@@ -119,6 +122,34 @@ function Lines({ lines }: { lines: ReactNode[] }) {
   )
 }
 
+/** Lime highlight whose background can wipe in (data-hl is scaled by GSAP; visible by default). */
+function Hl({ children }: { children: ReactNode }) {
+  return (
+    <span className="relative inline-block px-[0.08em] pb-[0.07em] pt-[0.03em] text-[#10110f]">
+      <span data-hl className="absolute inset-0 origin-left bg-[#ccff00]" aria-hidden="true" />
+      <span className="relative">{children}</span>
+    </span>
+  )
+}
+
+/** Splits a sentence into words that can light up one by one. */
+function Words({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(' ').map((word, index) => (
+        <span key={index} data-word className="inline-block whitespace-pre">{word} </span>
+      ))}
+    </>
+  )
+}
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
+/** Dark overlay that deepens as a face turns away on the cylinder. */
+function CylShade({ className = '' }: { className?: string }) {
+  return <span data-cyl-shade className={`pointer-events-none absolute inset-0 bg-[#0b0b0b] opacity-0 ${className}`} aria-hidden="true" />
+}
+
 function formatTime(value: number) {
   const seconds = Number.isFinite(value) ? Math.max(0, Math.ceil(value)) : 0
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
@@ -131,7 +162,7 @@ const Icon = {
     </svg>
   ),
   Pause: () => (
-    <svg viewBox="0 0 24 24" className="size-[18px]" fill="currentColor" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="size-[18px] " fill="currentColor" aria-hidden="true">
       <rect x="6" y="5" width="4.2" height="14" rx="1.4" />
       <rect x="13.8" y="5" width="4.2" height="14" rx="1.4" />
     </svg>
@@ -154,6 +185,11 @@ const Icon = {
       <path d="M12 20.2s-7.6-4.6-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.7c0 5.5-7.6 10.1-7.6 10.1Z" />
     </svg>
   ),
+  Arrow: ({ dir }: { dir: 'left' | 'right' }) => (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={dir === 'left' ? 'M19 12H5m6-6-6 6 6 6' : 'M5 12h14m-6-6 6 6-6 6'} />
+    </svg>
+  ),
   Chevron: ({ dir }: { dir: 'left' | 'right' }) => (
     <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d={dir === 'left' ? 'm14.5 6-6 6 6 6' : 'm9.5 6 6 6-6 6'} />
@@ -171,37 +207,45 @@ const Icon = {
 /* Reel viewer (unchanged behaviour)                                   */
 /* ------------------------------------------------------------------ */
 
-function MediaFrame({ reel, priority = false }: { reel: SocialReel; priority?: boolean }) {
+function MediaFrame({ reel }: { reel: SocialReel }) {
   const frameRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(reel.poster ? 'ready' : 'loading')
+  const [inView, setInView] = useState(false)
   useEffect(() => {
     const frame = frameRef.current
     const video = videoRef.current
     if (!frame || !video) return
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) video.play().catch(() => undefined)
-        else video.pause()
+        setInView(entry.isIntersecting)
+        if (!entry.isIntersecting) video.pause()
       },
       { rootMargin: '160px', threshold: 0.12 },
     )
     observer.observe(frame)
     return () => observer.disconnect()
   }, [])
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (inView) video.play().catch(() => undefined)
+    else video.pause()
+  }, [inView])
   return (
     <div ref={frameRef} className="bwsm-media" data-status={status} aria-busy={status === 'loading'}>
       <span className="bwsm-skeleton" aria-hidden="true" />
       <video
         ref={videoRef}
-        src={reel.src}
+        src={inView ? reel.src : undefined}
         poster={reel.poster}
         width={1080}
         height={1920}
         muted
         loop
         playsInline
-        preload={priority ? 'auto' : 'metadata'}
+        // Deliberately avoid network work until the frame enters the viewport.
+        preload="none"
         onCanPlay={() => setStatus('ready')}
         onError={() => setStatus('error')}
       />
@@ -247,7 +291,7 @@ function ReelViewer({ selection, onDismiss }: { selection: ViewerSelection; onDi
           >
             <div className="bwsm-viewer__bar">
               <div>
-                <p id="bwsm-viewer-title">{selection.reel.caption}</p>
+                <p id="bwsm-viewer-title" className="sr-only">{selection.reel.caption}</p>
               </div>
               <button ref={closeRef} type="button" onClick={() => setOpen(false)}>Close ×</button>
             </div>
@@ -256,12 +300,109 @@ function ReelViewer({ selection, onDismiss }: { selection: ViewerSelection; onDi
               animate={{ y: 0, scale: 1 }}
               transition={{ duration: reduced ? 0 : 0.5, ease: EASE }}
             >
-              <MediaFrame reel={selection.reel} priority />
+              <MediaFrame reel={selection.reel} />
             </motion.figure>
           </motion.div>
         )}
       </AnimatePresence>
     </dialog>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Cylinder transition                                                 */
+/*                                                                     */
+/* Two faces sit on the surface of one big vertical cylinder whose     */
+/* axis is R px BEHIND the card. Turning the cylinder rotates the      */
+/* current face away to the left while the next face rolls in from    */
+/* the right — their edges touch, so it reads as one solid drum.       */
+/* ------------------------------------------------------------------ */
+
+const CYL_ANGLE = 64 // degrees between two neighbouring faces
+const CYL_PERSPECTIVE = 1900
+const CYL_EASE = 'power3.inOut'
+
+/** radius that makes two faces of width `w` meet edge to edge */
+const cylRadius = (w: number) => (w / 2) / Math.tan(((CYL_ANGLE / 2) * Math.PI) / 180)
+
+/**
+ * Places a face on the cylinder at `angle` degrees. The axis sits R px behind
+ * the card, so a face turned by θ moves sideways by R·sinθ and back by R·(1−cosθ).
+ * Done by hand (x / z / rotateY around the card's own centre) instead of a
+ * 3D transform-origin: GSAP caches a z-origin offset, and when React StrictMode
+ * runs the setup twice that stale offset left the card ~240px off-centre.
+ */
+function setCylinder(el: HTMLElement, angle: number, width: number, baseX = 0) {
+  const R = cylRadius(width)
+  const rad = (angle * Math.PI) / 180
+  gsap.set(el, { rotateY: angle, x: baseX + R * Math.sin(rad), z: R * (Math.cos(rad) - 1) })
+}
+
+/**
+ * Swaps the media inside a card on a cylinder: the live video (outRef)
+ * turns away while the next clip's poster (inRef) turns in; then the
+ * real video switches source underneath and everything resets.
+ */
+function useCylinderSwap() {
+  const outRef = useRef<HTMLDivElement>(null)
+  const inRef = useRef<HTMLDivElement>(null)
+  const inImgRef = useRef<HTMLImageElement>(null)
+  const busy = useRef(false)
+  const reduced = Boolean(useReducedMotion())
+
+  useEffect(() => () => { if (outRef.current) gsap.killTweensOf(outRef.current); if (inRef.current) gsap.killTweensOf(inRef.current) }, [])
+
+  const swap = useCallback((dir: 1 | -1, poster: string | undefined, commit: () => void) => {
+    const out = outRef.current
+    const inc = inRef.current
+    const img = inImgRef.current
+    if (busy.current) return
+    if (reduced || !out || !inc) { commit(); return }
+    busy.current = true
+    if (img) {
+      if (poster) img.src = poster
+      else img.removeAttribute('src')
+    }
+    const width = out.offsetWidth
+    const outShade = out.querySelector('[data-cyl-shade]')
+    const incShade = inc.querySelector('[data-cyl-shade]')
+    const D = 0.95
+    gsap.set([out, inc], { transformOrigin: '50% 50%', transformPerspective: CYL_PERSPECTIVE, force3D: true })
+    const turn = { a: 0 } // 0 → 1 over the swap
+    const place = () => {
+      setCylinder(out, -CYL_ANGLE * dir * turn.a, width)
+      setCylinder(inc, CYL_ANGLE * dir * (1 - turn.a), width)
+    }
+    const tl = gsap.timeline({
+      defaults: { duration: D, ease: CYL_EASE },
+      onComplete: () => {
+        commit()
+        // let React swap the <video> source before the poster face is removed
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          gsap.set(out, { rotateY: 0, x: 0, z: 0, autoAlpha: 1 })
+          gsap.set(inc, { autoAlpha: 0, rotateY: 0, x: 0, z: 0 })
+          if (outShade) gsap.set(outShade, { opacity: 0 })
+          busy.current = false
+        }))
+      },
+    })
+      .fromTo(turn, { a: 0 }, { a: 1, onUpdate: place, onStart: place }, 0)
+      .fromTo(inc, { autoAlpha: 0 }, { autoAlpha: 1, duration: D * 0.2, ease: 'none' }, 0)
+      .to(out, { autoAlpha: 0, duration: D * 0.2, ease: 'none' }, D * 0.8)
+    if (outShade) tl.fromTo(outShade, { opacity: 0 }, { opacity: 0.55, ease: 'power2.in' }, 0)
+    if (incShade) tl.fromTo(incShade, { opacity: 0.55 }, { opacity: 0, ease: 'power2.out' }, 0)
+  }, [reduced])
+
+  return { outRef, inRef, inImgRef, swap }
+}
+
+/** The incoming face used by useCylinderSwap (next clip's poster). */
+function CylinderIncomingFace({ faceRef, imgRef }: { faceRef: Ref<HTMLDivElement>; imgRef: Ref<HTMLImageElement> }) {
+  return (
+    <div ref={faceRef} className="pointer-events-none invisible absolute inset-0 bg-[#151515] opacity-0 [backface-visibility:hidden]" aria-hidden="true">
+      <img ref={imgRef} alt="" className="h-full w-full object-cover" />
+      <CylShade />
+    </div>
   )
 }
 
@@ -280,8 +421,10 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
   const [time, setTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [inView, setInView] = useState(!autoPlayInView)
   const count = reels.length
   const reel = reels[clip % Math.max(1, count)]
+  const cylinder = useCylinderSwap()
 
   useEffect(() => {
     if (!autoPlayInView) return
@@ -289,19 +432,29 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
     const video = videoRef.current
     if (!wrap || !video) return
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && video.dataset.userPaused !== 'true') video.play().catch(() => undefined)
-      else if (!entry.isIntersecting) video.pause()
+      setInView(entry.isIntersecting)
+      if (!entry.isIntersecting) video.pause()
     }, { threshold: 0.45 })
     observer.observe(wrap)
     return () => observer.disconnect()
   }, [autoPlayInView])
 
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !autoPlayInView) return
+    if (inView && video.dataset.userPaused !== 'true') video.play().catch(() => undefined)
+    else if (!inView) video.pause()
+  }, [autoPlayInView, inView])
+
   const goToClip = (next: number) => {
     const video = videoRef.current
     resumeRef.current = Boolean(video && !video.paused) || resumeRef.current
-    setStatus('loading')
-    setTime(0)
-    setClip(((next % count) + count) % count)
+    const target = ((next % count) + count) % count
+    cylinder.swap(1, reels[target]?.poster, () => {
+      setStatus('loading')
+      setTime(0)
+      setClip(target)
+    })
   }
 
   const togglePlayback = () => {
@@ -333,18 +486,19 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
   return (
     <div
   ref={wrapRef}
-  className="relative mx-auto h-[clamp(420px,85vh,560px)] w-[clamp(260px,26vw,380px)] overflow-hidden rounded-[22px] bg-[#151515] text-white shadow-[0_24px_60px_rgba(16,17,15,0.22)]"
+  className="relative h-full w-full overflow-hidden rounded-[clamp(16px,1.35vw,23px)] bg-[#151515] text-white shadow-[0_24px_60px_rgba(16,17,15,0.22)]"
 >
+      <div ref={cylinder.outRef} className="absolute inset-0 [backface-visibility:hidden]">
       {status === 'loading' && <span className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/10 via-white/5 to-transparent" aria-hidden="true" />}
       <video
         ref={videoRef}
         {...takeoverAttr}
-        src={reel.src}
+        src={inView ? reel.src : undefined}
         poster={reel.poster}
         muted={muted}
         loop={count < 2}
         playsInline
-        preload="auto"
+        preload="none"
         className="absolute inset-0 h-full w-full cursor-pointer object-cover"
         onClick={togglePlayback}
         onPlay={() => setPlaying(true)}
@@ -362,9 +516,12 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
         onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
       />
       {status === 'error' && <span className="absolute inset-0 grid place-items-center text-[11px] uppercase tracking-[0.08em] text-white/60">Video unavailable</span>}
+      <CylShade />
+      </div>
+      <CylinderIncomingFace faceRef={cylinder.inRef} imgRef={cylinder.inImgRef} />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/55" />
 
-      <span className="pointer-events-none absolute right-5 top-14 z-20 text-[13px] font-semibold tabular-nums text-[#075f38] drop-shadow-[0_1px_2px_rgba(255,255,255,.45)]">
+      <span className="pointer-events-none absolute right-5 top-14 z-20 text-[13px] font-semibold tabular-nums text-[#fffaf7]  ">
         -{formatTime(duration - time)}
       </span>
 
@@ -372,7 +529,7 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
         type="button"
         onClick={togglePlayback}
         aria-label={playing ? 'Pause video' : 'Play video'}
-        className="absolute bottom-5 left-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#075f38] shadow-[0_10px_28px_rgba(0,0,0,.16)] transition-transform duration-200 hover:scale-105 active:scale-95"
+        className="absolute bottom-5 left-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#fff] shadow-[0_10px_28px_rgba(0,0,0,1)] transition-transform duration-200 hover:scale-105 active:scale-95"
       >
         {playing ? <Icon.Pause /> : <Icon.Play />}
       </button>
@@ -382,7 +539,7 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
         onClick={toggleMute}
         aria-label={muted ? 'Unmute video' : 'Mute video'}
         aria-pressed={!muted}
-        className="absolute bottom-5 right-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#075f38] shadow-[0_10px_28px_rgba(0,0,0,.16)] transition-transform duration-200 hover:scale-105 active:scale-95"
+        className="absolute bottom-5 right-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#075f38] shadow-[0_10px_28px_rgba(0,0,0,1)] transition-transform duration-200 hover:scale-105 active:scale-95"
       >
         {muted ? <Icon.Muted /> : <Icon.Volume />}
       </button>
@@ -550,6 +707,7 @@ function TeamHoverCard({ image, className = '', style }: { image: string; classN
       >
         <img src={image} alt="BrandWorks team" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.src = mediaUrl('Strategy.jpg') }} />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/5" />
+        <CylShade className="z-30" />
         {TEAM_MEMBERS.map((member, index) => (
           <button
             key={member.name}
@@ -574,19 +732,18 @@ function TeamHoverCard({ image, className = '', style }: { image: string; classN
 }
 
 /* ------------------------------------------------------------------ */
-/* Instagram-style story card: one card, 3–4 stories, prev/next CTAs   */
+/* Simple story card: video + progress bars + prev/next                */
 /* ------------------------------------------------------------------ */
 
-const STORY_TITLES = ['Launch week', 'Behind the scenes', 'Campaigns', 'Community', 'Studio days']
+const STORY_GROUP_COUNT = 5
 
 function buildStoryGroups(reels: readonly SocialReel[]): StoryGroup[] {
   if (!reels.length) return []
   const perGroup = Math.min(4, reels.length)
-  return STORY_TITLES.map((title, groupIndex) => {
+  return Array.from({ length: STORY_GROUP_COUNT }, (_, groupIndex) => {
     const size = groupIndex % 2 ? Math.min(3, perGroup) : perGroup
     return {
       id: `story-group-${groupIndex}`,
-      title,
       reels: Array.from({ length: size }, (_, k) => reels[(groupIndex * 2 + k) % reels.length]),
     }
   })
@@ -606,22 +763,17 @@ function StoryGroupCard({
   const cardRef = useRef<HTMLElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const barRefs = useRef<Array<HTMLSpanElement | null>>([])
-  const holdTimer = useRef<number | undefined>(undefined)
-  const held = useRef(false)
   const [index, setIndex] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const [holding, setHolding] = useState(false)
   const [muted, setMuted] = useState(true)
   const [inView, setInView] = useState(false)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [liked, setLiked] = useState<Record<number, boolean>>({})
   const [burst, setBurst] = useState(0)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   const count = group.reels.length
   const reel = group.reels[index]
-  const cover = group.reels[0]?.poster
-  const isLiked = Boolean(liked[index])
-  const shouldPlay = active && inView && !paused && !holding
+  const cylinder = useCylinderSwap()
+  const shouldPlay = active && inView
   const shouldPlayRef = useRef(shouldPlay)
   shouldPlayRef.current = shouldPlay
 
@@ -670,43 +822,22 @@ function StoryGroupCard({
       }
       return
     }
-    setStatus('loading')
-    setIndex(next)
-  }, [index, count])
-
-  const startHold = () => {
-    held.current = false
-    window.clearTimeout(holdTimer.current)
-    holdTimer.current = window.setTimeout(() => { held.current = true; setHolding(true) }, 220)
-  }
-  const endHold = (dir: 1 | -1) => {
-    window.clearTimeout(holdTimer.current)
-    if (held.current) { held.current = false; setHolding(false) } else go(dir)
-  }
-  const cancelHold = () => {
-    window.clearTimeout(holdTimer.current)
-    if (held.current) { held.current = false; setHolding(false) }
-  }
-  useEffect(() => () => window.clearTimeout(holdTimer.current), [])
-
-  const toggleLike = (event: ReactMouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation()
-    setLiked((value) => ({ ...value, [index]: !value[index] }))
-    setBurst((value) => value + 1)
-  }
-
-  const share = (event: ReactMouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation()
-    const data = { title: reel.caption, url: window.location.href }
-    if (navigator.share) navigator.share(data).catch(() => undefined)
-    else navigator.clipboard?.writeText(data.url).catch(() => undefined)
-  }
+    cylinder.swap(dir, group.reels[next]?.poster, () => {
+      setStatus('loading')
+      setIndex(next)
+    })
+  }, [index, count, group.reels, cylinder.swap])
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.key === 'ArrowRight') { event.preventDefault(); go(1) }
     else if (event.key === 'ArrowLeft') { event.preventDefault(); go(-1) }
-    else if (event.target === event.currentTarget && event.key === ' ') { event.preventDefault(); setPaused((value) => !value) }
     else if (event.target === event.currentTarget && event.key === 'Enter') { event.preventDefault(); onOpen(reel, event.currentTarget) }
+  }
+
+  const isLiked = Boolean(liked[index])
+  const toggleLike = () => {
+    setLiked((value) => ({ ...value, [index]: !value[index] }))
+    if (!isLiked) setBurst((value) => value + 1)
   }
 
   if (!reel) return null
@@ -719,24 +850,28 @@ function StoryGroupCard({
       tabIndex={0}
       onKeyDown={onKeyDown}
       aria-roledescription="stories"
-      aria-label={`${group.title} — story ${index + 1} of ${count}`}
+      aria-label={`Story ${index + 1} of ${count}`}
       className={`group/story relative shrink-0 select-none overflow-hidden rounded-[clamp(14px,1.2vw,22px)] bg-[#161616] text-white shadow-[0_24px_70px_rgba(0,0,0,.18)] outline-none [will-change:transform,opacity] focus-visible:ring-2 focus-visible:ring-white/90 ${className}`}
     >
-      {status === 'loading' && <span className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/10 via-white/5 to-transparent" aria-hidden="true" />}
-      <video
-        ref={videoRef}
-        src={reel.src}
-        poster={reel.poster}
-        muted={muted}
-        playsInline
-        preload="metadata"
-        onCanPlay={() => setStatus('ready')}
-        onError={() => setStatus('error')}
-        onEnded={() => go(1)}
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-      {status === 'error' && <span className="absolute inset-0 grid place-items-center text-[11px] uppercase tracking-[0.08em] text-white/60">Video unavailable</span>}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/65" />
+      <div ref={cylinder.outRef} className="absolute inset-0 [backface-visibility:hidden]">
+        {status === 'loading' && <span className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/10 via-white/5 to-transparent" aria-hidden="true" />}
+        <video
+          ref={videoRef}
+          src={inView ? reel.src : undefined}
+          poster={reel.poster}
+          muted={muted}
+          playsInline
+          preload="none"
+          onCanPlay={() => setStatus('ready')}
+          onError={() => setStatus('error')}
+          onEnded={() => go(1)}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {status === 'error' && <span className="absolute inset-0 grid place-items-center text-[11px] uppercase tracking-[0.08em] text-white/60">Video unavailable</span>}
+        <CylShade />
+      </div>
+      <CylinderIncomingFace faceRef={cylinder.inRef} imgRef={cylinder.inImgRef} />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/35 to-transparent" />
 
       {/* progress segments */}
       <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex gap-1" aria-hidden="true">
@@ -747,155 +882,72 @@ function StoryGroupCard({
         ))}
       </div>
 
-      {/* header */}
-      <div className="absolute inset-x-3 top-6 z-30 flex items-center gap-2.5">
-        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] p-[2px]">
-          <span className="block h-full w-full overflow-hidden rounded-full border-2 border-[#161616] bg-[#333]">
-            {cover ? <img src={cover} alt="" className="h-full w-full object-cover" /> : null}
-          </span>
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[12px] font-semibold">brandworks</p>
-          <p className="truncate text-[10px] text-white/70">{group.title} · {index + 1}/{count}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setPaused((value) => !value)}
-          aria-label={paused ? 'Play stories' : 'Pause stories'}
-          className="grid size-8 place-items-center rounded-full text-white/90 transition-colors hover:bg-white/15"
-        >
-          {paused ? <Icon.Play /> : <Icon.Pause />}
-        </button>
-        <button
-          type="button"
-          onClick={() => setMuted((value) => !value)}
-          aria-label={muted ? 'Unmute stories' : 'Mute stories'}
-          aria-pressed={!muted}
-          className="grid size-8 place-items-center rounded-full text-white/90 transition-colors hover:bg-white/15"
-        >
-          {muted ? <Icon.Muted /> : <Icon.Volume />}
-        </button>
+      {/* tap left / right to move between stories */}
+      <div className="absolute inset-0 z-20 flex">
+        <button type="button" tabIndex={-1} aria-label="Previous story" className="h-full w-1/3 cursor-w-resize outline-none" onClick={() => go(-1)} />
+        <button type="button" tabIndex={-1} aria-label="Next story" className="h-full w-2/3 cursor-e-resize outline-none" onClick={() => go(1)} />
       </div>
 
-      {/* tap zones — tap left/right, press & hold to pause */}
-      <div className="absolute inset-x-0 bottom-[128px] top-[66px] z-20 flex">
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-label="Previous story"
-          className="h-full w-1/3 cursor-w-resize outline-none"
-          onPointerDown={startHold}
-          onPointerUp={() => endHold(-1)}
-          onPointerLeave={cancelHold}
-          onPointerCancel={cancelHold}
-          onContextMenu={(event) => event.preventDefault()}
-        />
-        <button
-          type="button"
-          tabIndex={-1}
-          aria-label="Next story"
-          className="h-full w-2/3 cursor-e-resize outline-none"
-          onPointerDown={startHold}
-          onPointerUp={() => endHold(1)}
-          onPointerLeave={cancelHold}
-          onPointerCancel={cancelHold}
-          onContextMenu={(event) => event.preventDefault()}
-        />
-      </div>
-
-      {/* left / right CTAs */}
+      {/* like — white circle with a pink heart; fills and bursts when tapped */}
       <button
         type="button"
-        onClick={() => go(-1)}
-        aria-label="Previous story"
-        className="absolute left-2.5 top-1/2 z-30 -mt-[18px] grid size-9 place-items-center rounded-full bg-white/90 text-[#111] shadow-[0_8px_20px_rgba(0,0,0,.2)] transition-all duration-200 hover:scale-105 focus-visible:opacity-100 lg:opacity-0 lg:group-hover/story:opacity-100"
+        onClick={toggleLike}
+        aria-label={isLiked ? 'Unlike story' : 'Like story'}
+        aria-pressed={isLiked}
+        className="absolute bottom-4 left-4 z-30 grid size-12 place-items-center rounded-full text-[#d72585] shadow-[0_10px_26px_rgba(0,0,0,.18)] transition-transform duration-200 hover:scale-105 active:scale-95"
+        style={{ backgroundColor: '#fff8f6', color: '#d72585' }}
       >
-        <Icon.Chevron dir="left" />
-      </button>
-      <button
-        type="button"
-        onClick={() => go(1)}
-        aria-label="Next story"
-        className="absolute right-2.5 top-1/2 z-30 -mt-[18px] grid size-9 place-items-center rounded-full bg-white/90 text-[#111] shadow-[0_8px_20px_rgba(0,0,0,.2)] transition-all duration-200 hover:scale-105 focus-visible:opacity-100 lg:opacity-0 lg:group-hover/story:opacity-100"
-      >
-        <Icon.Chevron dir="right" />
-      </button>
-
-      <AnimatePresence>
-        {(holding || paused) && (
-          <motion.span
-            key="paused"
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 0.2 }}
-            className="pointer-events-none absolute left-1/2 top-[38%] z-30 -ml-7 grid size-14 place-items-center rounded-full bg-black/35 backdrop-blur-md"
-            aria-hidden="true"
-          >
-            <Icon.Pause />
-          </motion.span>
-        )}
-      </AnimatePresence>
-
-      {/* footer */}
-      <div className="absolute inset-x-4 bottom-4 z-30">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.h3
-            key={`${reel.id}-${index}`}
-            initial={{ y: 18, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -12, opacity: 0 }}
-            transition={{ duration: 0.32, ease: EASE }}
-            className="mb-4 max-w-[88%] font-primary text-[clamp(24px,2.1vw,36px)] uppercase leading-[0.84] tracking-[-0.04em]"
-          >
-            {reel.caption}
-          </motion.h3>
+        <AnimatePresence>
+          {burst > 0 && isLiked && (
+            <motion.span
+              key={burst}
+              className="pointer-events-none absolute inset-0 grid place-items-center"
+              initial={{ y: 0, scale: 0.6, opacity: 1 }}
+              animate={{ y: -46, scale: 1.5, opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7, ease: EASE }}
+              aria-hidden="true"
+            >
+              <Icon.Heart filled />
+            </motion.span>
+          )}
         </AnimatePresence>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleLike}
-              aria-label={isLiked ? 'Unlike story' : 'Like story'}
-              aria-pressed={isLiked}
-              className={`relative grid size-10 place-items-center rounded-full border backdrop-blur-md transition-all duration-200 ${isLiked ? 'border-[#ff4d7d] bg-[#ff4d7d] text-white' : 'border-white/45 bg-black/15 text-white hover:bg-white hover:text-[#111]'}`}
-            >
-              <AnimatePresence initial={false}>
-                {isLiked && (
-                  <motion.span
-                    key={burst}
-                    initial={{ y: 0, scale: 0.4, opacity: 0 }}
-                    animate={{ y: -30, scale: 1.15, opacity: 1 }}
-                    exit={{ y: -46, scale: 1.6, opacity: 0 }}
-                    transition={{ duration: 0.38, ease: EASE }}
-                    className="pointer-events-none absolute text-[#ff4d7d]"
-                  >
-                    <Icon.Heart filled />
-                  </motion.span>
-                )}
-              </AnimatePresence>
-              <motion.span key={`icon-${burst}`} initial={{ scale: 0.7 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 520, damping: 16 }}>
-                <Icon.Heart filled={isLiked} />
-              </motion.span>
-            </button>
-            <button
-              type="button"
-              onClick={share}
-              aria-label="Share story"
-              className="grid size-10 place-items-center rounded-full border border-white/45 bg-black/15 text-white backdrop-blur-md transition-colors hover:bg-white hover:text-[#111]"
-            >
-              <Icon.Send />
-            </button>
-          </div>
-          <button
-            type="button"
-            onClick={(event) => onOpen(reel, event.currentTarget)}
-            className="rounded-full bg-white/90 px-3.5 py-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#111] transition-colors hover:bg-white"
-          >
-            View story
-          </button>
-        </div>
-      </div>
+        <motion.span
+          key={`heart-${isLiked}`}
+          className="grid place-items-center"
+          initial={{ scale: isLiked ? 0.55 : 1 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 520, damping: 14 }}
+        >
+          <Icon.Heart filled={isLiked} />
+        </motion.span>
+      </button>
+
+      {/* mute */}
+      <button
+        type="button"
+        onClick={() => setMuted((value) => !value)}
+        aria-label={muted ? 'Unmute stories' : 'Mute stories'}
+        aria-pressed={!muted}
+        className="absolute bottom-4 right-4 z-30 grid size-10 place-items-center rounded-full text-white transition-colors"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.38)', color: '#fff' }}
+      >
+        {muted ? <Icon.Muted /> : <Icon.Volume />}
+      </button>
+
+      {/* left / right CTAs — frosted white circles with white arrows */}
+      {(['left', 'right'] as const).map((dir) => (
+        <button
+          key={dir}
+          type="button"
+          onClick={() => go(dir === 'left' ? -1 : 1)}
+          aria-label={dir === 'left' ? 'Previous story' : 'Next story'}
+          className={`absolute top-1/2 z-30 -mt-5 grid size-10 place-items-center rounded-full text-white ring-1 ring-white/25 transition-[transform,background-color] duration-200 hover:scale-105 hover:!bg-white/50 ${dir === 'left' ? 'left-3' : 'right-3'}`}
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.32)', color: '#fff' }}
+        >
+          <Icon.Arrow dir={dir} />
+        </button>
+      ))}
     </article>
   )
 }
@@ -910,6 +962,7 @@ function StoryGroupCard({
 const WHITE = '#fff'
 const RAIL_START = 440
 const PER_CARD = 85
+const FIRST_STORY_TURN = 70 // scroll length of the team → first story cylinder turn
 const LAST_CARD_STOP = 0.57 // last card stops part-way over the previous one
 
 const STAGE_VARS = { '--slot-h': 'min(82svh, 500px)', '--slot-w': 'calc(var(--slot-h) * 0.665)' } as CSSProperties
@@ -945,44 +998,63 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
 
       const stage = q('[data-stage]')
       const railBg = q('[data-rail-bg]')
+      const stageBg = q<HTMLElement>('[data-stage-bg]')
       const backdrop = q('[data-hero-backdrop]')
       const backdropImg = q('[data-hero-backdrop] img')
       const heroLetters = qa('[data-hero-letter]')
       const heroLines = qa('[data-hero-copy] [data-line]')
+      const heroHl = qa('[data-hero-copy] [data-hl]')
       const stickers = qa('[data-social-emoji]')
       const shells = qa('[data-social-photo-shell]')
       const shellIntro = qa('[data-shell-intro]')
       const magnets = qa('[data-social-magnet]')
-      const flipInner = q('[data-flip-inner]')
       const flipFront = q('[data-flip-front]')
       const flipBack = q('[data-flip-back]')
       const teamCard = q('[data-social-team-card]')
       const railItems = qa('[data-rail-item]')
       const flowHeroBack = q('[data-flow="hero-back"]')
       const flowHeroCopy = q('[data-flow="hero-copy"]')
-      const flowPink = q('[data-flow="pink"]')
-      const flowElectric = q('[data-flow="electric"]')
+      const flowPinkL = q('[data-flow="pink-left"]')
+      const flowPinkR = q('[data-flow="pink-right"]')
+      const flowElectricL = q('[data-flow="electric-left"]')
+      const flowElectricR = q('[data-flow="electric-right"]')
       const flowSocial = q('[data-flow="social"]')
+      const socialMeta = qa('[data-flow="social"] [data-social-fade]')
       const video = q<HTMLVideoElement>('[data-social-takeover-video]')
 
-      if (!stage || !railBg || !backdrop || shells.length < 3 || !flipInner || !flipFront || !flipBack || !teamCard || !railItems.length) return
+      if (!stage || !railBg || !stageBg || !backdrop || shells.length < 3 || !flipFront || !flipBack || !teamCard || !railItems.length) return
 
       const centerShell = shells[1]
       const leftShell = shells[0]
       const backCard = shells[2] // reused as the card peeking behind the team card
       const cardW = () => teamCard.offsetWidth
+      const cylFace = { transformOrigin: '50% 50%', transformPerspective: CYL_PERSPECTIVE, force3D: true }
+      // each cylinder face keeps its own angle; `base` is its resting x (only the first story has one)
+      const cylAngle = new Map<HTMLElement, { a: number; base: () => number }>()
+      const placeOnCylinder = (el: HTMLElement) => {
+        const st = cylAngle.get(el)
+        if (st) setCylinder(el, st.a, cardW(), st.base())
+      }
+      const firstStory = railItems[0]
+      const restItems = railItems.slice(1) // these still slide in from the right
 
       /* ---------- initial state ---------- */
+      gsap.set(stageBg, { backgroundColor: WHITE })
+      gsap.set(railBg, { backgroundColor: '#284c58' })
       gsap.set(shells, { transformOrigin: '50% 50%', force3D: true })
       gsap.set(centerShell, { scale: 1, zIndex: 30 })
       gsap.set(leftShell, { x: () => -window.innerWidth * 0.175, y: () => window.innerHeight * 0.09, scale: 1, rotation: -5.5, zIndex: 10 })
       gsap.set(backCard, { x: () => window.innerWidth * 0.175, y: () => window.innerHeight * 0.08, scale: 1, rotation: 5.2, zIndex: 10 })
-      gsap.set(flipInner, { rotateY: 0, transformPerspective: 1800, transformOrigin: '50% 50%' })
-      gsap.set(flipFront, { pointerEvents: 'auto' })
-      gsap.set(flipBack, { pointerEvents: 'none' })
-      // team card hinges on its RIGHT edge and swings over the video like a page
-      gsap.set(teamCard, { autoAlpha: 0, rotateY: 88, transformOrigin: '100% 50%', transformPerspective: 2600, force3D: true })
-      gsap.set(railItems, { transformOrigin: '0% 50%', transformPerspective: 1600, force3D: true })
+      // photo, video, team card and first story all sit on the same cylinder
+      gsap.set(flipFront, { ...cylFace, pointerEvents: 'auto' })
+      gsap.set(flipBack, { ...cylFace, autoAlpha: 0, pointerEvents: 'none' })
+      gsap.set(teamCard, { ...cylFace, autoAlpha: 0 })
+      gsap.set(firstStory, { ...cylFace, autoAlpha: 0 })
+      cylAngle.set(flipFront, { a: 0, base: () => 0 })
+      cylAngle.set(flipBack, { a: CYL_ANGLE, base: () => 0 })
+      cylAngle.set(teamCard, { a: CYL_ANGLE, base: () => 0 })
+      cylAngle.set(firstStory, { a: CYL_ANGLE, base: () => geom.x0 })
+      gsap.set(restItems, { transformOrigin: '0% 50%', transformPerspective: 1600, force3D: true })
 
       /* ---------- magnetic hover on hero photos ---------- */
       const cleanups: Array<() => void> = []
@@ -1017,41 +1089,59 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         .fromTo(heroLetters, { yPercent: 60, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 1.1, stagger: 0.035 }, 0.1)
         .fromTo(shellIntro, { y: 140, autoAlpha: 0, scale: 0.9 }, { y: 0, autoAlpha: 1, scale: 1, duration: 1.3, stagger: 0.09 }, 0.25)
         .fromTo(heroLines, { yPercent: 110 }, { yPercent: 0, duration: 1, stagger: 0.07 }, 0.5)
+        .fromTo(heroHl, { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: 'expo.inOut' }, 0.95)
         .fromTo(stickers, { scale: 0, rotation: -25 }, { scale: 1, rotation: (_i: number, el: HTMLElement) => Number(el.dataset.tilt || 0), duration: 0.8, stagger: 0.07, ease: 'back.out(2)' }, 0.85)
 
       /* ---------- horizontal stacking rail ---------- */
       const geom = { vw: 0, W: 0, x0: 0, gap: 14, natural: [] as number[], max: 0 }
       const measure = () => {
-        geom.vw = window.innerWidth
+        geom.vw = stage.clientWidth
         geom.W = cardW()
         geom.x0 = (geom.vw - geom.W) / 2
-        geom.natural = railItems.map((_, k) => geom.vw + 30 + k * (geom.W + geom.gap))
-        geom.max = geom.natural[railItems.length - 1] - (geom.x0 + geom.W * LAST_CARD_STOP)
+        geom.natural = restItems.map((_, k) => geom.vw + 30 + k * (geom.W + geom.gap))
+        geom.max = restItems.length ? geom.natural[restItems.length - 1] - (geom.x0 + geom.W * LAST_CARD_STOP) : 0
       }
       measure()
+      // fast per-frame setters instead of gsap.set() on every scroll tick
+      const setters = restItems.map((card) => ({
+        x: gsap.quickSetter(card, 'x', 'px'),
+        ry: gsap.quickSetter(card, 'rotateY', 'deg'),
+        rz: gsap.quickSetter(card, 'rotation', 'deg'),
+      }))
       const proxy = { o: 0 }
+      let firstShown = false
+      let restLocked = 0
       let lastActive = -1
-      const layoutRail = () => {
-        const { vw, W, x0, natural } = geom
-        let active = 0
-        railItems.forEach((card, k) => {
-          const isLast = k === railItems.length - 1
-          const lockX = x0 + (isLast ? W * LAST_CARD_STOP : 0)
-          const raw = natural[k] - proxy.o
-          const x = Math.max(lockX, raw)
-          if (raw <= lockX + 0.5) active = k + 1
-          // a little swing while the card enters from the right edge
-          const t = gsap.utils.clamp(0, 1, (x - vw * 0.6) / (vw * 0.4))
-          gsap.set(card, { x, rotateY: -24 * t, rotation: 5 * t })
-        })
+      const updateActive = () => {
+        const active = firstShown ? 1 + restLocked : 0
         if (active !== lastActive) {
           lastActive = active
           setRailIndex(active)
         }
       }
+      const layoutRail = () => {
+        const { vw, W, x0, natural } = geom
+        placeOnCylinder(firstStory)
+        let locked = 0
+        restItems.forEach((_, k) => {
+          const isLast = k === restItems.length - 1
+          const lockX = x0 + (isLast ? W * LAST_CARD_STOP : 0)
+          const raw = natural[k] - proxy.o
+          const x = Math.max(lockX, raw)
+          if (raw <= lockX + 0.5) locked = k + 1
+          // a little swing while the card enters from the right edge (eased, not linear)
+          const t = gsap.parseEase('power2.in')(gsap.utils.clamp(0, 1, (x - vw * 0.55) / (vw * 0.45)))
+          setters[k].x(x)
+          setters[k].ry(-24 * t)
+          setters[k].rz(5 * t)
+        })
+        restLocked = locked
+        updateActive()
+      }
       layoutRail()
+      ;[flipFront, flipBack, teamCard].forEach(placeOnCylinder)
       const onRefreshInit = () => measure()
-      const onRefresh = () => layoutRail()
+      const onRefresh = () => { layoutRail(); [flipFront, flipBack, teamCard].forEach(placeOnCylinder) }
       ScrollTrigger.addEventListener('refreshInit', onRefreshInit)
       ScrollTrigger.addEventListener('refresh', onRefresh)
       cleanups.push(() => {
@@ -1068,8 +1158,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           end: 'bottom bottom',
           pin: stage,
           pinSpacing: false,
-          scrub: 0.6,
+          scrub: 1.1, // a touch more inertia = silkier catch-up
           anticipatePin: 1,
+          fastScrollEnd: true,
           invalidateOnRefresh: true,
         },
       })
@@ -1080,47 +1171,124 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         if (el) tl.fromTo(el, { yPercent: from }, { yPercent: to, duration: Math.abs(from - to), ease: 'none' }, at)
       }
 
+      // same, with its own speed — two speeds side by side give the text depth (parallax)
+      const flowAt = (el: HTMLElement | null, from: number, to: number, at: number, duration: number) => {
+        if (el) tl.fromTo(el, { yPercent: from }, { yPercent: to, duration, ease: 'none' }, at)
+      }
+
+      // headline lines rise out of their masks, then the lime highlight wipes across
+      const reveal = (el: HTMLElement | null, at: number) => {
+        if (!el) return
+        const lines = gsap.utils.toArray<HTMLElement>('[data-line]', el)
+        const hls = gsap.utils.toArray<HTMLElement>('[data-hl]', el)
+        if (lines.length) tl.fromTo(lines, { yPercent: 118, rotation: 2.5, transformOrigin: '0% 100%' }, { yPercent: 0, rotation: 0, duration: 26, stagger: 6, ease: 'power3.out' }, at)
+        if (hls.length) tl.fromTo(hls, { scaleX: 0 }, { scaleX: 1, duration: 20, ease: 'power2.inOut' }, at + 10 + lines.length * 4)
+      }
+
+      // emoji bubbles / pills pop in with a little overshoot
+      const pop = (el: HTMLElement | null, at: number) => {
+        const items = el ? gsap.utils.toArray<HTMLElement>('[data-pop]', el) : []
+        if (items.length) tl.fromTo(items, { scale: 0, rotation: -14 }, { scale: 1, rotation: 0, duration: 16, stagger: 3, ease: 'back.out(2.2)' }, at)
+      }
+
+      // paragraph words light up one after another
+      const lightWords = (el: HTMLElement | null, at: number, duration: number) => {
+        const words = el ? gsap.utils.toArray<HTMLElement>('[data-word]', el) : []
+        if (!words.length) return
+        const step = duration / words.length
+        tl.fromTo(words, { opacity: 0.14 }, { opacity: 1, duration: step * 3, stagger: step, ease: 'none' }, at)
+      }
+
+      // one turn of the cylinder: `out` rolls away to the left, `inc` rolls in from the right.
+      // Faces fade at the far edges and darken as they turn away, so it reads as a solid drum.
+      const shadeOf = (el: HTMLElement) => el.querySelector<HTMLElement>(':scope > [data-cyl-shade]') ?? el.querySelector<HTMLElement>('[data-cyl-shade]')
+      const cylinder = (out: HTMLElement, inc: HTMLElement, at: number, duration: number) => {
+        const fade = duration * 0.16
+        const outState = cylAngle.get(out)!
+        const incState = cylAngle.get(inc)!
+        tl.fromTo(outState, { a: 0 }, { a: -CYL_ANGLE, duration, ease: 'power2.inOut', immediateRender: false, onUpdate: () => placeOnCylinder(out) }, at)
+        tl.fromTo(incState, { a: CYL_ANGLE }, { a: 0, duration, ease: 'power2.inOut', immediateRender: false, onUpdate: () => placeOnCylinder(inc) }, at)
+        // plain .to() fades: they record their start values in timeline order, which keeps
+        // scrubbing back and forth (and ScrollTrigger refreshes) clean
+        tl.to(inc, { autoAlpha: 1, duration: fade, ease: 'none' }, at)
+        tl.to(out, { autoAlpha: 0, duration: fade, ease: 'none' }, at + duration - fade)
+        const outShade = shadeOf(out)
+        const incShade = shadeOf(inc)
+        if (outShade) tl.to(outShade, { opacity: 0.5, duration, ease: 'power1.in' }, at)
+        if (incShade) tl.fromTo(incShade, { opacity: 0.5 }, { opacity: 0, duration, ease: 'power1.out' }, at)
+      }
+
       // 1. Photos tuck behind the centre one while retaining their size
       flow(flowHeroBack, 0, -100, 0)
       flow(flowHeroCopy, 0, -100, 0)
       tl.to(backdrop, { autoAlpha: 0, duration: 35 }, 10)
+      // The page changes atmosphere between chapters instead of hard-cutting.
+      tl.to(stageBg, { backgroundColor: '#f2b0b5', duration: 74, ease: 'none' }, 58)
       tl.to(leftShell, { x: 0, y: 0, rotation: -2, duration: 55, ease: 'power2.inOut' }, 0)
       tl.to(backCard, { x: 0, y: 0, rotation: 2, duration: 55, ease: 'power2.inOut' }, 0)
       tl.to(stickers, { autoAlpha: 0, scale: 0.6, duration: 20 }, 10)
 
-      // 2. FLIP — the reel comes from the back of the photo
-      tl.to(flipInner, { rotateY: 180, duration: 40, ease: 'power2.inOut' }, 55)
-      tl.set([leftShell, backCard], { autoAlpha: 0 }, 60)
-      tl.set(flipFront, { pointerEvents: 'none' }, 75)
-      tl.set(flipBack, { pointerEvents: 'auto' }, 75)
+      // 2. CYLINDER — the photo rolls away and the reel rolls in
+      tl.set([leftShell, backCard], { autoAlpha: 0 }, 55)
+      cylinder(flipFront, flipBack, 55, 55)
+      tl.set(flipFront, { pointerEvents: 'none' }, 80)
+      tl.set(flipBack, { pointerEvents: 'auto' }, 80)
 
-      // 3. "We are the current" scrolls past while the video stays in the middle
-      flow(flowPink, 100, -45, 80)
+      // 3. "We are the current, / You are the story." — two columns, two speeds
+      flowAt(flowPinkL, 100, -45, 80, 145)
+      flowAt(flowPinkR, 130, -60, 80, 145)
+      pop(flowPinkL, 96)
+      reveal(flowPinkL, 102)
+      reveal(flowPinkR, 120)
 
-      // 4. TEAM card swings over the video (hinged on its right edge)
+      // 4. CYLINDER — the video rolls away and the TEAM card rolls in
       tl.set(flipBack, { pointerEvents: 'none' }, 225)
-      tl.fromTo(teamCard, { autoAlpha: 0 }, { autoAlpha: 1, duration: 6, immediateRender: false }, 225)
-      tl.fromTo(teamCard, { rotateY: 88 }, { rotateY: 0, duration: 60, ease: 'power1.inOut', immediateRender: false }, 225)
+      cylinder(flipBack, teamCard, 225, 62)
+      // once the team card has landed, the video face returns (hidden underneath) for the stack
+      tl.set(cylAngle.get(flipBack)!, { a: 0 }, 289)
+      tl.set(flipBack, { autoAlpha: 1 }, 289)
+      const backShade = shadeOf(flipBack)
+      if (backShade) tl.set(backShade, { opacity: 0 }, 289)
       // the cards underneath splay out as a little stack
-      tl.set(backCard, { autoAlpha: 1, x: 0, y: 0, rotation: 0, scale: 1 }, 255)
-      tl.to(centerShell, { x: () => -cardW() * 0.07, rotation: -3.5, duration: 35, ease: 'power2.out' }, 255)
-      tl.to(backCard, { x: () => cardW() * 0.07, rotation: 4, duration: 35, ease: 'power2.out' }, 255)
-      flow(flowElectric, 100, -50, 230)
+      tl.set(backCard, { autoAlpha: 1, x: 0, y: 0, rotation: 0, scale: 1 }, 291)
+      tl.to(centerShell, { x: () => -cardW() * 0.07, rotation: -3.5, duration: 35, ease: 'power2.out' }, 291)
+      tl.to(backCard, { x: () => cardW() * 0.07, rotation: 4, duration: 35, ease: 'power2.out' }, 291)
+      //    "We electrify your networks," + the manifesto line, again on two speeds
+      flowAt(flowElectricL, 100, -50, 230, 150)
+      flowAt(flowElectricR, 125, -65, 230, 150)
+      pop(flowElectricL, 246)
+      reveal(flowElectricL, 250)
+      lightWords(flowElectricR, 262, 42)
+      pop(flowElectricR, 300)
+      tl.to(stageBg, { backgroundColor: '#c9dc2f', duration: 82, ease: 'none' }, 225)
 
-      // 5. "We make them social": stack tucks back in, title scrolls up and stays
+      // 5. "We make them social": stack tucks back in, title rises and stays
       tl.to([centerShell, backCard], { x: 0, rotation: 0, duration: 20, ease: 'power2.inOut' }, 380)
       tl.set([centerShell, backCard], { autoAlpha: 0 }, 402)
       flow(flowSocial, 100, 0, 370)
+      reveal(flowSocial, 400)
+      pop(flowSocial, 414)
+      if (socialMeta.length) tl.fromTo(socialMeta, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 18, stagger: 5, ease: 'power2.out' }, 420)
+      tl.to(stageBg, { backgroundColor: '#e9e2d8', duration: 34, ease: 'none' }, 370)
 
-      // 6. Stories slide in from the right and stack on the slot
-      tl.to(railBg, { opacity: 1, duration: 2 }, RAIL_START - 2)
-      tl.to(proxy, { o: () => geom.max, duration: railCount * PER_CARD, ease: 'none', onUpdate: layoutRail }, RAIL_START)
+      // 6. Stories: background deepens, the title turns light so it stays readable
+      tl.to(railBg, { backgroundColor: '#284c58', opacity: 1, duration: 18, ease: 'power2.out' }, RAIL_START - 16)
+      tl.to(stageBg, { backgroundColor: '#284c58', duration: 18, ease: 'power2.inOut' }, RAIL_START - 16)
+      if (flowSocial) tl.to(flowSocial, { color: '#fffaf7', duration: 18, ease: 'power2.inOut' }, RAIL_START - 16)
+      //    first story: one cylinder turn off the team card…
+      cylinder(teamCard, firstStory, RAIL_START, FIRST_STORY_TURN)
+      //    …then every other card follows through from the right
+      tl.to(proxy, { o: () => geom.max, duration: (railCount - 1) * PER_CARD, ease: 'none', onUpdate: layoutRail }, RAIL_START + FIRST_STORY_TURN)
 
       // video only plays while it's the card on show
       tl.eventCallback('onUpdate', () => {
+        // keep every cylinder face exactly where its angle says (both scroll directions)
+        cylAngle.forEach((_, el) => placeOnCylinder(el))
+        const shown = tl.time() >= RAIL_START + FIRST_STORY_TURN * 0.6
+        if (shown !== firstShown) { firstShown = shown; updateActive() }
         if (!video) return
         const t = tl.time()
-        const visible = t > 78 && t < 282
+        const visible = t > 80 && t < 285
         if (visible && video.paused && video.dataset.userPaused !== 'true') video.play().catch(() => undefined)
         else if (!visible && !video.paused) video.pause()
       })
@@ -1160,11 +1328,11 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
               </div>
             </div>
             <div className="absolute inset-x-0 top-[3svh] flex justify-center">
-              {/* <div aria-hidden="true" className="flex whitespace-nowrap font-primary text-[clamp(120px,19vw,220px)] uppercase leading-[0.74] tracking-[-0.075em] text-[#00000]">
-                {'BRANDWORKS'.split('').map((letter, index) => (
+              <div aria-hidden="true" className="flex whitespace-nowrap font-primary text-[clamp(120px,19vw,150px)] uppercase leading-[1] tracking-[-0.025em] text-[#bfe623] mt-10">
+                {'BRANDWORKS.me'.split('').map((letter, index) => (
                   <span key={index} data-hero-letter className="inline-block">{letter}</span>
                 ))}
-              </div> */}
+              </div>
             </div>
           </div>
 
@@ -1175,7 +1343,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
               return (
                 <div key={reel.id} data-social-photo-shell className="pointer-events-auto [will-change:transform,opacity]" style={SLOT}>
                   <div data-shell-intro className="relative h-full w-full">
-                    <div data-flip-inner={isCenter ? '' : undefined} className="relative h-full w-full [transform-style:preserve-3d]">
+                    <div data-flip-inner={isCenter ? '' : undefined} className="relative h-full w-full">
                       <div data-flip-front={isCenter ? '' : undefined} className="absolute inset-0 [-webkit-backface-visibility:hidden] [backface-visibility:hidden]">
                         <button
                           type="button"
@@ -1185,13 +1353,15 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
                           aria-label={`View ${reel.caption}`}
                         >
                           <span className="relative block h-full w-full overflow-hidden rounded-[clamp(16px,1.35vw,23px)] bg-[#dedbd6] shadow-[0_26px_65px_rgba(16,17,15,0.16)]">
-                            <img src={image} alt="" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" loading={isCenter ? 'eager' : 'lazy'} />
+                            <img src={image} alt="" className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" loading="lazy" />
                           </span>
                         </button>
+                        {isCenter && <CylShade className="z-10 rounded-[clamp(16px,1.35vw,23px)]" />}
                       </div>
                       {isCenter && (
-                        <div data-flip-back className="pointer-events-none absolute inset-0 [-webkit-backface-visibility:hidden] [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                        <div data-flip-back className="pointer-events-none invisible absolute inset-0 opacity-0 [-webkit-backface-visibility:hidden] [backface-visibility:hidden]">
                           <HeroVideoPlayer reels={playlist} takeover />
+                          <CylShade className="z-50 rounded-[clamp(16px,1.35vw,23px)]" />
                         </div>
                       )}
                     </div>
@@ -1214,6 +1384,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             {storyGroups.map((group, g) => (
               <div key={group.id} data-rail-item className="pointer-events-auto [will-change:transform]" style={{ ...RAIL_ITEM, zIndex: g + 1, transform: 'translateX(110vw)' }}>
                 <StoryGroupCard group={group} active={railIndex === g + 1} onOpen={onOpen} className="h-full w-full" />
+                <CylShade className="z-10 rounded-[clamp(14px,1.2vw,22px)]" />
               </div>
             ))}
             <div data-rail-item className="pointer-events-auto [will-change:transform]" style={{ ...RAIL_ITEM, zIndex: storyGroups.length + 1, transform: 'translateX(110vw)' }}>
@@ -1232,7 +1403,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             <div data-hero-copy className="absolute bottom-[5vh] left-[clamp(28px,3vw,58px)]">
               {/* <p className="mb-3 text-[11px] font-semibold text-[#10110f]">Social media agency</p> */}
               <h1 className="font-primary text-[clamp(52px,5vw,84px)] font-normal uppercase leading-[0.74] tracking-[-0.06em] text-[#10110f]">
-                <Lines lines={[<span key="h" data-hero-human>Human</span>, <span key="s" className={textHighlight}>Social Club.</span>]} />
+                <Lines lines={[<span key="h" data-hero-human>Human</span>, <Hl key="s">Social Club.</Hl>]} />
               </h1>
             </div>
             {/* <div data-hero-copy className="absolute bottom-[5vh] right-[clamp(28px,3vw,58px)] max-w-[240px] border-t border-black/15 pt-4">
@@ -1240,45 +1411,77 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             </div> */}
           </div>
 
-          <div data-flow="pink" className={`${flowBox} text-[#10110f]`}>
-            <AppleEmojiRow names={['phone', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float absolute left-[12vw] top-[12vh] rotate-[5deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+          {/* ---------- We are the current, / You are the story. ---------- */}
+          <div data-flow="pink-left" className={`${flowBox} text-[#10110f]`}>
+            <span data-pop className="absolute left-[12vw] top-[12vh] block">
+              <AppleEmojiRow names={['phone', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float rotate-[5deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+            </span>
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[12vh] max-w-[28vw]">
               <span className="mb-4 block h-[62px]" aria-hidden="true" />
-              <h2 className="font-primary text-[clamp(44px,5vw,112px)] uppercase leading-[0.78]  ">We are the<br />current,</h2>
-            </div>
-            <div className="absolute right-[clamp(28px,3vw,58px)] top-[calc(6vh+44px)] max-w-[28vw] text-left text-[#10110f]">
-              <h2 className="font-primary text-[clamp(44px,4vw,76px)] uppercase leading-[0.78] ">You are<br /><span className={textHighlight}>the story.</span></h2>
-            </div>
-          </div>
-
-          <div data-flow="electric" className={flowBox}>
-            <AppleEmojiRow names={['camera', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float absolute left-[10vw] top-[11vh] rotate-[6deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
-            <div className="absolute left-[clamp(28px,3vw,58px)] top-[4vh] max-w-[29vw]">
-              <span className="mb-5 block h-[62px]" aria-hidden="true" />
-              <h2 className="font-primary text-[clamp(44px,5vw,112px)] uppercase leading-[0.78] tracking-[-0.025em] text-[#10110f]">
-                We<br />electrify your<br /><span className={textHighlight}> networks,</span>
+              <h2 className="font-primary text-[clamp(48px,4.8vw,112px)] uppercase leading-[0.8]">
+                <Lines lines={['We are the', <Hl key="c">current</Hl>]} />
               </h2>
             </div>
-            <div className="absolute right-[clamp(28px,3vw,58px)] top-[8vh] max-w-[min(25vw,300px)] text-[#10110f]">
-              <p className="text-[13px] font-semibold leading-[1.45]">At BrandWorks, we believe social media is not just about publishing a few posts.</p>
-              {/* <p className="mt-3 text-[12px] font-medium leading-[1.55] text-[#db3188]/75">
-                It&apos;s a story to tell, a strategy to build and an image to live up to — turning your channels into a real lever for visibility and growth, with people at the heart of every project.
-              </p>
-              <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#db3188]/60">Hover the photo to meet the team</p> */}
+          </div>
+          <div data-flow="pink-right" className={`${flowBox} text-[#10110f]`}>
+            <div className="absolute right-[clamp(28px,3vw,58px)] top-[calc(6vh+44px)] max-w-[28vw] text-left">
+              <h2 className="font-primary text-[clamp(44px,4vw,76px)] uppercase leading-[0.8]">
+                <Lines lines={['You are', <Hl key="s">the story.</Hl>]} />
+              </h2>
             </div>
           </div>
 
+          {/* ---------- We electrify your networks, ---------- */}
+          <div data-flow="electric-left" className={`${flowBox} text-[#10110f]`}>
+            <span data-pop className="absolute left-[10vw] top-[3vh] block">
+              <AppleEmojiRow names={['camera', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float rotate-[6deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+            </span>
+            <div className="absolute left-[clamp(28px,3vw,58px)] top-[4vh] max-w-[29vw]">
+              <span className="mb-5 block h-[62px]" aria-hidden="true" />
+              <h2 className="font-primary text-[clamp(44px,5vw,112px)] uppercase leading-[0.8] tracking-[-0.025em]">
+                <Lines lines={['We', 'electrify your', <Hl key="n">networks,</Hl>]} />
+              </h2>
+            </div>
+          </div>
+          <div data-flow="electric-right" className={`${flowBox} text-[#10110f]`}>
+            <div className="absolute right-[clamp(28px,3vw,58px)] top-[8vh] max-w-[min(25vw,320px)]">
+              <p className="text-[clamp(15px,1.15vw,18px)] font-semibold leading-[1.4] pb-2">
+                <Words text="At BrandWorks, we believe social media is not just about publishing a few posts." />
+              </p>
+              <p data-pop className="mt-6 inline-flex origin-left items-center gap-2 rounded-full bg-[#10110f] px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                <span className="relative flex size-2" aria-hidden="true">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ccff00] opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-[#ccff00]" />
+                </span>
+                Hover a face to meet the team
+              </p>
+            </div>
+          </div>
+
+          {/* ---------- We make them social ---------- */}
           <div data-flow="social" className={`${flowBox} z-[60] text-[#10110f]`}>
-            <AppleEmojiRow names={['phone', 'heart', 'sunglasses']} className="bwsm-emoji-bubble bwsm-emoji-float absolute left-[clamp(170px,12vw,250px)] top-[clamp(65px,13vh,115px)] -rotate-[7deg] rounded-[28px] bg-[#f8ded4] px-8 py-6 text-[34px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+            <span data-pop className="absolute left-[clamp(170px,12vw,250px)] top-[clamp(65px,13vh,115px)] block">
+              <AppleEmojiRow names={['phone', 'heart', 'sunglasses']} className="bwsm-emoji-bubble bwsm-emoji-float -rotate-[7deg] rounded-[28px] bg-[#f8ded4] px-8 py-6 text-[34px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+            </span>
             <div className="absolute left-[clamp(28px,2vw,44px)] top-[clamp(150px,25vh,220px)] max-w-[26vw]">
-              <h2 className="font-primary text-[clamp(44px,4.6vw,84px)] uppercase leading-[0.76] tracking-[-0.055em]">We<br />make them<br />social</h2>
-              <div className="mt-4 flex -space-x-2">
+              <h2 className="font-primary text-[clamp(44px,4.6vw,84px)] uppercase leading-[0.8] tracking-[-0.055em]">
+                <Lines lines={['We', 'make them', <Hl key="s">social</Hl>]} />
+              </h2>
+              <p data-social-fade className="mt-6 max-w-[250px] text-[13px] font-semibold leading-[1.45] opacity-80">
+                Stories, reels and campaigns made to live on the feed.
+              </p>
+              <div className="mt-5 flex -space-x-4">
                 {SOCIAL_REELS.slice(0, 4).map((reel) => (
-                  <span key={reel.id} className="size-8 overflow-hidden rounded-full border-2 border-white bg-white/20">
+                  <span key={reel.id} data-pop className="size-12 overflow-hidden rounded-full border-2 border-white bg-white/20">
                     {reel.poster ? <img src={reel.poster} alt="" className="h-full w-full object-cover" /> : null}
                   </span>
                 ))}
-                <span className="grid size-8 place-items-center rounded-full border-2 border-white bg-[#db3188] text-[11px]">+{Math.max(2, SOCIAL_REELS.length - 4)}</span>
+                <span data-pop className="grid size-12 place-items-center rounded-full border-2 border-white bg-[#db3188] text-[11px] text-white">+{Math.max(2, SOCIAL_REELS.length - 4)}</span>
+              </div>
+              {/* story counter + progress, synced with the rail */}
+              <div data-social-fade className="mt-8 w-[min(240px,20vw)]">
+                
+             
               </div>
             </div>
           </div>
@@ -1286,7 +1489,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       </div>
 
       <div className="lg:hidden lg:motion-reduce:block">
-        <div className="relative min-h-[100svh] overflow-hidden bg-white px-5 pb-14 pt-24">
+        <div className="relative min-h-[100svh] overflow-hidden bg-[#f2b0b5] px-5 pb-14 pt-24">
           <div className="pointer-events-none absolute inset-x-0 top-8 flex justify-center">
             <span className="whitespace-nowrap font-primary text-[26vw] uppercase leading-none tracking-[-0.07em] text-[#10110f] lg:text-[16vw]">BRANDWORKS</span>
           </div>
@@ -1300,7 +1503,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
               return (
                 <button key={reel.id} type="button" className={`absolute ${position}`} onClick={(event) => onOpen(reel, event.currentTarget)} aria-label={`View ${reel.caption}`}>
                   <span className="block h-full w-full overflow-hidden rounded-[20px] bg-[#ddd] shadow-[0_22px_55px_rgba(16,17,15,0.18)]">
-                    <img src={image} alt="" className="h-full w-full object-cover" loading={index === 1 ? 'eager' : 'lazy'} />
+                    <img src={image} alt="" className="h-full w-full object-cover" loading="lazy" />
                   </span>
                 </button>
               )
@@ -1314,8 +1517,8 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
         </div>
 
-        <div className="bg-white px-5 py-16 text-[#10110f]">
-          <h2 className="font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[7vw]">We are the<br />current,</h2>
+        <div className="bg-[#f2b0b5] px-5 py-16 text-[#10110f]">
+          <h2 className="font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[6vw]">We are the<br />current,</h2>
           {playlist.length > 0 && (
             <div className="mx-auto my-10 aspect-[9/16] w-full max-w-[281.25px]">
               <HeroVideoPlayer reels={playlist} autoPlayInView />
@@ -1324,8 +1527,8 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           <h2 className="text-right font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] text-[#10110f] lg:text-[7vw]">You are<br /><span className={textHighlight}>the story.</span></h2>
         </div>
 
-        <div className="bg-white px-5 py-16 text-[#10110f]">
-          <h2 className="font-primary text-[13vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[6.5vw]">We electrify<br /><span className={textHighlight}>your networks,</span></h2>
+        <div className="bg-[#c9dc2f] px-5 py-16 text-[#10110f]">
+          <h2 className="font-primary text-[13vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[6vw]">We electrify<br /><span className={textHighlight}>your networks,</span></h2>
           <p className="mt-6 max-w-[420px] text-[14px] leading-[1.55] text-[#10110f]/75">
             Social is not a few posts a week. It&apos;s a story to tell, a strategy to build and an image to live up to.
           </p>
@@ -1334,8 +1537,8 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
         </div>
 
-        <div className="bg-white px-5 py-16 text-[#10110f]">
-          <h2 className="font-primary text-[14vw] uppercase leading-[0.76] tracking-[-0.06em] lg:text-[10rem]">We make<br />them social.</h2>
+        <div className="bg-[#e9e2d8] px-5 py-16 text-[#10110f]">
+          <h2 className="font-primary text-[14vw] uppercase leading-[0.76]  lg:text-[10rem]">We make<br />them social.</h2>
           <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none]">
             {storyGroups.map((group) => (
               <StoryGroupCard key={group.id} group={group} active onOpen={onOpen} className="h-[min(78svh,500px)] w-[82vw] max-w-[380px] snap-center" />
@@ -1346,11 +1549,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
     </section>
   )
 }
-
-/* ------------------------------------------------------------------ */
-/* Untouched sections                                                  */
-/* ------------------------------------------------------------------ */
-
+ 
 function ExpertiseSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const [showCaseCard, setShowCaseCard] = useState(true)
@@ -1391,7 +1590,7 @@ function ExpertiseSection() {
           trigger: section,
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 0.75,
+          scrub: 0.9,
           invalidateOnRefresh: true,
         },
       })
@@ -1525,7 +1724,7 @@ function ProcessSection() {
       gsap.set(cards, { zIndex: (index) => index + 1 })
       gsap.set(cards.slice(1), { yPercent: 115, rotate: (index) => index % 2 ? 2 : -2 })
       const timeline = gsap.timeline({
-        scrollTrigger: { trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.65 },
+        scrollTrigger: { trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.8 },
       })
       cards.slice(1).forEach((card, index) => {
         timeline
@@ -1571,7 +1770,7 @@ function WhySection() {
       rotate: (index) => [-5, 2, 5][index] ?? 0,
       stagger: 0.08,
       ease: 'none',
-      scrollTrigger: { trigger: section, start: 'top 75%', end: 'center center', scrub: 0.6 },
+      scrollTrigger: { trigger: section, start: 'top 75%', end: 'center center', scrub: 0.75 },
     })
   }, { scope: sectionRef })
   return (
