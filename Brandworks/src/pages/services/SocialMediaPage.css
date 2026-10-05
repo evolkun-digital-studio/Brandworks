@@ -824,21 +824,21 @@ a:hover>.bwsm-arrow {
 
   z-index: 4;
 
-  top: calc(50% + clamp(54px, 6.4vw, 112px));
+  top: 54%;
 
-  left: clamp(118px, 13vw, 220px);
+  left: 82%;
 
   display: inline-flex;
 
   align-items: center;
 
-  gap: 5px;
+  gap: 9px;
 
-  padding: 7px 9px 7px 10px;
+  padding: 19px 24px;
 
   border: 1px solid rgb(16 17 15 / 8%);
 
-  border-radius: 9px;
+  border-radius: 26px;
 
   background: rgb(255 255 255 / 92%);
 
@@ -846,7 +846,7 @@ a:hover>.bwsm-arrow {
 
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 
-  font-size: clamp(13px, 1.05vw, 18px);
+  font-size: clamp(24px, 1.7vw, 32px);
 
   line-height: 1;
 
@@ -864,9 +864,71 @@ a:hover>.bwsm-arrow {
 
 }
 
-.bwsm-expertise__emoji-sticker>span {
+.bwsm-expertise__emoji-sticker>img {
 
   display: block;
+
+  width: 1em;
+
+  height: 1em;
+
+}
+
+/* Soft speech-bubble tail used by the floating emoji stickers. */
+
+.bwsm-emoji-bubble::after {
+
+  position: absolute;
+
+  bottom: -10px;
+
+  left: 34%;
+
+  width: 24px;
+
+  height: 20px;
+
+  border-radius: 0 0 16px 16px;
+
+  background: inherit;
+
+  clip-path: polygon(0 0, 100% 0, 58% 100%);
+
+  content: "";
+
+}
+
+@keyframes bwsm-emoji-float {
+
+  0%,
+
+  100% {
+
+    translate: 0 0;
+
+  }
+
+  50% {
+
+    translate: 0 -9px;
+
+  }
+
+}
+
+.bwsm-emoji-float {
+
+  animation: bwsm-emoji-float 3.6s ease-in-out infinite;
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .bwsm-emoji-float {
+
+    animation: none;
+
+  }
 
 }
 
@@ -1603,6 +1665,36 @@ a:hover>.bwsm-arrow {
 .bwsm-dialog::backdrop {
 
   background: rgb(0 0 0 / 65%);
+
+}
+
+/* Team profile — native dialog keeps the overlay above the pinned GSAP stage. */
+
+.bwsm-team-dialog {
+
+  width: 100%;
+
+  height: 100%;
+
+  max-width: none;
+
+  max-height: none;
+
+  padding: 0;
+
+  border: 0;
+
+  overflow: hidden;
+
+  pointer-events: auto;
+
+  background: transparent;
+
+}
+
+.bwsm-team-dialog::backdrop {
+
+  background: transparent;
 
 }
 

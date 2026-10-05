@@ -8,8 +8,8 @@ import {
   type ReactNode,
   type MouseEvent as ReactMouseEvent,
   type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
   type CSSProperties,
+  type HTMLAttributes,
 } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
@@ -23,8 +23,44 @@ import './SocialMediaPage.css'
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const EASE = [0.22, 1, 0.36, 1] as const
-const EMOJI_FONT = { fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif' }
 const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+const APPLE_EMOJI_BASE = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@16.0.0/img/apple/64'
+const APPLE_EMOJI = {
+  desktop: '1f5a5-fe0f',
+  bolt: '26a1-fe0f',
+  headphones: '1f3a7',
+  movieCamera: '1f3a5',
+  fist: '1f44a',
+  phone: '1f4f1',
+  playful: '1f61c',
+  camera: '1f4f8',
+  heart: '1f496',
+  sunglasses: '1f60e',
+  chart: '1f4ca',
+} as const
+
+type AppleEmojiName = keyof typeof APPLE_EMOJI
+
+function AppleEmoji({ name, className = 'size-[1em]' }: { name: AppleEmojiName; className?: string }) {
+  return (
+    <img
+      src={`${APPLE_EMOJI_BASE}/${APPLE_EMOJI[name]}.png`}
+      alt=""
+      draggable={false}
+      className={`inline-block shrink-0 object-contain ${className}`}
+      aria-hidden="true"
+    />
+  )
+}
+
+function AppleEmojiRow({ names, className = '', ...props }: { names: readonly AppleEmojiName[] } & HTMLAttributes<HTMLSpanElement>) {
+  return (
+    <span {...props} className={`inline-flex items-center gap-[0.22em] ${className}`} aria-hidden="true">
+      {names.map((name, index) => <AppleEmoji key={`${name}-${index}`} name={name} />)}
+    </span>
+  )
+}
 
 type ViewerSelection = { reel: SocialReel; trigger: HTMLElement }
 type StoryGroup = { id: string; title: string; reels: SocialReel[] }
@@ -237,9 +273,6 @@ function ReelViewer({ selection, onDismiss }: { selection: ViewerSelection; onDi
 function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { reels: SocialReel[]; takeover?: boolean; autoPlayInView?: boolean }) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const barRef = useRef<HTMLDivElement>(null)
-  const fillRef = useRef<HTMLSpanElement>(null)
-  const scrubbing = useRef(false)
   const resumeRef = useRef(false)
   const [clip, setClip] = useState(0)
   const [playing, setPlaying] = useState(false)
@@ -249,22 +282,6 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const count = reels.length
   const reel = reels[clip % Math.max(1, count)]
-
-  const paintProgress = useCallback(() => {
-    const video = videoRef.current
-    if (!video || !fillRef.current) return
-    const ratio = video.duration ? video.currentTime / video.duration : 0
-    fillRef.current.style.transform = `scaleX(${ratio})`
-  }, [])
-
-  useEffect(() => {
-    paintProgress()
-    if (!playing) return
-    let raf = 0
-    const tick = () => { paintProgress(); raf = requestAnimationFrame(tick) }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [playing, paintProgress])
 
   useEffect(() => {
     if (!autoPlayInView) return
@@ -310,33 +327,6 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
     }
   }
 
-  const seekFromPointer = (clientX: number) => {
-    const video = videoRef.current
-    const bar = barRef.current
-    if (!video || !bar || !video.duration) return
-    const rect = bar.getBoundingClientRect()
-    video.currentTime = gsap.utils.clamp(0, 1, (clientX - rect.left) / rect.width) * video.duration
-    setTime(video.currentTime)
-    paintProgress()
-  }
-  const onBarPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    scrubbing.current = true
-    event.currentTarget.setPointerCapture(event.pointerId)
-    seekFromPointer(event.clientX)
-  }
-  const onBarPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => { if (scrubbing.current) seekFromPointer(event.clientX) }
-  const onBarPointerUp = () => { scrubbing.current = false }
-  const onBarKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    const video = videoRef.current
-    if (!video || !video.duration) return
-    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-      event.preventDefault()
-      video.currentTime = gsap.utils.clamp(0, video.duration, video.currentTime + (event.key === 'ArrowRight' ? 5 : -5))
-      setTime(video.currentTime)
-      paintProgress()
-    }
-  }
-
   if (!reel) return null
   const takeoverAttr = takeover ? { 'data-social-takeover-video': '' } : {}
 
@@ -374,99 +364,28 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
       {status === 'error' && <span className="absolute inset-0 grid place-items-center text-[11px] uppercase tracking-[0.08em] text-white/60">Video unavailable</span>}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/55" />
 
-      {/* clip segments — click to jump to a clip */}
-      {count > 1 && (
-        <div className="absolute inset-x-4 top-3 z-20 flex gap-1">
-          {reels.map((item, index) => (
-            <button
-              key={`${item.id}-${index}`}
-              type="button"
-              onClick={() => goToClip(index)}
-              aria-label={`Play clip ${index + 1}`}
-              aria-current={index === clip}
-              className="group/seg flex h-4 flex-1 items-center"
-            >
-              <span className={`block h-[3px] w-full rounded-full transition-colors duration-300 ${index === clip ? 'bg-white' : index < clip ? 'bg-white/70' : 'bg-white/30 group-hover/seg:bg-white/55'}`} />
-            </button>
-          ))}
-        </div>
-      )}
+      <span className="pointer-events-none absolute right-5 top-14 z-20 text-[13px] font-semibold tabular-nums text-[#075f38] drop-shadow-[0_1px_2px_rgba(255,255,255,.45)]">
+        -{formatTime(duration - time)}
+      </span>
 
-      <div className="pointer-events-none absolute inset-x-4 top-9 z-20 flex items-center justify-between gap-3">
-        <span className="flex items-center gap-2 rounded-full bg-black/30 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] backdrop-blur-md">
-          <span className={`size-1.5 rounded-full ${playing ? 'bg-[#ff4d7d]' : 'bg-white/60'}`} />
-          {playing ? 'Now playing' : 'Paused'}
-        </span>
-        <span className="rounded-full bg-black/30 px-3 py-1.5 text-[11px] font-semibold tabular-nums backdrop-blur-md">-{formatTime(duration - time)}</span>
-      </div>
+      <button
+        type="button"
+        onClick={togglePlayback}
+        aria-label={playing ? 'Pause video' : 'Play video'}
+        className="absolute bottom-5 left-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#075f38] shadow-[0_10px_28px_rgba(0,0,0,.16)] transition-transform duration-200 hover:scale-105 active:scale-95"
+      >
+        {playing ? <Icon.Pause /> : <Icon.Play />}
+      </button>
 
-      <AnimatePresence>
-        {!playing && status !== 'error' && (
-          <motion.button
-            key="big-play"
-            type="button"
-            onClick={togglePlayback}
-            aria-label="Play video"
-            initial={{ scale: 0.7, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 1.25, opacity: 0 }}
-            transition={{ duration: 0.28, ease: EASE }}
-            className="absolute left-1/2 top-1/2 z-20 -ml-9 -mt-9 grid size-[72px] place-items-center rounded-full bg-white/90 text-[#0a5935] shadow-[0_18px_40px_rgba(0,0,0,0.25)] backdrop-blur-md transition-colors hover:bg-white"
-          >
-            <span className="scale-[1.35]"><Icon.Play /></span>
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      <div className="absolute inset-x-3 bottom-3 z-30 flex items-center gap-2 rounded-full bg-black/35 p-1.5 pr-1.5 backdrop-blur-xl">
-        <button
-          type="button"
-          onClick={togglePlayback}
-          aria-label={playing ? 'Pause video' : 'Play video'}
-          className="grid size-10 shrink-0 place-items-center rounded-full bg-[#fff8f3] text-[#0a5935] transition-transform duration-200 hover:scale-105 active:scale-95"
-        >
-          {playing ? <Icon.Pause /> : <Icon.Play />}
-        </button>
-        <div
-          ref={barRef}
-          role="slider"
-          tabIndex={0}
-          aria-label="Seek video"
-          aria-valuemin={0}
-          aria-valuemax={Math.round(duration)}
-          aria-valuenow={Math.round(time)}
-          aria-valuetext={`${formatTime(time)} of ${formatTime(duration)}`}
-          onPointerDown={onBarPointerDown}
-          onPointerMove={onBarPointerMove}
-          onPointerUp={onBarPointerUp}
-          onPointerCancel={onBarPointerUp}
-          onKeyDown={onBarKeyDown}
-          className="group/bar relative mx-1 flex h-8 flex-1 cursor-pointer touch-none items-center outline-none"
-        >
-          <span className="relative block h-[3px] w-full overflow-hidden rounded-full bg-white/25 transition-[height] duration-200 group-hover/bar:h-[5px] group-focus-visible/bar:h-[5px]">
-            <span ref={fillRef} className="absolute inset-0 origin-left rounded-full bg-white" style={{ transform: 'scaleX(0)' }} />
-          </span>
-        </div>
-        {count > 1 && (
-          <button
-            type="button"
-            onClick={() => goToClip(clip + 1)}
-            aria-label="Next clip"
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-white transition-colors duration-200 hover:bg-white hover:text-[#0a5935]"
-          >
-            <Icon.Chevron dir="right" />
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={toggleMute}
-          aria-label={muted ? 'Unmute video' : 'Mute video'}
-          aria-pressed={!muted}
-          className="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-white transition-colors duration-200 hover:bg-white hover:text-[#0a5935]"
-        >
-          {muted ? <Icon.Muted /> : <Icon.Volume />}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={toggleMute}
+        aria-label={muted ? 'Unmute video' : 'Mute video'}
+        aria-pressed={!muted}
+        className="absolute bottom-5 right-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#075f38] shadow-[0_10px_28px_rgba(0,0,0,.16)] transition-transform duration-200 hover:scale-105 active:scale-95"
+      >
+        {muted ? <Icon.Muted /> : <Icon.Volume />}
+      </button>
     </div>
   )
 }
@@ -476,43 +395,181 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
 /* ------------------------------------------------------------------ */
 
 const TEAM_MEMBERS = [
-  { name: 'NAME 01', left: '11%', top: '35%', width: '11%', height: '42%' },
-  { name: 'NAME 02', left: '21%', top: '28%', width: '11%', height: '49%' },
-  { name: 'NAME 03', left: '31%', top: '31%', width: '11%', height: '46%' },
-  { name: 'NAME 04', left: '41%', top: '22%', width: '11%', height: '55%' },
-  { name: 'NAME 05', left: '50%', top: '30%', width: '11%', height: '47%' },
-  { name: 'NAME 06', left: '59%', top: '25%', width: '11%', height: '52%' },
-  { name: 'NAME 07', left: '68%', top: '31%', width: '11%', height: '46%' },
-  { name: 'NAME 08', left: '77%', top: '27%', width: '10%', height: '50%' },
-  { name: 'NAME 09', left: '86%', top: '34%', width: '9%', height: '43%' },
+  {
+    name: 'NAME 01', role: 'Creative director', photo: mediaUrl('photo-1524504388940-b1c1722653e1.jpg'),
+    intro: 'Shapes the big idea, the visual language and the energy that makes every campaign feel unmistakably BrandWorks.',
+    left: '11%', top: '35%', width: '11%', height: '42%',
+  },
+  {
+    name: 'NAME 02', role: 'Social strategist', photo: mediaUrl('photo-1500648767791-00dcc994a43e.jpg'),
+    intro: 'Turns audience insight and culture into clear social strategies that give every post a reason to exist.',
+    left: '21%', top: '28%', width: '11%', height: '49%',
+  },
+  {
+    name: 'NAME 03', role: 'Content producer', photo: mediaUrl('photo-1497366754035-f200968a6e72.jpg'),
+    intro: 'Keeps shoots, creators and deliverables moving smoothly from the first brief to the final export.',
+    left: '31%', top: '31%', width: '11%', height: '46%',
+  },
+  {
+    name: 'NAME 04', role: 'Art director', photo: mediaUrl('photo-1513364776144-60967b0f800f.jpg'),
+    intro: 'Builds bold worlds for brands, pairing sharp design instincts with an eye for the smallest details.',
+    left: '41%', top: '22%', width: '11%', height: '55%',
+  },
+  {
+    name: 'NAME 05', role: 'Video editor', photo: mediaUrl('photo-1506794778202-cad84cf45f1d.jpg'),
+    intro: 'Transforms raw footage into rhythm, emotion and stories people want to watch all the way through.',
+    left: '50%', top: '30%', width: '11%', height: '47%',
+  },
+  {
+    name: 'NAME 06', role: 'Photographer', photo: mediaUrl('photo-1516035069371-29a1b244cc32.jpg'),
+    intro: 'Finds the human moment in every frame and gives brands a warm, confident and memorable point of view.',
+    left: '59%', top: '25%', width: '11%', height: '52%',
+  },
+  {
+    name: 'NAME 07', role: 'Community manager', photo: mediaUrl('photo-1519389950473-47ba0277781c.jpg'),
+    intro: 'Listens closely, starts real conversations and makes sure every community feels seen, heard and valued.',
+    left: '68%', top: '31%', width: '11%', height: '46%',
+  },
+  {
+    name: 'NAME 08', role: 'Motion designer', photo: mediaUrl('photo-1545235617-9465d2a55698.jpg'),
+    intro: 'Adds movement, character and playful timing to ideas so they stop thumbs and stay in people’s minds.',
+    left: '77%', top: '27%', width: '10%', height: '50%',
+  },
+  {
+    name: 'NAME 09', role: 'Client partner', photo: mediaUrl('photo-1560250097-0b93528c311a.jpg'),
+    intro: 'Connects people, priorities and possibilities to keep ambitious projects clear, collaborative and on course.',
+    left: '86%', top: '34%', width: '9%', height: '43%',
+  },
 ] as const
 
-function TeamHoverCard({ image, className = '', style }: { image: string; className?: string; style?: CSSProperties }) {
+type TeamMember = (typeof TEAM_MEMBERS)[number]
+type TeamSelection = { member: TeamMember; index: number; trigger: HTMLButtonElement }
+
+function TeamProfileDialog({ selection, onDismiss }: { selection: TeamSelection; onDismiss: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(true)
+  const reduced = Boolean(useReducedMotion())
+  const { member, index, trigger } = selection
+
+  useBrowserLayoutEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    const previousOverflow = document.documentElement.style.overflow
+    document.documentElement.style.overflow = 'hidden'
+    dialog.showModal()
+    closeRef.current?.focus({ preventScroll: true })
+    return () => {
+      if (dialog.open) dialog.close()
+      document.documentElement.style.overflow = previousOverflow
+      if (trigger.isConnected) trigger.focus({ preventScroll: true })
+    }
+  }, [trigger])
+
   return (
-    <article
-      data-social-team-card
-      style={style}
-      className={`group relative shrink-0 overflow-hidden rounded-[clamp(14px,1.2vw,22px)] bg-[#f0efec] shadow-[0_24px_70px_rgba(16,17,15,0.18)] [will-change:transform,opacity] ${className}`}
+    <dialog
+      ref={dialogRef}
+      className="bwsm-team-dialog"
+      aria-labelledby="bwsm-team-name"
+      aria-describedby="bwsm-team-intro"
+      data-lenis-prevent="true"
+      onCancel={(event) => { event.preventDefault(); setOpen(false) }}
     >
-      <img src={image} alt="BrandWorks team" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.src = mediaUrl('Strategy.jpg') }} />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/5" />
-      {TEAM_MEMBERS.map((member, index) => (
-        <button
-          key={member.name}
-          type="button"
-          data-team-hotspot
-          aria-label={member.name}
-          className="group/member absolute z-20 cursor-default outline-none"
-          style={{ left: member.left, top: member.top, width: member.width, height: member.height }}
-        >
-          <span className="absolute left-1/2 top-1/2 -ml-1.5 -mt-1.5 size-3 rounded-full bg-[#db3188] opacity-0 shadow-[0_0_0_6px_rgba(219,49,136,.14)] transition-opacity duration-200 group-hover/member:opacity-100 group-focus-visible/member:opacity-100" />
-          <span className="pointer-events-none absolute bottom-[calc(100%-8px)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#10110f] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white opacity-0 shadow-[0_8px_24px_rgba(0,0,0,.16)] transition-all duration-200 group-hover/member:-translate-y-1.5 group-hover/member:opacity-100 group-focus-visible/member:-translate-y-1.5 group-focus-visible/member:opacity-100">
-            {member.name}
-          </span>
-          <span className="sr-only">Team member {index + 1}</span>
-        </button>
-      ))}
-    </article>
+      <AnimatePresence onExitComplete={onDismiss}>
+        {open && (
+          <motion.div
+            className="relative flex h-full w-full items-center justify-center overflow-y-auto bg-[#3f3f3f]/65 p-5 backdrop-blur-[4px] sm:p-8 lg:p-14"
+            initial={{ opacity: reduced ? 1 : 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduced ? 0 : 0.28 }}
+            onClick={(event) => event.target === event.currentTarget && setOpen(false)}
+          >
+            <motion.button
+              ref={closeRef}
+              type="button"
+              aria-label={`Close ${member.name}'s profile`}
+              onClick={() => setOpen(false)}
+              className="fixed right-5 top-5 z-30 grid size-12 place-items-center rounded-full bg-white text-[#0a5935] shadow-[0_12px_35px_rgba(16,17,15,.12)] transition-transform hover:rotate-90 sm:right-8 sm:top-8 sm:size-14"
+              initial={{ scale: reduced ? 1 : 0.65, rotate: reduced ? 0 : -45 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: reduced ? 1 : 0.65, rotate: reduced ? 0 : 45 }}
+              transition={{ duration: reduced ? 0 : 0.45, ease: EASE }}
+            >
+              <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                <path d="m6 6 12 12M18 6 6 18" />
+              </svg>
+            </motion.button>
+
+            <div className="my-auto grid w-full max-w-[1120px] items-center gap-5 pt-14 md:grid-cols-[0.92fr_1.08fr] md:gap-0 md:pt-0">
+              <motion.figure
+                className="relative z-10 mx-auto aspect-[4/5] w-[min(86vw,470px)] overflow-hidden rounded-[28px] bg-[#f4f0ed] shadow-[0_30px_90px_rgba(88,23,56,.24)] md:mr-[-4%]"
+                initial={{ opacity: reduced ? 1 : 0, x: reduced ? 0 : -70, rotate: reduced ? -2 : -8 }}
+                animate={{ opacity: 1, x: 0, rotate: -2 }}
+                exit={{ opacity: 0, x: reduced ? 0 : -45, rotate: reduced ? -2 : -6 }}
+                transition={{ duration: reduced ? 0 : 0.65, ease: EASE }}
+              >
+                <img src={member.photo} alt={`${member.name}, ${member.role}`} className="h-full w-full object-cover" />
+                <span className="absolute left-5 top-5 rounded-full bg-[#ffe4dc] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[#10110f]">
+                  Meet the team
+                </span>
+                <span className="absolute bottom-5 right-5 grid size-12 place-items-center rounded-[16px] bg-[#ffe4dc]" aria-hidden="true">
+                  <AppleEmoji name="bolt" className="size-6" />
+                </span>
+              </motion.figure>
+
+              <motion.article
+                className="relative z-20 mx-auto flex min-h-[360px] w-[min(92vw,590px)] flex-col justify-center rounded-[28px] bg-[#b3cd1c] px-7 py-12 text-center text-white shadow-[0_30px_90px_rgba(88,23,56,.2)] sm:px-12 md:min-h-[470px] md:px-16 md:py-16"
+                initial={{ opacity: reduced ? 1 : 0, x: reduced ? 0 : 70, scale: reduced ? 1 : 0.94 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: reduced ? 0 : 45, scale: reduced ? 1 : 0.96 }}
+                transition={{ duration: reduced ? 0 : 0.65, delay: reduced ? 0 : 0.06, ease: EASE }}
+              > 
+                <p className="mt-7 text-[13px] font-semibold">{member.role}</p>
+                <h3 id="bwsm-team-name" className="mt-2 font-primary text-[clamp(54px,7vw,98px)] uppercase leading-[0.78] tracking-[-0.045em]">{member.name}</h3>
+                <div className="mx-auto my-7 h-px w-12 bg-white/55" />
+                <p id="bwsm-team-intro" className="mx-auto max-w-[420px] text-[clamp(15px,1.25vw,18px)] font-semibold leading-[1.5] text-white/95">{member.intro}</p>
+              </motion.article>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </dialog>
+  )
+}
+
+function TeamHoverCard({ image, className = '', style }: { image: string; className?: string; style?: CSSProperties }) {
+  const [selection, setSelection] = useState<TeamSelection | null>(null)
+
+  return (
+    <>
+      <article
+        data-social-team-card
+        style={style}
+        className={`group relative shrink-0 overflow-hidden rounded-[clamp(14px,1.2vw,22px)] bg-[#f0efec] shadow-[0_24px_70px_rgba(16,17,15,0.18)] [will-change:transform,opacity] ${className}`}
+      >
+        <img src={image} alt="BrandWorks team" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.src = mediaUrl('Strategy.jpg') }} />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/5" />
+        {TEAM_MEMBERS.map((member, index) => (
+          <button
+            key={member.name}
+            type="button"
+            data-team-hotspot
+            aria-label={`Open profile for ${member.name}, ${member.role}`}
+            className="group/member absolute z-20 cursor-pointer outline-none"
+            style={{ left: member.left, top: member.top, width: member.width, height: member.height }}
+            onClick={(event) => setSelection({ member, index, trigger: event.currentTarget })}
+          >
+            <span className="absolute left-1/2 top-1/2 -ml-1.5 -mt-1.5 size-3 rounded-full bg-[#db3188] opacity-0 shadow-[0_0_0_6px_rgba(219,49,136,.14)] transition-opacity duration-200 group-hover/member:opacity-100 group-focus-visible/member:opacity-100" />
+            <span className="pointer-events-none absolute bottom-[calc(100%-8px)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#10110f] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white opacity-0 shadow-[0_8px_24px_rgba(0,0,0,.16)] transition-all duration-200 group-hover/member:-translate-y-1.5 group-hover/member:opacity-100 group-focus-visible/member:-translate-y-1.5 group-focus-visible/member:opacity-100">
+              {member.name}
+            </span>
+            <span className="sr-only">Team member {index + 1}</span>
+          </button>
+        ))}
+      </article>
+      {selection && <TeamProfileDialog selection={selection} onDismiss={() => setSelection(null)} />}
+    </>
   )
 }
 
@@ -1079,7 +1136,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
     return () => mm.revert()
   }, { scope: desktopRef, dependencies: [total, railCount] })
 
-  const tiltedSticker = 'pointer-events-none absolute z-50 rounded-[18px] bg-[#f8ded4] px-5 py-3 text-[18px] shadow-[0_12px_28px_rgba(16,17,15,0.12)]'
+  const tiltedSticker = 'bwsm-emoji-bubble bwsm-emoji-float pointer-events-none absolute z-50 rounded-[26px] bg-[#f8ded4] px-6 py-5 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,0.12)]'
   const flowBox = 'pointer-events-none absolute inset-0 z-[30] will-change-transform'
   const textHighlight = 'inline-block bg-[#ccff00] px-[0.08em] pb-[0.07em] pt-[0.03em] text-[#10110f]'
 
@@ -1138,13 +1195,13 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
                         </div>
                       )}
                     </div>
-                    {index === 0 && <span data-social-emoji data-tilt="-5" className={`${tiltedSticker} -right-8 top-[44%]`} style={EMOJI_FONT}>🖥️ ⚡️ 🎧</span>}
+                    {index === 0 && <AppleEmojiRow names={['desktop', 'bolt', 'headphones']} data-social-emoji data-tilt="-5" className={`${tiltedSticker} -left-10 top-[54%]`} />}
                     {index === 1 && (
                       <span className="pointer-events-none absolute inset-x-0 top-[9%] z-50 flex justify-center">
-                        <span data-social-emoji className="rounded-[26px] bg-[#ffe4dc] px-5 py-4 text-[26px] shadow-[0_12px_28px_rgba(16,17,15,0.08)]" style={EMOJI_FONT}>⚡️</span>
+                        <span data-social-emoji className="bwsm-emoji-bubble bwsm-emoji-float relative rounded-[28px] bg-[#ffe4dc] px-6 py-5 shadow-[0_12px_28px_rgba(16,17,15,0.08)]"><AppleEmoji name="bolt" className="size-8" /></span>
                       </span>
                     )}
-                    {index === 2 && <span data-social-emoji data-tilt="5" className={`${tiltedSticker} -left-8 top-[44%]`} style={EMOJI_FONT}>🎥 ⚡️ 🤜</span>}
+                    {index === 2 && <AppleEmojiRow names={['movieCamera', 'bolt', 'fist']} data-social-emoji data-tilt="5" className={`${tiltedSticker} -right-12 top-[54%]`} />}
                   </div>
                 </div>
               )
@@ -1184,8 +1241,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
 
           <div data-flow="pink" className={`${flowBox} text-[#10110f]`}>
-            <div className="absolute left-[clamp(28px,3vw,58px)] top-[6vh] max-w-[28vw]">
-              <p className="mb-4 text-[22px]" style={EMOJI_FONT} aria-hidden="true">📱 ⚡️ 😜</p>
+            <AppleEmojiRow names={['phone', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float absolute left-[12vw] top-[12vh] rotate-[5deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+            <div className="absolute left-[clamp(28px,3vw,58px)] top-[12vh] max-w-[28vw]">
+              <span className="mb-4 block h-[62px]" aria-hidden="true" />
               <h2 className="font-primary text-[clamp(44px,4vw,46px)] uppercase leading-[0.78]  ">We are the<br />current,</h2>
             </div>
             <div className="absolute right-[clamp(28px,3vw,58px)] top-[calc(6vh+44px)] max-w-[28vw] text-left text-[#10110f]">
@@ -1194,8 +1252,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
 
           <div data-flow="electric" className={flowBox}>
+            <AppleEmojiRow names={['camera', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float absolute left-[10vw] top-[11vh] rotate-[6deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[4vh] max-w-[29vw]">
-              <span className="mb-5 inline-block rounded-[16px] bg-[#f8ded4] px-4 py-2.5 text-[20px] shadow-[0_10px_24px_rgba(16,17,15,.08)]" style={EMOJI_FONT} aria-hidden="true">📸 ⚡️ 😜</span>
+              <span className="mb-5 block h-[62px]" aria-hidden="true" />
               <h2 className="font-primary text-[clamp(44px,4vw,48px)] uppercase leading-[0.78] tracking-[-0.025em] text-[#10110f]">
                 We<br />electrify<br /><span className={textHighlight}>your networks,</span>
               </h2>
@@ -1210,16 +1269,16 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
 
           <div data-flow="social" className={`${flowBox} z-[60] text-[#10110f]`}>
-            <div className="absolute left-[clamp(28px,3vw,58px)] top-[44%] max-w-[26vw]">
-              <span className="mb-4 inline-block  bg-[#f8ded4] px-4 py-2.5 text-[20px]" style={EMOJI_FONT} aria-hidden="true">📱 💖 😎</span>
+            <AppleEmojiRow names={['phone', 'heart', 'sunglasses']} className="bwsm-emoji-bubble bwsm-emoji-float absolute left-[clamp(170px,12vw,250px)] top-[clamp(65px,13vh,115px)] -rotate-[7deg] rounded-[28px] bg-[#f8ded4] px-8 py-6 text-[34px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+            <div className="absolute left-[clamp(28px,2vw,44px)] top-[clamp(150px,25vh,220px)] max-w-[26vw]">
               <h2 className="font-primary text-[clamp(44px,4.6vw,84px)] uppercase leading-[0.76] tracking-[-0.055em]">We<br />make them<br />social</h2>
               <div className="mt-4 flex -space-x-2">
                 {SOCIAL_REELS.slice(0, 4).map((reel) => (
-                  <span key={reel.id} className="size-8 overflow-hidden  border-white ">
+                  <span key={reel.id} className="size-8 overflow-hidden rounded-full border-2 border-white bg-white/20">
                     {reel.poster ? <img src={reel.poster} alt="" className="h-full w-full object-cover" /> : null}
                   </span>
                 ))}
-                <span className="grid size-8 place-items-center   border-white bg-[#db3188] text-[11px]">+{Math.max(2, SOCIAL_REELS.length - 4)}</span>
+                <span className="grid size-8 place-items-center rounded-full border-2 border-white bg-[#db3188] text-[11px]">+{Math.max(2, SOCIAL_REELS.length - 4)}</span>
               </div>
             </div>
           </div>
@@ -1385,10 +1444,10 @@ function ExpertiseSection() {
             to better:<br />
             <span className="bwsm-expertise__resonating">resonating.</span>
           </h2>
-          <span className="bwsm-expertise__emoji-sticker" data-expertise-emoji aria-hidden="true">
-            <span>📸</span>
-            <span>📱</span>
-            <span>📊</span>
+          <span className="bwsm-expertise__emoji-sticker bwsm-emoji-bubble bwsm-emoji-float" data-expertise-emoji aria-hidden="true">
+            <AppleEmoji name="camera" />
+            <AppleEmoji name="phone" />
+            <AppleEmoji name="chart" />
           </span>
         </div>
         <div className="bwsm-expertise__deck">
