@@ -1,6 +1,12 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+
+/* -------------------------------------------------------------------------- */
+/*  Content                                                                   */
+/* -------------------------------------------------------------------------- */
+
+const EMAIL = 'hello@brandworks.me'
 
 const services = [
   'Videography',
@@ -9,325 +15,682 @@ const services = [
   'PR & Founder Reputation',
   'Performance & SEO',
   'Graphics & Animation',
+  'Website Development',
+  'Advertising',
 ]
 
-const budgets = [
-  'Under ₹50K',
-  '₹50K – ₹1L',
-  '₹1L – ₹2.5L',
-  '₹2.5L – ₹5L',
-  '₹5L+',
-  'Not decided yet',
-]
+const budgets = ['Under ₹50K', '₹50K – ₹1L', '₹1L – ₹2.5L', '₹2.5L – ₹5L', '₹5L+', 'Not decided yet']
+const timelines = ['Immediately', 'Within 1 month', '1–3 months', '3–6 months', 'Flexible']
 
-const timelines = [
-  'Immediately',
-  'Within 1 month',
-  '1–3 months',
-  '3–6 months',
-  'Flexible',
-]
+const STEPS = ['What you need', 'The project', 'About you'] as const
+const MAX_FILE_MB = 10
+const EASE = [0.22, 1, 0.36, 1] as const
 
-export default function ContactPage() {
-  const reduceMotion = useReducedMotion()
+/* -------------------------------------------------------------------------- */
+/*  Helpers                                                                   */
+/* -------------------------------------------------------------------------- */
 
-  const [selectedServices, setSelectedServices] = useState<string[]>([])
-  const [fileName, setFileName] = useState('')
-  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+function useDelhiTime() {
+  const format = () =>
+    new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }).format(new Date())
+  const hour = () => Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Asia/Kolkata' }).format(new Date()))
+  const [time, setTime] = useState(format)
+  const [h, setH] = useState(hour)
+  useEffect(() => {
+    const id = window.setInterval(() => { setTime(format()); setH(hour()) }, 30_000)
+    return () => window.clearInterval(id)
+  }, [])
+  const awake = h >= 9 && h < 20
+  return { time, awake }
+}
 
-  const toggleService = (service: string) => {
-    setSelectedServices((current) =>
-      current.includes(service)
-        ? current.filter((item) => item !== service)
-        : [...current, service],
-    )
-  }
+function isEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim())
+}
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+/* -------------------------------------------------------------------------- */
+/*  Small UI pieces                                                           */
+/* -------------------------------------------------------------------------- */
 
-    const form = event.currentTarget
-    const formData = new FormData(form)
-
-    formData.set('services', selectedServices.join(', '))
-
-    try {
-      setStatus('sending')
-
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) throw new Error()
-
-      form.reset()
-      setSelectedServices([])
-      setFileName('')
-      setStatus('success')
-    } catch {
-      setStatus('error')
-    }
-  }
-
+function Label({ children, htmlFor, hint }: { children: ReactNode; htmlFor?: string; hint?: string }) {
   return (
-    <main className="min-h-screen overflow-hidden bg-white text-[#111] antialiased">
-      <motion.section
-        initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="mx-auto w-full max-w-[1720px] px-5 pb-20 pt-28 sm:px-8 sm:pt-32 lg:px-12 lg:pb-28 lg:pt-40 xl:px-16"
-      >
-        <div className=" ">
-          <div className="flex min-h-[62px] items-center justify-between">
-            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-black/45">Contact</span>
-
-            <div className="flex items-center gap-3"> 
-              <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-black/45">New projects</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 border-t border-black/15 lg:grid-cols-12">
-          <div className="flex flex-col justify-between border-black/15 pb-14 pt-12 lg:col-span-5 lg:min-h-[760px] lg:border-r lg:pb-10 lg:pr-12 lg:pt-14 xl:pr-16">
-            <h1 className="max-w-[580px] text-[44px] font-normal leading-[0.96] tracking-[-0.045em] sm:text-[50px] lg:text-[56px] xl:text-[62px]">
-              Tell us what needs to be understood.
-            </h1>
-
-            <div className="mt-20 hidden lg:block">
-              <div className="max-w-[390px] border-t border-black/15">
-                <a href="mailto:hello@brandworks.me" className="group flex items-center justify-between border-b border-black/15 py-5">
-                  <div>
-                    <span className="mb-2 block text-[10px] font-medium uppercase tracking-[0.15em] text-black/35">New business</span>
-                    <span className="text-[14px] font-medium tracking-[-0.01em]">hello@brandworks.me</span>
-                  </div>
-
-                  <span className="text-[17px] transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1">↗</span>
-                </a>
-
-                <div className="flex items-center justify-between border-b border-black/15 py-5">
-                  <div>
-                    <span className="mb-2 block text-[10px] font-medium uppercase tracking-[0.15em] text-black/35">Availability</span>
-                    <span className="text-[14px] font-medium tracking-[-0.01em]">India · Worldwide</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-7 lg:pl-12 xl:pl-16">
-            <form onSubmit={handleSubmit} className="w-full">
-              <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-8">
-                <Field label="Name" name="name" placeholder="Your name" autoComplete="name" required />
-
-                <Field label="Work email" name="email" type="email" placeholder="you@company.com" autoComplete="email" required />
-
-                <Field label="Phone" name="phone" type="tel" placeholder="+91 / +971" autoComplete="tel" />
-
-                <Field label="Company" name="company" placeholder="Company or brand" autoComplete="organization" />
-
-                <Field label="Website" name="website" type="url" placeholder="yourcompany.com" autoComplete="url" />
-
-                <SelectField label="Budget" name="budget" placeholder="Select range" options={budgets} />
-              </div>
-
-              <div className="border-b border-black/15 py-9">
-                <div className="mb-7 flex items-center justify-between">
-                  <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-black/40">Inquiry for</span>
-                  <span className="text-[11px] text-black/30">Choose one or more</span>
-                </div>
-
-                <div className="grid grid-cols-1 border-t border-black/10 sm:grid-cols-2">
-                  {services.map((service, index) => {
-                    const active = selectedServices.includes(service)
-
-                    return (
-                      <button
-                        key={service}
-                        type="button"
-                        onClick={() => toggleService(service)}
-                        className={`group flex min-h-[62px] items-center justify-between border-b border-black/10 px-0 text-left transition-all duration-300 sm:px-4 ${index % 2 === 0 ? 'sm:border-r' : ''} ${active ? 'bg-[#ccff00] px-4 sm:px-4' : 'hover:bg-black/[0.025]'}`}
-                      >
-                        <span className="pr-5 text-[14px] font-medium tracking-[-0.01em]">{service}</span>
-
-                        <span className={`relative h-5 w-5 shrink-0 rounded-full border transition-all duration-300 ${active ? 'border-black bg-black' : 'border-black/25 group-hover:border-black/60'}`}>
-                          <span className={`absolute left-1/2 top-1/2 h-[5px] w-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white transition-opacity ${active ? 'opacity-100' : 'opacity-0'}`} />
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-8">
-                <SelectField label="Timeline" name="timeline" placeholder="Select timeline" options={timelines} />
-
-                <Field label="Location" name="location" placeholder="City / Country" />
-              </div>
-
-              <div className="group border-b border-black/15 py-9 transition-colors duration-300 focus-within:border-black">
-                <div className="mb-6 flex items-center justify-between">
-                  <label htmlFor="message" className="text-[10px] font-medium uppercase tracking-[0.15em] text-black/40">Project</label>
-                  <span className="text-[11px] text-black/30">A few lines is enough</span>
-                </div>
-
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={6}
-                  maxLength={2500}
-                  required
-                  placeholder="What are you working on?"
-                  className="w-full resize-none bg-transparent text-[20px] font-normal leading-[1.5] tracking-[-0.025em] text-black outline-none placeholder:text-black/18"
-                />
-              </div>
-
-              <div className="border-b border-black/15 py-7">
-                <input
-                  id="brief"
-                  name="brief"
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
-                  onChange={(event) => setFileName(event.target.files?.[0]?.name || '')}
-                />
-
-                <label htmlFor="brief" className="group flex cursor-pointer items-center justify-between">
-                  <div>
-                    <span className="mb-2 block text-[10px] font-medium uppercase tracking-[0.15em] text-black/40">Project brief</span>
-
-                    <span className={`block text-[14px] font-medium tracking-[-0.01em] ${fileName ? 'text-black' : 'text-black/35'}`}>
-                      {fileName || 'Attach a file — optional'}
-                    </span>
-                  </div>
-
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-black/20 text-[18px] font-light transition-all duration-300 group-hover:border-black group-hover:bg-black group-hover:text-white">+</span>
-                </label>
-              </div>
-
-              <div className="py-9">
-                <button
-                  type="submit"
-                  disabled={status === 'sending'}
-                  className="group relative flex min-h-[68px] w-full items-center justify-between overflow-hidden bg-[#111] px-6 text-white transition-colors duration-300 hover:bg-[#ccff00] hover:text-black disabled:pointer-events-none disabled:opacity-40"
-                >
-                  <span className="relative z-10 text-[14px] font-medium tracking-[-0.01em]">
-                    {status === 'sending' ? 'Sending inquiry' : 'Send inquiry'}
-                  </span>
-
-                  <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/25 text-[17px] transition-all duration-300 group-hover:translate-x-1 group-hover:border-black/30">
-                    ↗
-                  </span>
-                </button>
-
-                {status === 'success' && (
-                  <div className="mt-5 flex items-center gap-3 text-[13px] font-medium">
-                    <span className="h-2 w-2 rounded-full bg-[#ccff00]" />
-                    Your inquiry has been received.
-                  </div>
-                )}
-
-                {status === 'error' && (
-                  <p className="mt-5 text-[13px] font-medium">
-                    Something went wrong. Please try again.
-                  </p>
-                )}
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <div className="border-t border-black/15">
-          <a href="mailto:hello@brandworks.me" className="group grid min-h-[150px] grid-cols-[1fr_auto] items-end gap-10 py-7 sm:min-h-[175px] sm:py-9 lg:min-h-[200px]">
-            <span className="max-w-[1100px] text-[32px] font-normal leading-none tracking-[-0.04em] sm:text-[42px] lg:text-[52px]">
-              Prefer email?
-            </span>
-
-            <span className="mb-1 flex h-12 w-12 items-center justify-center rounded-full border border-black/20 text-[20px] transition-all duration-300 group-hover:rotate-45 group-hover:bg-[#ccff00] sm:h-14 sm:w-14">
-              ↗
-            </span>
-          </a>
-        </div>
-      </motion.section>
-    </main>
+    <div className="mb-4 flex items-baseline justify-between gap-4">
+      <label htmlFor={htmlFor} className="text-[11px] font-medium uppercase tracking-[0.14em] text-black/45">
+        {children}
+      </label>
+      {hint && <span className="text-[12px] text-black/35">{hint}</span>}
+    </div>
   )
 }
 
-type FieldProps = {
-  label: string
-  name: string
-  type?: string
-  placeholder?: string
-  autoComplete?: string
-  required?: boolean
+function ErrorText({ children }: { children?: string }) {
+  return (
+    <AnimatePresence>
+      {children && (
+        <motion.p
+          role="alert"
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          className="mt-3 text-[12px] text-[#c4302b]"
+        >
+          {children}
+        </motion.p>
+      )}
+    </AnimatePresence>
+  )
 }
 
-function Field({
+function Chip({ active, onClick, children, role = 'checkbox' }: { active: boolean; onClick: () => void; children: ReactNode; role?: 'checkbox' | 'radio' }) {
+  return (
+    <button
+      type="button"
+      role={role}
+      aria-checked={active}
+      onClick={onClick}
+      className={`group relative inline-flex min-h-[46px] items-center gap-3 overflow-hidden rounded-full border px-5 text-[14px] tracking-[-0.01em] transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+        active ? 'border-black text-black' : 'border-black/15 text-black/70 hover:border-black/50 hover:text-black'
+      }`}
+    >
+      <motion.span
+        aria-hidden="true"
+        className="absolute inset-0 origin-left bg-[#ccff00]"
+        initial={false}
+        animate={{ scaleX: active ? 1 : 0 }}
+        transition={{ duration: 0.45, ease: EASE }}
+      />
+      <span className="relative">{children}</span>
+      <span className="relative grid size-4 place-items-center">
+        <motion.svg viewBox="0 0 16 16" className="size-4" initial={false} animate={{ rotate: active ? 45 : 0 }} transition={{ duration: 0.35, ease: EASE }} aria-hidden="true">
+          <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.5" />
+        </motion.svg>
+      </span>
+    </button>
+  )
+}
+
+function TextField({
   label,
   name,
   type = 'text',
   placeholder,
   autoComplete,
-  required,
-}: FieldProps) {
+  value,
+  onChange,
+  error,
+  optional,
+}: {
+  label: string
+  name: string
+  type?: string
+  placeholder?: string
+  autoComplete?: string
+  value: string
+  onChange: (v: string) => void
+  error?: string
+  optional?: boolean
+}) {
   return (
-    <div className="group border-b border-black/15 py-7 transition-colors duration-300 focus-within:border-black">
-      <label htmlFor={name} className="mb-4 block text-[10px] font-medium uppercase tracking-[0.15em] text-black/40 transition-colors duration-300 group-focus-within:text-black">
-        {label}
-      </label>
-
+    <div className="group relative border-b border-black/15 pb-4 pt-7">
+      <Label htmlFor={name} hint={optional ? 'Optional' : undefined}>{label}</Label>
       <input
         id={name}
         name={name}
         type={type}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        required={required}
-        className="w-full bg-transparent text-[16px] font-normal tracking-[-0.015em] text-black outline-none placeholder:text-black/20"
+        value={value}
+        aria-invalid={Boolean(error)}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-transparent text-[18px] tracking-[-0.015em] text-black outline-none placeholder:text-black/25"
       />
+      {/* underline that draws in on focus */}
+      <span className="absolute inset-x-0 -bottom-px h-px origin-left scale-x-0 bg-black transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-focus-within:scale-x-100" />
+      <ErrorText>{error}</ErrorText>
     </div>
   )
 }
 
-type SelectFieldProps = {
-  label: string
+/* -------------------------------------------------------------------------- */
+/*  Page                                                                      */
+/* -------------------------------------------------------------------------- */
+
+type Form = {
+  services: string[]
+  budget: string
+  timeline: string
+  message: string
   name: string
-  placeholder: string
-  options: string[]
+  email: string
+  phone: string
+  company: string
+  website: string
+  location: string
 }
 
-function SelectField({
-  label,
-  name,
-  placeholder,
-  options,
-}: SelectFieldProps) {
+const EMPTY: Form = { services: [], budget: '', timeline: '', message: '', name: '', email: '', phone: '', company: '', website: '', location: '' }
+
+export default function ContactPage() {
+  const reduce = useReducedMotion()
+  const { time, awake } = useDelhiTime()
+
+  const [form, setForm] = useState<Form>(EMPTY)
+  const [file, setFile] = useState<File | null>(null)
+  const [fileError, setFileError] = useState('')
+  const [dragging, setDragging] = useState(false)
+  const [step, setStep] = useState(0)
+  const [direction, setDirection] = useState(1)
+  const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({})
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [copied, setCopied] = useState(false)
+  const [sentName, setSentName] = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const previous = document.title
+    document.title = 'Contact — BRANDWORKS'
+    return () => { document.title = previous }
+  }, [])
+
+  const set = <K extends keyof Form>(key: K, value: Form[K]) => {
+    setForm((f) => ({ ...f, [key]: value }))
+    setErrors((e) => ({ ...e, [key]: undefined }))
+  }
+
+  const toggleService = (s: string) =>
+    set('services', form.services.includes(s) ? form.services.filter((x) => x !== s) : [...form.services, s])
+
+  const validate = (index: number) => {
+    const next: Partial<Record<keyof Form, string>> = {}
+    if (index === 0 && form.services.length === 0) next.services = 'Pick at least one, even if you’re not sure yet.'
+    if (index === 1 && form.message.trim().length < 10) next.message = 'A sentence or two about the project helps us reply properly.'
+    if (index === 2) {
+      if (!form.name.trim()) next.name = 'What should we call you?'
+      if (!isEmail(form.email)) next.email = 'That email doesn’t look quite right.'
+    }
+    setErrors(next)
+    return Object.keys(next).length === 0
+  }
+
+  const goTo = (target: number) => {
+    if (target > step && !validate(step)) return
+    setDirection(target > step ? 1 : -1)
+    setStep(target)
+    topRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  }
+
+  const pickFile = (f: File | undefined | null) => {
+    setFileError('')
+    if (!f) return
+    if (f.size > MAX_FILE_MB * 1024 * 1024) {
+      setFileError(`That file is over ${MAX_FILE_MB} MB. Send a link in your message instead.`)
+      return
+    }
+    setFile(f)
+  }
+
+  const onDrop = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault()
+    setDragging(false)
+    pickFile(e.dataTransfer.files?.[0])
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (step < STEPS.length - 1) { goTo(step + 1); return }
+    if (!validate(2)) return
+
+    const data = new FormData()
+    data.set('services', form.services.join(', '))
+    ;(['budget', 'timeline', 'message', 'name', 'email', 'phone', 'company', 'website', 'location'] as const).forEach((k) => data.set(k, form[k]))
+    if (file) data.set('brief', file)
+    const honeypot = formRef.current?.querySelector<HTMLInputElement>('input[name="company_url"]')?.value
+    if (honeypot) data.set('company_url', honeypot)
+
+    try {
+      setStatus('sending')
+      const response = await fetch('/api/contact', { method: 'POST', body: data })
+      if (!response.ok) throw new Error()
+      setSentName(form.name.trim().split(' ')[0])
+      setStatus('success')
+    } catch {
+      setStatus('error')
+    }
+  }
+
+  const reset = () => {
+    setForm(EMPTY)
+    setFile(null)
+    setStep(0)
+    setStatus('idle')
+    setErrors({})
+  }
+
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(EMAIL)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      window.location.href = `mailto:${EMAIL}`
+    }
+  }
+
+  const mailtoFallback = useMemo(() => {
+    const body = [
+      `Services: ${form.services.join(', ') || '-'}`,
+      `Budget: ${form.budget || '-'}`,
+      `Timeline: ${form.timeline || '-'}`,
+      '',
+      form.message,
+      '',
+      `${form.name}${form.company ? `, ${form.company}` : ''}`,
+      form.phone,
+    ].join('\n')
+    return `mailto:${EMAIL}?subject=${encodeURIComponent('New project enquiry')}&body=${encodeURIComponent(body)}`
+  }, [form])
+
+  const slide = {
+    enter: (dir: number) => ({ opacity: 0, x: reduce ? 0 : dir * 48, filter: reduce ? 'none' : 'blur(6px)' }),
+    center: { opacity: 1, x: 0, filter: 'blur(0px)' },
+    exit: (dir: number) => ({ opacity: 0, x: reduce ? 0 : dir * -48, filter: reduce ? 'none' : 'blur(6px)' }),
+  }
+
+  const headline = 'Tell us what you’re building.'
+
   return (
-    <div className="group border-b border-black/15 py-7 transition-colors duration-300 focus-within:border-black">
-      <label htmlFor={name} className="mb-4 block text-[10px] font-medium uppercase tracking-[0.15em] text-black/40">
-        {label}
-      </label>
+    <main className="min-h-screen overflow-x-clip bg-white text-[#111] antialiased">
+      <section className="mx-auto w-full max-w-[1720px] px-5 pb-20 pt-28 sm:px-8 sm:pt-32 lg:px-12 lg:pb-28 lg:pt-40 xl:px-16">
+        <div className="grid grid-cols-1 gap-14 lg:grid-cols-12 lg:gap-0">
+          {/* ------------------------------------------------------------ */}
+          {/* Left: heading + direct contact                               */}
+          {/* ------------------------------------------------------------ */}
+          <aside className="lg:col-span-5 lg:pr-12 xl:pr-20">
+            <div className="lg:sticky lg:top-32">
+              <h1 className="max-w-[12ch] font-(--font-primary) text-[clamp(44px,5.6vw,92px)] font-normal leading-[0.92] tracking-[-0.045em]">
+                <span className="sr-only">{headline}</span>
+                <span aria-hidden="true">
+                  {headline.split(' ').map((word, i) => (
+                    <span key={i} className="mr-[0.22em] inline-block overflow-hidden pb-[0.06em] align-bottom">
+                      <motion.span
+                        className="inline-block"
+                        initial={reduce ? false : { y: '105%' }}
+                        animate={{ y: 0 }}
+                        transition={{ duration: 0.9, ease: EASE, delay: 0.1 + i * 0.07 }}
+                      >
+                        {word}
+                      </motion.span>
+                    </span>
+                  ))}
+                </span>
+              </h1>
 
-      <div className="relative">
-        <select
-          id={name}
-          name={name}
-          defaultValue=""
-          className="w-full cursor-pointer appearance-none bg-transparent pr-10 text-[16px] font-normal tracking-[-0.015em] text-black outline-none"
-        >
-          <option value="" disabled>
-            {placeholder}
-          </option>
+              <motion.p
+                initial={reduce ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: EASE, delay: 0.55 }}
+                className="mt-8 max-w-[38ch] text-[16px] leading-[1.65] text-black/60"
+              >
+                Three short steps. Tell us what you need, a little about the project, and how to reach you. A real person reads every enquiry.
+              </motion.p>
 
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+              <motion.div
+                initial={reduce ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: EASE, delay: 0.7 }}
+                className="mt-12 max-w-[420px] border-t border-black/15"
+              >
+                <div className="flex items-center justify-between gap-4 border-b border-black/15 py-5">
+                  <div className="min-w-0">
+                    <span className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.14em] text-black/40">New business</span>
+                    <a href={`mailto:${EMAIL}`} className="text-[16px] tracking-[-0.01em] underline decoration-black/20 underline-offset-4 transition-colors hover:decoration-black">
+                      {EMAIL}
+                    </a>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyEmail}
+                    className="relative h-9 shrink-0 overflow-hidden rounded-full border border-black/15 px-4 text-[12px] transition-colors hover:border-black"
+                    aria-live="polite"
+                  >
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.span
+                        key={copied ? 'copied' : 'copy'}
+                        className="block"
+                        initial={{ y: 14, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -14, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: EASE }}
+                      >
+                        {copied ? 'Copied' : 'Copy'}
+                      </motion.span>
+                    </AnimatePresence>
+                  </button>
+                </div>
+                <div className="border-b border-black/15 py-5">
+                  <span className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.14em] text-black/40">Where we are</span>
+                  <span className="text-[16px] tracking-[-0.01em]">India, working with clients worldwide</span>
+                </div>
+                <div className="py-5">
+                  <span className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.14em] text-black/40">Our time</span>
+                  <span className="text-[16px] tracking-[-0.01em]">
+                    It’s {time} in India.{' '}
+                    <span className="text-black/50">{awake ? 'We’re around.' : 'We’re probably offline, but we’ll see it in the morning.'}</span>
+                  </span>
+                </div>
+              </motion.div>
+            </div>
+          </aside>
 
-        <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-[14px] text-black/35">↓</span>
-      </div>
-    </div>
+          {/* ------------------------------------------------------------ */}
+          {/* Right: the form                                              */}
+          {/* ------------------------------------------------------------ */}
+          <div ref={topRef} className="scroll-mt-28 lg:col-span-7 lg:border-l lg:border-black/15 lg:pl-12 xl:pl-20">
+            <AnimatePresence mode="wait" initial={false}>
+              {status === 'success' ? (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.7, ease: EASE }}
+                  className="flex min-h-[560px] flex-col justify-between"
+                  role="status"
+                >
+                  <div>
+                    <motion.div
+                      className="mb-10 grid size-16 place-items-center rounded-full bg-[#ccff00]"
+                      initial={reduce ? false : { scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 260, damping: 18, delay: 0.15 }}
+                    >
+                      <svg viewBox="0 0 24 24" className="size-7" fill="none" aria-hidden="true">
+                        <motion.path
+                          d="M5 12.5 10 17 19 7"
+                          stroke="#111"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          initial={reduce ? false : { pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 0.6, ease: EASE, delay: 0.45 }}
+                        />
+                      </svg>
+                    </motion.div>
+                    <h2 className="font-(--font-primary) text-[clamp(40px,5vw,76px)] font-normal leading-[0.95] tracking-[-0.04em]">
+                      Thanks{sentName ? `, ${sentName}` : ''}. We’ve got it.
+                    </h2>
+                    <p className="mt-6 max-w-[46ch] text-[16px] leading-[1.65] text-black/60">
+                      We’ll read your note, look at your website if you shared one, and reply to {form.email || 'your email'}. If it’s urgent, email us directly and mention your enquiry.
+                    </p>
+                    <dl className="mt-10 max-w-[520px] border-t border-black/15 text-[14px]">
+                      {[
+                        ['Services', form.services.join(', ')],
+                        ['Budget', form.budget],
+                        ['Timeline', form.timeline],
+                        ['Attachment', file?.name],
+                      ]
+                        .filter(([, v]) => v)
+                        .map(([k, v]) => (
+                          <div key={k} className="grid grid-cols-[120px_1fr] gap-4 border-b border-black/10 py-3">
+                            <dt className="text-black/45">{k}</dt>
+                            <dd className="m-0">{v}</dd>
+                          </div>
+                        ))}
+                    </dl>
+                  </div>
+                  <button type="button" onClick={reset} className="mt-12 self-start border-b border-black/40 pb-1 text-[13px] transition-colors hover:border-black">
+                    Send another enquiry
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.form
+                  key="form"
+                  ref={formRef}
+                  onSubmit={handleSubmit}
+                  noValidate
+                  exit={{ opacity: 0, y: -16 }}
+                  transition={{ duration: 0.4, ease: EASE }}
+                  className="w-full"
+                >
+                  {/* progress */}
+                  <nav aria-label="Enquiry steps" className="mb-10">
+                    <ol className="m-0 grid list-none grid-cols-3 gap-3 p-0">
+                      {STEPS.map((label, i) => (
+                        <li key={label}>
+                          <button
+                            type="button"
+                            onClick={() => (i < step ? goTo(i) : undefined)}
+                            disabled={i > step}
+                            aria-current={i === step ? 'step' : undefined}
+                            className="group block w-full text-left disabled:cursor-default"
+                          >
+                            <span className="block h-[2px] w-full overflow-hidden bg-black/10">
+                              <motion.span
+                                className="block h-full origin-left bg-black"
+                                initial={false}
+                                animate={{ scaleX: i <= step ? 1 : 0 }}
+                                transition={{ duration: 0.6, ease: EASE }}
+                              />
+                            </span>
+                            <span className={`mt-3 block text-[12px] transition-colors ${i === step ? 'text-black' : i < step ? 'text-black/55 group-hover:text-black' : 'text-black/30'}`}>
+                              {label}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                  </nav>
+
+                  {/* honeypot (hidden from people, tempting for bots) */}
+                  <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                    <label>
+                      Leave this empty
+                      <input type="text" name="company_url" tabIndex={-1} autoComplete="off" />
+                    </label>
+                  </div>
+
+                  <div className="relative min-h-[520px]">
+                    <AnimatePresence mode="wait" custom={direction} initial={false}>
+                      <motion.div
+                        key={step}
+                        custom={direction}
+                        variants={slide}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ duration: 0.45, ease: EASE }}
+                      >
+                        {step === 0 && (
+                          <fieldset className="m-0 border-0 p-0">
+                            <legend className="mb-3 font-(--font-primary) text-[clamp(28px,3vw,44px)] leading-[1] tracking-[-0.03em]">What can we help with?</legend>
+                            <p className="mb-8 text-[14px] text-black/50">Choose one or more. You can change this later.</p>
+                            <div className="flex flex-wrap gap-2.5" role="group" aria-label="Services">
+                              {services.map((s) => (
+                                <Chip key={s} active={form.services.includes(s)} onClick={() => toggleService(s)}>{s}</Chip>
+                              ))}
+                            </div>
+                            <ErrorText>{errors.services}</ErrorText>
+                          </fieldset>
+                        )}
+
+                        {step === 1 && (
+                          <div>
+                            <h2 className="mb-8 font-(--font-primary) text-[clamp(28px,3vw,44px)] font-normal leading-[1] tracking-[-0.03em]">Tell us about the project</h2>
+
+                            <div className="border-b border-black/15 pb-7">
+                              <Label htmlFor="message">What are you working on?</Label>
+                              <textarea
+                                id="message"
+                                name="message"
+                                rows={5}
+                                maxLength={2500}
+                                value={form.message}
+                                aria-invalid={Boolean(errors.message)}
+                                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => set('message', e.target.value)}
+                                placeholder="The goal, what exists already, and anything you’ve tried."
+                                className="w-full resize-none bg-transparent text-[20px] leading-[1.5] tracking-[-0.02em] text-black outline-none placeholder:text-black/25"
+                              />
+                              <ErrorText>{errors.message}</ErrorText>
+                            </div>
+
+                            <div className="border-b border-black/15 py-7">
+                              <Label hint="Optional">Budget</Label>
+                              <div className="flex flex-wrap gap-2.5" role="radiogroup" aria-label="Budget">
+                                {budgets.map((b) => (
+                                  <Chip key={b} role="radio" active={form.budget === b} onClick={() => set('budget', form.budget === b ? '' : b)}>{b}</Chip>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="border-b border-black/15 py-7">
+                              <Label hint="Optional">Timeline</Label>
+                              <div className="flex flex-wrap gap-2.5" role="radiogroup" aria-label="Timeline">
+                                {timelines.map((t) => (
+                                  <Chip key={t} role="radio" active={form.timeline === t} onClick={() => set('timeline', form.timeline === t ? '' : t)}>{t}</Chip>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="py-7">
+                              <Label hint={`Optional · up to ${MAX_FILE_MB} MB`}>Brief or reference</Label>
+                              <input
+                                ref={fileRef}
+                                id="brief"
+                                type="file"
+                                className="sr-only"
+                                accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png"
+                                onChange={(e) => pickFile(e.target.files?.[0])}
+                              />
+                              {file ? (
+                                <div className="flex items-center justify-between gap-4 border border-black/15 px-5 py-4">
+                                  <span className="min-w-0 truncate text-[14px]">{file.name}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => { setFile(null); if (fileRef.current) fileRef.current.value = '' }}
+                                    className="shrink-0 text-[12px] text-black/50 underline underline-offset-4 hover:text-black"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              ) : (
+                                <label
+                                  htmlFor="brief"
+                                  onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+                                  onDragLeave={() => setDragging(false)}
+                                  onDrop={onDrop}
+                                  className={`flex cursor-pointer items-center justify-between gap-4 border border-dashed px-5 py-6 transition-colors duration-300 ${dragging ? 'border-black bg-[#ccff00]/40' : 'border-black/20 hover:border-black/60'}`}
+                                >
+                                  <span className="text-[14px] text-black/55">
+                                    {dragging ? 'Drop it here' : 'Drag a file here, or click to choose one'}
+                                  </span>
+                                  <span className="grid size-9 shrink-0 place-items-center rounded-full border border-black/20 text-[18px] font-light">+</span>
+                                </label>
+                              )}
+                              <ErrorText>{fileError}</ErrorText>
+                            </div>
+                          </div>
+                        )}
+
+                        {step === 2 && (
+                          <div>
+                            <h2 className="mb-2 font-(--font-primary) text-[clamp(28px,3vw,44px)] font-normal leading-[1] tracking-[-0.03em]">How do we reach you?</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-8">
+                              <TextField label="Name" name="name" placeholder="Your name" autoComplete="name" value={form.name} onChange={(v) => set('name', v)} error={errors.name} />
+                              <TextField label="Work email" name="email" type="email" placeholder="you@company.com" autoComplete="email" value={form.email} onChange={(v) => set('email', v)} error={errors.email} />
+                              <TextField label="Phone" name="phone" type="tel" placeholder="+91 98765 43210" autoComplete="tel" value={form.phone} onChange={(v) => set('phone', v)} optional />
+                              <TextField label="Company" name="company" placeholder="Company or brand" autoComplete="organization" value={form.company} onChange={(v) => set('company', v)} optional />
+                              <TextField label="Website" name="website" type="url" placeholder="yourcompany.com" autoComplete="url" value={form.website} onChange={(v) => set('website', v)} optional />
+                              <TextField label="Location" name="location" placeholder="City, country" autoComplete="address-level2" value={form.location} onChange={(v) => set('location', v)} optional />
+                            </div>
+                            <p className="mt-6 text-[12px] leading-[1.6] text-black/45">
+                              We only use these details to reply to your enquiry.
+                            </p>
+                          </div>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+
+                  {/* footer actions */}
+                  <div className="mt-10 flex items-center justify-between gap-4 border-t border-black/15 pt-8">
+                    <button
+                      type="button"
+                      onClick={() => goTo(step - 1)}
+                      className={`text-[13px] text-black/55 transition-opacity hover:text-black ${step === 0 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
+                      tabIndex={step === 0 ? -1 : 0}
+                    >
+                      ← Back
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={status === 'sending'}
+                      className="group relative inline-flex min-h-[60px] items-center gap-6 overflow-hidden rounded-full bg-[#111] pl-7 pr-2 text-white transition-colors duration-300 disabled:opacity-50"
+                    >
+                      <span className="absolute inset-0 origin-bottom scale-y-0 bg-[#ccff00] transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:scale-y-100" aria-hidden="true" />
+                      <span className="relative text-[14px] font-medium tracking-[-0.01em] transition-colors duration-300 group-hover:text-black">
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.span
+                            key={`${step}-${status}`}
+                            className="block"
+                            initial={{ y: 12, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -12, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: EASE }}
+                          >
+                            {status === 'sending' ? 'Sending…' : step < STEPS.length - 1 ? 'Continue' : 'Send enquiry'}
+                          </motion.span>
+                        </AnimatePresence>
+                      </span>
+                      <span className="relative grid size-11 place-items-center rounded-full bg-white text-black transition-transform duration-500 group-hover:rotate-45">
+                        <svg viewBox="0 0 24 24" className="size-4" fill="none" aria-hidden="true">
+                          <path d="M6 18 18 6M9 6h9v9" stroke="currentColor" strokeWidth="1.8" />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {status === 'error' && (
+                      <motion.p
+                        role="alert"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="mt-6 text-[14px] leading-[1.6]"
+                      >
+                        That didn’t go through, sorry. Try again, or{' '}
+                        <a href={mailtoFallback} className="underline underline-offset-4">send it by email instead</a>
+                        {' '}(we’ve filled it in for you).
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </section>
+
+      {/* Prefer email? */}
+      <section className="mx-auto w-full max-w-[1720px] px-5 sm:px-8 lg:px-12 xl:px-16">
+        <a href={`mailto:${EMAIL}`} className="group grid min-h-[200px] grid-cols-[1fr_auto] items-end gap-10 border-t border-black/15 py-9 lg:min-h-[260px]">
+          <span className="font-(--font-primary) text-[clamp(40px,6vw,104px)] font-normal leading-[0.9] tracking-[-0.045em]">
+            <span className="grid overflow-hidden">
+              <span className="col-start-1 row-start-1 block transition-transform duration-[650ms] ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-full">Prefer email?</span>
+              <span className="col-start-1 row-start-1 block translate-y-full self-end text-[0.62em] transition-transform duration-[650ms] ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:translate-y-0">{EMAIL}</span>
+            </span>
+          </span>
+          <span className="mb-1 grid size-14 place-items-center rounded-full border border-black/20 transition-all duration-500 group-hover:rotate-45 group-hover:border-[#ccff00] group-hover:bg-[#ccff00] sm:size-16">
+            <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
+              <path d="M6 18 18 6M9 6h9v9" stroke="currentColor" strokeWidth="1.8" />
+            </svg>
+          </span>
+        </a>
+      </section>
+    </main>
   )
 }

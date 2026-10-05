@@ -138,7 +138,7 @@ function App() {
         <Route path="/services/videography" element={<CinematographyPage />} />
         <Route path="/services/technology" element={<TechnologyPage />} />
         <Route path="/services/photography" element={<PhotographyPage />} />
-        <Route path="/services/PRFounderReputationPage" element={<PRFounderReputationPage />} />
+        <Route path="/services/pr-founder-reputation" element={<PRFounderReputationPage />} />
 
         <Route path="/services/graphic-design" element={<GraphicDesignPage />} />
         <Route path="/services/seo" element={<SeoPage />} />

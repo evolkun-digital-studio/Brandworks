@@ -1242,7 +1242,6 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         </div>
       </div>
 
-      {/* ================= MOBILE / REDUCED MOTION (static, stacked) ================= */}
       <div className="lg:hidden lg:motion-reduce:block">
         <div className="relative min-h-[100svh] overflow-hidden bg-[#fbf5f2] px-5 pb-14 pt-24">
           <div className="pointer-events-none absolute inset-x-0 top-8 flex justify-center">

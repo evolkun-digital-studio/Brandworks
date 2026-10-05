@@ -1,1753 +1,1004 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 /* -------------------------------------------------------------------------- */
-/*                                  DATA                                      */
+/*  Content                                                                   */
+/*  Every figure on this page comes from a source listed in SOURCES below.    */
 /* -------------------------------------------------------------------------- */
 
-function makeSeries(
-  length: number,
-  base: number,
-  drift: number,
-  noise: number,
-  seed: number,
-) {
-  let s = seed
+const SOURCES = {
+  ahrefs: {
+    label: 'Ahrefs, “96.55% of Content Gets No Traffic From Google” (2023)',
+    url: 'https://ahrefs.com/blog/search-traffic-study/',
+  },
+  pew: {
+    label: 'Pew Research Center, “Google users are less likely to click on links when an AI summary appears in the results” (July 2025)',
+    url: 'https://www.pewresearch.org/short-reads/2025/07/22/google-users-are-less-likely-to-click-on-links-when-an-ai-summary-appears-in-the-results/',
+  },
+  geo: {
+    label: 'Aggarwal et al., “GEO: Generative Engine Optimization”, KDD 2024',
+    url: 'https://arxiv.org/abs/2311.09735',
+  },
+  googleAi: {
+    label: 'Google Search Central, “AI features and your website”',
+    url: 'https://developers.google.com/search/docs/appearance/ai-features',
+  },
+  googleHire: {
+    label: 'Google Search Central, “Do you need an SEO?”',
+    url: 'https://developers.google.com/search/docs/fundamentals/do-i-need-seo',
+  },
+  googleHelpful: {
+    label: 'Google Search Central, “Creating helpful, reliable, people-first content”',
+    url: 'https://developers.google.com/search/docs/fundamentals/creating-helpful-content',
+  },
+  googleLocal: {
+    label: 'Google Business Profile Help, “Tips to improve your local ranking on Google”',
+    url: 'https://support.google.com/business/answer/7091',
+  },
+  vitals: {
+    label: 'web.dev, “Web Vitals”',
+    url: 'https://web.dev/articles/vitals',
+  },
+} as const
 
-  const rand = () => {
-    s = (s + 0x6d2b79f5) | 0
-    let t = Math.imul(s ^ (s >>> 15), 1 | s)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-
-  return Array.from({ length }, (_, index) => {
-    const progress = index / Math.max(length - 1, 1)
-
-    const seasonal =
-      Math.sin(progress * Math.PI * 3.5) * noise * 0.22
-
-    return (
-      Math.round(
-        (base +
-          drift * progress +
-          seasonal +
-          (rand() - 0.5) * noise) *
-          10,
-      ) / 10
-    )
-  })
-}
-
-const SEARCH_DEMAND = makeSeries(34, 118, 52, 22, 8)
-
-const ORGANIC_VISIBILITY = makeSeries(30, 19, 31, 7, 14)
-
-const PREVIOUS_VISIBILITY = makeSeries(30, 19, 6, 5, 22)
-
-const SEARCH_INTENT = [
+const SERVICES = [
   {
-    short: 'I',
-    label: 'Informational',
-    value: 46,
+    id: 'audit',
+    title: 'SEO audit',
+    body: 'A full crawl of your site, read alongside your Search Console and analytics data. We look at indexing, duplicate and thin pages, redirects, internal links, page speed and how your pages appear in results.',
+    outcome: 'You get a prioritised list of fixes with the reasoning behind each one, written so your developer can act on it without needing a call.',
   },
   {
-    short: 'C',
-    label: 'Commercial',
-    value: 31,
-  },
-  {
-    short: 'T',
-    label: 'Transactional',
-    value: 17,
-  },
-  {
-    short: 'N',
-    label: 'Navigational',
-    value: 6,
-  },
-] as const
-
-const CAPABILITIES = [
-  {
-    number: '01',
-    title: 'Search strategy',
-    description:
-      'Demand, competitors, search intent and realistic opportunities.',
-  },
-  {
-    number: '02',
+    id: 'technical',
     title: 'Technical SEO',
-    description:
-      'Crawling, indexing, structure, performance and schema.',
+    body: 'Crawlability, indexing, site structure, canonical tags, XML sitemaps, structured data and Core Web Vitals, which are Google’s measures of loading speed, responsiveness and visual stability.',
+    outcome: 'Redesigning or changing platforms? We map every redirect before launch so the rankings you already have carry over to the new site.',
   },
   {
-    number: '03',
-    title: 'Content systems',
-    description:
-      'Pages built around topics people actually need.',
+    id: 'research',
+    title: 'Keyword and search intent research',
+    body: 'We find the searches that match what you sell, then sort them by what the person actually wants: to learn something, compare options, buy, or find a particular business.',
+    outcome: 'That tells us which pages you need, and which existing pages should be merged, rewritten or left alone.',
   },
   {
-    number: '04',
-    title: 'AEO',
-    description:
-      'Clear information structured for answer engines.',
+    id: 'content',
+    title: 'On-page SEO and content',
+    body: 'Titles, headings, internal links and copy for your service and product pages, plus articles that answer the questions customers ask before they buy.',
+    outcome: 'Where we can, we write from interviews with your team. First-hand experience is what Google’s helpful content guidance asks for, and it’s the thing generic copy can’t fake.',
+    source: 'googleHelpful' as const,
   },
   {
-    number: '05',
-    title: 'GEO',
-    description:
-      'Improving how AI systems interpret and reference the business.',
+    id: 'local',
+    title: 'Local SEO',
+    body: 'For businesses that serve a city or region: Google Business Profile setup and upkeep, consistent name, address and phone details across directories, and location pages that say something specific about each place.',
+    outcome: 'We also set up a simple routine for asking happy customers for reviews. Google itself says more reviews and positive ratings can help a business’s local ranking.',
+    source: 'googleLocal' as const,
   },
   {
-    number: '06',
-    title: 'Measurement',
-    description:
-      'Search visibility connected to useful business outcomes.',
-  },
-]
-
-const TECHNICAL_CHECKS = [
-  {
-    label: 'Indexable pages',
-    value: '141 / 147',
-    status: 'Healthy',
-    tone: 'bg-emerald-500',
+    id: 'links',
+    title: 'Link earning and digital PR',
+    body: 'Links from other reputable websites are still one of the strongest signals in search. We earn them with useful resources, expert commentary and the press work our PR team already does.',
+    outcome: 'We don’t buy links or use networks. Shortcuts like that can get a domain penalised, and the damage takes far longer to undo than it took to cause.',
   },
   {
-    label: 'Core Web Vitals',
-    value: 'Passing',
-    status: 'Healthy',
-    tone: 'bg-emerald-500',
+    id: 'ai',
+    title: 'AI search visibility',
+    body: 'Making sure Google’s AI Overviews, ChatGPT search and similar tools can read your site and cite it accurately: key facts in text rather than images, consistent business details across the web, and content that names its sources.',
+    outcome: 'Google says no special markup is needed for its AI features, so we treat this as SEO done thoroughly rather than a separate product with a separate fee.',
+    source: 'googleAi' as const,
   },
   {
-    label: 'Structured data',
-    value: '92%',
-    status: 'Healthy',
-    tone: 'bg-emerald-500',
-  },
-  {
-    label: 'Internal links',
-    value: '6 orphaned',
-    status: 'Review',
-    tone: 'bg-orange-400',
-  },
-  {
-    label: 'Duplicate pages',
-    value: '3',
-    status: 'Review',
-    tone: 'bg-orange-400',
+    id: 'reporting',
+    title: 'Reporting',
+    body: 'A monthly report in plain language covering what we did, what moved, what didn’t, and what comes next. We track rankings, but we lead with clicks, enquiries and sales from organic search.',
+    outcome: 'Your Search Console, analytics and Business Profile stay in your name. If we ever part ways, you keep everything.',
   },
 ]
 
-const PAGE_ARCHITECTURE = [
-  {
-    type: 'Core',
-    title: 'SEO Services',
-    intent: 'Commercial',
-    position: '01',
-  },
-  {
-    type: 'Service',
-    title: 'Technical SEO',
-    intent: 'Commercial',
-    position: '02',
-  },
-  {
-    type: 'Service',
-    title: 'Content SEO',
-    intent: 'Commercial',
-    position: '03',
-  },
-  {
-    type: 'Guide',
-    title: 'SEO Audit Guide',
-    intent: 'Informational',
-    position: '04',
-  },
-  {
-    type: 'Guide',
-    title: 'Search Intent',
-    intent: 'Informational',
-    position: '05',
-  },
+const VITALS = [
+  { metric: 'Largest Contentful Paint', short: 'LCP', measures: 'How quickly the main content loads', target: '2.5 seconds or less' },
+  { metric: 'Interaction to Next Paint', short: 'INP', measures: 'How quickly the page responds to a tap or click', target: '200 milliseconds or less' },
+  { metric: 'Cumulative Layout Shift', short: 'CLS', measures: 'How much the layout jumps while loading', target: '0.1 or less' },
 ]
 
-const AI_SURFACES = [
+const PHASES = [
   {
-    name: 'Google AI',
-    role: 'AI discovery',
-    coverage: 84,
+    when: 'First four weeks',
+    title: 'Audit and plan',
+    body: 'We set up access, run the audit and do the research. By the end you have the audit, a map of which searches each page should target, and a plan for the next three months with the reasoning behind each priority.',
   },
   {
-    name: 'ChatGPT Search',
-    role: 'Answer discovery',
-    coverage: 72,
+    when: 'Months two and three',
+    title: 'Fix, then build',
+    body: 'Technical fixes go in first, because content can’t perform on pages Google struggles to crawl or index. Then priority pages are rewritten or created, and internal links are rebuilt around them.',
   },
   {
-    name: 'Perplexity',
-    role: 'Citation discovery',
-    coverage: 67,
-  },
-  {
-    name: 'Bing / Copilot',
-    role: 'Search + AI',
-    coverage: 61,
-  },
-]
-
-const PROCESS = [
-  {
-    number: '01',
-    title: 'Understand demand',
-    description:
-      'We identify what people search for, how they phrase it and where commercial opportunity exists.',
-  },
-  {
-    number: '02',
-    title: 'Fix the foundation',
-    description:
-      'Technical problems that limit crawling, indexing or performance are handled before scaling content.',
-  },
-  {
-    number: '03',
-    title: 'Build the structure',
-    description:
-      'Pages, internal links and information architecture are organised around real search behaviour.',
-  },
-  {
-    number: '04',
-    title: 'Improve continuously',
-    description:
-      'Search data tells us what is gaining visibility, what is being missed and what should happen next.',
+    when: 'Month four onwards',
+    title: 'Grow what works',
+    body: 'Content, links and local work continue, steered by what Search Console shows. We review the plan with you every quarter and drop anything that isn’t earning its place.',
   },
 ]
 
 const FAQS = [
   {
-    question: 'How long does SEO take?',
-    answer:
-      'SEO compounds over time. Technical changes can have an effect relatively quickly, while stronger organic visibility usually develops over several months depending on the website, competition and starting position.',
+    q: 'How long does SEO take to work?',
+    a: 'Technical fixes can show up within weeks, especially if pages weren’t being indexed. Rankings for competitive searches usually take several months, depending on where your site starts and who you’re competing with. We’ll give you a realistic view after the audit rather than a number up front.',
   },
   {
-    question: 'Do you guarantee first-page rankings?',
-    answer:
-      'No. Search results are controlled by search engines and change constantly. We focus on building the technical, content and authority signals that give the website a stronger ability to compete.',
+    q: 'Can you guarantee first-page rankings?',
+    a: 'No, and you should be wary of anyone who does. Google’s own advice is that no one can guarantee a top ranking. What we commit to is the work: what we’ll do each month, why, and how we’ll measure it.',
   },
   {
-    question: 'What are AEO and GEO?',
-    answer:
-      'AEO focuses on making information easier for answer engines to understand and use. GEO extends that thinking toward generative AI systems and the sources they use when producing answers.',
+    q: 'How much do your SEO services cost?',
+    a: 'It depends on the size of the site and how competitive your market is. We quote after a short review of your site, so the price reflects the work your site actually needs rather than a fixed package.',
   },
   {
-    question: 'Do you work with an existing website?',
-    answer:
-      'Yes. Most SEO work can be carried out on an existing website. If technical or structural limitations are restricting performance, we identify them during the audit.',
+    q: 'Do we need a new website first?',
+    a: 'Usually not. Most SEO work happens on the site you already have. If your platform is genuinely holding you back, the audit will say so, and our web team can rebuild it with SEO built in from the start.',
+  },
+  {
+    q: 'Will you write the content?',
+    a: 'Yes. We plan it, write it and optimise it, usually after a short interview with someone on your team who knows the subject. Nothing is published until you’ve approved it.',
+  },
+  {
+    q: 'Do we need to do anything special for ChatGPT or AI Overviews?',
+    a: 'Less than you might have heard. Google states there are no extra requirements for its AI features beyond being indexed and eligible to show a snippet. The things that help are the same things that help SEO: clear facts in text, accurate business information everywhere it appears, and content that cites its sources.',
+  },
+  {
+    q: 'Who owns the accounts and the work?',
+    a: 'You do. Search Console, analytics, your Business Profile and all content stay in your accounts. We work through access you grant and can remove at any time.',
   },
 ]
 
 /* -------------------------------------------------------------------------- */
-/*                               MOTION SYSTEM                                */
+/*  Small utilities                                                           */
 /* -------------------------------------------------------------------------- */
 
-const RevealContext = createContext(true)
-
-const reducedMotion = () =>
-  typeof window !== 'undefined' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-function useInView<T extends Element>(threshold = 0.12) {
+function useInView<T extends Element>(options: IntersectionObserverInit = { threshold: 0.15, rootMargin: '0px 0px -8% 0px' }) {
   const ref = useRef<T>(null)
-  const [visible, setVisible] = useState(false)
-
+  const [seen, setSeen] = useState(false)
   useEffect(() => {
-    const element = ref.current
-
-    if (!element) return
-
-    if (
-      typeof IntersectionObserver === 'undefined' ||
-      reducedMotion()
-    ) {
-      const frame = requestAnimationFrame(() => setVisible(true))
-      return () => cancelAnimationFrame(frame)
+    const el = ref.current
+    if (!el) return
+    if (typeof IntersectionObserver === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setSeen(true)
+      return
     }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-
-        setVisible(true)
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setSeen(true)
         observer.disconnect()
-      },
-      {
-        threshold,
-        rootMargin: '0px 0px -8% 0px',
-      },
-    )
-
-    observer.observe(element)
-
+      }
+    }, options)
+    observer.observe(el)
     return () => observer.disconnect()
-  }, [threshold])
-
-  return [ref, visible] as const
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return [ref, seen] as const
 }
 
-function RevealGroup({
-  children,
-  className = '',
-  threshold = 0.12,
-}: {
-  children: ReactNode
-  className?: string
-  threshold?: number
-}) {
-  const [ref, visible] = useInView<HTMLDivElement>(threshold)
-
+function FadeIn({ children, className = '', delay = 0, as: Tag = 'div' }: { children: ReactNode; className?: string; delay?: number; as?: 'div' | 'li' | 'section' | 'article' }) {
+  const [ref, seen] = useInView<HTMLDivElement>()
   return (
-    <RevealContext.Provider value={visible}>
-      <div ref={ref} className={className}>
-        {children}
-      </div>
-    </RevealContext.Provider>
-  )
-}
-
-function Reveal({
-  children,
-  className = '',
-  delay = 0,
-  distance = 18,
-}: {
-  children: ReactNode
-  className?: string
-  delay?: number
-  distance?: number
-}) {
-  const visible = useContext(RevealContext)
-
-  return (
-    <div
-      className={`
-        transition-[opacity,translate]
-        duration-[850ms]
-        ease-[cubic-bezier(0.22,1,0.36,1)]
-        motion-reduce:transition-none
-        ${visible ? 'opacity-100' : 'opacity-0'}
-        ${className}
-      `}
-      style={{
-        translate:
-          visible || distance === 0
-            ? 'none'
-            : `0 ${distance}px`,
-        transitionDelay: `${delay}ms`,
-      }}
+    <Tag
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ref={ref as any}
+      className={`transition-[opacity,translate] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${seen ? 'opacity-100' : 'opacity-0'} ${className}`}
+      style={{ translate: seen ? 'none' : '0 16px', transitionDelay: `${delay}ms` }}
     >
       {children}
-    </div>
+    </Tag>
   )
 }
 
-function Wipe({
-  children,
-  className = '',
-  delay = 0,
-  duration = 1300,
-}: {
-  children: ReactNode
-  className?: string
-  delay?: number
-  duration?: number
-}) {
-  const visible = useContext(RevealContext)
-
+function SourceLink({ id, children }: { id: keyof typeof SOURCES; children: ReactNode }) {
   return (
-    <div
-      className={`
-        transition-[clip-path]
-        motion-reduce:transition-none
-        ${className}
-      `}
-      style={{
-        clipPath: visible
-          ? 'inset(-2px)'
-          : 'inset(-2px 100% -2px -2px)',
-        transitionDelay: `${delay}ms`,
-        transitionDuration: `${duration}ms`,
-        transitionTimingFunction:
-          'cubic-bezier(0.65, 0, 0.35, 1)',
-      }}
+    <a
+      href={SOURCES[id].url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="underline decoration-neutral-300 underline-offset-[3px] transition-colors hover:decoration-neutral-950"
     >
       {children}
-    </div>
+    </a>
   )
 }
 
-function AnimatedBar({
-  width,
-  delay = 0,
-  className = 'bg-neutral-950',
-}: {
-  width: number
-  delay?: number
-  className?: string
-}) {
-  const visible = useContext(RevealContext)
-
-  return (
-    <div
-      className={`
-        h-full
-        transition-[width]
-        duration-[1300ms]
-        motion-reduce:transition-none
-        ${className}
-      `}
-      style={{
-        width: visible ? `${width}%` : '0%',
-        transitionDelay: `${delay}ms`,
-        transitionTimingFunction:
-          'cubic-bezier(0.65, 0, 0.35, 1)',
-      }}
-    />
-  )
-}
+const shell = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12'
+const h2 = 'site-heading text-balance text-[clamp(2rem,4.2vw,3.4rem)] font-normal leading-[1.02] tracking-[-0.035em]'
 
 /* -------------------------------------------------------------------------- */
-/*                                CHART                                       */
+/*  Sections                                                                  */
 /* -------------------------------------------------------------------------- */
 
-function makeLine(
-  values: readonly number[],
-  min: number,
-  max: number,
-) {
-  return values
-    .map((value, index) => {
-      const x =
-        (index / Math.max(values.length - 1, 1)) * 100
-
-      const y =
-        100 - ((value - min) / Math.max(max - min, 1)) * 100
-
-      return `${index === 0 ? 'M' : 'L'}${x.toFixed(
-        2,
-      )} ${y.toFixed(2)}`
-    })
-    .join(' ')
-}
-
-function LineChart({
-  data,
-  comparison,
-  min,
-  max,
-  labels,
-}: {
-  data: readonly number[]
-  comparison?: readonly number[]
-  min: number
-  max: number
-  labels: readonly string[]
-}) {
-  const path = makeLine(data, min, max)
-
-  const comparisonPath = comparison
-    ? makeLine(comparison, min, max)
-    : null
-
-  return (
-    <div>
-      <div className="relative h-[150px] sm:h-[180px]">
-        <div className="absolute inset-0 flex flex-col justify-between">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <span
-              key={index}
-              className="block border-t border-neutral-100"
-            />
-          ))}
-        </div>
-
-        <Wipe
-          delay={250}
-          className="absolute inset-0 text-blue-600"
-        >
-          <svg
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            className="absolute inset-0 h-full w-full overflow-visible"
-            aria-hidden="true"
-          >
-            {comparisonPath && (
-              <path
-                d={comparisonPath}
-                fill="none"
-                strokeWidth="1"
-                strokeDasharray="3 3"
-                vectorEffect="non-scaling-stroke"
-                className="stroke-neutral-400"
-              />
-            )}
-
-            <path
-              d={`${path} L100 100 L0 100 Z`}
-              fill="currentColor"
-              fillOpacity="0.06"
-            />
-
-            <path
-              d={path}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinejoin="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-        </Wipe>
-      </div>
-
-      <div className="mt-3 flex justify-between text-[10px] text-neutral-400 sm:text-[11px]">
-        {labels.map((label) => (
-          <span key={label}>{label}</span>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 /* -------------------------------------------------------------------------- */
-/*                             FIGURE PRIMITIVES                              */
+/*  Lime highlighter — sweeps across one phrase per heading                   */
 /* -------------------------------------------------------------------------- */
 
-function Figure({
-  children,
-  caption,
-}: {
-  children: ReactNode
-  caption?: string
-}) {
-  return (
-    <Reveal className="w-full">
-      <figure className="w-full">
-        <div className="border border-neutral-200 bg-white p-5 sm:p-6 md:p-7">
-          {children}
-        </div>
-
-        {caption && (
-          <figcaption className="mt-3 flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.11em] text-neutral-400 sm:text-[10px]">
-            <span className="h-px w-5 bg-neutral-300" />
-            {caption}
-          </figcaption>
-        )}
-      </figure>
-    </Reveal>
-  )
-}
-
-function FigureHeader({
-  title,
-  meta,
-}: {
-  title: string
-  meta?: string
-}) {
-  return (
-    <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <h4 className="text-[12px] font-medium text-neutral-900 sm:text-[13px]">
-        {title}
-      </h4>
-
-      {meta && (
-        <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-neutral-400 sm:text-[10px]">
-          {meta}
-        </span>
-      )}
-    </header>
-  )
-}
-
-function FigureDivider() {
-  return <div className="my-6 border-t border-neutral-100" />
-}
-
-function Dot({
-  className = 'bg-neutral-900',
-}: {
-  className?: string
-}) {
+function Mark({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
+  const [ref, seen] = useInView<HTMLSpanElement>({ threshold: 0.6 })
   return (
     <span
-      aria-hidden="true"
-      className={`h-1.5 w-1.5 shrink-0 rounded-full ${className}`}
-    />
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              HERO FIGURE                                   */
-/* -------------------------------------------------------------------------- */
-
-function SearchSystemFigure() {
-  return (
-    <Figure >
-      <FigureHeader
-        title="How discovery works"
-        meta="Search / AI"
-      />
-
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <div className="border border-neutral-200 p-4">
-          <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400">
-            Business
-          </p>
-
-          <p className="mt-8 text-[14px] font-medium">
-            Your website
-          </p>
-
-          <p className="mt-1 text-[11px] text-neutral-500">
-            Pages + information
-          </p>
-        </div>
-
-        <div className="font-mono text-[13px] text-neutral-300">
-          →
-        </div>
-
-        <div className="space-y-2">
-          {[
-            'Search engines',
-            'Answer engines',
-            'AI systems',
-          ].map((item, index) => (
-            <div
-              key={item}
-              className="flex min-h-[42px] items-center justify-between border border-neutral-200 px-3"
-            >
-              <span className="text-[11px] text-neutral-700">
-                {item}
-              </span>
-
-              <span className="font-mono text-[9px] text-neutral-400">
-                0{index + 1}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <FigureDivider />
-
-      <div className="grid grid-cols-3 divide-x divide-neutral-100">
-        {[
-          ['Crawl', 'Accessible'],
-          ['Understand', 'Structured'],
-          ['Surface', 'Relevant'],
-        ].map(([title, value]) => (
-          <div
-            key={title}
-            className="px-3 first:pl-0 last:pr-0"
-          >
-            <p className="text-[9px] uppercase tracking-[0.1em] text-neutral-400">
-              {title}
-            </p>
-
-            <p className="mt-2 text-[12px] text-neutral-800">
-              {value}
-            </p>
-          </div>
-        ))}
-      </div>
-    </Figure>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/*                           SEARCH DEMAND FIGURE                             */
-/* -------------------------------------------------------------------------- */
-
-function SearchDemandFigure() {
-  return (
-    <Figure  >
-      <FigureHeader
-        title="Search Demand"
-        meta="Last 12 months"
-      />
-
-      <div className="flex items-end justify-between gap-6">
-        <div>
-          <span className="block text-[36px] font-normal leading-none tracking-[-0.045em] text-neutral-950 sm:text-[42px]">
-            164K
-          </span>
-
-          <p className="mt-2 text-[11px] text-neutral-500">
-            monthly searches
-          </p>
-        </div>
-
-        <div className="text-right">
-          <p className="font-mono text-[10px] text-emerald-600">
-            ↑ 18.4%
-          </p>
-
-          <p className="mt-1 text-[10px] text-neutral-400">
-            demand change
-          </p>
-        </div>
-      </div>
-
-      <LineChart
-        data={SEARCH_DEMAND}
-        min={100}
-        max={190}
-        labels={['Oct', 'Jan', 'Apr', 'Jul', 'Sep']}
-      />
-
-      <FigureDivider />
-
-      <div className="flex items-end justify-between gap-5">
-        <div>
-          <h5 className="text-[12px] font-medium">
-            Search intent
-          </h5>
-
-          <p className="mt-1 text-[10px] text-neutral-400">
-            Share of relevant searches
-          </p>
-        </div>
-      </div>
-
-      <Wipe delay={350} className="mt-4">
-        <div className="flex h-1.5 overflow-hidden">
-          {SEARCH_INTENT.map((item, index) => (
-            <div
-              key={item.short}
-              className={
-                index === 0
-                  ? 'bg-blue-700'
-                  : index === 1
-                    ? 'bg-blue-500'
-                    : index === 2
-                      ? 'bg-blue-300'
-                      : 'bg-neutral-300'
-              }
-              style={{ width: `${item.value}%` }}
-            />
-          ))}
-        </div>
-      </Wipe>
-
-      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {SEARCH_INTENT.map((item, index) => (
-          <div key={item.short}>
-            <div className="flex items-center gap-2">
-              <span
-                className={`h-1.5 w-1.5 ${
-                  index === 0
-                    ? 'bg-blue-700'
-                    : index === 1
-                      ? 'bg-blue-500'
-                      : index === 2
-                        ? 'bg-blue-300'
-                        : 'bg-neutral-300'
-                }`}
-              />
-
-              <span className="font-mono text-[11px]">
-                {item.value}%
-              </span>
-            </div>
-
-            <p className="mt-1 text-[10px] text-neutral-400">
-              {item.label}
-            </p>
-          </div>
-        ))}
-      </div>
-    </Figure>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/*                            TECHNICAL FIGURE                                */
-/* -------------------------------------------------------------------------- */
-
-function TechnicalFigure() {
-  return (
-    <Figure  >
-      <FigureHeader title="Technical Audit" meta="Site crawl" />
-
-      <div className="flex items-baseline gap-3">
-        <span className="text-[36px] leading-none tracking-[-0.045em] sm:text-[42px]">
-          147
-        </span>
-
-        <span className="text-[11px] text-neutral-500">
-          pages analysed
-        </span>
-      </div>
-
-      <div className="mt-6 flex h-2 overflow-hidden">
-        <div
-          className="bg-red-500"
-          style={{ width: '3%' }}
-        />
-
-        <div
-          className="bg-orange-400"
-          style={{ width: '9%' }}
-        />
-
-        <div
-          className="bg-emerald-500"
-          style={{ width: '88%' }}
-        />
-      </div>
-
-      <div className="mt-4 grid grid-cols-3 gap-4">
-        {[
-          ['Critical', '3', 'bg-red-500'],
-          ['Review', '12', 'bg-orange-400'],
-          ['Healthy', '132', 'bg-emerald-500'],
-        ].map(([label, value, color]) => (
-          <div key={label}>
-            <div className="flex items-center gap-2">
-              <Dot className={color} />
-
-              <span className="text-[10px] text-neutral-500">
-                {label}
-              </span>
-            </div>
-
-            <p className="mt-2 font-mono text-[12px]">
-              {value}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <FigureDivider />
-
-      <div>
-        {TECHNICAL_CHECKS.map((check) => (
-          <div
-            key={check.label}
-            className="grid min-h-[46px] grid-cols-[1fr_auto] items-center gap-5 border-t border-neutral-100 first:border-t-0"
-          >
-            <div className="flex items-center gap-2.5">
-              <Dot className={check.tone} />
-
-              <span className="text-[11px] text-neutral-500 sm:text-[12px]">
-                {check.label}
-              </span>
-            </div>
-
-            <span className="font-mono text-[10px] text-neutral-800 sm:text-[11px]">
-              {check.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    </Figure>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/*                           CONTENT FIGURE                                   */
-/* -------------------------------------------------------------------------- */
-
-function ContentArchitectureFigure() {
-  return (
-    <Figure  >
-      <FigureHeader
-        title="Content Architecture"
-        meta="Topic cluster"
-      />
-
-      <div className="relative">
-        <div
-          aria-hidden="true"
-          className="absolute bottom-5 left-[17px] top-5 w-px bg-neutral-200"
-        />
-
-        <div className="relative space-y-2">
-          {PAGE_ARCHITECTURE.map((page, index) => (
-            <div
-              key={page.title}
-              className="relative grid grid-cols-[35px_1fr_auto] items-center gap-3 bg-white py-2"
-            >
-              <div className="relative z-10 flex h-[35px] w-[35px] items-center justify-center border border-neutral-200 bg-white font-mono text-[9px] text-neutral-400">
-                {page.position}
-              </div>
-
-              <div>
-                <p className="text-[11px] font-medium text-neutral-800 sm:text-[12px]">
-                  {page.title}
-                </p>
-
-                <p className="mt-0.5 text-[9px] uppercase tracking-[0.08em] text-neutral-400">
-                  {page.type}
-                </p>
-              </div>
-
-              <span
-                className={`hidden px-2 py-1 font-mono text-[8px] uppercase tracking-[0.06em] sm:block ${
-                  index === 0
-                    ? 'bg-neutral-950 text-white'
-                    : 'bg-neutral-100 text-neutral-500'
-                }`}
-              >
-                {page.intent}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <FigureDivider />
-
-      <div className="grid grid-cols-3 divide-x divide-neutral-100">
-        <div className="pr-4">
-          <p className="font-mono text-[18px]">01</p>
-          <p className="mt-1 text-[9px] uppercase tracking-[0.08em] text-neutral-400">
-            Core topic
-          </p>
-        </div>
-
-        <div className="px-4">
-          <p className="font-mono text-[18px]">04</p>
-          <p className="mt-1 text-[9px] uppercase tracking-[0.08em] text-neutral-400">
-            Supporting
-          </p>
-        </div>
-
-        <div className="pl-4">
-          <p className="font-mono text-[18px]">12</p>
-          <p className="mt-1 text-[9px] uppercase tracking-[0.08em] text-neutral-400">
-            Internal links
-          </p>
-        </div>
-      </div>
-    </Figure>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              AI FIGURE                                     */
-/* -------------------------------------------------------------------------- */
-
-function AIVisibilityFigure() {
-  return (
-    <Figure  >
-      <FigureHeader
-        title="AI Visibility"
-        meta="Discovery surfaces"
-      />
-
-      <p className="max-w-[390px] text-[11px] leading-5 text-neutral-500">
-        How clearly the business can be interpreted across
-        search and AI-led discovery environments.
-      </p>
-
-      <div className="mt-6">
-        {AI_SURFACES.map((surface, index) => (
-          <div
-            key={surface.name}
-            className="border-t border-neutral-100 py-4 first:border-t-0 first:pt-0"
-          >
-            <div className="flex items-start justify-between gap-5">
-              <div>
-                <p className="text-[11px] font-medium sm:text-[12px]">
-                  {surface.name}
-                </p>
-
-                <p className="mt-1 text-[9px] uppercase tracking-[0.08em] text-neutral-400">
-                  {surface.role}
-                </p>
-              </div>
-
-              <span className="font-mono text-[10px] text-neutral-500">
-                {surface.coverage}%
-              </span>
-            </div>
-
-            <div className="mt-3 h-[2px] bg-neutral-100">
-              <AnimatedBar
-                width={surface.coverage}
-                delay={250 + index * 100}
-                className="bg-blue-600"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <FigureDivider />
-
-      <div className="grid grid-cols-2 gap-x-7 gap-y-5">
-        {[
-          ['Entities', 'Clear'],
-          ['Services', 'Structured'],
-          ['Expertise', 'Supported'],
-          ['Sources', 'Consistent'],
-        ].map(([label, value]) => (
-          <div key={label}>
-            <p className="text-[9px] uppercase tracking-[0.08em] text-neutral-400">
-              {label}
-            </p>
-
-            <div className="mt-2 flex items-center gap-2">
-              <Dot className="bg-emerald-500" />
-
-              <span className="text-[11px] text-neutral-700">
-                {value}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Figure>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/*                          PERFORMANCE FIGURE                                */
-/* -------------------------------------------------------------------------- */
-
-function PerformanceFigure() {
-  return (
-    <Figure  >
-      <FigureHeader
-        title="Organic Performance"
-        meta="Current period"
-      />
-
-      <div className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4">
-        {[
-          ['Visibility', '42.8', '+18%'],
-          ['Clicks', '12.8K', '+33%'],
-          ['CTR', '6.9%', '+0.8'],
-          ['Position', '9.6', '+4.6'],
-        ].map(([label, value, delta]) => (
-          <div key={label}>
-            <p className="text-[10px] text-neutral-400">
-              {label}
-            </p>
-
-            <p className="mt-2 text-[21px] leading-none tracking-[-0.03em]">
-              {value}
-            </p>
-
-            <p className="mt-2 font-mono text-[9px] text-emerald-600">
-              ↑ {delta}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-8">
-        <LineChart
-          data={ORGANIC_VISIBILITY}
-          comparison={PREVIOUS_VISIBILITY}
-          min={14}
-          max={55}
-          labels={['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']}
-        />
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[9px] text-neutral-400">
-        <span className="flex items-center gap-2">
-          <span className="h-px w-4 bg-blue-600" />
-          Current
-        </span>
-
-        <span className="flex items-center gap-2">
-          <span className="w-4 border-t border-dashed border-neutral-400" />
-          Previous
-        </span>
-      </div>
-    </Figure>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                CHAPTER                                     */
-/* -------------------------------------------------------------------------- */
-
-function Chapter({
-  number,
-  eyebrow,
-  title,
-  description,
-  figure,
-  reverse = false,
-}: {
-  number: string
-  eyebrow: string
-  title: string
-  description: string
-  figure: ReactNode
-  reverse?: boolean
-}) {
-  return (
-    <RevealGroup
-      threshold={0.05}
-      className="relative border-t border-neutral-200 py-16 sm:py-20 lg:py-24"
+      ref={ref}
+      className={`box-decoration-clone bg-no-repeat px-[0.08em] transition-[background-size] duration-[1100ms] ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none ${dark ? 'text-neutral-950' : ''}`}
+      style={{
+        backgroundImage: 'linear-gradient(#CCFF00, #CCFF00)',
+        backgroundPosition: '0 88%',
+        backgroundSize: seen ? '100% 78%' : '0% 78%',
+        transitionDelay: '250ms',
+        // text stays readable on dark sections only once the highlight is behind it
+        color: dark && !seen ? 'inherit' : undefined,
+      }}
     >
-      <div
-        className={`
-          grid min-w-0 items-center gap-12
-          lg:grid-cols-[minmax(0,0.8fr)_minmax(440px,1fr)]
-          lg:gap-16
-          xl:gap-24
-          ${
-            reverse
-              ? 'lg:grid-cols-[minmax(440px,1fr)_minmax(0,0.8fr)]'
-              : ''
-          }
-        `}
-      >
-        <div className={reverse ? 'lg:order-2' : ''}>
-          
+      {children}
+    </span>
+  )
+}
 
-          <Reveal delay={80}>
-            <h2 className="site-heading mt-5 max-w-[590px] text-balance text-[clamp(2rem,4vw,3.1rem)] font-normal leading-[1.02] tracking-[-0.04em] text-neutral-950">
-              {title}
-            </h2>
-          </Reveal>
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReduced(mq.matches)
+    const onChange = () => setReduced(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return reduced
+}
 
-          <Reveal delay={150}>
-            <p className="mt-6 max-w-[520px] text-[14px] leading-[1.75] text-neutral-500 sm:text-[15px]">
-              {description}
-            </p>
-          </Reveal>
-        </div>
+/* -------------------------------------------------------------------------- */
+/*  Hero search demo — a query types out, BrandWorks climbs to the top        */
+/* -------------------------------------------------------------------------- */
 
-        <RevealGroup
-          threshold={0.18}
-          className={reverse ? 'lg:order-1' : ''}
-        >
-          {figure}
-        </RevealGroup>
+const DEMO_QUERIES = [
+  'seo agency for small business',
+  'why is my website not on google',
+  'technical seo audit',
+  'local seo services near me',
+]
+const ROW = 112
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px] shrink-0 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4.5 4.5" />
+    </svg>
+  )
+}
+
+function CompetitorRow() {
+  return (
+    <div className="flex h-full gap-3 px-5 py-4">
+      <span className="mt-0.5 size-6 shrink-0 rounded-full bg-neutral-200" />
+      <div className="flex-1 space-y-2">
+        <span className="block h-2 w-24 rounded-full bg-neutral-200" />
+        <span className="block h-3 w-[70%] rounded-full bg-neutral-300" />
+        <span className="block h-2 w-[90%] rounded-full bg-neutral-100" />
+        <span className="block h-2 w-[60%] rounded-full bg-neutral-100" />
       </div>
-    </RevealGroup>
+    </div>
+  )
+}
+
+function BrandRow({ top }: { top: boolean }) {
+  return (
+    <div className="flex h-full gap-3 px-5 py-4">
+      <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-neutral-950 text-[9px] font-semibold text-white">BW</span>
+      <div className="min-w-0 flex-1">
+        <p className="flex items-center gap-2 text-[11px] leading-none text-neutral-500">
+          <span className="text-neutral-800">BrandWorks</span>
+          <span className="truncate">brandworks › services › seo</span>
+          <span
+            className={`ml-auto shrink-0 rounded-full bg-[#CCFF00] px-2 py-0.5 text-[10px] font-medium text-neutral-950 transition-[opacity,scale] duration-500 ${top ? 'scale-100 opacity-100' : 'scale-75 opacity-0'}`}
+          >
+            Top result
+          </span>
+        </p>
+        <p className="mt-2 truncate text-[15px] leading-tight text-[#1a0dab]">SEO Services That Bring In Enquiries | BrandWorks</p>
+        <p className="mt-1.5 line-clamp-2 text-[12px] leading-[1.5] text-neutral-600">
+          Technical audits, keyword research, content and local SEO, with plain-English reporting and no ranking guarantees.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function SearchDemo() {
+  const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.3 })
+  const reduced = usePrefersReducedMotion()
+  const [qi, setQi] = useState(0)
+  const [chars, setChars] = useState(0)
+  const [ranked, setRanked] = useState(false)
+  const query = DEMO_QUERIES[qi]
+
+  useEffect(() => {
+    if (reduced) {
+      setChars(query.length)
+      setRanked(true)
+      return
+    }
+    if (!seen) return
+    let timer: number
+    if (chars < query.length) {
+      timer = window.setTimeout(() => setChars((c) => c + 1), 45 + Math.random() * 55)
+    } else if (!ranked) {
+      timer = window.setTimeout(() => setRanked(true), 450)
+    } else {
+      timer = window.setTimeout(() => {
+        setRanked(false)
+        setChars(0)
+        setQi((i) => (i + 1) % DEMO_QUERIES.length)
+      }, 3200)
+    }
+    return () => window.clearTimeout(timer)
+  }, [seen, reduced, chars, ranked, query.length])
+
+  // brand starts third, climbs to first; the others shift down
+  const positions = ranked ? [1, 2, 0] : [0, 1, 2]
+
+  return (
+    <div ref={ref} aria-hidden="true" className="w-full max-w-[520px] select-none">
+      <div className="flex h-[54px] items-center gap-3 rounded-full border border-neutral-200 bg-white px-5 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+        <SearchIcon />
+        <span className="truncate text-[15px] text-neutral-900">
+          {query.slice(0, chars)}
+          <span className="ml-px inline-block h-[18px] w-px translate-y-[3px] animate-pulse bg-neutral-900" />
+        </span>
+      </div>
+
+      <div className="relative mt-4 overflow-hidden rounded-[18px] border border-neutral-200 bg-white" style={{ height: ROW * 3 }}>
+        {[0, 1, 2].map((slot) => (
+          <div
+            key={slot}
+            className={`absolute inset-x-0 top-0 border-b border-neutral-100 transition-transform duration-[800ms] ease-[cubic-bezier(0.65,0,0.35,1)] last:border-b-0 ${slot === 2 ? 'z-10 bg-white' : ''}`}
+            style={{ height: ROW, transform: `translateY(${positions[slot] * ROW}px)` }}
+          >
+            {slot === 2 ? <BrandRow top={ranked} /> : <CompetitorRow />}
+          </div>
+        ))}
+        {/* subtle wash while results "load" during typing */}
+        <div className={`pointer-events-none absolute inset-0 bg-white/60 transition-opacity duration-300 ${chars < query.length ? 'opacity-100' : 'opacity-0'}`} />
+      </div>
+    </div>
+  )
+}
+
+function Hero() {
+  return (
+    <section className={`${shell} pb-20 pt-24 sm:pt-28 lg:pb-28 lg:pt-32`}>
+      <div className="grid items-center gap-14 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+        <FadeIn>
+          <h1 className="site-display max-w-[14ch] text-balance text-[clamp(2.75rem,6.4vw,5.75rem)] font-normal leading-[0.95] tracking-[-0.045em]">
+            SEO services that help the right people <Mark>find you.</Mark>
+          </h1>
+        </FadeIn>
+        <FadeIn delay={150} className="flex justify-start lg:justify-end">
+          <SearchDemo />
+        </FadeIn>
+      </div>
+
+      <div className="mt-14 grid gap-10 border-t border-neutral-950 pt-8 md:grid-cols-2 lg:mt-20 lg:grid-cols-[1.15fr_1fr_auto] lg:gap-16">
+        <FadeIn delay={100}>
+          <p className="max-w-[46ch] text-[16px] leading-[1.7] text-neutral-700 sm:text-[17px]">
+            We fix what stops search engines from reading your website, write the pages your customers are already searching for, and report on the enquiries that come from it. No ranking guarantees and no mystery retainers.
+          </p>
+        </FadeIn>
+
+        <FadeIn delay={160}>
+          <p className="max-w-[44ch] text-[14px] leading-[1.7] text-neutral-500">
+            <span className="text-neutral-950">Usually a good fit if</span> your website looks fine but doesn’t bring in enquiries, you’re about to relaunch and don’t want to lose the rankings you have, or your customers find you by searching locally.
+          </p>
+        </FadeIn>
+
+        <FadeIn delay={220} className="flex flex-col items-start gap-5 md:col-span-2 lg:col-span-1 lg:items-end">
+          <Link
+            to="/contact"
+            className="group inline-flex min-h-[50px] items-center gap-10 whitespace-nowrap bg-neutral-950 px-6 text-[13px] font-medium text-white transition-colors duration-300 hover:bg-[#CCFF00] hover:text-neutral-950"
+          >
+            Get an SEO audit
+            <span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </Link>
+          <a href="#services" className="border-b border-neutral-300 pb-0.5 text-[13px] text-neutral-600 transition-colors hover:border-neutral-950 hover:text-neutral-950">
+            See what’s included
+          </a>
+        </FadeIn>
+      </div>
+    </section>
   )
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                  PAGE                                      */
+/*  Before / after search listing slider                                      */
 /* -------------------------------------------------------------------------- */
 
-export default function SEOPage() {
+function Stars() {
+  return (
+    <span className="inline-flex text-[#e7711b]" aria-hidden="true">
+      {'★★★★★'.split('').map((s, i) => (
+        <span key={i} className={i === 4 ? 'opacity-60' : ''}>{s}</span>
+      ))}
+    </span>
+  )
+}
+
+function ListingBefore() {
+  return (
+    <div className="h-full bg-white p-6 sm:p-8">
+      <p className="text-[12px] text-neutral-500">www.northfielddental.in › index.php?page_id=12</p>
+      <p className="mt-2 text-[20px] leading-tight text-[#1a0dab]">Home</p>
+      <p className="mt-2 max-w-[56ch] text-[14px] leading-[1.6] text-neutral-600">
+        Welcome to our website. We are a leading company providing best quality services to our valued customers with full satisfaction. Contact us today for more…
+      </p>
+    </div>
+  )
+}
+
+function ListingAfter() {
+  return (
+    <div className="h-full bg-white p-6 sm:p-8">
+      <p className="text-[12px] text-neutral-500">northfielddental.in › dentist-kothrud-pune</p>
+      <p className="mt-2 text-[20px] leading-tight text-[#1a0dab]">Dentist in Kothrud, Pune | Same-Week Appointments | Northfield Dental</p>
+      <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[13px] text-neutral-600">
+        <Stars /> <span>Rating: 4.8 · 212 reviews</span>
+      </p>
+      <p className="mt-2 max-w-[56ch] text-[14px] leading-[1.6] text-neutral-600">
+        Check-ups, fillings, root canals and implants from a team of five dentists near Karve Road. Open Saturdays. Book online or call to see a dentist this week.
+      </p>
+    </div>
+  )
+}
+
+function SerpCompare() {
+  const [value, setValue] = useState(50)
+  const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.45 })
+  const reduced = usePrefersReducedMotion()
+  const touched = useRef(false)
+
+  // a short nudge when it first comes into view, so people see it moves
+  useEffect(() => {
+    if (!seen || reduced) return
+    const steps = [72, 30, 50]
+    const timers = steps.map((v, i) => window.setTimeout(() => { if (!touched.current) setValue(v) }, 500 + i * 700))
+    return () => timers.forEach(window.clearTimeout)
+  }, [seen, reduced])
+
+  return (
+    <section className={`${shell} py-20 lg:py-28`}>
+      <div className="grid gap-8 lg:grid-cols-[0.8fr_1.5fr] lg:gap-20">
+        <div>
+          <FadeIn>
+            <h2 className={h2}>The same page, <Mark>fixed.</Mark></h2>
+          </FadeIn>
+          <FadeIn delay={80}>
+            <p className="mt-6 max-w-[40ch] text-[15px] leading-[1.7] text-neutral-500">
+              Your search listing is the first thing people see, and it decides whether they click. Drag across to compare a typical listing with one that’s been worked on: a clear title, a readable address, review stars from structured data, and a description that answers the search.
+            </p>
+          </FadeIn>
+        </div>
+
+        <FadeIn delay={120}>
+          <div ref={ref} className="relative overflow-hidden border border-neutral-200 bg-white" style={{ ['--pos' as string]: `${value}%` }}>
+            {/* after (base layer) */}
+            <div className="relative">
+              <ListingAfter />
+            </div>
+            {/* before (clipped on top) */}
+            <div className="absolute inset-0 transition-[clip-path] duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" style={{ clipPath: `inset(0 ${100 - value}% 0 0)` }}>
+              <ListingBefore />
+            </div>
+            {/* handle */}
+            <div className="pointer-events-none absolute inset-y-0 w-px bg-neutral-950 transition-[left] duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]" style={{ left: `${value}%` }}>
+              <span className="absolute top-1/2 -ml-[18px] -mt-[18px] grid size-9 place-items-center rounded-full bg-neutral-950 text-[13px] text-white">↔</span>
+            </div>
+            <span className="pointer-events-none absolute bottom-3 left-3 bg-white/90 px-2 py-1 text-[11px] text-neutral-500">Before</span>
+            <span className="pointer-events-none absolute bottom-3 right-3 bg-[#CCFF00] px-2 py-1 text-[11px] text-neutral-950">After</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={value}
+              onChange={(e) => { touched.current = true; setValue(Number(e.target.value)) }}
+              aria-label="Compare the listing before and after SEO work"
+              className="absolute inset-0 h-full w-full cursor-ew-resize opacity-0"
+            />
+          </div>
+          <p className="mt-3 text-[12px] text-neutral-400">Illustrative example. Northfield Dental is a made-up business.</p>
+        </FadeIn>
+      </div>
+    </section>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  AI answer demo — an overview writes itself and cites its sources          */
+/* -------------------------------------------------------------------------- */
+
+const AI_ANSWER =
+  'There’s nothing extra you need to do. To be shown as a source in AI Overviews, a page needs to be indexed and eligible to appear with a snippet. The advice is the same as for regular search: let Google crawl the site, keep important content in text, link pages together internally, and make sure structured data matches what’s on the page.'
+
+function AiAnswerDemo() {
+  const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.4 })
+  const reduced = usePrefersReducedMotion()
+  const words = AI_ANSWER.split(' ')
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    if (reduced) { setCount(words.length); return }
+    if (!seen || count >= words.length) return
+    const t = window.setTimeout(() => setCount((c) => c + 1), 55)
+    return () => window.clearTimeout(t)
+  }, [seen, reduced, count, words.length])
+
+  const done = count >= words.length
+
+  return (
+    <div ref={ref} className="rounded-[18px] bg-white p-6 text-neutral-950 sm:p-7">
+      <div className="flex items-center gap-2 text-[13px] font-medium">
+        <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
+          <path d="M12 2.5c.6 4.6 2.9 6.9 7.5 7.5-4.6.6-6.9 2.9-7.5 7.5-.6-4.6-2.9-6.9-7.5-7.5 4.6-.6 6.9-2.9 7.5-7.5Z" fill="currentColor" />
+        </svg>
+        AI Overview
+      </div>
+      <p className="mt-1 text-[12px] text-neutral-500">how do I get my business into google ai overviews</p>
+      <p className="mt-4 min-h-[9.5em] text-[14px] leading-[1.65] text-neutral-800" aria-label={AI_ANSWER}>
+        <span aria-hidden="true">
+          {words.slice(0, count).join(' ')}
+          {!done && <span className="ml-0.5 inline-block h-[14px] w-[7px] translate-y-[2px] animate-pulse bg-neutral-300" />}
+        </span>
+      </p>
+      <div className={`mt-5 flex flex-wrap gap-2 transition-[opacity,translate] duration-700 ${done ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}>
+        <span className="inline-flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-1.5 text-[12px] text-neutral-700">
+          <span className="size-3.5 rounded-full bg-neutral-200" /> Google Search Central
+        </span>
+        <span className="inline-flex items-center gap-2 rounded-full bg-[#CCFF00] px-3 py-1.5 text-[12px] text-neutral-950">
+          <span className="grid size-3.5 place-items-center rounded-full bg-neutral-950 text-[6px] font-bold text-white">BW</span> BrandWorks
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function Problem() {
+  const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.4 })
+  return (
+    <section className="border-y border-neutral-200 bg-[#f6f6f3]">
+      <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[1fr_1fr] lg:gap-20 lg:py-28`}>
+        <div>
+          <FadeIn>
+            <h2 className={`${h2} max-w-[16ch]`}>Most pages never get a <Mark>single visit</Mark> from Google.</h2>
+          </FadeIn>
+
+          <FadeIn delay={80}>
+            <div ref={ref} className="mt-12 max-w-[520px]" aria-hidden="true">
+              <div className="flex h-3 w-full overflow-hidden bg-neutral-300">
+                <div
+                  className="h-full bg-neutral-950 transition-[width] duration-[1600ms] ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none"
+                  style={{ width: seen ? '3.45%' : '0%' }}
+                />
+              </div>
+              <div className="mt-3 flex justify-between text-[12px] text-neutral-500">
+                <span><span className="text-neutral-950">3.45%</span> get any search traffic</span>
+                <span>96.55% get none</span>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+
+        <div className="space-y-6 text-[16px] leading-[1.75] text-neutral-700 lg:pt-2">
+          <FadeIn delay={120}>
+            <p>
+              When <SourceLink id="ahrefs">Ahrefs analysed around 14 billion pages</SourceLink>, 96.55% received no organic traffic from Google at all. The reasons were rarely mysterious. Some pages targeted topics almost nobody searches for. Some had no other websites linking to them. Many simply didn’t match what the searcher wanted, like a product page trying to rank for a question, or a blog post where people expected a price list.
+            </p>
+          </FadeIn>
+          <FadeIn delay={180}>
+            <p>
+              Good SEO deals with those problems in order. Is there real demand? Does the page answer it better than the alternatives? Does the rest of the web vouch for it? Everything in our service sits under one of those three questions.
+            </p>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Services() {
+  const [active, setActive] = useState(SERVICES[0].id)
+
+  useEffect(() => {
+    const rows = SERVICES.map((s) => document.getElementById(`service-${s.id}`)).filter(Boolean) as HTMLElement[]
+    if (!rows.length || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+        if (visible[0]) setActive(visible[0].target.id.replace('service-', ''))
+      },
+      { rootMargin: '-35% 0px -55% 0px' },
+    )
+    rows.forEach((row) => observer.observe(row))
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <section id="services" className={`${shell} scroll-mt-16 py-20 lg:py-32`}>
+      <div className="grid gap-12 lg:grid-cols-[0.8fr_1.5fr] lg:gap-20">
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <FadeIn>
+            <h2 className={h2}>What our SEO service <Mark>covers</Mark></h2>
+          </FadeIn>
+          <FadeIn delay={80}>
+            <p className="mt-6 max-w-[40ch] text-[15px] leading-[1.7] text-neutral-500">
+              Every engagement starts with an audit. What happens next depends on what it finds, so you won’t pay for link building if the real problem is that half your pages aren’t indexed.
+            </p>
+          </FadeIn>
+
+          <nav aria-label="SEO services" className="mt-10 hidden lg:block">
+            <ul className="space-y-1.5">
+              {SERVICES.map((s) => (
+                <li key={s.id}>
+                  <a
+                    href={`#service-${s.id}`}
+                    className={`group inline-flex items-center gap-3 text-[14px] transition-colors duration-300 ${active === s.id ? 'text-neutral-950' : 'text-neutral-400 hover:text-neutral-700'}`}
+                  >
+                    <span className={`h-px bg-neutral-950 transition-[width] duration-500 ${active === s.id ? 'w-6' : 'w-0 group-hover:w-3'}`} />
+                    {s.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+
+        <div className="min-w-0 border-t border-neutral-950">
+          {SERVICES.map((s) => (
+            <article id={`service-${s.id}`} key={s.id} className="scroll-mt-24 border-b border-neutral-200 py-9 sm:py-11">
+              <FadeIn>
+                <h3 className="text-[clamp(1.35rem,2.2vw,1.75rem)] font-normal tracking-[-0.02em]">{s.title}</h3>
+                <div className="mt-5 grid gap-5 md:grid-cols-2 md:gap-10">
+                  <p className="text-[15px] leading-[1.75] text-neutral-700">{s.body}</p>
+                  <p className="text-[15px] leading-[1.75] text-neutral-500">
+                    {s.outcome}
+                    {s.source && (
+                      <>
+                        {' '}
+                        <SourceLink id={s.source}>See Google’s guidance</SourceLink>.
+                      </>
+                    )}
+                  </p>
+                </div>
+              </FadeIn>
+            </article>
+          ))}
+
+          <FadeIn className="pt-12">
+            <h3 className="text-[15px] font-medium">The performance thresholds we build to</h3>
+            <p className="mt-2 max-w-[60ch] text-[14px] leading-[1.7] text-neutral-500">
+              These are Google’s “good” targets for Core Web Vitals, measured at the 75th percentile of real visits on both mobile and desktop. <SourceLink id="vitals">Source: web.dev</SourceLink>
+            </p>
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full min-w-[520px] border-collapse text-left text-[14px]">
+                <thead>
+                  <tr className="border-b border-neutral-950 text-[12px] text-neutral-500">
+                    <th scope="col" className="py-3 pr-6 font-normal">Metric</th>
+                    <th scope="col" className="py-3 pr-6 font-normal">What it measures</th>
+                    <th scope="col" className="py-3 font-normal">Target</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {VITALS.map((v) => (
+                    <tr key={v.short} className="border-b border-neutral-200">
+                      <th scope="row" className="py-4 pr-6 font-normal">
+                        {v.metric} <span className="text-neutral-400">({v.short})</span>
+                      </th>
+                      <td className="py-4 pr-6 text-neutral-600">{v.measures}</td>
+                      <td className="whitespace-nowrap py-4">{v.target}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function AiSearch() {
+  const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.35 })
+  const bars = [
+    { label: 'No AI summary on the page', value: 15 },
+    { label: 'AI summary shown', value: 8 },
+    { label: 'Clicked a link inside the summary', value: 1 },
+  ]
+  return (
+    <section className="bg-neutral-950 text-white">
+      <div className={`${shell} py-20 lg:py-32`}>
+        <FadeIn>
+          <h2 className={`${h2} max-w-[18ch] text-white`}>Search now <Mark dark>answers</Mark> before it sends anyone to you.</h2>
+        </FadeIn>
+
+        <div className="mt-14 grid gap-14 lg:mt-20 lg:grid-cols-[1fr_1fr] lg:gap-20">
+          <div className="space-y-6 text-[16px] leading-[1.75] text-white/75">
+            <FadeIn>
+              <p>
+                In a <SourceLink id="pew">Pew Research Center study</SourceLink> of real browsing by 900 US adults in March 2025, Google showed an AI summary on 18% of searches. When one appeared, people clicked a traditional result on 8% of visits, compared with 15% when there was no summary. Links inside the summary itself were clicked on just 1% of visits.
+              </p>
+            </FadeIn>
+            <FadeIn delay={60}>
+              <p>
+                That changes what a good result looks like. It matters whether your site is a source the answer draws on, and it matters that you win the click from people who want more than a summary. Those are often the people closest to making a decision.
+              </p>
+            </FadeIn>
+            <FadeIn delay={120}>
+              <p>
+                <SourceLink id="geo">Research presented at KDD 2024</SourceLink> by teams from Princeton and IIT Delhi found that adding citations, quotations and statistics raised a page’s visibility in generative engine answers by up to 40%, while keyword stuffing didn’t help. <SourceLink id="googleAi">Google’s own guidance</SourceLink> is that there are no extra requirements for AI Overviews or AI Mode beyond being indexed and eligible to show a snippet. Both point the same way: clear, well-sourced pages on a technically sound site.
+              </p>
+            </FadeIn>
+          </div>
+
+          <div className="space-y-12">
+          <FadeIn delay={60}>
+            <AiAnswerDemo />
+            <p className="mt-3 text-[12px] text-white/40">Illustration. The answer text paraphrases Google’s published guidance.</p>
+          </FadeIn>
+          <FadeIn delay={100}>
+            <figure ref={ref} className="border-t border-white/25 pt-8">
+              <figcaption className="text-[14px] text-white">How often a Google visit ended in a click</figcaption>
+              <div className="mt-8 space-y-7">
+                {bars.map((bar, i) => (
+                  <div key={bar.label}>
+                    <div className="flex items-baseline justify-between gap-6 text-[13px]">
+                      <span className="text-white/70">{bar.label}</span>
+                      <span className="text-[clamp(1.5rem,2.6vw,2.1rem)] leading-none tracking-[-0.03em] text-white">{bar.value}%</span>
+                    </div>
+                    <div className="mt-3 h-[6px] bg-white/10">
+                      <div
+                        className={`h-full transition-[width] duration-[1400ms] ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none ${i === 0 ? 'bg-white' : i === 1 ? 'bg-[#CCFF00]' : 'bg-white/50'}`}
+                        style={{ width: seen ? `${(bar.value / 15) * 100}%` : '0%', transitionDelay: `${i * 140}ms` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-8 text-[12px] leading-[1.6] text-white/45">
+                Share of visits to a Google results page. Based on 68,879 searches. Source: Pew Research Center, July 2025.
+              </p>
+            </figure>
+          </FadeIn>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Process() {
+  const [ref, seen] = useInView<HTMLDivElement>({ threshold: 0.3 })
+  return (
+    <section className={`${shell} py-20 lg:py-32`}>
+      <div className="grid gap-8 lg:grid-cols-[0.8fr_1.5fr] lg:gap-20">
+        <FadeIn>
+          <h2 className={h2}>How an engagement <Mark>runs</Mark></h2>
+        </FadeIn>
+        <FadeIn delay={80}>
+          <p className="max-w-[56ch] text-[15px] leading-[1.75] text-neutral-500 lg:pt-3">
+            SEO compounds slowly, so the order matters. Fixing the foundation before publishing anything means the content we create later has a fair chance of ranking.
+          </p>
+        </FadeIn>
+      </div>
+
+      <div ref={ref} className="relative mt-14 lg:mt-20">
+        <div className="absolute inset-x-0 top-0 h-px bg-neutral-200" aria-hidden="true" />
+        <div
+          className="absolute left-0 top-0 h-px bg-neutral-950 transition-[width] duration-[1800ms] ease-[cubic-bezier(0.65,0,0.35,1)] motion-reduce:transition-none"
+          style={{ width: seen ? '100%' : '0%' }}
+          aria-hidden="true"
+        />
+        <ol className="grid gap-12 pt-10 md:grid-cols-3 md:gap-10">
+          {PHASES.map((phase, i) => (
+            <FadeIn as="li" key={phase.when} delay={200 + i * 160}>
+              <p className="text-[13px] text-neutral-500">{phase.when}</p>
+              <h3 className="mt-3 text-[clamp(1.35rem,2.2vw,1.75rem)] font-normal tracking-[-0.02em]">{phase.title}</h3>
+              <p className="mt-4 max-w-[42ch] text-[15px] leading-[1.75] text-neutral-700">{phase.body}</p>
+            </FadeIn>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
+
+function Guarantee() {
+  return (
+    <section className="border-t border-neutral-200">
+      <div className={`${shell} grid gap-10 py-20 lg:grid-cols-[1.5fr_1fr] lg:items-end lg:gap-20 lg:py-28`}>
+        <FadeIn>
+          <blockquote>
+            <p className="site-display text-balance text-[clamp(2.25rem,5.2vw,4.5rem)] font-normal leading-[1] tracking-[-0.04em]">
+              “No one can guarantee a #1 ranking on Google.”
+            </p>
+            <footer className="mt-6 text-[13px] text-neutral-500">
+              Google Search Central, <SourceLink id="googleHire">“Do you need an SEO?”</SourceLink>
+            </footer>
+          </blockquote>
+        </FadeIn>
+        <FadeIn delay={120}>
+          <p className="max-w-[40ch] text-[16px] leading-[1.75] text-neutral-700">
+            We agree, so we don’t promise one. What we can commit to is the work itself: what we’ll do each month, why we’re doing it, and how we’ll both know whether it’s working.
+          </p>
+        </FadeIn>
+      </div>
+    </section>
+  )
+}
+
+function Faq() {
+  return (
+    <section className="border-t border-neutral-200 bg-[#f6f6f3]">
+      <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[0.8fr_1.5fr] lg:gap-20 lg:py-28`}>
+        <FadeIn>
+          <h2 className={h2}>Questions we get asked</h2>
+        </FadeIn>
+        <div className="border-t border-neutral-950">
+          {FAQS.map((item) => (
+            <details key={item.q} className="group border-b border-neutral-300">
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-8 py-6 [&::-webkit-details-marker]:hidden">
+                <h3 className="text-[clamp(1.05rem,1.6vw,1.25rem)] font-normal tracking-[-0.01em]">{item.q}</h3>
+                <span className="relative mt-2 block size-3.5 shrink-0" aria-hidden="true">
+                  <span className="absolute left-0 top-1/2 h-px w-full bg-neutral-950" />
+                  <span className="absolute left-1/2 top-0 h-full w-px bg-neutral-950 transition-transform duration-300 group-open:scale-y-0" />
+                </span>
+              </summary>
+              <p className="max-w-[64ch] pb-7 text-[15px] leading-[1.75] text-neutral-600">{item.a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Sources() {
+  return (
+    <section className={`${shell} py-16`}>
+      <div className="grid gap-6 border-t border-neutral-200 pt-8 lg:grid-cols-[0.8fr_1.5fr] lg:gap-20">
+        <h2 className="text-[14px] font-medium">Sources</h2>
+        <ul className="space-y-2.5 text-[13px] leading-[1.6] text-neutral-500">
+          {Object.values(SOURCES).map((source) => (
+            <li key={source.url}>
+              <a href={source.url} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-neutral-950">
+                {source.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+function FinalCta() {
+  return (
+    <section className="bg-neutral-950 text-white">
+      <div className={`${shell} flex flex-col gap-10 py-20 lg:flex-row lg:items-end lg:justify-between lg:py-28`}>
+        <FadeIn>
+          <h2 className="site-display max-w-[18ch] text-balance text-[clamp(2.25rem,4.8vw,4rem)] font-normal leading-[1] tracking-[-0.04em]">
+            Want to know what’s <Mark dark>holding your site back?</Mark>
+          </h2>
+          <p className="mt-6 max-w-[48ch] text-[15px] leading-[1.75] text-white/65">
+            Send us your website address. We’ll take a look and tell you honestly whether SEO is the right investment for you right now.
+          </p>
+        </FadeIn>
+        <FadeIn delay={120}>
+          <Link
+            to="/contact"
+            className="group inline-flex min-h-[54px] items-center gap-12 whitespace-nowrap bg-[#CCFF00] px-7 text-[13px] font-medium text-neutral-950 transition-colors duration-300 hover:bg-white"
+          >
+            Request an SEO audit
+            <span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </Link>
+        </FadeIn>
+      </div>
+    </section>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Metadata + structured data                                                */
+/* -------------------------------------------------------------------------- */
+
+function useSeoPageMetadata(siteUrl?: string) {
+  useEffect(() => {
+    const previousTitle = document.title
+    document.title = 'SEO Services: Technical SEO, Content & Local SEO | BrandWorks'
+
+    const description =
+      'SEO services from BrandWorks: technical audits, keyword research, on-page and content work, local SEO, link earning and plain-English reporting. No ranking guarantees.'
+    const existing = document.head.querySelector<HTMLMetaElement>('meta[name="description"]')
+    const previousDescription = existing?.content
+    const meta = existing ?? document.createElement('meta')
+    meta.name = 'description'
+    meta.content = description
+    if (!existing) document.head.appendChild(meta)
+
+    let origin = ''
+    try {
+      origin = siteUrl ? new URL(siteUrl).origin : window.location.origin
+    } catch {
+      origin = window.location.origin
+    }
+    const pageUrl = `${origin}/services/seo`
+
+    const canonical = document.createElement('link')
+    canonical.rel = 'canonical'
+    canonical.href = pageUrl
+    document.head.appendChild(canonical)
+
+    const schema = document.createElement('script')
+    schema.type = 'application/ld+json'
+    schema.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Service',
+          '@id': `${pageUrl}#service`,
+          name: 'SEO services',
+          serviceType: 'Search engine optimisation',
+          url: pageUrl,
+          description,
+          provider: { '@type': 'Organization', name: 'BrandWorks', url: origin },
+          hasOfferCatalog: {
+            '@type': 'OfferCatalog',
+            name: 'SEO services',
+            itemListElement: SERVICES.map((s) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: s.title, description: s.body } })),
+          },
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: `${origin}/` },
+            { '@type': 'ListItem', position: 2, name: 'Services', item: `${origin}/services` },
+            { '@type': 'ListItem', position: 3, name: 'SEO', item: pageUrl },
+          ],
+        },
+        {
+          '@type': 'FAQPage',
+          mainEntity: FAQS.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+        },
+      ],
+    })
+    document.head.appendChild(schema)
+
+    return () => {
+      document.title = previousTitle
+      if (existing && previousDescription !== undefined) existing.content = previousDescription
+      else meta.remove()
+      canonical.remove()
+      schema.remove()
+    }
+  }, [siteUrl])
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Page                                                                      */
+/* -------------------------------------------------------------------------- */
+
+export default function SEOPage({ siteUrl }: { siteUrl?: string }) {
+  useSeoPageMetadata(siteUrl)
   return (
     <main className="w-full overflow-x-clip bg-white text-neutral-950">
-      {/* ------------------------------------------------------------------ */}
-      {/* HERO                                                               */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className="px-4 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-24 md:px-8 lg:px-10 lg:pb-24 lg:pt-28 xl:px-12 2xl:px-16">
-        <div className="mx-auto max-w-[1440px]">
-          <RevealGroup>
-            <div className="grid items-end gap-12 lg:grid-cols-[1fr_0.75fr] lg:gap-20">
-              <div>
-                
-                <Reveal delay={80}>
-                  <h1 className="site-display mt-6 max-w-[840px] text-balance text-[clamp(2.5rem,5vw,3.1rem)] font-normal leading-[0.98] tracking-[-0.045em] text-neutral-950">
-                    Be found when people search.
-                    <span className="block">
-                      Be understood when AI answers.
-                    </span>
-                  </h1>
-                </Reveal>
-
-                <Reveal delay={150}>
-                  <p className="mt-7 max-w-[650px] text-[15px] leading-[1.75] text-neutral-500 sm:text-[16px]">
-                    BrandWorks builds search visibility across
-                    traditional search and emerging AI discovery.
-                    Strategy, technical SEO, content, AEO and GEO
-                    work together so the business is easier to
-                    find, understand and trust.
-                  </p>
-                </Reveal>
-
-                <Reveal delay={220}>
-                  <div className="mt-9 flex flex-wrap items-center gap-6">
-                    <Link
-                      to="/contact"
-                      className="group inline-flex min-h-[46px] items-center gap-8 bg-neutral-950 px-5 text-[12px] font-medium text-white transition-colors duration-300 hover:bg-[#CCFF00] hover:text-neutral-950"
-                    >
-                      Start a project
-
-                      <span
-                        aria-hidden="true"
-                        className="transition-transform duration-300 group-hover:translate-x-1"
-                      >
-                        →
-                      </span>
-                    </Link>
-
-                    <a
-                      href="#seo-approach"
-                      className="border-b border-neutral-300 pb-1 text-[12px] font-medium text-neutral-600 transition-colors duration-300 hover:border-neutral-950 hover:text-neutral-950"
-                    >
-                      How we approach search
-                    </a>
-                  </div>
-                </Reveal>
-              </div>
-
-              <RevealGroup threshold={0.1}>
-                <SearchSystemFigure />
-              </RevealGroup>
-            </div>
-          </RevealGroup>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* SMALL CAPABILITY INDEX                                             */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className=" ">
-        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 2xl:px-16">
-          <RevealGroup>
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-              {CAPABILITIES.map((item, index) => (
-                <Reveal
-                  key={item.number}
-                  delay={index * 55}
-                  className="border-b border-neutral-200 px-0 py-6 even:border-l even:pl-5 md:border-l md:px-5 md:first:border-l-0 md:[&:nth-child(4)]:border-l-0 xl:border-b-0 xl:[&:nth-child(4)]:border-l"
-                > 
-
-                  <h2 className="mt-4 text-[18px] font-medium">
-                    {item.title}
-                  </h2>
-
-                  <p className="mt-2 hidden text-[12px] leading-5 text-neutral-400 xl:block">
-                    {item.description}
-                  </p>
-                </Reveal>
-              ))}
-            </div>
-          </RevealGroup>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* INTRO                                                              */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section
-        id="seo-approach"
-        className="px-4 py-20 sm:px-6 sm:py-24 md:px-8 lg:px-10 lg:py-28 xl:px-12 2xl:px-16"
-      >
-        <div className="mx-auto max-w-[1440px]">
-          <RevealGroup>
-            <div className="grid gap-10 lg:grid-cols-[0.45fr_1fr] lg:gap-24">
-              <Reveal>
-                <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-neutral-400 sm:text-[10px]">
-                  Search, without the noise
-                </p>
-              </Reveal>
-
-              <div>
-                <Reveal delay={80}>
-                  <h2 className="site-heading max-w-[900px] text-balance text-[clamp(2rem,4vw,3.1rem)] leading-[1.03] tracking-[-0.04em]">
-                    More traffic is not the goal.
-                    <span className="block  ">
-                      Better discovery is.
-                    </span>
-                  </h2>
-                </Reveal>
-
-                <div className="mt-9 grid gap-7 border-t border-neutral-200 pt-7 md:grid-cols-2">
-                  
-
-                  <Reveal delay={210}>
-                    <p className="max-w-[440px] text-[14px] leading-[1.75] text-neutral-500">
-                      That requires more than keywords. Technical
-                      structure, content architecture, brand
-                      clarity and measurement all affect what gets
-                      discovered.
-                    </p>
-                  </Reveal>
-                </div>
-              </div>
-            </div>
-          </RevealGroup>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* MAIN SEO CHAPTERS                                                  */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className="px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 2xl:px-16">
-        <div className="mx-auto max-w-[1440px]">
-          <Chapter
-            number="01"
-            eyebrow="Search demand"
-            title="Start with what people are actually looking for."
-            description="We study queries, topics, competitors and search intent before deciding what should be created or changed. The goal is to understand where useful demand already exists and where the business can realistically compete."
-            figure={<SearchDemandFigure />}
-          />
-
-          <Chapter
-            number="02"
-            eyebrow="Technical foundation"
-            title="Make the website easy to crawl and understand."
-            description="Before content can perform, search systems need a technically clear website. We review indexing, performance, site structure, canonicalisation, internal links, structured data and the signals that help search engines interpret each page."
-            figure={<TechnicalFigure />}
-            reverse
-          />
-
-          <Chapter
-            number="03"
-            eyebrow="Content architecture"
-            title="Give every useful search a clear destination."
-            description="We structure service pages, supporting content and internal links around the way people search. Each page should have a clear role rather than competing with other pages on the same website."
-            figure={<ContentArchitectureFigure />}
-          />
-
-          <Chapter
-            number="04"
-            eyebrow="AEO + GEO"
-            title="Search visibility now extends beyond ten blue links."
-            description="People increasingly discover businesses through AI-generated answers as well as traditional results. We improve the clarity, structure and consistency of the information AI systems can interpret about the brand, services and expertise."
-            figure={<AIVisibilityFigure />}
-            reverse
-          />
-
-          <Chapter
-            number="05"
-            eyebrow="Measurement"
-            title="Measure what changed. Then decide what happens next."
-            description="SEO is an ongoing feedback loop. We look at visibility, impressions, clicks, query movement, conversions and emerging AI discovery signals to understand what is working and where the next opportunity sits."
-            figure={<PerformanceFigure />}
-          />
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* SEO / AEO / GEO                                                    */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className="border-y border-neutral-200 bg-[#f7f7f5] px-4 py-20 sm:px-6 sm:py-24 md:px-8 lg:px-10 lg:py-28 xl:px-12 2xl:px-16">
-        <div className="mx-auto max-w-[1440px]">
-          <RevealGroup>
-            <div className="grid gap-12 lg:grid-cols-[0.75fr_1fr] lg:gap-24">
-              <div>
-               
-
-                <Reveal delay={80}>
-                  <h2 className="site-heading mt-5 max-w-[530px] text-[clamp(2rem,4vw,3.1rem)] leading-[1.03] tracking-[-0.04em]">
-                    Search is changing.
-                    <span className="block">
-                      The fundamentals are not.
-                    </span>
-                  </h2>
-                </Reveal>
-
-                <Reveal delay={150}>
-                  <p className="mt-6 max-w-[500px] text-[14px] leading-[1.75] text-neutral-500">
-                    Systems still need clear information,
-                    trustworthy sources and a technically accessible
-                    website. The surfaces using that information are
-                    simply expanding.
-                  </p>
-                </Reveal>
-              </div>
-
-              <div className="border-t border-neutral-300">
-                {[
-                  {
-                    number: '01',
-                    title: 'SEO',
-                    subtitle: 'Search Engine Optimisation',
-                    body:
-                      'Improving organic visibility in traditional search results through technical, content and authority signals.',
-                  },
-                  {
-                    number: '02',
-                    title: 'AEO',
-                    subtitle: 'Answer Engine Optimisation',
-                    body:
-                      'Structuring useful information so answer engines can interpret it clearly and surface direct responses.',
-                  },
-                  {
-                    number: '03',
-                    title: 'GEO',
-                    subtitle: 'Generative Engine Optimisation',
-                    body:
-                      'Improving how generative systems understand the brand, its expertise, entities, services and supporting sources.',
-                  },
-                ].map((item, index) => (
-                  <Reveal
-                    key={item.number}
-                    delay={index * 90}
-                    className="grid gap-4 border-b border-neutral-300 py-7 sm:grid-cols-[45px_1fr_1.5fr] sm:gap-7"
-                  >
-                    <span className="font-mono text-[12px] text-neutral-700">
-                      {item.number}
-                    </span>
-
-                    <div>
-                      <p className="text-[20px] tracking-[-0.025em]">
-                        {item.title}
-                      </p>
-
-                      <p className="mt-1 text-[12px] uppercase tracking-[0.08em] text-neutral-700">
-                        {item.subtitle}
-                      </p>
-                    </div>
-
-                    <p className="text-[12px] leading-6 text-neutral-500">
-                      {item.body}
-                    </p>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </RevealGroup>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* PROCESS                                                            */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className="px-4 py-20 sm:px-6 sm:py-24 md:px-8 lg:px-10 lg:py-28 xl:px-12 2xl:px-16">
-        <div className="mx-auto max-w-[1440px]">
-          <RevealGroup>
-            <div className="grid gap-10 lg:grid-cols-[0.42fr_1fr] lg:gap-24">
-              <div>
-                <Reveal>
-                  <p className=" text-[12px] uppercase tracking-[0.14em] text-black sm:text-[10px]">
-                    How the work moves
-                  </p>
-                </Reveal>
-              </div>
-
-              <Reveal delay={80}>
-                <h2 className="site-heading max-w-[820px] text-[clamp(2rem,4vw,3.1rem)] leading-[1.03] tracking-[-0.04em]">
-                  Research first.
-                  <span className="block">
-                    Execution follows the evidence.
-                  </span>
-                </h2>
-              </Reveal>
-            </div>
-
-            <div className="mt-14 border-t border-neutral-200">
-              {PROCESS.map((item, index) => (
-                <Reveal
-                  key={item.number}
-                  delay={index * 70}
-                  className="grid gap-5 border-b border-neutral-200 py-7 md:grid-cols-[70px_0.8fr_1.1fr] md:items-start md:gap-10"
-                >
-                  <span className="font-mono text-[9px] text-neutral-400">
-                    {item.number}
-                  </span>
-
-                  <h3 className="text-[17px] font-normal tracking-[-0.02em] sm:text-[19px]">
-                    {item.title}
-                  </h3>
-
-                  <p className="max-w-[580px] text-[12px] leading-6 text-neutral-500 sm:text-[13px]">
-                    {item.description}
-                  </p>
-                </Reveal>
-              ))}
-            </div>
-          </RevealGroup>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* WHAT WE LOOK AT                                                    */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className="bg-neutral-950 px-4 py-20 text-white sm:px-6 sm:py-24 md:px-8 lg:px-10 lg:py-28 xl:px-12 2xl:px-16">
-        <div className="mx-auto max-w-[1440px]">
-          <RevealGroup>
-            <div className="grid gap-12 lg:grid-cols-[0.72fr_1fr] lg:gap-24">
-              <div>
-                <Reveal>
-                  <p className=" text-[9px] uppercase tracking-[0.14em] text-white sm:text-[10px]">
-                    What we look at
-                  </p>
-                </Reveal>
-
-                <Reveal delay={80}>
-                  <h2 className="site-heading mt-5 max-w-[580px] text-[clamp(2rem,4vw,3.1rem)] leading-[1.03] tracking-[-0.04em] text-white">
-                    The website is one system.
-                  </h2>
-                </Reveal>
-
-                <Reveal delay={150}>
-                  <p className="mt-6 max-w-[490px] text-[13px] leading-7 text-white/80">
-                    Search performance rarely comes down to one
-                    missing keyword. We look at how the entire
-                    website communicates with users and search
-                    systems.
-                  </p>
-                </Reveal>
-              </div>
-
-              <div className=" ">
-                {[
-                  ['Technical', 'Crawlability, indexing, speed, schema'],
-                  ['Architecture', 'Hierarchy, URLs, internal links'],
-                  ['Content', 'Intent, usefulness, topical depth'],
-                  ['On-page', 'Titles, headings, entities, context'],
-                  ['Authority', 'Reputation, references, backlinks'],
-                  ['Experience', 'Usability, mobile, conversion path'],
-                  ['AI visibility', 'Entities, citations, source clarity'],
-                  ['Measurement', 'Search Console, analytics, conversion'],
-                ].map(([title, detail], index) => (
-                  <Reveal
-                    key={title}
-                    delay={index * 45}
-                    className="grid grid-cols-[32px_0.65fr_1fr] gap-4 border-b border-neutral-800 py-5 sm:gap-7"
-                  >
-                    <span className="font-mono text-[12px] text-white/80">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-
-                    <span className="text-[14px] text-neutral-200">
-                      {title}
-                    </span>
-
-                    <span className="text-[13px] text-neutral-300">
-                      {detail}
-                    </span>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </RevealGroup>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* REPORTING                                                          */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className="px-4 py-20 sm:px-6 sm:py-24 md:px-8 lg:px-10 lg:py-28 xl:px-12 2xl:px-16">
-        <div className="mx-auto max-w-[1440px]">
-          <RevealGroup>
-            <div className="grid gap-12 lg:grid-cols-[0.62fr_1fr] lg:gap-24">
-              <div>
-               
-                <Reveal delay={80}>
-                  <h2 className="site-heading mt-5 max-w-[590px] text-[clamp(2rem,4vw,3.1rem)] leading-[1.03] tracking-[-0.04em]">
-                    Reports should lead to decisions.
-                  </h2>
-                </Reveal>
-
-                <Reveal delay={150}>
-                  <p className="mt-6 max-w-[500px] text-[14px] leading-[1.75] text-neutral-500">
-                    Not pages of screenshots. We focus on the
-                    signals that explain whether visibility is
-                    improving and where effort should go next.
-                  </p>
-                </Reveal>
-              </div>
-
-              <div className=" ">
-                {[
-                  {
-                    number: '01',
-                    metric: 'Visibility',
-                    question:
-                      'Are the right pages appearing for relevant searches?',
-                  },
-                  {
-                    number: '02',
-                    metric: 'Qualified clicks',
-                    question:
-                      'Are relevant people choosing the website?',
-                  },
-                  {
-                    number: '03',
-                    metric: 'Search intent',
-                    question:
-                      'Are we visible at the right stage of demand?',
-                  },
-                  {
-                    number: '04',
-                    metric: 'Conversions',
-                    question:
-                      'Is organic discovery creating useful actions?',
-                  },
-                  {
-                    number: '05',
-                    metric: 'AI discovery',
-                    question:
-                      'How is the business appearing in emerging answer surfaces?',
-                  },
-                ].map((item, index) => (
-                  <Reveal
-                    key={item.number}
-                    delay={index * 65}
-                    className="grid gap-3 border-b border-neutral-200 py-6 sm:grid-cols-[45px_0.65fr_1fr] sm:gap-7"
-                  >
-                    <span className="font-mono text-[12px] text-neutral-800">
-                      {item.number}
-                    </span>
-
-                    <span className="text-[16px] font-medium">
-                      {item.metric}
-                    </span>
-
-                    <span className="text-[14px] leading-5 text-neutral-600">
-                      {item.question}
-                    </span>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </RevealGroup>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* BRAND + SEARCH                                                     */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className="px-4 pb-20 sm:px-6 sm:pb-24 md:px-8 lg:px-10 lg:pb-28 xl:px-12 2xl:px-16">
-        <div className="mx-auto max-w-[1440px]">
-          <RevealGroup>
-            <Reveal>
-              <div className="grid gap-12 bg-[#CCFF00] px-6 py-12 sm:px-9 sm:py-14 lg:grid-cols-[1fr_0.65fr] lg:items-end lg:px-12 lg:py-16">
-                <div>
-                  <p className="font-mono text-[9px] uppercase tracking-[0.14em]">
-                    Search + Brand
-                  </p>
-
-                  <h2 className="site-heading mt-6 max-w-[720px] text-[clamp(2rem,4vw,3.1rem)] leading-[1.02] tracking-[-0.04em]">
-                    Getting found is the first step.
-                    <span className="block">
-                      Being understood is what matters next.
-                    </span>
-                  </h2>
-                </div>
-
-                {/* <p className="max-w-[470px] text-[12px] leading-6 text-neutral-700 lg:justify-self-end">
-                  SEO can create discovery. Brand, messaging and
-                  experience determine what happens after someone
-                  arrives. We treat them as parts of the same
-                  system.
-                </p> */}
-              </div>
-            </Reveal>
-          </RevealGroup>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* FAQ                                                                */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className="border-t border-neutral-200 px-4 py-20 sm:px-6 sm:py-24 md:px-8 lg:px-10 lg:py-28 xl:px-12 2xl:px-16">
-        <div className="mx-auto max-w-[1440px]">
-          <RevealGroup>
-            <div className="grid gap-12 lg:grid-cols-[0.55fr_1fr] lg:gap-24">
-              <div>
-                 
-
-                <Reveal delay={80}>
-                  <h2 className="site-heading mt-5 text-[clamp(2rem,4vw,3.1rem)] leading-[1.03] tracking-[-0.04em]">
-                    Useful answers.
-                  </h2>
-                </Reveal>
-              </div>
-
-              <div>
-                {FAQS.map((faq, index) => (
-                  <Reveal
-                    key={faq.question}
-                    delay={index * 60}
-                  >
-                    <details className="group border-t border-neutral-200 last:border-b">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-8 py-6">
-                        <div className="flex items-center gap-5">
-                          
-
-                          <h3 className="text-[22px]">
-                            {faq.question}
-                          </h3>
-                        </div>
-
-                        <span className="relative block h-3.5 w-3.5 shrink-0">
-                          <span className="absolute left-0 top-1/2 h-px w-full bg-neutral-950" />
-
-                          <span className="absolute left-1/2 top-0 h-full w-px bg-neutral-950 transition-opacity duration-300 group-open:opacity-0" />
-                        </span>
-                      </summary>
-
-                      <div className="pb-7 sm:pl-[38px]">
-                        <p className="max-w-[700px] text-[14px] leading-6 text-neutral-600 sm:text-[16px]">
-                          {faq.answer}
-                        </p>
-                      </div>
-                    </details>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </RevealGroup>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/* FINAL CTA                                                          */}
-      {/* ------------------------------------------------------------------ */}
-
-      <section className="bg-neutral-950 px-4 py-20 text-white sm:px-6 sm:py-24 md:px-8 lg:px-10 lg:py-28 xl:px-12 2xl:px-16">
-        <div className="mx-auto max-w-[1440px]">
-          <RevealGroup>
-            <div className="flex flex-col justify-between gap-12 lg:flex-row lg:items-end">
-              <div>
-              
-                <Reveal delay={80}>
-                  <h2 className="site-display mt-6 max-w-[820px] text-balance text-[clamp(2.3rem,4.5vw,3.1rem)] leading-[0.99] tracking-[-0.045em]">
-                    Find the search opportunities your business
-                    should own.
-                  </h2>
-                </Reveal>
-              </div>
-
-              <Reveal delay={160}>
-                <Link
-                  to="/contact"
-                  className="group inline-flex min-h-[50px] w-fit items-center gap-12 bg-[#CCFF00] px-6 text-[12px] font-medium text-neutral-950"
-                >
-                  Talk to BrandWorks
-
-                  <span
-                    aria-hidden="true"
-                    className="transition-transform duration-300 group-hover:translate-x-1"
-                  >
-                    →
-                  </span>
-                </Link>
-              </Reveal>
-            </div>
-          </RevealGroup>
-        </div>
-      </section>
+      <Hero />
+      <Problem />
+      <SerpCompare />
+      <Services />
+      <AiSearch />
+      <Process />
+      <Guarantee />
+      <Faq />
+      <Sources />
+      <FinalCta />
     </main>
   )
 }
