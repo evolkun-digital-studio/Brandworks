@@ -31,9 +31,9 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const pad = (index: number) => String(index + 1).padStart(2, '0')
 
-/* -------------------------------------------------------------------------- */
+
 /*                                  Shared                                    */
-/* -------------------------------------------------------------------------- */
+/* ----------------------------------------jjj---------------------------------- */
 
 /** ↗ for links that leave the site, → for everything else. */
 function ArrowIcon({ external = false }: { external?: boolean }) {
