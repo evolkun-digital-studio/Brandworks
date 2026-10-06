@@ -22,6 +22,7 @@ import { mediaUrl } from '../../lib/media'
 import SocialFAQ from '../../components/social/SocialFAQ'
 import SocialContact from '../../components/social/SocialContact'
 import SocialCaseCard from '../../components/social/SocialCaseCard'
+import impactStarAsset from '../../assets/Asset 23.svg'
 import '@fontsource/anton/latin-400.css'
 import './SocialMediaPage.css'
 
@@ -1157,6 +1158,7 @@ const RAIL_START = 440
 const PER_CARD = 85
 const FIRST_STORY_TURN = 70 // scroll length of the team → first story cylinder turn
 const LAST_CARD_STOP = 0 // final CTA locks at the same centered position as every story card
+const MORE_PROJECTS_REVEAL = 76
 // The incoming story takes control after crossing 10% into the current
 // card. Its movement continues independently until it reaches the lock.
 const STORY_ACTIVATION_OVERLAP = 0.1
@@ -1181,7 +1183,8 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
   const teamPhoto = mediaUrl('team-04.webp')
   const storyGroups = useMemo(() => buildStoryGroups(SOCIAL_REELS), [])
   const railCount = storyGroups.length + 1
-  const total = RAIL_START + railCount * PER_CARD + 40
+  const railEnd = RAIL_START + FIRST_STORY_TURN + (railCount - 1) * PER_CARD
+  const total = railEnd + MORE_PROJECTS_REVEAL + 40
 
   useGSAP(() => {
     const root = desktopRef.current
@@ -1208,6 +1211,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       const flipBack = q('[data-flip-back]')
       const teamCard = q('[data-social-team-card]')
       const railItems = qa('[data-rail-item]')
+      const impactGateway = q<HTMLElement>('[data-impact-gateway]')
       const flowHeroBack = q('[data-flow="hero-back"]')
       const flowHeroCopy = q('[data-flow="hero-copy"]')
       const flowPinkL = q('[data-flow="pink-left"]')
@@ -1218,7 +1222,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       const socialMeta = qa('[data-flow="social"] [data-social-fade]')
       const video = q<HTMLVideoElement>('[data-social-takeover-video]')
 
-      if (!stage || !railBg || !stageBg || !backdrop || shells.length < 3 || !flipFront || !flipBack || !teamCard || !railItems.length) return
+      if (!stage || !railBg || !stageBg || !backdrop || shells.length < 3 || !flipFront || !flipBack || !teamCard || !railItems.length || !impactGateway) return
 
       const centerShell = shells[1]
       const leftShell = shells[0]
@@ -1263,6 +1267,12 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         force3D: true,
         autoAlpha: 0,
         pointerEvents: 'none',
+      })
+      gsap.set(impactGateway, {
+        scaleX: 0,
+        scaleY: 0,
+        transformOrigin: '50% 50%',
+        force3D: true,
       })
 
       /* ---------- magnetic hover on hero photos ---------- */
@@ -1536,6 +1546,16 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       //    …then every other card follows through from the right
       tl.to(proxy, { o: () => geom.max, duration: (railCount - 1) * PER_CARD, ease: 'none', onUpdate: layoutRail }, RAIL_START + FIRST_STORY_TURN)
 
+      // The CTA stays as the final stack card. A separate foreground surface
+      // starts at zero in the viewport centre and grows evenly toward all four
+      // edges into the next full-screen scene.
+      tl.to(impactGateway, {
+        scaleX: 1,
+        scaleY: 1,
+        duration: MORE_PROJECTS_REVEAL,
+        ease: 'power4.inOut',
+      }, railEnd)
+
       // video only plays while it's the card on show
       tl.eventCallback('onUpdate', () => {
         // keep every cylinder face exactly where its angle says (both scroll directions)
@@ -1640,23 +1660,28 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
 
           {/* story cards — slide in from the right and stack on the slot */}
-          <div className="pointer-events-none absolute inset-0 z-[50]">
+          <div className="pointer-events-none absolute inset-0 z-[70]">
             {storyGroups.map((group, g) => (
               <div key={group.id} data-rail-item className="pointer-events-auto [will-change:transform]" style={{ ...RAIL_ITEM, zIndex: g + 1, transform: 'translateX(110vw)' }}>
                 <StoryGroupCard group={group} active={railIndex === g + 1} passed={railIndex > g + 1} onOpen={onOpen} className="h-full w-full" caption={socialCaseOfMonth} />
                 <CylShade className="z-10 rounded-[clamp(14px,1.2vw,22px)]" />
               </div>
             ))}
-            <div data-rail-item className="pointer-events-auto [will-change:transform]" style={{ ...RAIL_ITEM, zIndex: storyGroups.length + 1, transform: 'translateX(110vw)' }}>
+            <div data-rail-item data-more-projects-item className="pointer-events-auto [will-change:transform,width,height]" style={{ ...RAIL_ITEM, zIndex: storyGroups.length + 1, transform: 'translateX(110vw)' }}>
               <a
+                data-more-projects-card
                 href="#social-process"
-                className="flex h-full w-full flex-col items-center justify-center rounded-[clamp(14px,1.2vw,22px)] bg-[#cb2486] p-8 text-center text-white shadow-[0_20px_60px_rgba(0,0,0,.18)]"
+                className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[clamp(14px,1.2vw,22px)] bg-[#cb2486] p-8 text-center text-white shadow-[0_20px_60px_rgba(0,0,0,.18)]"
               >
-                <span className="font-primary text-[clamp(42px,4vw,70px)] uppercase leading-[0.76] tracking-[-0.05em]">More<br />projects?</span>
-                <small className="mt-7 rounded-full bg-white px-4 py-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#111]">Explore <Arrow /></small>
+                <span className="relative z-10 flex flex-col items-center">
+                  <span className="font-primary text-[clamp(42px,4vw,70px)] uppercase leading-[0.76] tracking-[-0.05em]">More<br />projects?</span>
+                  <small className="mt-7 rounded-full bg-white px-4 py-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#111]">Explore <Arrow /></small>
+                </span>
               </a>
             </div>
           </div>
+
+          <div data-impact-gateway aria-hidden="true" className="pointer-events-none absolute inset-0 z-[80] bg-[#cb2486] [will-change:transform]" />
 
           {/* ---------- text that simply scrolls past ---------- */}
           <div data-flow="hero-copy" className={flowBox}>
@@ -1805,6 +1830,162 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             ))}
           </div>
         </div>
+      </div>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* More-projects -> expertise centre reveal                            */
+/* ------------------------------------------------------------------ */
+
+function CenterImpactTransition() {
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useGSAP(() => {
+    const section = sectionRef.current
+    if (!section) return
+    const mm = gsap.matchMedia()
+
+    mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
+      const statement = section.querySelector<HTMLElement>('[data-impact-statement]')
+      const statementLines = gsap.utils.toArray<HTMLElement>('[data-impact-line]', section)
+      const mark = section.querySelector<HTMLImageElement>('[data-impact-mark]')
+      const bw = section.querySelector<HTMLElement>('[data-impact-bw]')
+      const starWipe = section.querySelector<HTMLElement>('[data-impact-star-wipe]')
+      const base = section.querySelector<HTMLElement>('[data-impact-base]')
+      const finalLines = gsap.utils.toArray<HTMLElement>('[data-impact-final-line]', section)
+      if (!statement || !mark || !bw || !starWipe || !base) return
+
+      gsap.set(statement, { autoAlpha: 0 })
+      gsap.set(statementLines, {
+        yPercent: 120,
+        clipPath: 'inset(0% 0% 0% 0%)',
+        transformOrigin: '50% 50%',
+      })
+      gsap.set(mark, {
+        autoAlpha: 0,
+        scale: 0.08,
+        rotation: -5,
+        clipPath: 'inset(50% 0% 50% 0%)',
+        transformOrigin: '50% 50%',
+        force3D: true,
+      })
+      gsap.set(bw, {
+        autoAlpha: 0,
+        scale: 0.65,
+        transformOrigin: '50% 50%',
+        force3D: true,
+      })
+      // One clipped surface replaces the two enormous filtered SVG layers.
+      // Its polygon never changes; only compositor-friendly transforms do.
+      gsap.set(starWipe, {
+        autoAlpha: 0,
+        scale: 0.06,
+        rotation: 0,
+        yPercent: 7,
+        backgroundColor: '#fffaf7',
+        transformOrigin: '50% 50%',
+        force3D: true,
+      })
+      gsap.set(finalLines, { yPercent: 125 })
+
+      const timeline = gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 1.05,
+          invalidateOnRefresh: true,
+        },
+      })
+
+      timeline
+        .set(statement, { autoAlpha: 1 }, 0)
+        .to(statementLines, { yPercent: 0, duration: 0.68, stagger: 0.13, ease: 'power4.out' }, 0.08)
+        .to(mark, { autoAlpha: 1, scale: 1, rotation: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.72, ease: 'power4.out' }, 1.02)
+        .to(bw, { autoAlpha: 1, scale: 1, duration: 0.52, ease: 'back.out(1.8)' }, 1.12)
+        .to(statementLines, {
+          scale: 0.86,
+          color: '#fffaf7',
+          autoAlpha: 0,
+          duration: 0.58,
+          stagger: 0.035,
+          ease: 'power3.inOut',
+        }, 1.34)
+        .to(statement, { autoAlpha: 0, duration: 0.12 }, 1.86)
+        .set(starWipe, { autoAlpha: 1 }, 1.72)
+        .to(mark, { scale: 1.14, duration: 0.28, ease: 'power3.out' }, 1.7)
+        .to(bw, { scale: 1.08, duration: 0.28, ease: 'power3.out' }, 1.7)
+        .to(starWipe, { scale: 0.3, rotation: -5, yPercent: 4, duration: 0.3, ease: 'power3.out' }, 1.72)
+        .to(mark, { autoAlpha: 0, scale: 0.92, duration: 0.26, ease: 'power2.in' }, 1.96)
+        .to(bw, { autoAlpha: 0, scale: 0.82, duration: 0.22, ease: 'power2.in' }, 1.96)
+        .to(starWipe, {
+          scale: 5.8,
+          rotation: 2,
+          yPercent: -4,
+          backgroundColor: '#d0cce2',
+          duration: 1.12,
+          ease: 'power4.inOut',
+        }, 2.02)
+        .set(base, { backgroundColor: '#d0cce2' }, 3.08)
+        .to(finalLines, { yPercent: 0, duration: 0.62, stagger: 0.11, ease: 'power4.out' }, 3.1)
+        .set({}, {}, 4.12)
+
+      return () => timeline.kill()
+    })
+
+    return () => mm.revert()
+  }, { scope: sectionRef })
+
+  return (
+    <section ref={sectionRef} className="relative bg-[#cb2486] lg:h-[360svh]" aria-label="BrandWorks impact transition">
+      <div className="relative hidden h-[100svh] overflow-hidden lg:sticky lg:top-0 lg:block">
+        <div data-impact-base className="absolute inset-0 bg-[#cb2486]" />
+
+        <div data-impact-statement className="pointer-events-none absolute inset-0 z-20 grid place-items-center px-8 text-[#fff5f3]">
+          <h2 className="bwsm-story-title text-center text-[clamp(54px,7vw,132px)] uppercase leading-[0.82] tracking-[-0.05em]">
+            {['It is the impact', 'of your sincerity', 'It is aiming true'].map((line) => (
+              <span key={line} className="block overflow-hidden py-[0.04em]"><span data-impact-line className="block">{line}</span></span>
+            ))}
+          </h2>
+        </div>
+
+        <img
+          data-impact-mark
+          src={impactStarAsset}
+          alt=""
+          className="pointer-events-none absolute left-1/2 top-1/2 z-40 w-[clamp(110px,12vw,220px)] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_0_32px_rgba(255,250,247,.28)] [will-change:transform,clip-path]"
+          aria-hidden="true"
+        />
+
+        <span
+          data-impact-bw
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[45] -translate-x-1/2 -translate-y-1/2 font-primary text-[clamp(22px,2.2vw,40px)] font-bold uppercase tracking-[-0.08em] text-[#cb2486] [will-change:transform,opacity]"
+          aria-hidden="true"
+        >
+          BW
+        </span>
+
+        <div
+          data-impact-star-wipe
+          className="pointer-events-none absolute left-1/2 top-1/2 z-30 h-[100vmax] w-[68vmax] -translate-x-1/2 -translate-y-1/2 bg-[#fffaf7] [clip-path:polygon(50%_0%,58%_42%,100%_50%,58%_58%,50%_100%,42%_58%,0%_50%,42%_42%)] [will-change:transform]"
+          aria-hidden="true"
+        />
+
+        <div className="pointer-events-none absolute inset-0 z-50 grid place-items-center text-[#cb2486]">
+          <h2 className="bwsm-story-title text-center text-[clamp(66px,9vw,164px)] uppercase leading-[0.76] tracking-[-0.055em]">
+            {['And', 'hit', 'strong.'].map((line) => (
+              <span key={line} className="block overflow-hidden py-[0.04em]"><span data-impact-final-line className="block">{line}</span></span>
+            ))}
+          </h2>
+        </div>
+      </div>
+
+      <div className="relative grid min-h-[100svh] place-items-center overflow-hidden bg-[#d0cce2] px-6 py-24 text-center text-[#cb2486] lg:hidden">
+        <img src={impactStarAsset} alt="" className="absolute h-[82svh] w-auto opacity-15" aria-hidden="true" />
+        <h2 className="bwsm-story-title relative text-[18vw] uppercase leading-[0.78] tracking-[-0.055em]">It is aiming true.<br />And hit strong.</h2>
       </div>
     </section>
   )
@@ -2020,32 +2201,103 @@ function ProcessSection() {
   )
 }
 
+type WhyIconName = 'laptop' | 'craft' | 'bolt' | 'smile'
+
+function WhyIcon({ name }: { name: WhyIconName }) {
+  const shared = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  }
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      {name === 'laptop' && <><rect x="15" y="15" width="34" height="25" rx="3" {...shared} /><path d="M10 46h44l-4 5H14l-4-5Z" {...shared} /><path d="M28 47h8" {...shared} /></>}
+      {name === 'craft' && <><path d="M27 50V28c0-3 4-3 4 0v8-18c0-4 5-4 5 0v15-19c0-4 5-4 5 0v19-14c0-4 5-4 5 0v20c0 8-5 13-12 13h-1c-8 0-14-6-14-14v-8c0-4 5-5 7-1l5 8" {...shared} /><path d="M18 18c4 0 7-3 7-7M15 24c-3-2-4-5-3-8" {...shared} /></>}
+      {name === 'bolt' && <path d="M36 7 17 35h14l-4 22 20-31H33l3-19Z" {...shared} />}
+      {name === 'smile' && <><circle cx="32" cy="32" r="23" {...shared} /><path d="M22 27h.01M42 27h.01M21 38c3 6 8 9 11 9s8-3 11-9" {...shared} /></>}
+    </svg>
+  )
+}
+
 function WhySection() {
   const sectionRef = useRef<HTMLElement>(null)
   useGSAP(() => {
     const section = sectionRef.current
     if (!section) return
-    gsap.from('[data-why-card]', {
-      yPercent: 110,
-      rotate: (index) => [-5, 2, 5][index] ?? 0,
-      stagger: 0.08,
-      ease: 'none',
-      scrollTrigger: { trigger: section, start: 'top 75%', end: 'center center', scrub: 0.75 },
+    const mm = gsap.matchMedia()
+    mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
+      const cards = gsap.utils.toArray<HTMLElement>('[data-why-card]', section)
+      const cta = section.querySelector<HTMLElement>('[data-why-cta]')
+      const starts = [
+        { xPercent: -42, yPercent: 128, rotate: -8 },
+        { xPercent: -15, yPercent: 137, rotate: 6 },
+        { xPercent: 17, yPercent: 130, rotate: -5 },
+        { xPercent: 44, yPercent: 142, rotate: 8 },
+      ]
+      const restingRotations = [-2.4, 1.5, -1.2, 2.2]
+
+      cards.forEach((card, index) => gsap.set(card, {
+        ...starts[index],
+        transformOrigin: '50% 100%',
+        force3D: true,
+        willChange: 'transform',
+      }))
+      if (cta) gsap.set(cta, { autoAlpha: 0, y: 18 })
+
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.85,
+          invalidateOnRefresh: true,
+        },
+      })
+      cards.forEach((card, index) => {
+        timeline.to(card, {
+          xPercent: 0,
+          yPercent: 0,
+          rotate: restingRotations[index],
+          duration: 0.82,
+          ease: 'power3.out',
+        }, index * 0.58)
+      })
+      if (cta) timeline.to(cta, { autoAlpha: 1, y: 0, duration: 0.35, ease: 'power2.out' }, 2.35)
+      timeline.set({}, {}, 2.85)
+
+      return () => {
+        timeline.kill()
+        gsap.set(cards, { clearProps: 'transform,willChange' })
+        if (cta) gsap.set(cta, { clearProps: 'transform,opacity,visibility' })
+      }
     })
+    return () => mm.revert()
   }, { scope: sectionRef })
+
+  const benefits: Array<{ title: string; copy: string; icon: WhyIconName }> = [
+    { title: 'Social media experts', copy: "For almost 10 years, our core business has been social media. Community management, photos and videos: that's what we do best.", icon: 'laptop' },
+    { title: 'Premium & custom-made', copy: 'No standardized offers or copy-paste packages. Each project is designed for you and guided by the same goal: quality.', icon: 'craft' },
+    { title: 'A clear method', copy: 'Shaped over the years between rigor and creativity: organization, precision and long-term vision.', icon: 'bolt' },
+    { title: 'Humanity first', copy: "Behind every brand are passionate people. It's their story that we love to understand and tell.", icon: 'smile' },
+  ]
+
   return (
     <section ref={sectionRef} className="bwsm-why" aria-labelledby="bwsm-why-title">
-      <h2 id="bwsm-why-title">Why<br />choose<br />BrandWorks?</h2>
-      <div className="bwsm-why__cards">
-        {[
-          ['Social specialists', 'Strategy and production live in the same room.'],
-          ['Made for you', 'No copy-paste calendars or borrowed brand voices.'],
-          ['One clear method', 'Creative decisions tied back to a measurable purpose.'],
-        ].map(([title, copy]) => (
-          <article key={title} data-why-card><h3>{title}</h3><p>{copy}</p></article>
-        ))}
+      <div className="bwsm-why__sticky">
+        <h2 id="bwsm-why-title">Why<br />choose<br />BrandWorks?</h2>
+        <div className="bwsm-why__cards">
+          {benefits.map(({ title, copy, icon }) => (
+            <article key={title} data-why-card>
+              <span className="bwsm-why__icon"><WhyIcon name={icon} /></span>
+              <h3>{title}</h3>
+              <p>{copy}</p>
+            </article>
+          ))}
+        </div>
+        <Link to="/contact" className="bwsm-why__cta" data-why-cta>Start a conversation <Arrow /></Link>
       </div>
-      <Link to="/contact" className="bwsm-why__cta">Start a conversation <Arrow /></Link>
     </section>
   )
 }
@@ -2112,6 +2364,7 @@ export default function SocialMediaPage({ siteUrl }: { siteUrl?: string }) {
       <SocialRoundNav />
       <SocialCaseCard image={SOCIAL_REELS[0]?.poster ?? ''} />
       <ProjectRail onOpen={openReel} />
+      <CenterImpactTransition />
       <ExpertiseSection />
       <ProcessSection />
       <WhySection />

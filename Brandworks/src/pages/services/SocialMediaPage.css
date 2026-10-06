@@ -1508,141 +1508,110 @@ a:hover>.bwsm-arrow {
 /* 05 — final statement */
 
 .bwsm-why {
-
   position: relative;
-
-  display: flex;
-
-  min-height: 115svh;
-
-  flex-direction: column;
-
-  overflow: hidden;
-
-  padding: clamp(110px, 14vh, 170px) var(--bwsm-gutter) 46px;
-
+  height: 290svh;
   background: var(--bwsm-pink);
-
   color: #f7e0dd;
-
 }
 
-.bwsm-why>h2 {
+.bwsm-why__sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
 
-  max-width: 1000px;
-
-  margin: 0 auto;
-
+.bwsm-why__sticky>h2 {
+  position: absolute;
+  z-index: 1;
+  top: 49%;
+  left: 50%;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0;
   font-family: var(--font-primary);
-
-  font-size: clamp(80px, 11vw, 150px);
-
+  font-size: clamp(100px, 13.2vw, 260px);
   font-weight: 400;
-
-  line-height: 0.72;
-
+  line-height: 0.78;
   letter-spacing: -0.055em;
-
   text-align: center;
-
   text-transform: uppercase;
-
+  transform: translate(-50%, -50%);
 }
 
 .bwsm-why__cards {
-
-  position: relative;
-
-  z-index: 2;
-
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  right: clamp(24px, 2vw, 42px);
+  left: clamp(24px, 2vw, 42px);
   display: grid;
-
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  gap: 18px;
-
-  width: min(1080px, 100%);
-
-  margin: auto auto 0;
-
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(12px, 1.2vw, 24px);
+  transform: translateY(-50%);
 }
 
 .bwsm-why__cards article {
-
   display: flex;
-
-  min-height: 300px;
-
+  min-height: clamp(390px, 62svh, 610px);
   flex-direction: column;
-
-  justify-content: flex-end;
-
-  padding: 28px;
-
-  border-radius: var(--bwsm-radius);
-
+  align-items: center;
+  justify-content: center;
+  padding: clamp(26px, 2.2vw, 44px);
   border: 0;
-
+  border-radius: var(--bwsm-radius);
   background: var(--bwsm-green);
-
   color: var(--bwsm-paper);
-
+  text-align: center;
   box-shadow: 0 24px 50px rgb(16 17 15 / 18%);
-
 }
 
-.bwsm-why__cards article:nth-child(1) {
-  transform: rotate(-4deg);
+.bwsm-why__cards article:nth-child(1) { transform: rotate(-2.4deg); }
+.bwsm-why__cards article:nth-child(2) { transform: rotate(1.5deg); }
+.bwsm-why__cards article:nth-child(3) { transform: rotate(-1.2deg); }
+.bwsm-why__cards article:nth-child(4) { transform: rotate(2.2deg); }
+
+.bwsm-why__icon {
+  display: block;
+  width: clamp(54px, 4.2vw, 82px);
+  margin-bottom: clamp(28px, 4vh, 48px);
+  color: #fffaf7;
 }
 
-.bwsm-why__cards article:nth-child(3) {
-  transform: rotate(4deg);
+.bwsm-why__icon svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .bwsm-why__cards h3 {
-
-  max-width: 11ch;
-
+  max-width: 12ch;
   font-family: var(--font-primary);
-
-  font-size: clamp(28px, 2.5vw, 46px);
-
+  font-size: clamp(28px, 2.55vw, 50px);
   font-weight: 400;
-
   line-height: 0.82;
-
   text-transform: uppercase;
-
 }
 
 .bwsm-why__cards p {
-
-  max-width: 30ch;
-
-  margin-top: 15px;
-
-  font-size: 12px;
-
-  line-height: 1.45;
-
+  max-width: 31ch;
+  margin-top: clamp(18px, 2.4vh, 28px);
+  font-size: clamp(12px, 0.88vw, 17px);
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .bwsm-why__cta {
-
-  align-self: center;
-
-  margin-top: 46px;
-
+  position: absolute;
+  z-index: 4;
+  right: 50%;
+  bottom: 3svh;
   padding-bottom: 6px;
-
   border-bottom: 1px solid;
-
   font-size: 12px;
-
   letter-spacing: 0.1em;
-
   text-transform: uppercase;
-
+  transform: translateX(50%);
 }
 
 /* Full-screen reel viewer */
@@ -1979,23 +1948,67 @@ a:hover>.bwsm-arrow {
 
   .bwsm-why {
 
+    height: auto;
+
     min-height: 0;
+
+    padding: 0;
+
+  }
+
+  .bwsm-why__sticky {
+
+    position: relative;
+
+    display: flex;
+
+    height: auto;
+
+    min-height: 0;
+
+    flex-direction: column;
 
     padding: 100px 20px 75px;
 
   }
 
-  .bwsm-why>h2 {
+  .bwsm-why__sticky>h2 {
+
+    position: relative;
+
+    z-index: 1;
+
+    top: auto;
+
+    left: auto;
+
+    order: 2;
 
     font-size: clamp(66px, 18vw, 104px);
+
+    margin: 48px auto 0;
+
+    transform: none;
 
   }
 
   .bwsm-why__cards {
 
+    position: relative;
+
+    top: auto;
+
+    right: auto;
+
+    left: auto;
+
+    order: 1;
+
     grid-template-columns: 1fr;
 
-    margin-top: 70px;
+    margin: 0 auto;
+
+    transform: none;
 
   }
 
@@ -2004,6 +2017,24 @@ a:hover>.bwsm-arrow {
     min-height: 230px;
 
     transform: none !important;
+
+  }
+
+  .bwsm-why__cta {
+
+    position: relative;
+
+    right: auto;
+
+    bottom: auto;
+
+    order: 3;
+
+    align-self: center;
+
+    margin-top: 46px;
+
+    transform: none;
 
   }
 
@@ -2048,4 +2079,4 @@ body.bwsm-route:not(.bwsm-nav-open) .site-header { display: none; }
 body.bwsm-route.bwsm-nav-open .site-header { z-index: 1100; }
 
 /* Why choose: three giant lines, all cream */
-.bwsm-why>h2 { max-width: none; font-size: clamp(90px, 13.2vw, 260px); line-height: 0.8; color: #f7e0dd; }
+.bwsm-why__sticky>h2 { max-width: none; color: #f7e0dd; }
