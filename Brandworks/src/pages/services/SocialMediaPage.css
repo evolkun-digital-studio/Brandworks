@@ -1,22 +1,25 @@
+@import url('https://api.fontshare.com/v2/css?f[]=clash-grotesk@400,500,600,700&display=swap');
 .bwsm-page,
 
 .bwsm-dialog {
 
-  --bwsm-lime: #ccff00;
+  --bwsm-lime: #e993bc;
 
   --bwsm-ink: #10110f;
 
-  --bwsm-pink: #e9a0a7;
+  --bwsm-pink: #cb2486;
 
-  --bwsm-paper: #f1efe9;
+  --bwsm-paper: #f7e0dd;
 
   --bwsm-blue: #ffffff;
 
-  --bwsm-green: #19351d;
+  --bwsm-green: #055c2c;
 
   --bwsm-gutter: clamp(20px, 2.2vw, 42px);
 
   --bwsm-radius: clamp(18px, 1.5vw, 28px);
+
+  --font-secondary: 'Clash Grotesk', 'Open Sans', ui-sans-serif, system-ui, sans-serif;
 
   font-family: var(--font-secondary);
 
@@ -746,9 +749,9 @@ a:hover>.bwsm-arrow {
 
   /* background: var(--bwsm-paper); */
 
-  background: white;
+  background: #d0cce2;
 
-  color: var(--bwsm-ink);
+  color: var(--bwsm-pink);
 
 }
 
@@ -812,9 +815,9 @@ a:hover>.bwsm-arrow {
 
   padding: 0.03em 0.08em 0.07em;
 
-  background: var(--bwsm-lime);
+  background: none;
 
-  color: var(--bwsm-ink);
+  color: #f7e0dd;
 
 }
 
@@ -1334,9 +1337,9 @@ a:hover>.bwsm-arrow {
 
   min-height: 3300px;
 
-  background: var(--bwsm-ink);
+  background: #f7e0dd;
 
-  color: var(--bwsm-paper);
+  color: var(--bwsm-pink);
 
 }
 
@@ -1420,19 +1423,19 @@ a:hover>.bwsm-arrow {
 
 .bwsm-process__deck article.is-lime {
 
-  background: var(--bwsm-lime);
+  background: var(--bwsm-pink);
 
-  color: var(--bwsm-ink);
+  color: #f7e0dd;
 
 }
 
 .bwsm-process__deck article.is-dark {
 
-  border: 1px solid rgb(16 17 15 / 18%);
+  border: 0;
 
-  background: var(--bwsm-paper);
+  background: var(--bwsm-green);
 
-  color: var(--bwsm-ink);
+  color: #f7e0dd;
 
 }
 
@@ -1518,9 +1521,9 @@ a:hover>.bwsm-arrow {
 
   padding: clamp(110px, 14vh, 170px) var(--bwsm-gutter) 46px;
 
-  background: var(--bwsm-lime);
+  background: var(--bwsm-pink);
 
-  color: var(--bwsm-ink);
+  color: #f7e0dd;
 
 }
 
@@ -1578,9 +1581,9 @@ a:hover>.bwsm-arrow {
 
   border-radius: var(--bwsm-radius);
 
-  border: 1px solid rgb(204 255 0 / 38%);
+  border: 0;
 
-  background: var(--bwsm-ink);
+  background: var(--bwsm-green);
 
   color: var(--bwsm-paper);
 
@@ -2023,3 +2026,26 @@ a:hover>.bwsm-arrow {
   }
 
 }
+
+.bwsm-hero-type {
+  font-family: 'Anton', var(--font-primary), Impact, sans-serif;
+}
+
+.bwsm-hero-type.bwsm-hero-type--clash {
+  font-family: 'Clash Grotesk', var(--font-secondary), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.bwsm-story-title {
+  font-family: 'Clash Grotesk', var(--font-secondary), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.bwsm-roundnav { position: fixed; inset: clamp(20px, 2vw, 38px) clamp(20px, 2vw, 38px) auto; z-index: 1200; display: flex; justify-content: space-between; pointer-events: none; }
+.bwsm-page .bwsm-roundnav > * { pointer-events: auto; display: grid; place-content: center; gap: 4px; width: clamp(52px, 4vw, 76px); height: clamp(52px, 4vw, 76px); border: 0; border-radius: 50%; background: #e993bc; color: #055c2c; cursor: pointer; }
+.bwsm-page .bwsm-roundnav button span { display: block; width: 14px; height: 2px; background: currentColor; }
+body.bwsm-route:not(.bwsm-nav-open) .site-header { display: none; }
+body.bwsm-route.bwsm-nav-open .site-header { z-index: 1100; }
+
+/* Why choose: three giant lines, all cream */
+.bwsm-why>h2 { max-width: none; font-size: clamp(90px, 13.2vw, 260px); line-height: 0.8; color: #f7e0dd; }

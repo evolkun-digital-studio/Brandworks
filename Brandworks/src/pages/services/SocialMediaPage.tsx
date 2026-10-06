@@ -17,7 +17,12 @@ import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SOCIAL_REELS, type SocialReel } from '../../data/socialMedia'
+import { socialCaseOfMonth } from '../../data/socialMediaPage'
 import { mediaUrl } from '../../lib/media'
+import SocialFAQ from '../../components/social/SocialFAQ'
+import SocialContact from '../../components/social/SocialContact'
+import SocialCaseCard from '../../components/social/SocialCaseCard'
+import '@fontsource/anton/latin-400.css'
 import './SocialMediaPage.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
@@ -66,7 +71,7 @@ function AppleEmojiRow({ names, className = '', ...props }: { names: readonly Ap
 }
 
 type ViewerSelection = { reel: SocialReel; trigger: HTMLElement }
-type StoryGroup = { id: string; reels: SocialReel[] }
+type StoryGroup = { id: string; title: string; reels: SocialReel[] }
 
 const expertise = [
   {
@@ -123,10 +128,10 @@ function Lines({ lines }: { lines: ReactNode[] }) {
 }
 
 /** Lime highlight whose background can wipe in (data-hl is scaled by GSAP; visible by default). */
-function Hl({ children }: { children: ReactNode }) {
+function Hl({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <span className="relative inline-block px-[0.08em] pb-[0.07em] pt-[0.03em] text-[#10110f]">
-      <span data-hl className="absolute inset-0 origin-left bg-[#ccff00]" aria-hidden="true" />
+    <span className={`relative inline-block ${className}`}>
+      <span data-hl className="absolute inset-0 origin-left" aria-hidden="true" />
       <span className="relative">{children}</span>
     </span>
   )
@@ -157,46 +162,128 @@ function formatTime(value: number) {
 
 const Icon = {
   Play: () => (
-    <svg viewBox="0 0 24 24" className="ml-[2px] size-[18px]" fill="currentColor" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      className="size-[40px] rounded-full bg-white p-[10px] text-black"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M8 5.6v12.8a1 1 0 0 0 1.53.85l10.05-6.4a1 1 0 0 0 0-1.7L9.53 4.75A1 1 0 0 0 8 5.6Z" />
     </svg>
   ),
+
   Pause: () => (
-    <svg viewBox="0 0 24 24" className="size-[18px] " fill="currentColor" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      className="size-[40px] rounded-full bg-white p-[10px] text-black"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <rect x="6" y="5" width="4.2" height="14" rx="1.4" />
       <rect x="13.8" y="5" width="4.2" height="14" rx="1.4" />
     </svg>
   ),
+
   Volume: () => (
-    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4Z" fill="currentColor" />
+    <svg
+      viewBox="0 0 24 24"
+      className="size-[40px] rounded-full bg-white p-[10px] text-black"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path
+        d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4Z"
+        fill="currentColor"
+      />
       <path d="M15.5 9a4.2 4.2 0 0 1 0 6" />
       <path d="M18.3 6.5a8 8 0 0 1 0 11" />
     </svg>
   ),
+
   Muted: () => (
-    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4Z" fill="currentColor" />
+    <svg
+      viewBox="0 0 24 24"
+      className="size-[40px] rounded-full bg-white p-[10px] text-black"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path
+        d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4Z"
+        fill="currentColor"
+      />
       <path d="m16 9.5 5 5M21 9.5l-5 5" />
     </svg>
   ),
+
   Heart: ({ filled }: { filled: boolean }) => (
-    <svg viewBox="0 0 24 24" className="size-[19px]" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      className="size-[40px] rounded-full bg-white p-[10px] text-red-500"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M12 20.2s-7.6-4.6-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.7c0 5.5-7.6 10.1-7.6 10.1Z" />
     </svg>
   ),
+
   Arrow: ({ dir }: { dir: 'left' | 'right' }) => (
-    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={dir === 'left' ? 'M19 12H5m6-6-6 6 6 6' : 'M5 12h14m-6-6 6 6-6 6'} />
+    <svg
+      viewBox="0 0 24 24"
+      className="size-[40px] rounded-full bg-white/30 p-[10px] text-white backdrop-blur-sm"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path
+        d={
+          dir === 'left'
+            ? 'M19 12H5m6-6-6 6 6 6'
+            : 'M5 12h14m-6-6 6 6-6 6'
+        }
+      />
     </svg>
   ),
+
   Chevron: ({ dir }: { dir: 'left' | 'right' }) => (
-    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={dir === 'left' ? 'm14.5 6-6 6 6 6' : 'm9.5 6 6 6-6 6'} />
+    <svg
+      viewBox="0 0 24 24"
+      className="size-[40px] rounded-full bg-white p-[10px] text-black"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path
+        d={dir === 'left' ? 'm14.5 6-6 6 6 6' : 'm9.5 6 6 6-6 6'}
+      />
     </svg>
   ),
+
   Send: () => (
-    <svg viewBox="0 0 24 24" className="size-[17px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      className="size-[40px] rounded-full bg-white p-[10px] text-black"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinejoin="round"
+      aria-hidden="true" >
       <path d="M21 3 3 10.5l7 2.5 2.5 7L21 3Z" />
       <path d="m10 13 4.5-4.5" strokeLinecap="round" />
     </svg>
@@ -321,21 +408,26 @@ function ReelViewer({ selection, onDismiss }: { selection: ViewerSelection; onDi
 const CYL_ANGLE = 64 // degrees between two neighbouring faces
 const CYL_PERSPECTIVE = 1900
 const CYL_EASE = 'power3.inOut'
-
-/** radius that makes two faces of width `w` meet edge to edge */
-const cylRadius = (w: number) => (w / 2) / Math.tan(((CYL_ANGLE / 2) * Math.PI) / 180)
+const COVER_OFFSET = 60 // px past the covered card's right edge where the arriving sliver starts
+const COVER_SHRINK = 0.45 // how much smaller the arriving card starts; it grows to the full card size as it lands
+const COVER_TURN = 86 // degrees it starts turned: an almost edge-on sliver, left edge toward the viewer
 
 /**
- * Places a face on the cylinder at `angle` degrees. The axis sits R px behind
- * the card, so a face turned by θ moves sideways by R·sinθ and back by R·(1−cosθ).
- * Done by hand (x / z / rotateY around the card's own centre) instead of a
- * 3D transform-origin: GSAP caches a z-origin offset, and when React StrictMode
- * runs the setup twice that stale offset left the card ~240px off-centre.
+ * One card covers the other: a positive angle means "still waiting on the right", it slides in
+ * small (1 - COVER_SHRINK of full size) and as an almost edge-on sliver just outside the covered card's right edge (half its width + COVER_OFFSET
+ * to the right, turned COVER_TURN° with its left edge showing), then swings flat and slides over it
+ * as the angle falls to 0; a negative angle means "being covered": the card
+ * stays where it is and only settles back a touch. Angles are kept from the old cylinder
+ * timeline so scrubbing, refreshes and eases keep working unchanged.
  */
-function setCylinder(el: HTMLElement, angle: number, width: number, baseX = 0) {
-  const R = cylRadius(width)
-  const rad = (angle * Math.PI) / 180
-  gsap.set(el, { rotateY: angle, x: baseX + R * Math.sin(rad), z: R * (Math.cos(rad) - 1) })
+function setCover(el: HTMLElement, angle: number, baseX = 0, offset = COVER_OFFSET) {
+  if (angle > 0) {
+    const p = Math.min(1, angle / CYL_ANGLE)
+    gsap.set(el, { rotateY: p * COVER_TURN, x: baseX + p * (el.offsetWidth / 2 + offset), z: 0, yPercent: 0, rotation: 0, scale: 1 - p * COVER_SHRINK })
+  } else {
+    const p = Math.min(1, -angle / CYL_ANGLE)
+    gsap.set(el, { rotateY: 0, x: baseX, z: 0, yPercent: 0, rotation: 0, scale: 1 })
+  }
 }
 
 /**
@@ -352,7 +444,7 @@ function useCylinderSwap() {
 
   useEffect(() => () => { if (outRef.current) gsap.killTweensOf(outRef.current); if (inRef.current) gsap.killTweensOf(inRef.current) }, [])
 
-  const swap = useCallback((dir: 1 | -1, poster: string | undefined, commit: () => void) => {
+  const swap = useCallback((_dir: 1 | -1, poster: string | undefined, commit: () => void) => {
     const out = outRef.current
     const inc = inRef.current
     const img = inImgRef.current
@@ -363,15 +455,14 @@ function useCylinderSwap() {
       if (poster) img.src = poster
       else img.removeAttribute('src')
     }
-    const width = out.offsetWidth
     const outShade = out.querySelector('[data-cyl-shade]')
     const incShade = inc.querySelector('[data-cyl-shade]')
     const D = 0.95
     gsap.set([out, inc], { transformOrigin: '50% 50%', transformPerspective: CYL_PERSPECTIVE, force3D: true })
     const turn = { a: 0 } // 0 → 1 over the swap
     const place = () => {
-      setCylinder(out, -CYL_ANGLE * dir * turn.a, width)
-      setCylinder(inc, CYL_ANGLE * dir * (1 - turn.a), width)
+      setCover(out, -CYL_ANGLE * turn.a)
+      setCover(inc, CYL_ANGLE * (1 - turn.a))
     }
     const tl = gsap.timeline({
       defaults: { duration: D, ease: CYL_EASE },
@@ -379,8 +470,8 @@ function useCylinderSwap() {
         commit()
         // let React swap the <video> source before the poster face is removed
         requestAnimationFrame(() => requestAnimationFrame(() => {
-          gsap.set(out, { rotateY: 0, x: 0, z: 0, autoAlpha: 1 })
-          gsap.set(inc, { autoAlpha: 0, rotateY: 0, x: 0, z: 0 })
+          gsap.set(out, { rotateY: 0, x: 0, z: 0, yPercent: 0, rotation: 0, scale: 1, autoAlpha: 1 })
+          gsap.set(inc, { autoAlpha: 0, rotateY: 0, x: 0, z: 0, yPercent: 0, rotation: 0, scale: 1 })
           if (outShade) gsap.set(outShade, { opacity: 0 })
           busy.current = false
         }))
@@ -396,7 +487,46 @@ function useCylinderSwap() {
   return { outRef, inRef, inImgRef, swap }
 }
 
-/** The incoming face used by useCylinderSwap (next clip's poster). */
+/** A quiet Instagram-style story change: cover with the next poster, swap
+ * the existing media, swap its source, then reveal it. No permanent overlay
+ * or 3D card movement is involved. */
+function useInstagramStorySwap() {
+  const outRef = useRef<HTMLDivElement>(null)
+  const busy = useRef(false)
+  const reduced = Boolean(useReducedMotion())
+
+  useEffect(() => () => {
+    if (outRef.current) {
+      gsap.killTweensOf(outRef.current)
+      gsap.set(outRef.current, { autoAlpha: 1 })
+    }
+    busy.current = false
+  }, [])
+
+  const swap = useCallback((_dir: 1 | -1, _poster: string | undefined, commit: () => void) => {
+    const media = outRef.current
+    if (busy.current) return
+    if (reduced || !media) { commit(); return }
+
+    busy.current = true
+    gsap.killTweensOf(media)
+    gsap.timeline({
+      onComplete: () => {
+        gsap.set(media, { autoAlpha: 1 })
+        busy.current = false
+      },
+    })
+      .to(media, { autoAlpha: 0, duration: 0.12, ease: 'power1.out' })
+      .call(commit)
+      // Give React one short beat to replace the underlying video source.
+      .to({}, { duration: 0.04 })
+      .to(media, { autoAlpha: 1, duration: 0.2, ease: 'power1.inOut' })
+  }, [reduced])
+
+  return { outRef, swap }
+}
+
+/** Poster face used while either media-swap mode changes clips. */
 function CylinderIncomingFace({ faceRef, imgRef }: { faceRef: Ref<HTMLDivElement>; imgRef: Ref<HTMLImageElement> }) {
   return (
     <div ref={faceRef} className="pointer-events-none invisible absolute inset-0 bg-[#151515] opacity-0 [backface-visibility:hidden]" aria-hidden="true">
@@ -529,7 +659,7 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
         type="button"
         onClick={togglePlayback}
         aria-label={playing ? 'Pause video' : 'Play video'}
-        className="absolute bottom-5 left-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#fff] shadow-[0_10px_28px_rgba(0,0,0,1)] transition-transform duration-200 hover:scale-105 active:scale-95"
+        className="absolute bottom-5 left-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#fff] transition-transform duration-200 hover:scale-105 active:scale-95"
       >
         {playing ? <Icon.Pause /> : <Icon.Play />}
       </button>
@@ -539,7 +669,7 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
         onClick={toggleMute}
         aria-label={muted ? 'Unmute video' : 'Mute video'}
         aria-pressed={!muted}
-        className="absolute bottom-5 right-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#075f38] shadow-[0_10px_28px_rgba(0,0,0,1)] transition-transform duration-200 hover:scale-105 active:scale-95"
+        className="absolute bottom-5 right-5 z-30 grid size-14 place-items-center rounded-full bg-[#fffaf7] text-[#075f38] transition-transform duration-200 hover:scale-105 active:scale-95"
       >
         {muted ? <Icon.Muted /> : <Icon.Volume />}
       </button>
@@ -718,7 +848,7 @@ function TeamHoverCard({ image, className = '', style }: { image: string; classN
             style={{ left: member.left, top: member.top, width: member.width, height: member.height }}
             onClick={(event) => setSelection({ member, index, trigger: event.currentTarget })}
           >
-            <span className="absolute left-1/2 top-1/2 -ml-1.5 -mt-1.5 size-3 rounded-full bg-[#db3188] opacity-0 shadow-[0_0_0_6px_rgba(219,49,136,.14)] transition-opacity duration-200 group-hover/member:opacity-100 group-focus-visible/member:opacity-100" />
+            <span className="absolute left-1/2 top-1/2 -ml-1.5 -mt-1.5 size-3 rounded-full bg-[#cb2486] opacity-0 shadow-[0_0_0_6px_rgba(219,49,136,.14)] transition-opacity duration-200 group-hover/member:opacity-100 group-focus-visible/member:opacity-100" />
             <span className="pointer-events-none absolute bottom-[calc(100%-8px)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#10110f] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white opacity-0 shadow-[0_8px_24px_rgba(0,0,0,.16)] transition-all duration-200 group-hover/member:-translate-y-1.5 group-hover/member:opacity-100 group-focus-visible/member:-translate-y-1.5 group-focus-visible/member:opacity-100">
               {member.name}
             </span>
@@ -735,7 +865,10 @@ function TeamHoverCard({ image, className = '', style }: { image: string; classN
 /* Simple story card: video + progress bars + prev/next                */
 /* ------------------------------------------------------------------ */
 
-const STORY_GROUP_COUNT = 5
+// The reference rail contains four projects followed by the final CTA.
+const STORY_GROUP_COUNT = 4
+const STORY_RAIL_BACKGROUNDS = ['#2f89b4', '#b3bdc3', '#424524', '#dc9e06', '#e993bc'] as const
+const STORY_PROJECT_TITLES = ['YELLOW!\nVILLAGE', 'SOLTY HOTEL', "THE\nSHEPHERD'S\nBAG", 'GRANDMA'] as const
 
 function buildStoryGroups(reels: readonly SocialReel[]): StoryGroup[] {
   if (!reels.length) return []
@@ -744,6 +877,7 @@ function buildStoryGroups(reels: readonly SocialReel[]): StoryGroup[] {
     const size = groupIndex % 2 ? Math.min(3, perGroup) : perGroup
     return {
       id: `story-group-${groupIndex}`,
+      title: STORY_PROJECT_TITLES[groupIndex] ?? `PROJECT ${pad2(groupIndex + 1)}`,
       reels: Array.from({ length: size }, (_, k) => reels[(groupIndex * 2 + k) % reels.length]),
     }
   })
@@ -752,13 +886,17 @@ function buildStoryGroups(reels: readonly SocialReel[]): StoryGroup[] {
 function StoryGroupCard({
   group,
   active,
+  passed = false,
   onOpen,
   className = 'h-[min(72svh,720px)] w-[clamp(280px,23vw,410px)]',
+  caption,
 }: {
   group: StoryGroup
   active: boolean
+  passed?: boolean
   onOpen: (reel: SocialReel, trigger: HTMLElement) => void
   className?: string
+  caption?: { title: string; tags: readonly string[] }
 }) {
   const cardRef = useRef<HTMLElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -772,9 +910,13 @@ function StoryGroupCard({
 
   const count = group.reels.length
   const reel = group.reels[index]
-  const cylinder = useCylinderSwap()
+  const {
+    outRef: storyOutRef,
+    swap: swapStory,
+  } = useInstagramStorySwap()
   const shouldPlay = active && inView
   const shouldPlayRef = useRef(shouldPlay)
+  const wasActiveRef = useRef(active)
   shouldPlayRef.current = shouldPlay
 
   useEffect(() => {
@@ -792,6 +934,30 @@ function StoryGroupCard({
     else video.pause()
   }, [shouldPlay, index])
 
+  // A rail card activates at the rail's handoff point. Restart its own
+  // sequence at that moment, like opening a fresh Instagram story.
+  useBrowserLayoutEffect(() => {
+    const justActivated = active && !wasActiveRef.current
+    wasActiveRef.current = active
+    if (!justActivated) return
+
+    barRefs.current.forEach((bar) => {
+      if (bar) bar.style.transform = 'scaleX(0)'
+    })
+
+    if (index !== 0) {
+      setStatus('loading')
+      setIndex(0)
+      return
+    }
+
+    const video = videoRef.current
+    if (video) {
+      video.currentTime = 0
+      if (inView) video.play().catch(() => undefined)
+    }
+  }, [active, index, inView])
+
   // progress bars: done = full, upcoming = empty, current = live
   useBrowserLayoutEffect(() => {
     barRefs.current.forEach((bar, i) => {
@@ -800,7 +966,7 @@ function StoryGroupCard({
   }, [index])
 
   useEffect(() => {
-    if (!inView) return
+    if (!shouldPlay) return
     let raf = 0
     const tick = () => {
       const video = videoRef.current
@@ -810,7 +976,7 @@ function StoryGroupCard({
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [index, inView])
+  }, [index, shouldPlay])
 
   const go = useCallback((dir: 1 | -1) => {
     const video = videoRef.current
@@ -822,11 +988,11 @@ function StoryGroupCard({
       }
       return
     }
-    cylinder.swap(dir, group.reels[next]?.poster, () => {
+    swapStory(dir, group.reels[next]?.poster, () => {
       setStatus('loading')
       setIndex(next)
     })
-  }, [index, count, group.reels, cylinder.swap])
+  }, [index, count, group.reels, swapStory])
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.key === 'ArrowRight') { event.preventDefault(); go(1) }
@@ -853,7 +1019,7 @@ function StoryGroupCard({
       aria-label={`Story ${index + 1} of ${count}`}
       className={`group/story relative shrink-0 select-none overflow-hidden rounded-[clamp(14px,1.2vw,22px)] bg-[#161616] text-white shadow-[0_24px_70px_rgba(0,0,0,.18)] outline-none [will-change:transform,opacity] focus-visible:ring-2 focus-visible:ring-white/90 ${className}`}
     >
-      <div ref={cylinder.outRef} className="absolute inset-0 [backface-visibility:hidden]">
+      <div ref={storyOutRef} className="absolute inset-0 [backface-visibility:hidden]">
         {status === 'loading' && <span className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/10 via-white/5 to-transparent" aria-hidden="true" />}
         <video
           ref={videoRef}
@@ -870,17 +1036,44 @@ function StoryGroupCard({
         {status === 'error' && <span className="absolute inset-0 grid place-items-center text-[11px] uppercase tracking-[0.08em] text-white/60">Video unavailable</span>}
         <CylShade />
       </div>
-      <CylinderIncomingFace faceRef={cylinder.inRef} imgRef={cylinder.inImgRef} />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/35 to-transparent" />
 
+      {/* Project title stays visible while the neighbouring cards travel past. */}
+      <h3 className={`bwsm-story-title pointer-events-none absolute inset-x-4 z-30 whitespace-pre-line text-center text-[clamp(25px,2.4vw,44px)] uppercase leading-[0.82] tracking-[-0.045em] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,.28)] transition-[top,transform] duration-700 ease-[cubic-bezier(.22,1,.36,1)] group-hover/story:scale-[1.025] ${passed ? 'top-[calc(100%-1.25rem)] -translate-y-full' : 'top-9 translate-y-0'}`}>
+        {group.title}
+      </h3>
+
       {/* progress segments */}
-      <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex gap-1" aria-hidden="true">
+      <div
+        className={`pointer-events-none absolute inset-x-3 top-3 z-30 flex gap-1 transition-[transform,opacity,gap] duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover/story:gap-1.5 ${active ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
+        aria-hidden="true"
+      >
         {group.reels.map((item, i) => (
-          <span key={`${item.id}-${i}`} className="h-[2.5px] flex-1 overflow-hidden rounded-full bg-white/30">
-            <span ref={(el) => { barRefs.current[i] = el }} className="block h-full w-full origin-left rounded-full bg-white" />
+          <span key={`${item.id}-${i}`} className="h-[2.5px] flex-1 overflow-hidden rounded-full bg-white/30 transition-[height,background-color] duration-300 group-hover/story:h-[3.5px] group-hover/story:bg-white/45">
+            <span
+              ref={(el) => { barRefs.current[i] = el }}
+              className="block h-full w-full origin-left rounded-full bg-white transition-transform duration-100 ease-linear will-change-transform"
+            />
           </span>
         ))}
       </div>
+
+      {/* Service chips rise in at the same 10% overlap point as playback. */}
+      {caption && (
+        <div
+          data-story-caption
+          aria-label={`${group.title.replace(/\n/g, ' ')}: ${caption.tags.join(', ')}`}
+          className={`pointer-events-none absolute bottom-4 right-4 z-30 flex max-w-[72%] flex-col items-end gap-1 text-right transition-[transform,opacity] duration-500 ease-[cubic-bezier(.22,1,.36,1)] ${active ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'}`}
+        >
+          <ul className="flex flex-col items-end gap-1 text-[clamp(8px,0.62vw,10px)] font-bold leading-none text-[#cb2486]">
+            {caption.tags.map((tag) => (
+              <li key={tag} className="rounded-full bg-[#fff8f6] px-2.5 py-1 shadow-[0_5px_16px_rgba(0,0,0,.14)]">
+                {tag}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* tap left / right to move between stories */}
       <div className="absolute inset-0 z-20 flex">
@@ -943,7 +1136,7 @@ function StoryGroupCard({
           onClick={() => go(dir === 'left' ? -1 : 1)}
           aria-label={dir === 'left' ? 'Previous story' : 'Next story'}
           className={`absolute top-1/2 z-30 -mt-5 grid size-10 place-items-center rounded-full text-white ring-1 ring-white/25 transition-[transform,background-color] duration-200 hover:scale-105 hover:!bg-white/50 ${dir === 'left' ? 'left-3' : 'right-3'}`}
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.32)', color: '#fff' }}
+          style={{ backgroundColor: 'rgba(25, 255, 5, 0.01)', color: '#fff' }}
         >
           <Icon.Arrow dir={dir} />
         </button>
@@ -963,9 +1156,12 @@ const WHITE = '#fff'
 const RAIL_START = 440
 const PER_CARD = 85
 const FIRST_STORY_TURN = 70 // scroll length of the team → first story cylinder turn
-const LAST_CARD_STOP = 0.57 // last card stops part-way over the previous one
+const LAST_CARD_STOP = 0 // final CTA locks at the same centered position as every story card
+// The incoming story takes control after crossing 10% into the current
+// card. Its movement continues independently until it reaches the lock.
+const STORY_ACTIVATION_OVERLAP = 0.1
 
-const STAGE_VARS = { '--slot-h': 'min(82svh, 500px)', '--slot-w': 'calc(var(--slot-h) * 0.665)' } as CSSProperties
+const STAGE_VARS = { '--slot-h': 'min(73svh, 700px)', '--slot-w': 'calc(var(--slot-h) * 0.665)' } as CSSProperties
 const SLOT: CSSProperties = { position: 'absolute', width: 'var(--slot-w)', height: 'var(--slot-h)', left: 'calc(50% - var(--slot-w) / 2)', top: 'calc(50% - var(--slot-h) / 2)' }
 const RAIL_ITEM: CSSProperties = { position: 'absolute', width: 'var(--slot-w)', height: 'var(--slot-h)', left: 0, top: 'calc(50% - var(--slot-h) / 2)' }
 
@@ -1030,31 +1226,44 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       const cardW = () => teamCard.offsetWidth
       const cylFace = { transformOrigin: '50% 50%', transformPerspective: CYL_PERSPECTIVE, force3D: true }
       // each cylinder face keeps its own angle; `base` is its resting x (only the first story has one)
-      const cylAngle = new Map<HTMLElement, { a: number; base: () => number }>()
+      const cylAngle = new Map<HTMLElement, { a: number; base: () => number; z?: number; offset?: number }>()
       const placeOnCylinder = (el: HTMLElement) => {
         const st = cylAngle.get(el)
-        if (st) setCylinder(el, st.a, cardW(), st.base())
+        if (!st) return
+        setCover(el, st.a, st.base(), st.offset)
+        // the card that is arriving always sits on top of the one it covers
+        if (st.z) gsap.set(el, { zIndex: st.z + (st.a > 0 ? 20 : st.a === 0 ? 10 : 0) })
       }
       const firstStory = railItems[0]
       const restItems = railItems.slice(1) // these still slide in from the right
 
       /* ---------- initial state ---------- */
       gsap.set(stageBg, { backgroundColor: WHITE })
-      gsap.set(railBg, { backgroundColor: '#284c58' })
+      gsap.set(railBg, { backgroundColor: STORY_RAIL_BACKGROUNDS[0] })
       gsap.set(shells, { transformOrigin: '50% 50%', force3D: true })
       gsap.set(centerShell, { scale: 1, zIndex: 30 })
-      gsap.set(leftShell, { x: () => -window.innerWidth * 0.175, y: () => window.innerHeight * 0.09, scale: 1, rotation: -5.5, zIndex: 10 })
-      gsap.set(backCard, { x: () => window.innerWidth * 0.175, y: () => window.innerHeight * 0.08, scale: 1, rotation: 5.2, zIndex: 10 })
+      gsap.set(leftShell, { x: () => -centerShell.offsetWidth * 0.785, y: 8, scale: 0.77, rotation: -3.2, zIndex: 10 })
+      gsap.set(backCard, { x: () => centerShell.offsetWidth * 0.8, y: -4, scale: 0.77, rotation: 3, zIndex: 10 })
       // photo, video, team card and first story all sit on the same cylinder
       gsap.set(flipFront, { ...cylFace, pointerEvents: 'auto' })
       gsap.set(flipBack, { ...cylFace, autoAlpha: 0, pointerEvents: 'none' })
       gsap.set(teamCard, { ...cylFace, autoAlpha: 0 })
       gsap.set(firstStory, { ...cylFace, autoAlpha: 0 })
-      cylAngle.set(flipFront, { a: 0, base: () => 0 })
-      cylAngle.set(flipBack, { a: CYL_ANGLE, base: () => 0 })
+      cylAngle.set(flipFront, { a: 0, base: () => 0, z: 1 })
+      cylAngle.set(flipBack, { a: CYL_ANGLE, base: () => 0, z: 2 })
       cylAngle.set(teamCard, { a: CYL_ANGLE, base: () => 0 })
-      cylAngle.set(firstStory, { a: CYL_ANGLE, base: () => geom.x0 })
-      gsap.set(restItems, { transformOrigin: '0% 50%', transformPerspective: 1600, force3D: true })
+      // Preserve the original cover turn; only its starting edge receives a
+      // larger gap from the old photo.
+      cylAngle.set(firstStory, { a: CYL_ANGLE, base: () => geom.x0, offset: 96 })
+      // These cards are measured and positioned from page load, but must not
+      // leak into the hero before the stories chapter begins.
+      gsap.set(restItems, {
+        transformOrigin: '0% 50%',
+        transformPerspective: 1600,
+        force3D: true,
+        autoAlpha: 0,
+        pointerEvents: 'none',
+      })
 
       /* ---------- magnetic hover on hero photos ---------- */
       const cleanups: Array<() => void> = []
@@ -1093,12 +1302,18 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         .fromTo(stickers, { scale: 0, rotation: -25 }, { scale: 1, rotation: (_i: number, el: HTMLElement) => Number(el.dataset.tilt || 0), duration: 0.8, stagger: 0.07, ease: 'back.out(2)' }, 0.85)
 
       /* ---------- horizontal stacking rail ---------- */
-      const geom = { vw: 0, W: 0, x0: 0, gap: 14, natural: [] as number[], max: 0 }
+      const geom = { vw: 0, W: 0, x0: 0, gap: 14, entryGap: 96, natural: [] as number[], max: 0 }
       const measure = () => {
         geom.vw = stage.clientWidth
         geom.W = cardW()
         geom.x0 = (geom.vw - geom.W) / 2
-        geom.natural = restItems.map((_, k) => geom.vw + 30 + k * (geom.W + geom.gap))
+        geom.entryGap = gsap.utils.clamp(56, 120, geom.vw * 0.075)
+        // Keep the remaining projects attached to the active card as one
+        // continuous rail. The next card is already visible beside it and
+        // begins moving immediately, matching the reference transition.
+        geom.natural = restItems.map((_, k) => geom.x0 + geom.W + geom.gap + k * (geom.W + geom.gap))
+        const firstStoryState = cylAngle.get(firstStory)
+        if (firstStoryState) firstStoryState.offset = geom.entryGap
         geom.max = restItems.length ? geom.natural[restItems.length - 1] - (geom.x0 + geom.W * LAST_CARD_STOP) : 0
       }
       measure()
@@ -1110,32 +1325,53 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       }))
       const proxy = { o: 0 }
       let firstShown = false
-      let restLocked = 0
+      let restActivated = 0
       let lastActive = -1
       const updateActive = () => {
-        const active = firstShown ? 1 + restLocked : 0
+        const active = firstShown ? 1 + restActivated : 0
         if (active !== lastActive) {
           lastActive = active
           setRailIndex(active)
+          // Background state follows the same 10% overlap threshold as playback.
+          // The last colour belongs to the final "More projects?" card.
+          const colourIndex = gsap.utils.clamp(0, STORY_RAIL_BACKGROUNDS.length - 1, Math.max(0, active - 1))
+          gsap.to(railBg, {
+            backgroundColor: STORY_RAIL_BACKGROUNDS[colourIndex],
+            duration: 0.5,
+            ease: 'power2.out',
+            overwrite: 'auto',
+          })
         }
       }
       const layoutRail = () => {
         const { vw, W, x0, natural } = geom
         placeOnCylinder(firstStory)
-        let locked = 0
+        // While Yellow! Village is still turning in, keep every following
+        // card attached to its live visual right edge. This preserves the
+        // order [old photo] [Yellow] [Solty] instead of leaving Solty parked
+        // at Yellow's eventual destination.
+        const stageRect = stage.getBoundingClientRect()
+        const yellowRect = firstStory.getBoundingClientRect()
+        const attachedOffset = proxy.o <= 0.001 && natural.length
+          ? yellowRect.right - stageRect.left - (x0 + W)
+          : 0
+        let activated = 0
         restItems.forEach((_, k) => {
           const isLast = k === restItems.length - 1
           const lockX = x0 + (isLast ? W * LAST_CARD_STOP : 0)
-          const raw = natural[k] - proxy.o
+          const raw = natural[k] - proxy.o + attachedOffset
           const x = Math.max(lockX, raw)
-          if (raw <= lockX + 0.5) locked = k + 1
+          // Activate after the incoming card has overlapped the current
+          // slot by 10%; it can then keep travelling to its final lock.
+          const activationX = x0 + W * (1 - STORY_ACTIVATION_OVERLAP)
+          if (raw <= activationX) activated = k + 1
           // a little swing while the card enters from the right edge (eased, not linear)
           const t = gsap.parseEase('power2.in')(gsap.utils.clamp(0, 1, (x - vw * 0.55) / (vw * 0.45)))
           setters[k].x(x)
           setters[k].ry(-24 * t)
           setters[k].rz(5 * t)
         })
-        restLocked = locked
+        restActivated = activated
         updateActive()
       }
       layoutRail()
@@ -1202,15 +1438,20 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       // one turn of the cylinder: `out` rolls away to the left, `inc` rolls in from the right.
       // Faces fade at the far edges and darken as they turn away, so it reads as a solid drum.
       const shadeOf = (el: HTMLElement) => el.querySelector<HTMLElement>(':scope > [data-cyl-shade]') ?? el.querySelector<HTMLElement>('[data-cyl-shade]')
-      const cylinder = (out: HTMLElement, inc: HTMLElement, at: number, duration: number) => {
+      const cylinder = (out: HTMLElement, inc: HTMLElement, at: number, duration: number, onTurn?: () => void) => {
         const fade = duration * 0.16
         const outState = cylAngle.get(out)!
         const incState = cylAngle.get(inc)!
-        tl.fromTo(outState, { a: 0 }, { a: -CYL_ANGLE, duration, ease: 'power2.inOut', immediateRender: false, onUpdate: () => placeOnCylinder(out) }, at)
-        tl.fromTo(incState, { a: CYL_ANGLE }, { a: 0, duration, ease: 'power2.inOut', immediateRender: false, onUpdate: () => placeOnCylinder(inc) }, at)
+        const updateTurn = () => {
+          placeOnCylinder(out)
+          placeOnCylinder(inc)
+          onTurn?.()
+        }
+        tl.fromTo(outState, { a: 0 }, { a: -CYL_ANGLE, duration, ease: 'power2.inOut', immediateRender: false, onUpdate: updateTurn }, at)
+        tl.fromTo(incState, { a: CYL_ANGLE }, { a: 0, duration, ease: 'power2.inOut', immediateRender: false, onUpdate: updateTurn }, at)
         // plain .to() fades: they record their start values in timeline order, which keeps
         // scrubbing back and forth (and ScrollTrigger refreshes) clean
-        tl.to(inc, { autoAlpha: 1, duration: fade, ease: 'none' }, at)
+        tl.to(inc, { autoAlpha: 1, duration: duration * 0.4, ease: 'none' }, at)
         tl.to(out, { autoAlpha: 0, duration: fade, ease: 'none' }, at + duration - fade)
         const outShade = shadeOf(out)
         const incShade = shadeOf(inc)
@@ -1223,9 +1464,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       flow(flowHeroCopy, 0, -100, 0)
       tl.to(backdrop, { autoAlpha: 0, duration: 35 }, 10)
       // The page changes atmosphere between chapters instead of hard-cutting.
-      tl.to(stageBg, { backgroundColor: '#f2b0b5', duration: 74, ease: 'none' }, 58)
-      tl.to(leftShell, { x: 0, y: 0, rotation: -2, duration: 55, ease: 'power2.inOut' }, 0)
-      tl.to(backCard, { x: 0, y: 0, rotation: 2, duration: 55, ease: 'power2.inOut' }, 0)
+      tl.to(stageBg, { backgroundColor: '#cb2486', duration: 74, ease: 'none' }, 58)
+      tl.to(leftShell, { x: 0, y: 0, scale: 1, rotation: -2, duration: 55, ease: 'power2.inOut' }, 0)
+      tl.to(backCard, { x: 0, y: 0, scale: 1, rotation: 2, duration: 55, ease: 'power2.inOut' }, 0)
       tl.to(stickers, { autoAlpha: 0, scale: 0.6, duration: 20 }, 10)
 
       // 2. CYLINDER — the photo rolls away and the reel rolls in
@@ -1260,7 +1501,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       reveal(flowElectricL, 250)
       lightWords(flowElectricR, 262, 42)
       pop(flowElectricR, 300)
-      tl.to(stageBg, { backgroundColor: '#c9dc2f', duration: 82, ease: 'none' }, 225)
+      tl.to(stageBg, { backgroundColor: '#fff5f3', duration: 82, ease: 'none' }, 225)
 
       // 5. "We make them social": stack tucks back in, title rises and stays
       tl.to([centerShell, backCard], { x: 0, rotation: 0, duration: 20, ease: 'power2.inOut' }, 380)
@@ -1269,22 +1510,40 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       reveal(flowSocial, 400)
       pop(flowSocial, 414)
       if (socialMeta.length) tl.fromTo(socialMeta, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 18, stagger: 5, ease: 'power2.out' }, 420)
-      tl.to(stageBg, { backgroundColor: '#e9e2d8', duration: 34, ease: 'none' }, 370)
+      tl.to(stageBg, { backgroundColor: '#2f89b4', duration: 34, ease: 'none' }, 370)
 
       // 6. Stories: background deepens, the title turns light so it stays readable
-      tl.to(railBg, { backgroundColor: '#284c58', opacity: 1, duration: 18, ease: 'power2.out' }, RAIL_START - 16)
-      tl.to(stageBg, { backgroundColor: '#fff8f6', duration: 18, ease: 'power2.inOut' }, RAIL_START - 16)
+      tl.to(railBg, { backgroundColor: STORY_RAIL_BACKGROUNDS[0], opacity: 1, duration: 18, ease: 'power2.out' }, RAIL_START - 16)
+      tl.to(stageBg, { backgroundColor: '#b3bdc3', duration: 18, ease: 'power2.inOut' }, RAIL_START - 16)
       if (flowSocial) tl.to(flowSocial, { color: '#fffaf7', duration: 18, ease: 'power2.inOut' }, RAIL_START - 16)
       //    first story: one cylinder turn off the team card…
-      cylinder(teamCard, firstStory, RAIL_START, FIRST_STORY_TURN)
+      const revealRailFromOverlap = () => {
+        // The attached cards must move on the same frame as Yellow's turn.
+        layoutRail()
+        const oldRect = teamCard.getBoundingClientRect()
+        const yellowRect = firstStory.getBoundingClientRect()
+        const overlapWidth = Math.max(0, Math.min(oldRect.right, yellowRect.right) - Math.max(oldRect.left, yellowRect.left))
+        const overlapRatio = oldRect.width > 0 ? overlapWidth / oldRect.width : 0
+        // Solty remains hidden until Yellow covers 5% of the old card, then
+        // eases into the attached rail over the following 10%.
+        const reveal = gsap.utils.clamp(0, 1, (overlapRatio - 0.05) / 0.1)
+        gsap.set(restItems, {
+          autoAlpha: reveal,
+          pointerEvents: reveal >= 0.98 ? 'auto' : 'none',
+        })
+      }
+      cylinder(teamCard, firstStory, RAIL_START, FIRST_STORY_TURN, revealRailFromOverlap)
       //    …then every other card follows through from the right
       tl.to(proxy, { o: () => geom.max, duration: (railCount - 1) * PER_CARD, ease: 'none', onUpdate: layoutRail }, RAIL_START + FIRST_STORY_TURN)
 
       // video only plays while it's the card on show
       tl.eventCallback('onUpdate', () => {
         // keep every cylinder face exactly where its angle says (both scroll directions)
-        cylAngle.forEach((_, el) => placeOnCylinder(el))
-        const shown = tl.time() >= RAIL_START + FIRST_STORY_TURN * 0.6
+        cylAngle.forEach((_, el) => { if (el !== firstStory) placeOnCylinder(el) })
+        layoutRail()
+        // Match the rail handoff: the first story starts near the end of
+        // its turn, with the last 10% of movement still completing.
+        const shown = tl.time() >= RAIL_START + FIRST_STORY_TURN * (1 - STORY_ACTIVATION_OVERLAP)
         if (shown !== firstShown) { firstShown = shown; updateActive() }
         if (!video) return
         const t = tl.time()
@@ -1296,6 +1555,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       return () => {
         cleanups.forEach((cleanup) => cleanup())
         intro.kill()
+        gsap.killTweensOf(railBg)
         video?.pause()
         setRailIndex(0)
       }
@@ -1304,9 +1564,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
     return () => mm.revert()
   }, { scope: desktopRef, dependencies: [total, railCount] })
 
-  const tiltedSticker = 'bwsm-emoji-bubble bwsm-emoji-float pointer-events-none absolute z-50 rounded-[26px] bg-[#f8ded4] px-6 py-5 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,0.12)]'
+  const tiltedSticker = 'bwsm-emoji-bubble bwsm-emoji-float pointer-events-none absolute z-50 rounded-[26px] bg-[#f7e0dd] px-6 py-5 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,0.12)]'
   const flowBox = 'pointer-events-none absolute inset-0 z-[30] will-change-transform'
-  const textHighlight = 'inline-block bg-[#ccff00] px-[0.08em] pb-[0.07em] pt-[0.03em] text-[#10110f]'
+  const textHighlight = 'inline-block text-[#e993bc]'
 
   return (
     <section className="bwsm-hero-rail relative" id="social-work" aria-label="BrandWorks social media">
@@ -1327,9 +1587,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
                 </div> */}
               </div>
             </div>
-            <div className="absolute inset-x-0 top-[3svh] flex justify-center">
-              <div aria-hidden="true" className="flex whitespace-nowrap font-primary text-[clamp(120px,19vw,150px)] uppercase leading-[1] tracking-[-0.025em] text-[#bfe623] mt-10">
-                {'BRANDWORKS.me'.split('').map((letter, index) => (
+            <div className="absolute inset-x-0 top-[4svh] flex justify-center">
+              <div aria-hidden="true" className="bwsm-hero-type bwsm-hero-type--clash flex origin-top scale-y-[2] whitespace-nowrap text-[clamp(100px,12vw,180px)] uppercase leading-[0.9] tracking-[-0.01em] text-[#055c2c]">
+                {'BRANDWORKS'.split('').map((letter, index) => (
                   <span key={index} data-hero-letter className="inline-block">{letter}</span>
                 ))}
               </div>
@@ -1380,17 +1640,17 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
 
           {/* story cards — slide in from the right and stack on the slot */}
-          <div className="pointer-events-none absolute inset-0 z-[20]">
+          <div className="pointer-events-none absolute inset-0 z-[50]">
             {storyGroups.map((group, g) => (
               <div key={group.id} data-rail-item className="pointer-events-auto [will-change:transform]" style={{ ...RAIL_ITEM, zIndex: g + 1, transform: 'translateX(110vw)' }}>
-                <StoryGroupCard group={group} active={railIndex === g + 1} onOpen={onOpen} className="h-full w-full" />
+                <StoryGroupCard group={group} active={railIndex === g + 1} passed={railIndex > g + 1} onOpen={onOpen} className="h-full w-full" caption={socialCaseOfMonth} />
                 <CylShade className="z-10 rounded-[clamp(14px,1.2vw,22px)]" />
               </div>
             ))}
             <div data-rail-item className="pointer-events-auto [will-change:transform]" style={{ ...RAIL_ITEM, zIndex: storyGroups.length + 1, transform: 'translateX(110vw)' }}>
               <a
                 href="#social-process"
-                className="flex h-full w-full flex-col items-center justify-center rounded-[clamp(14px,1.2vw,22px)] bg-[#d72585] p-8 text-center text-white shadow-[0_20px_60px_rgba(0,0,0,.18)]"
+                className="flex h-full w-full flex-col items-center justify-center rounded-[clamp(14px,1.2vw,22px)] bg-[#cb2486] p-8 text-center text-white shadow-[0_20px_60px_rgba(0,0,0,.18)]"
               >
                 <span className="font-primary text-[clamp(42px,4vw,70px)] uppercase leading-[0.76] tracking-[-0.05em]">More<br />projects?</span>
                 <small className="mt-7 rounded-full bg-white px-4 py-2 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#111]">Explore <Arrow /></small>
@@ -1400,10 +1660,10 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
 
           {/* ---------- text that simply scrolls past ---------- */}
           <div data-flow="hero-copy" className={flowBox}>
-            <div data-hero-copy className="absolute bottom-[5vh] left-[clamp(28px,3vw,58px)]">
-              {/* <p className="mb-3 text-[11px] font-semibold text-[#10110f]">Social media agency</p> */}
-              <h1 className="font-primary text-[clamp(52px,5vw,84px)] font-normal uppercase leading-[0.74] tracking-[-0.06em] text-[#10110f]">
-                <Lines lines={[<span key="h" data-hero-human>Human</span>, <Hl key="s">Social Club.</Hl>]} />
+            <div data-hero-copy className="absolute bottom-[3.6svh] left-[clamp(20px,2vw,38px)]">
+              <p className="mb-[clamp(10px,1.6vw,28px)] text-[clamp(13px,1.15vw,22px)] font-extrabold tracking-[-0.03em] text-[#d0cce2]">Social media agency</p>
+              <h1 className="bwsm-hero-type origin-left scale-x-[1.1] text-[clamp(50px,6.3vw,122px)] font-normal uppercase leading-[0.9] tracking-[-0.005em] [word-spacing:0.12em]">
+                <Lines lines={[<span key="h" data-hero-human className="text-[#cb2486]">Human</span>, <span key="s" className="text-[#e993bc]">Social Club</span>]} />
               </h1>
             </div>
             {/* <div data-hero-copy className="absolute bottom-[5vh] right-[clamp(28px,3vw,58px)] max-w-[240px] border-t border-black/15 pt-4">
@@ -1412,9 +1672,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
 
           {/* ---------- We are the current, / You are the story. ---------- */}
-          <div data-flow="pink-left" className={`${flowBox} text-[#10110f]`}>
+          <div data-flow="pink-left" className={`${flowBox} text-[#f7e0dd]`}>
             <span data-pop className="absolute left-[12vw] top-[12vh] block">
-              <AppleEmojiRow names={['phone', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float rotate-[5deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+              <AppleEmojiRow names={['phone', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float rotate-[5deg] rounded-[26px] bg-[#f7e0dd] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
             </span>
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[12vh] max-w-[28vw]">
               <span className="mb-4 block h-[62px]" aria-hidden="true" />
@@ -1423,7 +1683,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
               </h2>
             </div>
           </div>
-          <div data-flow="pink-right" className={`${flowBox} text-[#10110f]`}>
+          <div data-flow="pink-right" className={`${flowBox} text-[#e993bc]`}>
             <div className="absolute right-[clamp(28px,3vw,58px)] top-[calc(6vh+44px)] max-w-[28vw] text-left">
               <h2 className="font-primary text-[clamp(44px,4vw,76px)] uppercase leading-[0.8]">
                 <Lines lines={['You are', <Hl key="s">the story.</Hl>]} />
@@ -1432,26 +1692,26 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
 
           {/* ---------- We electrify your networks, ---------- */}
-          <div data-flow="electric-left" className={`${flowBox} text-[#10110f]`}>
+          <div data-flow="electric-left" className={`${flowBox} text-[#cb2486]`}>
             <span data-pop className="absolute left-[10vw] top-[3vh] block">
-              <AppleEmojiRow names={['camera', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float rotate-[6deg] rounded-[26px] bg-[#f8ded4] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+              <AppleEmojiRow names={['camera', 'bolt', 'playful']} className="bwsm-emoji-bubble bwsm-emoji-float rotate-[6deg] rounded-[26px] bg-[#f7e0dd] px-6 py-4 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
             </span>
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[4vh] max-w-[29vw]">
               <span className="mb-5 block h-[62px]" aria-hidden="true" />
               <h2 className="font-primary text-[clamp(36px,4vw,90px)] uppercase leading-[0.8] tracking-[-0.025em]">
-                <Lines lines={['We', 'electrify your', <Hl key="n">networks,</Hl>]} />
+                <Lines lines={['We', 'electrify your', <Hl key="n" className="text-[#e993bc]">networks,</Hl>]} />
               </h2>
             </div>
           </div>
-          <div data-flow="electric-right" className={`${flowBox} text-[#10110f]`}>
+          <div data-flow="electric-right" className={`${flowBox} text-[#cb2486]`}>
             <div className="absolute right-[clamp(28px,3vw,58px)] top-[8vh] max-w-[min(25vw,320px)]">
               <p className="text-[clamp(15px,1.15vw,18px)] font-semibold leading-[1.4] pb-2">
                 <Words text="At BrandWorks, we believe social media is not just about publishing a few posts." />
               </p>
               <p data-pop className="mt-6 inline-flex origin-left items-center gap-2 rounded-full bg-[#10110f] px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
                 <span className="relative flex size-2" aria-hidden="true">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ccff00] opacity-75" />
-                  <span className="relative inline-flex size-2 rounded-full bg-[#ccff00]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#e993bc] opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-[#e993bc]" />
                 </span>
                 Hover a face to meet the team
               </p>
@@ -1459,9 +1719,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
 
           {/* ---------- We make them social ---------- */}
-          <div data-flow="social" className={`${flowBox} z-[60] text-[#10110f]`}>
+          <div data-flow="social" className={`${flowBox} z-[60] text-white`}>
             <span data-pop className="absolute left-[clamp(170px,12vw,250px)] top-[clamp(65px,13vh,115px)] block">
-              <AppleEmojiRow names={['phone', 'heart', 'sunglasses']} className="bwsm-emoji-bubble bwsm-emoji-float -rotate-[7deg] rounded-[28px] bg-[#f8ded4] px-8 py-6 text-[34px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
+              <AppleEmojiRow names={['phone', 'heart', 'sunglasses']} className="bwsm-emoji-bubble bwsm-emoji-float -rotate-[7deg] rounded-[28px] bg-[#f7e0dd] px-8 py-6 text-[34px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
             </span>
             <div className="absolute left-[clamp(28px,2vw,44px)] top-[clamp(150px,25vh,220px)] max-w-[26vw]">
               <h2 className="font-primary text-[clamp(44px,4.6vw,84px)] uppercase leading-[0.8] tracking-[-0.055em]">
@@ -1476,7 +1736,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
                     {reel.poster ? <img src={reel.poster} alt="" className="h-full w-full object-cover" /> : null}
                   </span>
                 ))}
-                <span data-pop className="grid size-12 place-items-center rounded-full border-2 border-white bg-[#db3188] text-[11px] text-white">+{Math.max(2, SOCIAL_REELS.length - 4)}</span>
+                <span data-pop className="grid size-12 place-items-center rounded-full border-2 border-white bg-[#cb2486] text-[11px] text-white">+{Math.max(2, SOCIAL_REELS.length - 4)}</span>
               </div>
               {/* story counter + progress, synced with the rail */}
               <div data-social-fade className="mt-8 w-[min(240px,20vw)]">
@@ -1489,7 +1749,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
       </div>
 
       <div className="lg:hidden lg:motion-reduce:block">
-        <div className="relative min-h-[100svh] overflow-hidden bg-[#f2b0b5] px-5 pb-14 pt-24">
+        <div className="relative min-h-[100svh] overflow-hidden bg-[#cb2486] px-5 pb-14 pt-24">
           <div className="pointer-events-none absolute inset-x-0 top-8 flex justify-center">
             <span className="whitespace-nowrap font-primary text-[26vw] uppercase leading-none tracking-[-0.07em] text-[#10110f] lg:text-[16vw]">BRANDWORKS</span>
           </div>
@@ -1517,7 +1777,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
         </div>
 
-        <div className="bg-[#f2b0b5] px-5 py-16 text-[#10110f]">
+        <div className="bg-[#cb2486] px-5 py-16 text-[#10110f]">
           <h2 className="font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[6vw]">We are the<br />current,</h2>
           {playlist.length > 0 && (
             <div className="mx-auto my-10 aspect-[9/16] w-full max-w-[281.25px]">
@@ -1527,7 +1787,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           <h2 className="text-right font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] text-[#10110f] lg:text-[7vw]">You are<br /><span className={textHighlight}>the story.</span></h2>
         </div>
 
-        <div className="bg-[#c9dc2f] px-5 py-16 text-[#10110f]">
+        <div className="bg-[#fff5f3] px-5 py-16 text-[#10110f]">
           <h2 className="font-primary text-[11vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[5vw]">We electrify<br /><span className={`${textHighlight} mt-[0.12em]`}>your networks,</span></h2>
           <p className="mt-6 max-w-[420px] text-[14px] leading-[1.55] text-[#10110f]/75">
             Social is not a few posts a week. It&apos;s a story to tell, a strategy to build and an image to live up to.
@@ -1537,11 +1797,11 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           </div>
         </div>
 
-        <div className="bg-[#e9e2d8] px-5 py-16 text-[#10110f]">
+        <div className="bg-[#2f89b4] px-5 py-16 text-[#10110f]">
           <h2 className="font-primary text-[14vw] uppercase leading-[0.76]  lg:text-[10rem]">We make<br />them social.</h2>
           <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none]">
             {storyGroups.map((group) => (
-              <StoryGroupCard key={group.id} group={group} active onOpen={onOpen} className="h-[min(78svh,500px)] w-[82vw] max-w-[380px] snap-center" />
+              <StoryGroupCard key={group.id} group={group} active onOpen={onOpen} className="h-[min(78svh,500px)] w-[82vw] max-w-[380px] snap-center" caption={socialCaseOfMonth} />
             ))}
           </div>
         </div>
@@ -1775,7 +2035,7 @@ function WhySection() {
   }, { scope: sectionRef })
   return (
     <section ref={sectionRef} className="bwsm-why" aria-labelledby="bwsm-why-title">
-      <h2 id="bwsm-why-title">Why choose<br />BrandWorks?</h2>
+      <h2 id="bwsm-why-title">Why<br />choose<br />BrandWorks?</h2>
       <div className="bwsm-why__cards">
         {[
           ['Social specialists', 'Strategy and production live in the same room.'],
@@ -1823,6 +2083,25 @@ function useSocialMediaMetadata(siteUrl?: string) {
   }, [siteUrl])
 }
 
+function SocialRoundNav() {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    document.body.classList.add('bwsm-route')
+    return () => document.body.classList.remove('bwsm-route', 'bwsm-nav-open')
+  }, [])
+  useEffect(() => { document.body.classList.toggle('bwsm-nav-open', open) }, [open])
+  return (
+    <div className="bwsm-roundnav">
+      <button type="button" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <span /><span /><span />
+      </button>
+      <Link to="/contact" aria-label="Contact us">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3Z" /></svg>
+      </Link>
+    </div>
+  )
+}
+
 export default function SocialMediaPage({ siteUrl }: { siteUrl?: string }) {
   const [viewer, setViewer] = useState<ViewerSelection | null>(null)
   const openReel = useCallback((reel: SocialReel, trigger: HTMLElement) => setViewer({ reel, trigger }), [])
@@ -1830,10 +2109,14 @@ export default function SocialMediaPage({ siteUrl }: { siteUrl?: string }) {
   useSocialMediaMetadata(siteUrl)
   return (
     <main className="bwsm-page">
+      <SocialRoundNav />
+      <SocialCaseCard image={SOCIAL_REELS[0]?.poster ?? ''} />
       <ProjectRail onOpen={openReel} />
       <ExpertiseSection />
       <ProcessSection />
       <WhySection />
+      <SocialFAQ />
+      <SocialContact />
       {viewer && <ReelViewer selection={viewer} onDismiss={dismissViewer} />}
     </main>
   )

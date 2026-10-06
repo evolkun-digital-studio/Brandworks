@@ -39,10 +39,12 @@ import PhotographyPage from "./pages/services/PhotographyPage";
 import GraphicDesignPage from "./pages/services/GraphicDesignPage";
 import SeoPage from "./pages/services/SeoPage";
 import SocialMediaPage from "./pages/services/SocialMediaPage";
+import SocialClubPage from "./pages/services/SocialClubPage";
 import PerformanceMarketingPage from "./pages/services/PerformanceMarketingPage";
 import { legalRoutes } from "./pages/legal";
 import ContactPage from "./pages/ContactPage";
 import WorkPage from "./pages/WorkPage"; 
+// import SocialaPage from "./pages/social/SocialMediaPage"; 
 import PRFounderReputationPage from './pages/PRFounderReputationPage'
 import ConceptCreationPage from './pages/services/Conceptcreationpage'
 // Route-level code splitting (Phase 10, Part 13: AdminRoutes pulls in
@@ -145,6 +147,8 @@ function App() {
         <Route path="/services/graphic-design" element={<GraphicDesignPage />} />
         <Route path="/services/seo" element={<SeoPage />} />
         <Route path="/services/social-media" element={<SocialMediaPage />} />
+        <Route path="/services/social-club" element={<SocialClubPage />} />
+        {/* <Route path="/services/SocialaPage" element={<SocialaPage />} /> */}
         <Route path="/services/performance-marketing" element={<PerformanceMarketingPage />} />
         {legalRoutes.map((r) => (
           <Route key={r.path} path={r.path} element={r.element} />

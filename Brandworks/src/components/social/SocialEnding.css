@@ -1,0 +1,102 @@
+/* FAQ: cream screen, big pink title left, round-button rows right */
+.bwsm-faq {
+  display: grid;
+  min-height: 100svh;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(30px, 6vw, 110px);
+  padding: clamp(90px, 14vh, 150px) var(--bwsm-gutter);
+  background: #fff5f3;
+  color: var(--bwsm-pink);
+}
+.bwsm-faq__title {
+  font-family: var(--font-primary);
+  font-size: clamp(60px, 8.4vw, 150px);
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+.bwsm-faq__title b { display: block; overflow: hidden; padding-block: 0.04em; }
+.bwsm-faq__title b.is-soft { color: var(--bwsm-lime); }
+.bwsm-faq__title span { display: block; }
+.bwsm-faq__list { margin: 0; padding: 0; list-style: none; }
+.bwsm-faq__item { border-top: 1px solid rgb(203 36 134 / 25%); }
+.bwsm-faq__item:first-child { border-top: 0; }
+.bwsm-faq__item h3 { margin: 0; }
+.bwsm-faq__item button {
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 24px;
+  padding: clamp(14px, 2.2vh, 22px) 0; text-align: left; background: none; border: 0; cursor: pointer;
+  font-family: var(--font-secondary); font-size: clamp(15px, 1.3vw, 25px); font-weight: 600; line-height: 1.05;
+  letter-spacing: -0.01em; color: var(--bwsm-lime); transition: color 0.3s;
+}
+.bwsm-faq__item.is-open button,
+.bwsm-faq__item button:hover { color: var(--bwsm-pink); }
+.bwsm-faq__item i {
+  position: relative; flex: none; width: clamp(28px, 1.9vw, 36px); height: clamp(28px, 1.9vw, 36px); border-radius: 50%;
+  background: var(--bwsm-lime); color: var(--bwsm-pink);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s, color 0.3s;
+}
+.bwsm-faq__item i::before,
+.bwsm-faq__item i::after { content: ''; position: absolute; left: 50%; top: 50%; width: 10px; height: 2px; margin: -1px 0 0 -5px; background: currentColor; }
+.bwsm-faq__item i::after { transform: rotate(90deg); }
+.bwsm-faq__item.is-open i { transform: rotate(45deg); background: var(--bwsm-pink); color: #fff5f3; }
+.bwsm-faq__answer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+.bwsm-faq__item.is-open .bwsm-faq__answer { grid-template-rows: 1fr; }
+.bwsm-faq__answer > div { overflow: hidden; }
+.bwsm-faq__answer p { max-width: 52ch; padding-bottom: 18px; font-size: clamp(12px, 0.95vw, 17px); font-weight: 600; line-height: 1.4; }
+
+/* Contact: light pink screen, portrait with a tilted pink card across it */
+.bwsm-contact {
+  display: grid; min-height: 100svh; place-items: center; overflow: hidden;
+  padding: 80px var(--bwsm-gutter); background: var(--bwsm-lime);
+}
+.bwsm-contact__stage { position: relative; width: min(980px, 100%); height: min(78svh, 640px); }
+.bwsm-contact__photo {
+  position: absolute; left: 4%; top: 0; width: min(34%, 340px); aspect-ratio: 0.665; height: auto;
+  object-fit: cover; border-radius: var(--bwsm-radius); transform: rotate(-2deg);
+}
+.bwsm-contact__card {
+  position: absolute; right: 2%; top: 14%; z-index: 2; display: flex; width: min(52%, 500px); flex-direction: column; align-items: center;
+  gap: 14px; padding: clamp(28px, 4vw, 56px); border-radius: var(--bwsm-radius);
+  background: var(--bwsm-pink); color: #fff; text-align: center; transform: rotate(4deg);
+}
+.bwsm-contact__card p { max-width: 34ch; font-size: 12px; font-weight: 600; line-height: 1.35; }
+.bwsm-contact__card h2 { font-family: var(--font-primary); font-size: clamp(40px, 5vw, 78px); font-weight: 400; line-height: 0.84; letter-spacing: -0.03em; text-transform: uppercase; }
+.bwsm-contact__card a {
+  margin-top: 8px; padding: 12px 22px; border-radius: 10px; background: var(--bwsm-lime); color: #fff;
+  font-size: 11px; font-weight: 700; transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.bwsm-contact__card a:hover { transform: scale(1.06); }
+
+@media (max-width: 800px) {
+  .bwsm-faq { grid-template-columns: 1fr; align-items: start; gap: 40px; }
+  .bwsm-contact__photo { left: 0; width: 56%; }
+  .bwsm-contact__card { right: 0; top: 34%; width: 80%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bwsm-faq__answer, .bwsm-faq__item i, .bwsm-contact__card a { transition: none; }
+}
+
+/* Case of the month: fixed olive card, hidden below desktop */
+.bwsm-case {
+  position: fixed; right: clamp(20px, 2vw, 38px); bottom: 2.2svh; z-index: 60;
+  display: none; gap: 18px; width: clamp(320px, 25.7vw, 490px); padding: 20px 20px 20px 20px; font-family: var(--font-secondary), sans-serif;
+  border-radius: var(--bwsm-radius, 24px); background: #424524; color: #fff;
+}
+@media (min-width: 900px) { .bwsm-case { display: flex; } }
+.bwsm-case { touch-action: none; cursor: grab; user-select: none; }
+.bwsm-case.is-hidden { cursor: pointer; }
+.bwsm-case__bar { position: absolute; left: 50%; top: 0; width: 34%; height: 34px; translate: -50% 0; padding: 0; border: 0; background: none; cursor: inherit; }
+.bwsm-case__bar::after { content: ''; position: absolute; left: 0; right: 0; top: 14px; height: 3px; border-radius: 3px; background: #fff; }
+.bwsm-case img { width: 44%; aspect-ratio: 0.72; margin-top: 12px; object-fit: cover; border-radius: 12px; }
+.bwsm-case small { display: block; margin-top: 10px; font-size: 12px; font-weight: 800; }
+.bwsm-case strong { display: block; margin: 4px 0 10px; font-family: 'Anton', Impact, sans-serif; font-weight: 400; font-size: clamp(24px, 2.2vw, 42px); line-height: 0.9; text-transform: uppercase; }
+.bwsm-case ul { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.bwsm-case li { padding: 6px 10px; border-radius: 99px; background: #f7e0dd; color: #cb2486; font-size: 11px; font-weight: 800; }
+.bwsm-case a { display: inline-block; margin-top: 8px; padding: 8px 12px; border-radius: 99px; background: #cb2486; color: #fff; font-size: 11px; font-weight: 800; }
+
+/* Contact: oversized green wordmark peeking up from the bottom edge */
+.bwsm-contact { position: relative; }
+.bwsm-contact__word { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; overflow: hidden; height: 17svh; pointer-events: none; }
+.bwsm-contact__word span { font-family: 'Anton', Impact, sans-serif; font-size: clamp(120px, 21vw, 420px); line-height: 1; text-transform: uppercase; color: #055c2c; white-space: nowrap; transform: translateY(20%) scaleY(1.35); transform-origin: top; }
