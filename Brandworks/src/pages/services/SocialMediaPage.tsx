@@ -16,6 +16,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Lenis from 'lenis'
 import { SOCIAL_REELS, type SocialReel } from '../../data/socialMedia'
 import { socialCaseOfMonth } from '../../data/socialMediaPage'
 import { mediaUrl } from '../../lib/media'
@@ -72,7 +73,8 @@ function AppleEmojiRow({ names, className = '', ...props }: { names: readonly Ap
 }
 
 type ViewerSelection = { reel: SocialReel; trigger: HTMLElement }
-type StoryGroup = { id: string; title: string; reels: SocialReel[] }
+type StoryGroup = { id: string; title: string; description: string; reels: SocialReel[] }
+type StoryPreviewSelection = { group: StoryGroup; trigger: HTMLElement }
 
 const expertise = [
   {
@@ -870,6 +872,12 @@ function TeamHoverCard({ image, className = '', style }: { image: string; classN
 const STORY_GROUP_COUNT = 4
 const STORY_RAIL_BACKGROUNDS = ['#2f89b4', '#b3bdc3', '#424524', '#dc9e06', '#e993bc'] as const
 const STORY_PROJECT_TITLES = ['YELLOW!\nVILLAGE', 'SOLTY HOTEL', "THE\nSHEPHERD'S\nBAG", 'GRANDMA'] as const
+const STORY_PROJECT_DESCRIPTIONS = [
+  'A bright social world built around personality, movement and the people behind the project.',
+  'Editorial hospitality stories shaped through product details, atmosphere and a distinctive point of view.',
+  'A tactile campaign language connecting craftsmanship, character and everyday moments.',
+  'Warm, human storytelling made to feel personal, recognizable and alive in the feed.',
+] as const
 
 function buildStoryGroups(reels: readonly SocialReel[]): StoryGroup[] {
   if (!reels.length) return []
@@ -879,6 +887,7 @@ function buildStoryGroups(reels: readonly SocialReel[]): StoryGroup[] {
     return {
       id: `story-group-${groupIndex}`,
       title: STORY_PROJECT_TITLES[groupIndex] ?? `PROJECT ${pad2(groupIndex + 1)}`,
+      description: STORY_PROJECT_DESCRIPTIONS[groupIndex] ?? 'A connected collection of social stories, reels and campaign moments.',
       reels: Array.from({ length: size }, (_, k) => reels[(groupIndex * 2 + k) % reels.length]),
     }
   })
@@ -889,6 +898,7 @@ function StoryGroupCard({
   active,
   passed = false,
   onOpen,
+  onPreview,
   className = 'h-[min(72svh,720px)] w-[clamp(280px,23vw,410px)]',
   caption,
 }: {
@@ -896,6 +906,7 @@ function StoryGroupCard({
   active: boolean
   passed?: boolean
   onOpen: (reel: SocialReel, trigger: HTMLElement) => void
+  onPreview: (group: StoryGroup, trigger: HTMLElement) => void
   className?: string
   caption?: { title: string; tags: readonly string[] }
 }) {
@@ -1117,6 +1128,20 @@ function StoryGroupCard({
         </motion.span>
       </button>
 
+      {/* Open the complete project story board. */}
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation()
+          onPreview(group, event.currentTarget)
+        }}
+        aria-label={`Open all ${group.title.replace(/\n/g, ' ')} stories`}
+        className="group/preview absolute bottom-4 left-[4.5rem] z-40 grid size-12 place-items-center rounded-full bg-[#fff8f6] text-[#d72585] shadow-[0_10px_26px_rgba(0,0,0,.18)] transition-transform duration-200 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+      >
+        <span className="absolute h-[2px] w-[16px] rounded-full bg-current" />
+        <span className="absolute h-[16px] w-[2px] rounded-full bg-current transition-transform duration-300 group-hover/preview:rotate-90" />
+      </button>
+
       {/* mute */}
       <button
         type="button"
@@ -1146,6 +1171,188 @@ function StoryGroupCard({
   )
 }
 
+function StoryProjectPreview({
+  selection,
+  groups,
+  onDismiss,
+}: {
+  selection: StoryPreviewSelection
+  groups: StoryGroup[]
+  onDismiss: () => void
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const modalLenisRef = useRef<Lenis | null>(null)
+  const [open, setOpen] = useState(true)
+  const [activeId, setActiveId] = useState(selection.group.id)
+  const reduced = Boolean(useReducedMotion())
+  const [mediaReady, setMediaReady] = useState(reduced)
+  const activeGroup = groups.find((group) => group.id === activeId) ?? selection.group
+  const groupIndex = Math.max(0, groups.findIndex((group) => group.id === activeGroup.id))
+  const background = STORY_RAIL_BACKGROUNDS[groupIndex] ?? STORY_RAIL_BACKGROUNDS[0]
+  const foreground = groupIndex === 1 || groupIndex === 3 ? '#10110f' : '#fffaf7'
+
+  useBrowserLayoutEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    const previousOverflow = document.documentElement.style.overflow
+    document.documentElement.style.overflow = 'hidden'
+    dialog.showModal()
+    closeRef.current?.focus({ preventScroll: true })
+    return () => {
+      if (dialog.open) dialog.close()
+      document.documentElement.style.overflow = previousOverflow
+      if (selection.trigger.isConnected) selection.trigger.focus({ preventScroll: true })
+    }
+  }, [selection.trigger])
+
+  useEffect(() => {
+    if (reduced) return
+    const timer = window.setTimeout(() => setMediaReady(true), 560)
+    return () => window.clearTimeout(timer)
+  }, [activeId, reduced])
+
+  useEffect(() => {
+    if (!open || reduced) return
+    const wrapper = scrollRef.current
+    const content = contentRef.current
+    if (!wrapper || !content) return
+
+    const lenis = new Lenis({
+      wrapper,
+      content,
+      lerp: 0.085,
+      smoothWheel: true,
+      syncTouch: false,
+    })
+    modalLenisRef.current = lenis
+    let frame = 0
+    const raf = (time: number) => {
+      lenis.raf(time)
+      frame = requestAnimationFrame(raf)
+    }
+    frame = requestAnimationFrame(raf)
+    return () => {
+      cancelAnimationFrame(frame)
+      lenis.destroy()
+      modalLenisRef.current = null
+    }
+  }, [open, reduced])
+
+  const selectGroup = (group: StoryGroup) => {
+    if (!reduced) setMediaReady(false)
+    setActiveId(group.id)
+    if (modalLenisRef.current) modalLenisRef.current.scrollTo(0, { duration: 0.7 })
+    else scrollRef.current?.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+  }
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none overflow-hidden bg-transparent p-0 backdrop:bg-transparent"
+      aria-labelledby="bwsm-project-preview-title"
+      data-lenis-prevent="true"
+      onCancel={(event) => { event.preventDefault(); setOpen(false) }}
+    >
+      <AnimatePresence onExitComplete={onDismiss}>
+        {open && (
+          <motion.div
+            ref={scrollRef}
+            className="fixed inset-0 overflow-y-auto overscroll-contain transition-colors duration-500 [will-change:transform,opacity]"
+            style={{ backgroundColor: background, color: foreground }}
+            initial={{ opacity: reduced ? 1 : 0, scale: reduced ? 1 : 0.985, borderRadius: reduced ? 0 : 30 }}
+            animate={{ opacity: 1, scale: 1, borderRadius: 0 }}
+            exit={{ opacity: 0, scale: reduced ? 1 : 1.012, borderRadius: reduced ? 0 : 30 }}
+            transition={{ duration: reduced ? 0 : 0.58, ease: EASE }}
+          >
+            <div ref={contentRef} className="min-h-full">
+            <div className="pointer-events-none fixed inset-x-0 top-0 z-[3] flex items-start justify-between p-[clamp(18px,2vw,36px)]">
+              <span className="grid size-11 place-items-center rounded-full bg-[#f7e0dd] font-primary text-[14px] font-bold text-[#cb2486] shadow-[0_8px_24px_rgba(0,0,0,.12)]">BW</span>
+              <button
+                ref={closeRef}
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close project stories"
+                className="pointer-events-auto relative grid size-[clamp(50px,4vw,68px)] place-items-center rounded-full bg-[#e993bc] text-[#055c2c] shadow-[0_10px_30px_rgba(0,0,0,.14)] transition-transform duration-300 hover:rotate-90 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <span className="absolute h-[2px] w-5 rotate-45 rounded-full bg-current" />
+                <span className="absolute h-5 w-[2px] rotate-45 rounded-full bg-current" />
+              </button>
+            </div>
+
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeGroup.id}
+                className="mx-auto grid min-h-[100svh] w-full max-w-[1760px] gap-10 px-[clamp(22px,5vw,96px)] pb-16 pt-[clamp(105px,13vh,150px)] lg:grid-cols-[minmax(250px,0.7fr)_minmax(0,1.5fr)] lg:gap-[clamp(50px,7vw,130px)]"
+                initial={{ y: reduced ? 0 : 28, opacity: reduced ? 1 : 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: reduced ? 0 : -18, opacity: 0 }}
+                transition={{ duration: reduced ? 0 : 0.48, ease: EASE }}
+              >
+              <aside className="self-start lg:sticky lg:top-[18svh]">
+                <span className="inline-flex rounded-full bg-[#f7e0dd] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#cb2486]">Social case</span>
+                <h2 id="bwsm-project-preview-title" className="bwsm-story-title mt-5 whitespace-pre-line text-[clamp(58px,7.2vw,138px)] uppercase leading-[0.76] tracking-[-0.055em]">
+                  {activeGroup.title}
+                </h2>
+                <p className="mt-6 max-w-[42ch] text-[clamp(14px,1.05vw,18px)] font-semibold leading-[1.5] opacity-85">{activeGroup.description}</p>
+                <div className="mt-7 flex flex-wrap gap-2">
+                  {socialCaseOfMonth.tags.map((tag) => <span key={tag} className="rounded-full border border-current/25 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.04em]">{tag}</span>)}
+                </div>
+              </aside>
+
+              <div className="grid grid-cols-1 items-start gap-[clamp(18px,2vw,34px)] sm:grid-cols-2">
+                {activeGroup.reels.map((story, storyIndex) => (
+                  <article key={`${activeGroup.id}-${story.id}-${storyIndex}`} className={storyIndex % 3 === 1 ? 'sm:translate-y-[14svh]' : ''}>
+                    <div className="aspect-[9/16] overflow-hidden rounded-[clamp(18px,1.5vw,28px)] bg-black/15 shadow-[0_22px_60px_rgba(0,0,0,.16)]">
+                      {mediaReady ? (
+                        <MediaFrame reel={story} />
+                      ) : story.poster ? (
+                        <img src={story.poster} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="block h-full w-full animate-pulse bg-black/10" aria-hidden="true" />
+                      )}
+                    </div>
+                    <div className="mt-3 rounded-[clamp(16px,1.2vw,22px)] bg-black/15 p-[clamp(18px,2vw,30px)] backdrop-blur-sm">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.1em] opacity-60">Story {pad2(storyIndex + 1)}</span>
+                      <h3 className="mt-3 font-primary text-[clamp(28px,2.6vw,48px)] uppercase leading-[0.86]">{story.caption}</h3>
+                      <p className="mt-4 text-[12px] font-semibold leading-[1.5] opacity-75">A platform-native moment from the {activeGroup.title.replace(/\n/g, ' ')} story system, designed to work on its own and as part of the complete campaign.</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="mx-auto w-full max-w-[1760px] px-[clamp(22px,5vw,96px)] pb-[clamp(70px,10vh,120px)] pt-12">
+              <p className="font-primary text-[clamp(38px,5vw,86px)] uppercase leading-[0.8]">Explore other projects</p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                {groups.map((group, index) => (
+                  <button
+                    key={group.id}
+                    type="button"
+                    onClick={() => selectGroup(group)}
+                    aria-pressed={group.id === activeGroup.id}
+                    className="group flex items-center gap-3 rounded-full border border-current/25 py-2 pl-2 pr-4 text-left transition-[background-color,transform] duration-300 hover:-translate-y-1 aria-pressed:bg-[#cb2486] aria-pressed:text-white"
+                  >
+                    <span className="size-12 overflow-hidden rounded-full bg-black/15">
+                      {group.reels[0]?.poster ? <img src={group.reels[0].poster} alt="" className="h-full w-full object-cover" /> : null}
+                    </span>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.05em]">{group.title.replace(/\n/g, ' ')}</span>
+                    <span className="grid size-7 place-items-center rounded-full bg-[#e993bc] text-[#055c2c] transition-transform duration-300 group-hover:rotate-90">+</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </dialog>
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /* Pinned scroll story (desktop)                                       */
 /*                                                                     */
@@ -1170,6 +1377,7 @@ const RAIL_ITEM: CSSProperties = { position: 'absolute', width: 'var(--slot-w)',
 function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLElement) => void }) {
   const desktopRef = useRef<HTMLDivElement>(null)
   const [railIndex, setRailIndex] = useState(0)
+  const [projectPreview, setProjectPreview] = useState<StoryPreviewSelection | null>(null)
 
   const heroReels = SOCIAL_REELS.slice(0, 3)
   const fallbackImages = [mediaUrl('Strategy.jpg'), mediaUrl('content_creation.avif'), mediaUrl('enga.webp')]
@@ -1584,6 +1792,8 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
     return () => mm.revert()
   }, { scope: desktopRef, dependencies: [total, railCount] })
 
+  const visibleStoryGroup = storyGroups[Math.max(0, Math.min(storyGroups.length - 1, railIndex - 1))] ?? storyGroups[0]
+
   const tiltedSticker = 'bwsm-emoji-bubble bwsm-emoji-float pointer-events-none absolute z-50 rounded-[26px] bg-[#f7e0dd] px-6 py-5 text-[30px] shadow-[0_12px_28px_rgba(16,17,15,0.12)]'
   const flowBox = 'pointer-events-none absolute inset-0 z-[30] will-change-transform'
   const textHighlight = 'inline-block text-[#e993bc]'
@@ -1663,7 +1873,15 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           <div className="pointer-events-none absolute inset-0 z-[70]">
             {storyGroups.map((group, g) => (
               <div key={group.id} data-rail-item className="pointer-events-auto [will-change:transform]" style={{ ...RAIL_ITEM, zIndex: g + 1, transform: 'translateX(110vw)' }}>
-                <StoryGroupCard group={group} active={railIndex === g + 1} passed={railIndex > g + 1} onOpen={onOpen} className="h-full w-full" caption={socialCaseOfMonth} />
+                <StoryGroupCard
+                  group={group}
+                  active={!projectPreview && railIndex === g + 1}
+                  passed={railIndex > g + 1}
+                  onOpen={onOpen}
+                  onPreview={(selectedGroup, trigger) => setProjectPreview({ group: selectedGroup, trigger })}
+                  className="h-full w-full"
+                  caption={socialCaseOfMonth}
+                />
                 <CylShade className="z-10 rounded-[clamp(14px,1.2vw,22px)]" />
               </div>
             ))}
@@ -1761,7 +1979,17 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
                     {reel.poster ? <img src={reel.poster} alt="" className="h-full w-full object-cover" /> : null}
                   </span>
                 ))}
-                <span data-pop className="grid size-12 place-items-center rounded-full border-2 border-white bg-[#cb2486] text-[11px] text-white">+{Math.max(2, SOCIAL_REELS.length - 4)}</span>
+                <button
+                  type="button"
+                  data-pop
+                  onClick={(event) => {
+                    if (visibleStoryGroup) setProjectPreview({ group: visibleStoryGroup, trigger: event.currentTarget })
+                  }}
+                  aria-label={`Open all ${visibleStoryGroup?.title.replace(/\n/g, ' ') ?? 'project'} stories`}
+                  className="grid size-12 place-items-center rounded-full border-2 border-white bg-[#cb2486] text-[11px] font-bold text-white shadow-[0_8px_22px_rgba(0,0,0,.16)] transition-transform duration-300 hover:rotate-90 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  +{Math.max(2, SOCIAL_REELS.length - 4)}
+                </button>
               </div>
               {/* story counter + progress, synced with the rail */}
               <div data-social-fade className="mt-8 w-[min(240px,20vw)]">
@@ -1826,11 +2054,26 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
           <h2 className="font-primary text-[14vw] uppercase leading-[0.76]  lg:text-[10rem]">We make<br />them social.</h2>
           <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none]">
             {storyGroups.map((group) => (
-              <StoryGroupCard key={group.id} group={group} active onOpen={onOpen} className="h-[min(78svh,500px)] w-[82vw] max-w-[380px] snap-center" caption={socialCaseOfMonth} />
+              <StoryGroupCard
+                key={group.id}
+                group={group}
+                active={!projectPreview}
+                onOpen={onOpen}
+                onPreview={(selectedGroup, trigger) => setProjectPreview({ group: selectedGroup, trigger })}
+                className="h-[min(78svh,500px)] w-[82vw] max-w-[380px] snap-center"
+                caption={socialCaseOfMonth}
+              />
             ))}
           </div>
         </div>
       </div>
+      {projectPreview && (
+        <StoryProjectPreview
+          selection={projectPreview}
+          groups={storyGroups}
+          onDismiss={() => setProjectPreview(null)}
+        />
+      )}
     </section>
   )
 }

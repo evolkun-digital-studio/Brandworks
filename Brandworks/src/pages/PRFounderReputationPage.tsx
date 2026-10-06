@@ -345,17 +345,17 @@ function Hero() {
 type Result = { site: string; path: string; title: string; snippet: string; tone?: 'bad' | 'off' | 'good' }
 
 const TODAY: Result[] = [
-  { site: 'LinkedIn', path: 'linkedin.com › in › ananya-rao-38b2', title: 'Ananya Rao - Pune | LinkedIn', snippet: 'Pune, Maharashtra · 500+ connections. View Ananya Rao’s profile on LinkedIn, a professional community of…', tone: 'off' },
-  { site: 'Business directory', path: 'bizlistings.in › directors', title: 'Ananya Rao | Director Details and Companies', snippet: 'Registered director of 2 companies. View DIN, registered address and filing history for Ananya Rao…', tone: 'off' },
-  { site: 'Culture News', path: 'culturenews.in › dance', title: 'Ananya Rao’s Bharatanatyam recital draws a full house', snippet: 'The classical dancer returned to the city for a one-night performance at the…', tone: 'off' },
-  { site: 'Startup forum', path: 'startupforum.in › threads › 2021', title: 'Anyone dealt with Kiln Logistics? Delivery delays', snippet: 'Our shipment was two weeks late and nobody answered emails. Has anyone else had this with Rao’s company…', tone: 'bad' },
+  { site: 'LinkedIn', path: 'linkedin.com › in › Rahul-rao-38b2', title: 'Rahul Tanwar- Pune | LinkedIn', snippet: 'Pune, Maharashtra · 500+ connections. View Rahul Tanwar’s profile on LinkedIn, a professional community of…', tone: 'off' },
+  { site: 'Business directory', path: 'bizlistings.in › directors', title: 'Rahul Tanwar| Director Details and Companies', snippet: 'Registered director of 2 companies. View DIN, registered address and filing history for Rahul Tanwar…', tone: 'off' },
+  { site: 'Culture News', path: 'culturenews.in › dance', title: 'Rahul Tanwar’s Bharatanatyam recital draws a full house', snippet: 'The classical dancer returned to the city for a one-night performance at the…', tone: 'off' },
+  { site: 'Startup forum', path: 'startupforum.in › threads › 2021', title: 'Anyone dealt with Masai? Delivery delays', snippet: 'Our shipment was two weeks late and nobody answered emails. Has anyone else had this with Rao’s company…', tone: 'bad' },
 ]
 
 const AFTER: Result[] = [
-  { site: 'Kiln Logistics', path: 'kilnlogistics.in › about', title: 'Ananya Rao, Founder and CEO | Kiln Logistics', snippet: 'Ananya founded Kiln in 2019 after six years running export operations. She leads a team of 40 helping small exporters ship…', tone: 'good' },
-  { site: 'Trade journal', path: 'logisticsweekly.in › interviews', title: 'Interview: the founder fixing shipping for small exporters', snippet: 'Ananya Rao on why small exporters pay more per kilo than large ones, and what Kiln changed after its…', tone: 'good' },
-  { site: 'Podcast', path: 'buildinginindia.fm › episode-48', title: 'Building for small exporters, with Ananya Rao', snippet: 'Episode 48. Ananya talks about the delivery crisis that nearly ended Kiln in 2021 and what fixed it…', tone: 'good' },
-  { site: 'LinkedIn', path: 'linkedin.com › in › ananyarao', title: 'Ananya Rao - Founder at Kiln Logistics | LinkedIn', snippet: '“Last month we shipped for 1,200 small exporters. Here’s what we learned about customs delays…”', tone: 'good' },
+  { site: 'Masai', path: 'Masailogistics.in › about', title: 'Rahul Tanwar, Founder and CEO | Masai', snippet: 'Rahul founded Masai in 2019 after six years running export operations. She leads a team of 40 helping small exporters ship…', tone: 'good' },
+  { site: 'Trade journal', path: 'logisticsweekly.in › interviews', title: 'Interview: the founder fixing shipping for small exporters', snippet: 'Rahul Tanwaron why small exporters pay more per kilo than large ones, and what Masai changed after its…', tone: 'good' },
+  { site: 'Podcast', path: 'buildinginindia.fm › episode-48', title: 'Building for small exporters, with Rahul Tanwar', snippet: 'Episode 48. Rahul talks about the delivery crisis that nearly ended Masai in 2021 and what fixed it…', tone: 'good' },
+  { site: 'LinkedIn', path: 'linkedin.com › in › Rahulrao', title: 'Rahul Tanwar- Founder at Masai | LinkedIn', snippet: '“Last month we shipped for 1,200 small exporters. Here’s what we learned about customs delays…”', tone: 'good' },
 ]
 
 function ResultItem({ r }: { r: Result }) {
@@ -381,18 +381,18 @@ function KnowledgePanel() {
         <img src={PHOTOS.searchFounder} alt="" className="size-16 shrink-0 object-cover" loading="lazy" />
         <div>
           <p className="flex items-center gap-1.5 text-[17px] leading-tight text-neutral-950">
-            Ananya Rao
+            Rahul Tanwar
             <svg viewBox="0 0 24 24" className="size-4 text-[#1a73e8]" aria-label="Verified">
               <path fill="currentColor" d="m12 1 2.6 2.2 3.4-.3.8 3.3 2.9 1.8-1.3 3.2 1.3 3.2-2.9 1.8-.8 3.3-3.4-.3L12 23l-2.6-2.2-3.4.3-.8-3.3-2.9-1.8L3.6 12 2.3 8.8l2.9-1.8.8-3.3 3.4.3z" />
               <path fill="#fff" d="m10.6 15.6-3.2-3.2 1.4-1.4 1.8 1.8 4.6-4.6 1.4 1.4z" />
             </svg>
           </p>
-          <p className="mt-1 text-[12px] text-neutral-500">Founder and CEO, Kiln Logistics</p>
+          <p className="mt-1 text-[12px] text-neutral-500">Founder and CEO, Masai</p>
         </div>
       </div>
-      <p className="mt-4 text-[12px] leading-[1.55] text-neutral-600">Founder of Kiln Logistics, a Pune-based company that handles shipping for small exporters.</p>
+      <p className="mt-4 text-[12px] leading-[1.55] text-neutral-600">Founder of Masai, a Pune-based company that handles shipping for small exporters.</p>
       <dl className="mt-3 space-y-1 text-[12px]">
-        <div className="flex gap-2"><dt className="text-neutral-950">Founded:</dt><dd className="text-neutral-600">Kiln Logistics, 2019</dd></div>
+        <div className="flex gap-2"><dt className="text-neutral-950">Founded:</dt><dd className="text-neutral-600">Masai, 2019</dd></div>
         <div className="flex gap-2"><dt className="text-neutral-950">Education:</dt><dd className="text-neutral-600">College of Engineering, Pune</dd></div>
       </dl>
     </aside>
@@ -415,7 +415,7 @@ function SearchYourself() {
   const choose = (value: boolean) => { touched.current = true; setAfter(value) }
 
   return (
-    <section id="search-yourself" className="scroll-mt-16 border-y border-neutral-200 bg-[#f6f6f3]">
+    <section id="search-yourself" className="scroll-mt-16  ">
       <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[0.85fr_1.4fr] lg:gap-20 lg:py-28`}>
         <div>
           <FadeIn>
@@ -453,7 +453,7 @@ function SearchYourself() {
           <div ref={ref} className="bg-white p-5 shadow-[0_20px_60px_rgba(0,0,0,0.06)] sm:p-7">
             <div className="flex h-11 items-center gap-3 rounded-full border border-neutral-200 px-4 text-[14px] text-neutral-900">
               <svg viewBox="0 0 24 24" className="size-4 text-neutral-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
-              ananya rao kiln
+              Rahul Tanwar Masai
             </div>
 
             <div className="mt-4 grid">
@@ -467,7 +467,7 @@ function SearchYourself() {
                   <div className="divide-y divide-neutral-100">
                     {(state ? AFTER : TODAY).map((r) => <ResultItem key={r.title} r={r} />)}
                     {state && (
-                      <p className="pt-3.5 text-[12px] text-neutral-400">The 2021 forum thread is still there, now on page two, below Ananya’s own account of what went wrong.</p>
+                      <p className="pt-3.5 text-[12px] text-neutral-400">The 2021 forum thread is still there, now on page two, below Rahul’s own account of what went wrong.</p>
                     )}
                   </div>
                   {state ? <div className="hidden md:block"><KnowledgePanel /></div> : <div className="hidden md:block" />}
@@ -475,7 +475,7 @@ function SearchYourself() {
               ))}
             </div>
           </div>
-          <p className="mt-3 text-[12px] text-neutral-400">Illustrative example. Ananya Rao and Kiln Logistics are made up.</p>
+          <p className="mt-3 text-[12px] text-neutral-400">Illustrative example. Rahul Tanwarand Masai are made up.</p>
         </FadeIn>
       </div>
     </section>
@@ -620,8 +620,8 @@ function Services() {
 const PITCH_BODY = [
   'Hi Priya,',
   'I read your piece last week on freight costs after the monsoon. One thing it didn’t cover: small exporters pay far more per kilo to ship than large ones, often for the same route.',
-  'Kiln Logistics has data from 4,000 shipments made by small exporters in Maharashtra over the past year, and the gap is wider than most people assume. Founder Ananya Rao can walk you through it and share the full dataset.',
-  'She’s also happy to talk about the delivery problems Kiln had in 2021 and what it changed afterwards, if that’s useful context.',
+  'Masai has data from 4,000 shipments made by small exporters in Maharashtra over the past year, and the gap is wider than most people assume. Founder Rahul Tanwarcan walk you through it and share the full dataset.',
+  'She’s also happy to talk about the delivery problems Masai had in 2021 and what it changed afterwards, if that’s useful context.',
   'Would a short call this week work?',
   'Thanks,\nMeera, BrandWorks',
 ]
@@ -681,11 +681,7 @@ function Process() {
           <FadeIn>
             <h2 className={h2}>How we <Mark>work together</Mark></h2>
           </FadeIn>
-          <FadeIn delay={80}>
-            <p className="max-w-[52ch] text-[15px] leading-[1.75] text-neutral-600 lg:pt-3">
-              Reputation is built by showing up consistently, so we plan for months, not a single launch. You’ll have one named lead who knows your story and answers your messages.
-            </p>
-          </FadeIn>
+        
         </div>
 
         <div ref={ref} className="relative mt-14 lg:mt-20">
