@@ -105,7 +105,7 @@ function Flow({ items, className = '' }: { items: string[]; className?: string }
 
 function CampaignField() {
   return <div className="pm-campaign-field" role="img" aria-label="Conceptual campaign paths connecting attention, intent and conversion. No performance data is represented.">
-    <div className="pm-field-top"><span>Creative × Media × Technology</span><span>Acquisition system</span></div>
+    <div className="pm-field-top"></div>
     <svg viewBox="0 0 600 390" fill="none" aria-hidden="true">
       <g className="pm-field-grid" stroke="currentColor">{[80, 160, 240, 320].map(y => <path key={y} d={`M0 ${y}H600`} />)}{[100, 200, 300, 400, 500].map(x => <path key={x} d={`M${x} 0V390`} />)}</g>
       <g className="pm-field-paths" strokeWidth="1.5">
@@ -118,7 +118,6 @@ function CampaignField() {
     <div className="pm-field-label pm-field-label-a">01 / Attention<span>Meta · YouTube</span></div>
     <div className="pm-field-label pm-field-label-b">02 / Intent<span>Search · LinkedIn</span></div>
     <div className="pm-field-label pm-field-label-c">03 / Action<span>Landing · Conversion</span></div>
-    <div className="pm-field-bottom"><span>Different paths. One business objective.</span><span aria-hidden="true">↗</span></div>
   </div>
 }
 
@@ -250,7 +249,7 @@ export default function PerformanceMarketingPage() {
 
   return <main ref={rootRef} className="pm-page font-secondary">
     <section className="pm-hero pm-container" aria-labelledby="pm-title">
-      <div><p className="pm-label">Performance Marketing</p><h1 id="pm-title">Media spend should create momentum, not just impressions.</h1><p className="pm-lead">We combine paid media, creative, data and conversion strategy to turn advertising budgets into measurable business growth.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="#pm-approach" className="pm-text-link">Explore Our Approach <span aria-hidden="true">↓</span></Link></div><p className="pm-hero-signature">BrandWorks / Strategy + Design + Technology</p></div>
+      <div><h1 id="pm-title">Media spend should create momentum, not just impressions.</h1><p className="pm-lead">We combine paid media, creative, data and conversion strategy to turn advertising budgets into measurable business growth.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="#pm-approach" className="pm-text-link">Explore Our Approach <span aria-hidden="true">↓</span></Link></div><p className="pm-hero-signature">BrandWorks / Strategy + Design + Technology</p></div>
       <CampaignField />
     </section>
 
