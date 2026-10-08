@@ -67,10 +67,14 @@ function currentMode(): Mode {
 }
 
 function useMode() {
-  const [mode, setMode] = useState<Mode>(currentMode);
+  // Keep the server render and hydration render on the same branch; the
+  // browser-specific canvas/mobile mode is selected immediately after mount.
+  const [mode, setMode] = useState<Mode>("static");
 
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
+
+    setMode(currentMode());
 
     const queries = [CANVAS_QUERY, REDUCED_MOTION].map((query) =>
       window.matchMedia(query),

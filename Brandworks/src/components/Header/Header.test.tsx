@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import Header from './Header'
+import { ViteNavigationProvider } from '../../routing/vite'
 
 /**
  * The logo previously had href="#" despite its aria-label already
@@ -16,7 +17,7 @@ describe('Header — logo link', () => {
   it('renders a real anchor with href="/" for the logo, not a bare "#" placeholder', () => {
     const html = renderToStaticMarkup(
       <MemoryRouter>
-        <Header />
+        <ViteNavigationProvider><Header /></ViteNavigationProvider>
       </MemoryRouter>,
     )
     const match = html.match(/<a[^>]*aria-label="Brandworks home"[^>]*>/)
@@ -27,7 +28,7 @@ describe('Header — logo link', () => {
   it('still renders a real, crawlable link to /blog in the primary nav', () => {
     const html = renderToStaticMarkup(
       <MemoryRouter>
-        <Header />
+        <ViteNavigationProvider><Header /></ViteNavigationProvider>
       </MemoryRouter>,
     )
     expect(html).toContain('href="/blog"')
@@ -36,7 +37,7 @@ describe('Header — logo link', () => {
   it('renders a real link to the work page in the primary nav', () => {
     const html = renderToStaticMarkup(
       <MemoryRouter>
-        <Header />
+        <ViteNavigationProvider><Header /></ViteNavigationProvider>
       </MemoryRouter>,
     )
     expect(html).toContain('href="/work"')

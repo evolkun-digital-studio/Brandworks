@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet } from '../../routing'
+import type { ReactNode } from 'react'
 import { useAdminAuth } from '../context/useAdminAuth'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -9,7 +10,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`
 
 /** Shared chrome for every authenticated admin page: top bar + nav + content. */
-function AdminShell() {
+function AdminShell({ children }: { children?: ReactNode }) {
   const { admin, logout } = useAdminAuth()
 
   return (
@@ -66,7 +67,7 @@ function AdminShell() {
       </header>
 
       <main className="mx-auto w-full max-w-[1100px] px-6 py-10">
-        <Outlet />
+        {children ?? <Outlet />}
       </main>
     </div>
   )

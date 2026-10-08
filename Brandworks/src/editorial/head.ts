@@ -8,6 +8,7 @@ import {
   setLinkTag,
   setMetaTag,
 } from '../blog/lib/documentHead'
+import { useNativeMetadata } from '../routing/context'
 
 const JSONLD_ID = 'brandworks-editorial-schema'
 
@@ -28,6 +29,7 @@ type PageMeta = {
  * Pass null while there is nothing to describe (e.g. a missing article).
  */
 export function useEditorialMeta(meta: PageMeta | null) {
+  const nativeMetadata = useNativeMetadata()
   const origin = typeof window === 'undefined' ? '' : window.location.origin
   const title = meta?.title
   const description = meta?.description ?? ''
@@ -37,7 +39,7 @@ export function useEditorialMeta(meta: PageMeta | null) {
   const jsonLd = meta ? JSON.stringify(meta.jsonLd(origin, canonical)) : ''
 
   useEffect(() => {
-    if (!title) return
+    if (nativeMetadata || !title) return
     const previousTitle = document.title
 
     setDocumentTitle(title)
@@ -62,7 +64,7 @@ export function useEditorialMeta(meta: PageMeta | null) {
       for (const n of ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image']) removeMetaTag('name', n)
       removeJsonLd(JSONLD_ID)
     }
-  }, [title, description, canonical, image, type, jsonLd])
+  }, [nativeMetadata, title, description, canonical, image, type, jsonLd])
 }
 
 /**

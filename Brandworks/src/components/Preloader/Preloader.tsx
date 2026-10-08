@@ -226,18 +226,27 @@ function PhotoColumns({ geometry, pool }: { geometry: WordGeometry; pool: readon
  * layouts.ts for the cut list, timeline.ts for the choreography.
  */
 function Preloader() {
-  const [mode] = useState<IntroMode>(() => (typeof window === 'undefined' ? 'none' : resolveIntroMode()))
-  const [compact] = useState(() => window.matchMedia?.('(max-width: 767px)').matches ?? false)
+  const [mounted, setMounted] = useState(false)
+  const [mode, setMode] = useState<IntroMode>('none')
+  const [compact, setCompact] = useState(false)
   const layout: PreloaderLayout = compact ? COMPACT_LAYOUT : DESKTOP_LAYOUT
   const [ready, setReady] = useState<Ready | null>(null)
-  const [done, setDone] = useState(mode === 'none')
+  const [done, setDone] = useState(true)
   const rootRef = useRef<HTMLDivElement>(null)
   const releaseRef = useRef<(() => void) | null>(null)
   const timelineRef = useRef<gsap.core.Timeline | null>(null)
 
+  useLayoutEffect(() => {
+    const nextMode = resolveIntroMode()
+    setCompact(window.matchMedia?.('(max-width: 767px)').matches ?? false)
+    setMode(nextMode)
+    setDone(nextMode === 'none')
+    setMounted(true)
+  }, [])
+
   useEffect(() => {
-    if (mode === 'none') settleIntro()
-  }, [mode])
+    if (mounted && mode === 'none') settleIntro()
+  }, [mode, mounted])
 
   // Load: hold the page, then fetch + decode every image and settle the font.
   useEffect(() => {
@@ -323,7 +332,7 @@ function Preloader() {
     }
   }, [ready, layout, compact])
 
-  if (done) return null
+  if (!mounted || done) return null
 
   const full = ready?.mode === 'full'
   const pool = ready?.pool ?? []

@@ -3,7 +3,9 @@
 // it is deliberately not guessed here. Only an absolute http(s) URL is
 // accepted; anything else leaves EVOLKUN_URL empty, and the links render
 // as plain text until it is configured.
-const configured = (import.meta.env.VITE_EVOLKUN_URL as string | undefined)?.trim() ?? ''
+declare const process: { readonly env: { readonly NEXT_PUBLIC_EVOLKUN_URL?: string } }
+
+const configured = process.env.NEXT_PUBLIC_EVOLKUN_URL?.trim() ?? ''
 
 function absoluteHttpUrl(value: string): string {
   try {

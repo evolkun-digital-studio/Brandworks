@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from '../../../routing'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import * as blogApi from '../../api/blogAdminApi'
@@ -431,7 +431,7 @@ function SeoPreview({
       <div className="max-w-[560px] truncate text-[18px] text-[#1a0dab]">
         {title || 'Untitled post'}
       </div>
-      <div className="text-[13px] text-[#006621]">brandworks.com/blog/{slug || 'your-slug'}</div>
+      <div className="text-[13px] text-[#006621]">brandworks.me/blog/{slug || 'your-slug'}</div>
       <p className="mt-1 line-clamp-2 text-[13px] text-neutral-600">
         {description || 'A meta description will appear here.'}
       </p>

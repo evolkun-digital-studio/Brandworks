@@ -22,6 +22,7 @@ vi.mock('../context/useAdminAuth', () => ({
 }))
 
 const { default: Dashboard } = await import('./Dashboard')
+const { ViteNavigationProvider } = await import('../../routing/vite')
 
 let container: HTMLDivElement | null = null
 let root: Root | null = null
@@ -44,7 +45,7 @@ async function mount() {
     root = createRoot(container!)
     root!.render(
       <MemoryRouter>
-        <Dashboard />
+        <ViteNavigationProvider><Dashboard /></ViteNavigationProvider>
       </MemoryRouter>,
     )
   })

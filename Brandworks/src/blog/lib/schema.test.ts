@@ -3,7 +3,7 @@ import { buildArticleSchemaGraph, resolveCanonicalUrl, serializeJsonLd } from '.
 import type { PublicBlogDetail } from '../api/types'
 import type { SiteContext } from './schema'
 
-const SITE: SiteContext = { origin: 'https://brandworks.com', siteName: 'BRANDWORKS' }
+const SITE: SiteContext = { origin: 'https://brandworks.me', siteName: 'BRANDWORKS' }
 
 function basePost(overrides: Partial<PublicBlogDetail> = {}): PublicBlogDetail {
   return {
@@ -164,13 +164,13 @@ describe('no cover image', () => {
 
 describe('canonical URL resolution', () => {
   it('uses the configured canonicalUrl when present, over the generated one', () => {
-    const post = basePost({ canonicalUrl: 'https://brandworks.com/blog/custom-canonical' })
-    expect(resolveCanonicalUrl(post, SITE)).toBe('https://brandworks.com/blog/custom-canonical')
+    const post = basePost({ canonicalUrl: 'https://brandworks.me/blog/custom-canonical' })
+    expect(resolveCanonicalUrl(post, SITE)).toBe('https://brandworks.me/blog/custom-canonical')
   })
 
   it('falls back to {origin}/blog/{slug} when no canonicalUrl is configured', () => {
     const post = basePost({ canonicalUrl: null })
-    expect(resolveCanonicalUrl(post, SITE)).toBe('https://brandworks.com/blog/complete-guide-technical-seo')
+    expect(resolveCanonicalUrl(post, SITE)).toBe('https://brandworks.me/blog/complete-guide-technical-seo')
   })
 })
 

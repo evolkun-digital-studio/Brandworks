@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from '../../routing'
 import { getBlogBySlug, getBlogs } from '../api/blogApi'
 import { PublicApiError } from '../api/client'
 import { trackBlogArticleView } from '../../analytics/analytics'

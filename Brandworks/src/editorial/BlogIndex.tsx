@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from '../routing'
 import { blogCategories, blogPosts } from './data'
 import { EditorialImage } from './EditorialImage'
 import { Arrow, CompactStory, Masthead, Meta, QuietCta, Reveal, StoryCard } from './components'
@@ -19,9 +19,9 @@ function SearchIcon() {
   )
 }
 
-function BlogIndex() {
+function BlogIndex({ manageMetadata = true }: { manageMetadata?: boolean }) {
   useScrollToTop('/blog')
-  useEditorialMeta({
+  useEditorialMeta(manageMetadata ? {
     title: 'Journal | BRANDWORKS',
     description: DESCRIPTION,
     path: '/blog',
@@ -34,7 +34,7 @@ function BlogIndex() {
       url: canonical,
       publisher: { '@type': 'Organization', name: 'BrandWorks', url: origin },
     }),
-  })
+  } : null)
 
   const [params, setParams] = useSearchParams()
   const active = blogCategories.find((c) => categorySlug(c) === params.get('category')) ?? 'All'

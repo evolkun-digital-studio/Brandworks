@@ -43,6 +43,7 @@ export type WebProject = {
   title: string
   type: string
   services: string[]
+  year?: string
   
   layout: WebProjectLayout
   image: WebProjectImage

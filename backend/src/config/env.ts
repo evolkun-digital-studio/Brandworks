@@ -45,14 +45,14 @@ function normalizeOrigin(raw: string, name: string): string {
   try {
     url = new URL(raw)
   } catch {
-    throw new Error(`${name} must be a valid absolute URL (e.g. https://brandworks.com) — got: "${raw}"`)
+    throw new Error(`${name} must be a valid absolute URL (e.g. https://brandworks.me) — got: "${raw}"`)
   }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
     throw new Error(`${name} must use http or https — got: "${raw}"`)
   }
   if (url.pathname !== '/' && url.pathname !== '') {
     throw new Error(
-      `${name} must be an origin only, with no path (e.g. https://brandworks.com, not .../api or .../blog) — got: "${raw}"`,
+      `${name} must be an origin only, with no path (e.g. https://brandworks.me, not .../api or .../blog) — got: "${raw}"`,
     )
   }
   if (url.search || url.hash) {
@@ -80,7 +80,7 @@ function resolvePublicOrigin(): string {
   }
   if (isProductionEnv) {
     throw new Error(
-      'PUBLIC_ORIGIN is required in production — set it to the public website origin (e.g. https://brandworks.com).',
+      'PUBLIC_ORIGIN is required in production — set it to the public website origin (e.g. https://brandworks.me).',
     )
   }
   return normalizeOrigin(allowedOrigins[0] ?? 'http://localhost:5173', 'FRONTEND_ORIGIN (used as the PUBLIC_ORIGIN fallback)')
@@ -225,7 +225,7 @@ export function assertStartupConfig(): string[] {
   const frontendOrigin = process.env.FRONTEND_ORIGIN
   if (!frontendOrigin || frontendOrigin.trim() === '') {
     throw new Error(
-      'FRONTEND_ORIGIN is required in production — set it to the public website origin(s) allowed to call this API (e.g. https://brandworks.com).',
+      'FRONTEND_ORIGIN is required in production — set it to the public website origin(s) allowed to call this API (e.g. https://brandworks.me).',
     )
   }
 

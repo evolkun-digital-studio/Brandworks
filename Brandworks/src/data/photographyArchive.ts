@@ -4,9 +4,7 @@
  * so the page never pulls multi-megabyte originals from the media bucket.
  * To add a shoot: export both sizes, add a frame below, then place it.
  */
-const small = import.meta.glob<string>('../assets/photography/*-720.jpg', { eager: true, import: 'default' })
-const large = import.meta.glob<string>('../assets/photography/*-1600.jpg', { eager: true, import: 'default' })
-const xlarge = import.meta.glob<string>('../assets/photography/*-2400.jpg', { eager: true, import: 'default' })
+import { photographyLarge as large, photographySmall as small, photographyXLarge as xlarge } from './photographyAssetManifest'
 
 export type ArchiveFrame = {
   /** Tiny hover caption, e.g. "Product / Still life". */

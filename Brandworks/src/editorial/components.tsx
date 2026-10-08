@@ -1,6 +1,6 @@
 import { createElement, useEffect, useState } from 'react'
 import type { HTMLAttributes, ReactNode } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink } from '../routing'
 import { EditorialImage } from './EditorialImage'
 import { formatDate, hrefFor, readingTime } from './format'
 import type { EditorialKind, EditorialPost } from './types'
@@ -33,7 +33,9 @@ export function Reveal({
   // A callback ref keeps the observed node in state rather than reading
   // a ref object during render.
   const [node, setNode] = useState<HTMLElement | null>(null)
-  const [shown, setShown] = useState(() => typeof IntersectionObserver === 'undefined')
+  // Keep the server markup and the first client render identical. The
+  // observer below reveals the block after hydration when it enters view.
+  const [shown, setShown] = useState(false)
 
   useEffect(() => {
     if (!node || shown) return

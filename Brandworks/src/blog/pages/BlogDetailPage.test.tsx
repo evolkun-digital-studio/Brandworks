@@ -19,6 +19,7 @@ vi.mock('../../analytics/analytics', () => ({
 
 const { default: BlogDetailPage } = await import('./BlogDetailPage')
 const { PublicApiError } = await import('../api/client')
+const { ViteNavigationProvider } = await import('../../routing/vite')
 
 function post(overrides: Partial<PublicBlogDetail> = {}): PublicBlogDetail {
   return {
@@ -84,9 +85,11 @@ async function mountAt(initialPath: string) {
     root = createRoot(container!)
     root!.render(
       <MemoryRouter initialEntries={[initialPath]}>
-        <Routes>
-          <Route path="/blog/:slug" element={<BlogDetailPage />} />
-        </Routes>
+        <ViteNavigationProvider>
+          <Routes>
+            <Route path="/blog/:slug" element={<BlogDetailPage />} />
+          </Routes>
+        </ViteNavigationProvider>
       </MemoryRouter>,
     )
   })
@@ -151,23 +154,21 @@ describe('BlogDetailPage — navigating directly from one article to another', (
       root = createRoot(container!)
       root!.render(
         <MemoryRouter initialEntries={['/blog/first-post']}>
-          <Routes>
-            <Route
-              path="/blog/:slug"
-              element={
-                <>
-                  <BlogDetailPage />
-                  {/* A real in-router navigation, same as clicking a
-                     "More from the blog" card — not a fresh MemoryRouter,
-                     which wouldn't exercise the same-route param change
-                     this fix is actually about. */}
-                  <Link to="/blog/second-post" data-testid="go-second">
-                    next
-                  </Link>
-                </>
-              }
-            />
-          </Routes>
+          <ViteNavigationProvider>
+            <Routes>
+              <Route
+                path="/blog/:slug"
+                element={
+                  <>
+                    <BlogDetailPage />
+                    <Link to="/blog/second-post" data-testid="go-second">
+                      next
+                    </Link>
+                  </>
+                }
+              />
+            </Routes>
+          </ViteNavigationProvider>
         </MemoryRouter>,
       )
     })
@@ -208,19 +209,21 @@ describe('BlogDetailPage — a loaded, published article transitioning to a 404 
       root = createRoot(container!)
       root!.render(
         <MemoryRouter initialEntries={['/blog/first-post']}>
-          <Routes>
-            <Route
-              path="/blog/:slug"
-              element={
-                <>
-                  <BlogDetailPage />
-                  <Link to="/blog/removed-post" data-testid="go-removed">
-                    next
-                  </Link>
-                </>
-              }
-            />
-          </Routes>
+          <ViteNavigationProvider>
+            <Routes>
+              <Route
+                path="/blog/:slug"
+                element={
+                  <>
+                    <BlogDetailPage />
+                    <Link to="/blog/removed-post" data-testid="go-removed">
+                      next
+                    </Link>
+                  </>
+                }
+              />
+            </Routes>
+          </ViteNavigationProvider>
         </MemoryRouter>,
       )
     })

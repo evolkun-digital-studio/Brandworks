@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from '../routing'
 import { initAnalytics, trackPageView } from './analytics'
 import { applyGscVerification } from './gsc'
 

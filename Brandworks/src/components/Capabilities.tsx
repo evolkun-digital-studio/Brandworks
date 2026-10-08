@@ -116,10 +116,13 @@ function currentMode(): Mode {
  * rendered, so the service list never appears twice in the DOM.
  */
 function useMode() {
-  const [mode, setMode] = useState<Mode>(currentMode);
+  // The server has no viewport and renders the stacked layout; match that
+  // same first branch during hydration, then select the browser mode.
+  const [mode, setMode] = useState<Mode>("stacked");
 
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
+    setMode(currentMode());
     const queries = [MIN_SCROLL_WIDTH, REDUCED_MOTION].map((q) =>
       window.matchMedia(q),
     );

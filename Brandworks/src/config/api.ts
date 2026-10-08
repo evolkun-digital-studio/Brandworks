@@ -1,19 +1,17 @@
-// Base URL of the backend API — the one place the frontend reads it;
-// src/admin/api/client.ts and src/blog/api/client.ts both import it
-// from here. Not a secret — just config — so it's fine as a VITE_
-// variable; server-side secrets (JWT_SECRET, MONGODB_URI) live only in
-// the backend's .env and are never exposed here.
-//
-// http://localhost:4001 is a development-only fallback. The
-// `import.meta.env.DEV` guard is replaced with a literal `false` in a
-// production build, so that branch — and the localhost URL with it —
-// is removed from the production bundle entirely. A production build
-// with VITE_API_BASE_URL unset therefore calls its own origin
-// (`/api/...`) rather than a visitor's localhost.
-const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
+// Next serves the APIs on the same origin, so its base stays empty.
+// Vite temporarily injects its legacy API origin through the Vite-only
+// runtime marker below while its reference implementation remains active.
+declare const process: {
+  readonly env: {
+    readonly NEXT_PUBLIC_API_BASE_URL?: string
+    readonly NEXT_PUBLIC_APP_RUNTIME?: string
+  }
+}
 
-// Trailing slashes are dropped so `https://api.example.com/` and
-// `https://api.example.com` both produce `.../api/blogs`, never `//api`.
-export const API_BASE_URL: string = (
-  configuredBaseUrl || (import.meta.env.DEV ? 'http://localhost:4001' : '')
-).replace(/\/+$/, '')
+const configuredViteBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim()
+
+// Trailing slashes are dropped for the legacy Vite adapter. In Next,
+// this remains '' and callers use same-origin /api/... paths.
+export const API_BASE_URL: string = process.env.NEXT_PUBLIC_APP_RUNTIME === 'vite'
+  ? (configuredViteBaseUrl || '').replace(/\/+$/, '')
+  : ''

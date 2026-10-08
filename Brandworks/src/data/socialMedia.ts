@@ -1,11 +1,16 @@
 import { mediaUrl } from '../lib/media'
+import { assetUrl } from '../lib/assetUrl'
 // Content for the Social Media section (components/SocialMedia).
 
 // The reels and their posters are not on the R2 bucket: the videos are
 // served from ImageKit and the posters are bundled locally.
-import reel01Poster from '../assets/social/reel-01-poster.webp'
-import reel02Poster from '../assets/social/reel-02-poster.webp'
-import reel03Poster from '../assets/social/reel-03-poster.webp'
+import reel01PosterAsset from '../assets/social/reel-01-poster.webp'
+import reel02PosterAsset from '../assets/social/reel-02-poster.webp'
+import reel03PosterAsset from '../assets/social/reel-03-poster.webp'
+
+const reel01Poster = assetUrl(reel01PosterAsset)
+const reel02Poster = assetUrl(reel02PosterAsset)
+const reel03Poster = assetUrl(reel03PosterAsset)
 
 const IMAGEKIT = 'https://ik.imagekit.io/rxoyjxx4c'
 

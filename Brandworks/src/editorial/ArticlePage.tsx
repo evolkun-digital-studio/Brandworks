@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from '../routing'
 import { useNoIndexPage } from '../lib/useNoIndexPage'
 import { blogPosts, newsPosts, serviceLinks } from './data'
 import { EditorialImage } from './EditorialImage'
@@ -112,7 +112,7 @@ function relatedFor(kind: EditorialKind, post: EditorialPost, next: EditorialPos
   return [...others.filter((p) => p.category === post.category), ...others.filter((p) => p.category !== post.category)].slice(0, 3)
 }
 
-function ArticlePage({ kind }: { kind: EditorialKind }) {
+function ArticlePage({ kind, manageMetadata = true }: { kind: EditorialKind; manageMetadata?: boolean }) {
   const { slug = '' } = useParams()
   useScrollToTop(`${kind}/${slug}`)
 
@@ -122,7 +122,7 @@ function ArticlePage({ kind }: { kind: EditorialKind }) {
   const section = kind === 'blog' ? 'Journal' : 'Newsroom'
 
   useEditorialMeta(
-    post && {
+    manageMetadata && post ? {
       title: `${post.title} | BRANDWORKS`,
       description: post.excerpt,
       path: hrefFor(kind, post),
@@ -141,7 +141,7 @@ function ArticlePage({ kind }: { kind: EditorialKind }) {
         publisher: { '@type': 'Organization', name: 'BrandWorks', url: origin },
         mainEntityOfPage: canonical,
       }),
-    },
+    } : null,
   )
 
   if (!post) return <MissingArticle kind={kind} />

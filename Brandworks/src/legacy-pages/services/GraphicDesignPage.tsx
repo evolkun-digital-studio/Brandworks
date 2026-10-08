@@ -1,0 +1,868 @@
+import { mediaUrl } from '../../lib/media'
+import { useEffect, useRef } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import { useReducedMotion } from 'motion/react'
+import { Link } from '../../routing'
+import { useNativeMetadata } from '../../routing/context'
+import CylinderGallery, { type GalleryProject } from '../../components/GraphicDesign/CylinderGallery'
+import { setupHoverTilt } from '../../components/GraphicDesign/hoverTilt'
+import { assetUrl } from '../../lib/assetUrl'
+// Web-sized copies of the R2 originals (WebP, ~2× each slot's on-screen width).
+import studioExperimentAsset from '../../assets/graphic-design/studio-experiment.webp'
+import businessCardMockupAsset from '../../assets/graphic-design/business-card-mockup.webp'
+import businessCardSokoAsset from '../../assets/graphic-design/business-card-soko.webp'
+import softlyKeyVisualAsset from '../../assets/graphic-design/softly-key-visual.webp'
+import staticThinkingCardAsset from '../../assets/graphic-design/static-thinking-card.webp'
+import artDirectionAsset from '../../assets/graphic-design/art-direction.webp'
+import printPublicationAsset from '../../assets/graphic-design/print-publication.webp'
+import staticThinkingMotionAsset from '../../assets/graphic-design/static-thinking-motion.webp'
+import pottBillboardAsset from '../../assets/graphic-design/pott-billboard.webp'
+import brandWalkIntoAsset from '../../assets/graphic-design/brand-walk-into.webp'
+import frameTensionAsset from '../../assets/graphic-design/frame-tension.webp'
+
+const studioExperiment = assetUrl(studioExperimentAsset)
+const businessCardMockup = assetUrl(businessCardMockupAsset)
+const businessCardSoko = assetUrl(businessCardSokoAsset)
+const softlyKeyVisual = assetUrl(softlyKeyVisualAsset)
+const staticThinkingCard = assetUrl(staticThinkingCardAsset)
+const artDirection = assetUrl(artDirectionAsset)
+const printPublication = assetUrl(printPublicationAsset)
+const staticThinkingMotion = assetUrl(staticThinkingMotionAsset)
+const pottBillboard = assetUrl(pottBillboardAsset)
+const brandWalkInto = assetUrl(brandWalkIntoAsset)
+const frameTension = assetUrl(frameTensionAsset)
+
+gsap.registerPlugin(ScrollTrigger)
+
+type Project = GalleryProject & { kind: 'Client' | 'Studio' }
+
+const projects: Project[] = [
+  {
+    image:
+      businessCardSoko,
+    type: 'Identity / Packaging',
+    title: 'A clear identity, made tangible.',
+    kind: 'Client',
+    year: '2026',
+    aspect: 4 / 5,
+    fit: 'contain',
+  },
+  {
+    image:
+      softlyKeyVisual,
+    type: 'Campaign / Key visual',
+    title: 'A world built from one idea.',
+    kind: 'Studio',
+    year: '2026',
+    aspect: 4 / 5,
+    fit: 'contain',
+  },
+  {
+    image:
+      staticThinkingCard,
+    type: 'Motion / Title sequence',
+    title: 'Static thinking, set in motion.',
+    kind: 'Client',
+    year: '2026',
+    aspect: 4 / 5,
+    fit: 'contain',
+  },
+  {
+    image:
+      mediaUrl("client.webp"),
+    type: 'Social / Content system',
+    title: 'One system. Every touchpoint.',
+    kind: 'Client',
+    year: '2026',
+    aspect: 16 / 11,
+  },
+  {
+    image:
+      mediaUrl("vcvcvcvcv.jpg"),
+    type: 'Illustration / Visual language',
+    title: 'Built to be recognised.',
+    kind: 'Studio',
+    year: '2026',
+    aspect: 4 / 5,
+  },
+  {
+    image:
+      artDirection,
+    type: 'Art direction / Brand world',
+    title: 'A visual language people remember.',
+    kind: 'Client',
+    year: '2026',
+    aspect: 3 / 2,
+  },
+  {
+    image:
+      printPublication,
+    type: 'Print / Publication',
+    title: 'Details that reward attention.',
+    kind: 'Studio',
+    year: '2025',
+    aspect: 4 / 5,
+    fit: 'contain',
+  },
+  {
+    image:
+      mediaUrl("logo and color palette.png"),
+    type: 'Digital / Interface',
+    title: 'A useful visual rhythm.',
+    kind: 'Client',
+    year: '2025',
+    aspect: 4 / 5,
+    // A brand sheet on white: show it whole, on a matching white frame.
+    fit: 'contain',
+    background: '#fff',
+  },
+  {
+    image:
+      frameTension,
+    type: 'Campaign / Photography',
+    title: 'A frame with a little tension.',
+    kind: 'Client',
+    year: '2025',
+    aspect: 4 / 5,
+  },
+  {
+    image:
+      brandWalkInto,
+    type: 'Spatial / Experience',
+    title: 'A brand you can walk into.',
+    kind: 'Studio',
+    year: '2025',
+    aspect: 3 / 2,
+    fit: 'contain',
+  },
+]
+
+const capabilities = [
+  ['Brand identity systems', 'Identity'],
+  ['Campaign concepts & key visuals', 'Campaign'],
+  ['Digital & social design', 'Digital'],
+  ['Motion graphics & animation', 'Motion'],
+  ['Packaging & print collateral', 'Physical'],
+  ['Art direction & visual worlds', 'Direction'],
+]
+
+const process = [
+  {
+    title: 'Find the signal',
+    text: 'We find the audience, tension and idea worth building the visual system around.',
+  },
+  {
+    title: 'Build the language',
+    text: 'Typography, colour, imagery, composition and behaviour become one recognisable system.',
+  },
+  {
+    title: 'Give it movement',
+    text: 'Motion is added where rhythm, pacing and interaction can strengthen the idea.',
+  },
+  {
+    title: 'Make it usable',
+    text: 'The system is translated into useful formats, assets and guidelines for the real world.',
+  },
+]
+
+function Arrow({ down = false }: { down?: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-block transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] ${
+        down
+          ? 'group-hover:translate-y-1'
+          : 'group-hover:translate-x-1 group-hover:-translate-y-1'
+      }`}
+    >
+      {down ? '↓' : '↗'}
+    </span>
+  )
+}
+
+export default function GraphicDesignPage() {
+  const nativeMetadata = useNativeMetadata()
+  const pageRef = useRef<HTMLElement>(null)
+  const reducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    if (nativeMetadata) return
+    document.title = 'Graphic Design & Motion | BrandWorks'
+
+    const description =
+      'Brand identity, campaign design, graphic design, motion and visual systems by BrandWorks.'
+
+    let meta = document.head.querySelector<HTMLMetaElement>(
+      'meta[name="description"]',
+    )
+
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = 'description'
+      document.head.appendChild(meta)
+    }
+
+    meta.content = description
+
+    return () => {
+      document.title = 'BRANDWORKS'
+    }
+  }, [nativeMetadata])
+
+  useGSAP(
+    () => {
+      if (reducedMotion) return
+
+      const ctx = gsap.context(() => {
+        /*
+        --------------------------------------------------
+        HERO
+        --------------------------------------------------
+        */
+
+        const intro = gsap.timeline({
+          defaults: {
+            ease: 'power4.out',
+          },
+        })
+
+        intro
+          .from('[data-hero-kicker]', {
+            y: 10,
+            opacity: 0,
+            duration: 0.65,
+          })
+          .from(
+            '[data-hero-line]',
+            {
+              yPercent: 115,
+              duration: 1.1,
+              stagger: 0.09,
+            },
+            '-=0.42',
+          )
+          .from(
+            '[data-hero-copy]',
+            {
+              y: 22,
+              opacity: 0,
+              duration: 0.85,
+            },
+            '-=0.7',
+          )
+          .fromTo(
+            '[data-hero-main]',
+            {
+              clipPath: 'inset(0 0 100% 0)',
+            },
+            {
+              clipPath: 'inset(0 0 0% 0)',
+              duration: 1.35,
+              ease: 'power4.inOut',
+            },
+            '-=0.55',
+          )
+          .from(
+            '[data-hero-secondary]',
+            {
+              y: 50,
+              opacity: 0,
+              duration: 1,
+            },
+            '-=0.8',
+          )
+          .from(
+            '[data-hero-detail]',
+            {
+              scale: 0.92,
+              opacity: 0,
+              duration: 0.75,
+              stagger: 0.06,
+            },
+            '-=0.7',
+          )
+
+        /*
+        --------------------------------------------------
+        HERO PARALLAX
+        --------------------------------------------------
+        */
+
+        gsap.to('[data-hero-main-image]', {
+          yPercent: 8,
+          scale: 1.03,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '[data-hero-canvas]',
+            start: 'top 75%',
+            end: 'bottom top',
+            scrub: 1,
+          },
+        })
+
+        gsap.to('[data-hero-secondary]', {
+          yPercent: -13,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '[data-hero-canvas]',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1,
+          },
+        })
+
+        gsap.to('[data-hero-float]', {
+          yPercent: 22,
+          rotate: 5,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '[data-hero-canvas]',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1.15,
+          },
+        })
+
+        /*
+        --------------------------------------------------
+        SECTION INTRODUCTIONS
+        --------------------------------------------------
+        */
+
+        gsap.utils
+          .toArray<HTMLElement>('[data-section-intro]')
+          .forEach((section) => {
+            const children =
+              section.querySelectorAll<HTMLElement>('[data-intro-child]')
+
+            gsap.from(children, {
+              y: 28,
+              opacity: 0,
+              duration: 0.9,
+              stagger: 0.08,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: section,
+                start: 'top 78%',
+                once: true,
+              },
+            })
+          })
+
+        /*
+        --------------------------------------------------
+        CAPABILITY ROWS
+        --------------------------------------------------
+        */
+
+        gsap.from('[data-capability]', {
+          x: 24,
+          opacity: 0,
+          duration: 0.7,
+          stagger: 0.06,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '[data-capabilities]',
+            start: 'top 75%',
+            once: true,
+          },
+        })
+
+        /*
+        --------------------------------------------------
+        MOTION STUDIES
+        --------------------------------------------------
+        */
+
+        gsap.from('[data-motion-card]', {
+          y: 45,
+          opacity: 0,
+          duration: 1,
+          stagger: 0.12,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '[data-motion-grid]',
+            start: 'top 76%',
+            once: true,
+          },
+        })
+
+        /*
+        --------------------------------------------------
+        PROCESS
+        --------------------------------------------------
+        */
+
+        gsap.utils.toArray<HTMLElement>('[data-process-row]').forEach((row) => {
+          gsap.from(row, {
+            y: 24,
+            opacity: 0,
+            duration: 0.75,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: row,
+              start: 'top 86%',
+              once: true,
+            },
+          })
+        })
+
+        ScrollTrigger.refresh()
+      }, pageRef)
+
+      // Global smooth scroll (Lenis) comes from PublicLayout's SmoothScroll.
+      const removeHoverTilt = pageRef.current
+        ? setupHoverTilt(pageRef.current)
+        : () => {}
+
+      return () => {
+        ctx.revert()
+        removeHoverTilt()
+      }
+    },
+    {
+      scope: pageRef,
+      dependencies: [reducedMotion],
+      revertOnUpdate: true,
+    },
+  )
+
+  return (
+    <main
+      ref={pageRef}
+      className="relative isolate overflow-hidden text-[#111]"
+    >
+      {/* =========================================================
+          HERO
+      ========================================================= */}
+
+      <section className="relative pb-[clamp(32px,4vw,56px)] pt-[clamp(110px,12vw,100px)]">
+        <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
+          {/* <div className="border-t border-black/15 pt-4">
+            <div
+              data-hero-kicker
+              className="flex items-center justify-between gap-5 text-[10px] uppercase tracking-[0.16em]"
+            >
+              <span>Graphic Design / Motion</span>
+
+              <div className="flex items-center gap-3 text-black/45">
+                <span className="h-[6px] w-[6px] rounded-full bg-[#ccff00]" />
+                <span>BrandWorks / Studio Practice</span>
+              </div>
+            </div>
+          </div> */}
+
+          <div className="mt-[clamp(50px,7vw,100px)] grid items-end gap-10 md:grid-cols-12">
+            <div className="md:col-span-8">
+              <h1 className="m-0 max-w-[940px] font-[400] text-[clamp(44px,6vw,72px)] leading-[0.91] tracking-[-0.055em] [font-family:Grimblade,serif]">
+                <span className="block overflow-hidden pb-[0.08em]">
+                  <span data-hero-line className="block">
+                    Graphic systems
+                  </span>
+                </span>
+
+                <span className="block overflow-hidden pb-[0.08em]">
+                  <span data-hero-line className="block">
+                    with a pulse.
+                  </span>
+                </span>
+              </h1>
+            </div>
+
+            <div
+              data-hero-copy
+              className="md:col-span-4 md:col-start-9 md:pb-1"
+            >
+              <p className="m-0 max-w-[360px] text-[16px] leading-[1.72] text-black/64">
+                Identity, campaigns, visual systems and motion designed to make
+                brands easier to recognise and harder to forget.
+              </p>
+
+              <a
+                href="#selected-work"
+                className="group mt-8 inline-flex items-center gap-4 border-b border-black pb-2 text-[12px] uppercase tracking-[0.12em] text-black no-underline"
+              >
+                Selected work
+                <Arrow down />
+              </a>
+            </div>
+          </div>
+
+          {/* HERO ARTBOARD */}
+
+          <div
+            data-hero-canvas
+            className="relative mt-[clamp(70px,9vw,130px)] h-[clamp(540px,64vw,850px)]"
+          >
+            {/* MAIN FRAME */}
+
+            <div
+              data-hero-main
+              className="absolute left-[4%] top-[7%] h-[71%] w-[68%] overflow-hidden bg-[#deded8] max-md:left-0 max-md:top-[8%] max-md:h-[62%] max-md:w-[88%]"
+            >
+              <img
+                data-hero-main-image
+                className="h-[112%] w-full -translate-y-[6%] object-cover"
+                src={studioExperiment}
+                width={2000}
+                height={1333}
+                alt="A white photo studio with softbox lights, a backdrop and a desk"
+                decoding="async"
+                draggable={false}
+              />
+
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/50 to-transparent p-[clamp(18px,2.5vw,36px)] text-white">
+                <div>
+                  <p className="m-0 text-[9px] uppercase tracking-[0.15em] text-white/60">
+                    Studio experiment
+                  </p>
+                </div>
+
+                <span className="text-[10px] uppercase tracking-[0.15em]">
+                  01
+                </span>
+              </div>
+            </div>
+
+            {/* SECONDARY FRAME */}
+
+            <div
+              data-hero-secondary
+              className="absolute bottom-[3%] right-[2%] z-10 w-[35%] max-md:bottom-[5%] max-md:right-0 max-md:w-[54%]"
+            >
+              <div className="aspect-[4/5] overflow-hidden bg-[#d8d8d2]">
+                <img
+                  className="h-full w-full object-cover"
+                  src={businessCardMockup}
+                  width={1000}
+                  height={667}
+                  alt="Front and back of a sage green business card on a stone surface"
+                  style={{ objectPosition: '52% 50%' }}
+                />
+              </div>
+            </div>
+
+            {/* LIME DETAIL */}
+
+            <div
+              data-hero-float
+              className="absolute right-[18%] top-[4%] z-20 flex aspect-square w-[clamp(90px,11vw,150px)] items-center justify-center bg-[#ccff00] max-md:right-[2%]"
+            >
+              <span className="-rotate-90 text-[9px] uppercase tracking-[0.18em]">
+                BrandWorks
+              </span>
+            </div>
+
+            <div
+              data-hero-detail
+              className="absolute bottom-[16%] left-0 hidden h-px w-[16%] bg-black/25 md:block"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================
+          POINT OF VIEW
+      ========================================================= */}
+
+      <section className="relative pb-10 md:pb-14">
+        <div
+          data-section-intro
+          className="mx-auto grid w-full max-w-[1440px] gap-9 px-[clamp(20px,5vw,80px)] md:grid-cols-12"
+        >
+          <div className="md:col-span-8 md:col-start-5">
+            <h2
+              data-intro-child
+              className="m-0 max-w-[880px] font-[400] text-[clamp(34px,4.3vw,52px)] leading-[0.95] tracking-[-0.05em] [font-family:Grimblade,serif]"
+            >
+              Attention is easy to get.
+              <br />
+              <span className="text-black/40">
+                Recognition is harder.
+              </span>
+            </h2>
+
+            <div
+              data-intro-child
+              className="mt-[clamp(42px,6vw,72px)] grid gap-8 border-t border-black/15 pt-6 sm:grid-cols-2"
+            >
+              <p className="m-0 max-w-[400px] text-[16px] leading-[1.75] text-black/65">
+                We create graphic systems with enough character to be
+                remembered and enough structure to keep working across
+                different formats.
+              </p>
+
+              <p className="m-0 max-w-[400px] text-[16px] leading-[1.75] text-black/65">
+                Sometimes that means an identity. Sometimes a campaign, title
+                sequence, packaging system or one visual idea strong enough to
+                hold everything together.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================
+          WORK — pinned cylinder gallery (swipe row on mobile)
+      ========================================================= */}
+
+      <CylinderGallery projects={projects} />
+
+      {/* =========================================================
+          CAPABILITIES
+      ========================================================= */}
+
+      <section
+        data-capabilities
+        className="relative py-[clamp(40px,6vw,60px)]"
+      >
+        <div className="mx-auto grid w-full max-w-[1440px] gap-[70px] px-[clamp(20px,5vw,80px)] md:grid-cols-12">
+          <div className="md:col-span-4">
+            <div className="md:sticky md:top-[120px]">
+              {/* <p className="m-0 text-[10px] uppercase tracking-[0.16em] text-black/45">
+                What we make
+              </p> */}
+
+              <h2 className="mb-0 mt-5 max-w-[400px] font-[400] text-[clamp(34px,4vw,48px)] leading-[0.94] tracking-[-0.05em] [font-family:Grimblade,serif]">
+                One idea.
+                <br />
+                Many forms.
+              </h2>
+
+              <p className="mt-7 max-w-[350px] text-[15px] leading-[1.75] text-black/55">
+                We can build the full visual system or focus on the part that
+                needs more clarity, craft or movement.
+              </p>
+            </div>
+          </div>
+
+          <div className="md:col-span-7 md:col-start-6">
+            <div className="border-t border-black/15">
+              {capabilities.map(([title, label]) => (
+                <div
+                  data-capability
+                  key={title}
+                  className="group relative grid min-h-[92px] grid-cols-[1fr_auto] items-center gap-5 overflow-hidden border-b border-black/15"
+                >
+                  <div className="absolute inset-0 origin-left scale-x-0 bg-[#ccff00] transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-x-100" />
+
+                  <strong className="relative z-10 font-[400] text-[clamp(18px,2vw,25px)] tracking-[-0.025em]">
+                    {title}
+                  </strong>
+
+                  <div className="relative z-10 flex items-center gap-7">
+                    <span className="hidden text-[9px] uppercase tracking-[0.13em] text-black/45 sm:block">
+                      {label}
+                    </span>
+
+                    <Arrow />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================
+          MOTION
+      ========================================================= */}
+
+      <section className="relative bg-[#101010] py-[clamp(90px,11vw,160px)] text-white">
+        <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
+          <div
+            data-section-intro
+            className="grid gap-8 "
+          >
+          
+
+            <div className="md:col-span-7 md:col-start-6">
+              <h2
+                data-intro-child
+                className="m-0 font-[400] text-[clamp(36px,4.5vw,54px)] leading-[0.94] tracking-[-0.05em] [font-family:Grimblade,serif]"
+              >
+                Design should know
+                <br />
+                when to move.
+              </h2>
+
+              <p
+                data-intro-child
+                className="mt-7 max-w-[420px] text-[14px] leading-[1.75] text-white/50"
+              >
+                Motion is treated as part of the visual language — not
+                decoration added at the end.
+              </p>
+            </div>
+          </div>
+
+          <div
+            data-motion-grid
+            className="mt-[clamp(70px,9vw,120px)] grid gap-[clamp(35px,5vw,70px)] md:grid-cols-12"
+          >
+            <article
+              data-motion-card
+              className="group md:col-span-7"
+            >
+              <div
+                data-tilt
+                className="relative aspect-[16/10] overflow-hidden bg-white/5"
+              >
+                <img
+                  data-tilt-inner
+                  className="h-full w-full object-cover opacity-90 transition-opacity duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:opacity-100"
+                  src={staticThinkingMotion}
+                  width={1800}
+                  height={1200}
+                  alt="A man in a suit sitting in thought in a bright studio"
+                  loading="lazy"
+                  decoding="async"
+                />
+
+             
+              </div>
+
+              <div className="mt-4 flex items-end justify-between gap-6">
+                <div>
+                  <p className="m-0 text-[9px] uppercase tracking-[0.14em] text-white/40">
+                    Title sequence
+                  </p>
+
+                  {/* <h3 className="mb-0 mt-2 font-[400] text-[26px] leading-none tracking-[-0.035em] [font-family:Grimblade,serif]">
+                    Static thinking, set in motion.
+                  </h3> */}
+                </div>
+
+                <span className="text-[10px] text-white/40">↗</span>
+              </div>
+            </article>
+
+            <article
+              data-motion-card
+              className="group md:col-span-4 md:col-start-9 md:mt-[120px]"
+            >
+              <div
+                data-tilt
+                className="relative aspect-[4/5] overflow-hidden bg-white/5"
+              >
+                <img
+                  data-tilt-inner
+                  className="h-full w-full object-cover opacity-85 transition-opacity duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:opacity-100"
+                  src={pottBillboard}
+                  width={1400}
+                  height={1126}
+                  alt="A red typographic billboard on a white wall as a car passes"
+                  // Landscape shot in a 4:5 frame: keep the billboard in view.
+                  style={{ objectPosition: '80% 50%' }}
+                  loading="lazy"
+                  decoding="async"
+                />
+
+              </div>
+
+              <div className="mt-4">
+                <p className="m-0 text-[9px] uppercase tracking-[0.14em] text-white/40">
+                  Brand motion
+                </p>
+
+                <h3 className="mb-0 mt-2 font-[400] text-[26px] leading-none tracking-[-0.035em] [font-family:Grimblade,serif]">
+                  A visual language with a pulse.
+                </h3>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================
+          PROCESS
+      ========================================================= */}
+
+      <section className="relative py-[clamp(90px,12vw,180px)]">
+        <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
+          <div
+            data-section-intro
+            className="grid gap-8 md:grid-cols-12"
+          >
+              {/* <div
+                data-intro-child
+                className="md:col-span-4"
+              >
+                <p className="m-0 text-[10px] uppercase tracking-[0.16em] text-black/45">
+                  How we work
+                </p>
+              </div> */}
+
+            <h2
+              data-intro-child
+              className="m-0 md:col-span-7 md:col-start-6 font-[400] text-[clamp(36px,4.5vw,54px)] leading-[0.94] tracking-[-0.05em] [font-family:Grimblade,serif]"
+            >
+              From first thought
+              <br />
+              to final frame.
+            </h2>
+          </div>
+
+          <div className="mt-[clamp(70px,9vw,120px)] border-t border-black/20">
+            {process.map((step) => (
+              <article
+                key={step.title}
+                data-process-row
+                className="grid gap-x-6 gap-y-5 border-b border-black/20 py-[clamp(30px,4vw,48px)] md:grid-cols-12 md:items-start"
+              >
+                <h3 className="m-0 font-[400] text-[clamp(25px,2.6vw,34px)] leading-none tracking-[-0.04em] [font-family:Grimblade,serif] md:col-span-5">
+                  {step.title}
+                </h3>
+
+                <p className="m-0 max-w-[540px] text-[15px] leading-[1.75] text-black/55 md:col-span-5 md:col-start-8">
+                  {step.text}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================
+          CTA
+      ========================================================= */}
+
+      <section className="relative bg-[#ccff00]">
+        <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
+          <div className="grid min-h-[clamp(460px,52vw,700px)] items-center gap-12 py-[clamp(80px,10vw,140px)] md:grid-cols-12">
+            <div className="md:col-span-3">
+              <p className="m-0 text-[10px] uppercase tracking-[0.16em]">
+                Start a project
+              </p>
+            </div>
+
+            <div className="md:col-span-8 md:col-start-5">
+              <h2 className="m-0 max-w-[850px] font-[400] text-[clamp(40px,5.5vw,68px)] leading-[0.92] tracking-[-0.055em] [font-family:Grimblade,serif]">
+                What should your brand
+                <br />
+                look like next?
+              </h2>
+
+              <div className="mt-[clamp(42px,5vw,64px)] flex flex-wrap items-end justify-between gap-8 border-t border-black/25 pt-5">
+                <p className="m-0 max-w-[390px] text-[15px] leading-[1.7] text-black/60">
+                  Bring us the brief, the problem, the half-formed idea or just
+                  the feeling that the current thing is not working.
+                </p>
+
+                <Link
+                  to="/services"
+                  className="group inline-flex items-center gap-5 border-b border-black pb-2 text-[12px] uppercase tracking-[0.12em] text-black no-underline"
+                >
+                  Start a conversation
+                  <Arrow />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  )
+}

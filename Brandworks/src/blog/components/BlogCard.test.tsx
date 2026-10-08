@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import BlogCard from './BlogCard'
 import type { PublicBlogListItem } from '../api/types'
+import { ViteNavigationProvider } from '../../routing/vite'
 
 /**
  * Real rendered-output tests (via renderToStaticMarkup, already
@@ -29,7 +30,7 @@ function post(overrides: Partial<PublicBlogListItem> = {}): PublicBlogListItem {
 function renderCard(props: Partial<Parameters<typeof BlogCard>[0]> = {}) {
   return renderToStaticMarkup(
     <MemoryRouter>
-      <BlogCard post={post()} {...props} />
+      <ViteNavigationProvider><BlogCard post={post()} {...props} /></ViteNavigationProvider>
     </MemoryRouter>,
   )
 }

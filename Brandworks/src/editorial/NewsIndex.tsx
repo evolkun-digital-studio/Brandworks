@@ -8,9 +8,9 @@ const DESCRIPTION = 'Campaigns, collaborations, productions and developments fro
  * A chronological press index rather than another grid: date,
  * category, headline and a small thumbnail per row, divided by rules.
  */
-function NewsIndex() {
+function NewsIndex({ manageMetadata = true }: { manageMetadata?: boolean }) {
   useScrollToTop('/news')
-  useEditorialMeta({
+  useEditorialMeta(manageMetadata ? {
     title: 'Newsroom | BRANDWORKS',
     description: DESCRIPTION,
     path: '/news',
@@ -23,7 +23,7 @@ function NewsIndex() {
       url: canonical,
       publisher: { '@type': 'Organization', name: 'BrandWorks', url: origin },
     }),
-  })
+  } : null)
 
   const posts = [...newsPosts].sort((a, b) => b.date.localeCompare(a.date))
 

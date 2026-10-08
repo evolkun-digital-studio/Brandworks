@@ -1,14 +1,14 @@
 import { mediaUrl } from '../../lib/media'
 import { useCallback, useEffect, useRef } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../../routing'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { useReducedMotion } from 'motion/react'
 const showreelPoster = mediaUrl("footer-showreel-poster.webp")
 import { matches } from '../../lib/scrollMotion'
 import './Footer.css'
-import { LegalLinks } from '../../pages/legal'
+import LegalLinks from '../../legacy-pages/legal/LegalLinks'
 
 const LOGO_SRC = '/brandworks.svg'
 

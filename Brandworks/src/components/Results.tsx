@@ -45,9 +45,11 @@ function currentMode(): Mode {
   return matches(COVERFLOW_QUERY) ? 'coverflow' : 'mobile'
 }
 function useMode() {
-  const [mode, setMode] = useState<Mode>(currentMode)
+  // Use the same first render on server and client, then apply viewport mode.
+  const [mode, setMode] = useState<Mode>('static')
   useEffect(() => {
     if (typeof window.matchMedia !== 'function') return
+    setMode(currentMode())
     const queries = [COVERFLOW_QUERY, REDUCED_MOTION].map((query) =>
       window.matchMedia(query),
     )

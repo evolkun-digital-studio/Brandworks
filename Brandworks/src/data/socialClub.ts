@@ -1,12 +1,22 @@
 /** All copy + media for SocialClubPage. Replace freely: animation code never reads text or URLs from anywhere else. */
-import campaignAction from '../assets/social/campaign-action.jpg'
-import campaignAerial from '../assets/social/campaign-aerial.jpg'
-import campaignMotion from '../assets/social/campaign-motion.jpg'
-import contentStill from '../assets/social/content-still.webp'
-import campaignStill from '../assets/social/campaign-still.webp'
-import reel01 from '../assets/social/reel-01-poster.webp'
-import reel02 from '../assets/social/reel-02-poster.webp'
-import reel03 from '../assets/social/reel-03-poster.webp'
+import { assetUrl } from '../lib/assetUrl'
+import campaignActionAsset from '../assets/social/campaign-action.jpg'
+import campaignAerialAsset from '../assets/social/campaign-aerial.jpg'
+import campaignMotionAsset from '../assets/social/campaign-motion.jpg'
+import contentStillAsset from '../assets/social/content-still.webp'
+import campaignStillAsset from '../assets/social/campaign-still.webp'
+import reel01Asset from '../assets/social/reel-01-poster.webp'
+import reel02Asset from '../assets/social/reel-02-poster.webp'
+import reel03Asset from '../assets/social/reel-03-poster.webp'
+
+const campaignAction = assetUrl(campaignActionAsset)
+const campaignAerial = assetUrl(campaignAerialAsset)
+const campaignMotion = assetUrl(campaignMotionAsset)
+const contentStill = assetUrl(contentStillAsset)
+const campaignStill = assetUrl(campaignStillAsset)
+const reel01 = assetUrl(reel01Asset)
+const reel02 = assetUrl(reel02Asset)
+const reel03 = assetUrl(reel03Asset)
 
 export const clubImages = {
   left: campaignAction,

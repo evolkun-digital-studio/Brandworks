@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../routing'
 import BlogCard from '../blog/components/BlogCard'
 import { getBlogs } from '../blog/api/blogApi'
 import type { PublicBlogListItem } from '../blog/api/types'

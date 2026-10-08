@@ -30,7 +30,7 @@ describe('scheduleBlogPost', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
     const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toContain('/blogs/1/schedule')
+    expect(url).toBe('/api/admin/blogs/1/schedule')
     expect(init.method).toBe('PATCH')
     expect(init.credentials).toBe('include')
     expect(JSON.parse(init.body)).toEqual({ scheduledAt: '2026-10-01T10:00:00.000Z' })

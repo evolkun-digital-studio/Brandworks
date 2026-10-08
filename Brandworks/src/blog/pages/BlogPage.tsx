@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from '../../routing'
 import BlogCard from '../components/BlogCard'
 import { getBlogs } from '../api/blogApi'
 import { PublicApiError } from '../api/client'

@@ -15,7 +15,7 @@ for (const mod of ['Hero', 'Services', 'About', 'Work', 'components/PhotographyT
   vi.doMock(`./${mod}`, () => ({ default: () => null }))
 }
 
-const { Home } = await import('./App')
+const { Home } = await import('./Home')
 const { default: NotFound } = await import('./NotFound')
 
 let container: HTMLDivElement | null = null

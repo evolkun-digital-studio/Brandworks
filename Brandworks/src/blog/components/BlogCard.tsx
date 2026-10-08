@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../../routing'
 import type { PublicBlogListItem } from '../api/types'
 import { formatBlogDate } from '../lib/formatDate'
 import { trackEvent } from '../../analytics/analytics'

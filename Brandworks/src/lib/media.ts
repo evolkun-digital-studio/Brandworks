@@ -1,10 +1,12 @@
+import { MEDIA_BASE_URL_OVERRIDE } from './mediaEnvironment'
+
 /** Paste your uploaded image/video filenames into the values on the right below.
  * Keep the keys on the left stable so components do not need to change.
  * All filenames are relative to the Photography folder configured below.
  * Example: "Photo9.png": "my-new-photo.png". Include the actual file extension.
  * Existing names are placeholders until they match your uploaded files.
  */
-export const MEDIA_BASE_URL = (import.meta.env.VITE_MEDIA_BASE_URL ||
+export const MEDIA_BASE_URL = (MEDIA_BASE_URL_OVERRIDE ||
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography').replace(/\/+$/, '')
 
 export const MEDIA_FILES = {

@@ -66,7 +66,9 @@ export const ABOUT_INTRO = {
     'SEO',
     'Technology',
   ],
-  // approachLabel: 'Our Approach',
+  // The Vite reference currently renders no label here. Keep that output while
+  // making the property explicit for Next's route-scoped typecheck.
+  approachLabel: undefined as string | undefined,
   approach: [
     "We don't create for the sake of creating.",
     'Every image, campaign, story and digital experience should help people understand, remember and trust the brand behind it.',

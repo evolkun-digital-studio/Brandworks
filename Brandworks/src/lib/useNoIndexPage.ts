@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { setDocumentTitle, setMetaTag, removeMetaTag } from '../blog/lib/documentHead'
+import { useNativeMetadata } from '../routing/context'
 
 /**
  * Applies a plain, noindex'd title for a page state that has no real
@@ -13,8 +14,9 @@ import { setDocumentTitle, setMetaTag, removeMetaTag } from '../blog/lib/documen
  * already follows (see BlogPage.tsx/BlogDetailPage.tsx).
  */
 export function useNoIndexPage(title: string, active: boolean): void {
+  const nativeMetadata = useNativeMetadata()
   useEffect(() => {
-    if (!active) return
+    if (nativeMetadata || !active) return
     const previousTitle = document.title
     setDocumentTitle(title)
     setMetaTag('name', 'robots', 'noindex,nofollow')
@@ -22,5 +24,5 @@ export function useNoIndexPage(title: string, active: boolean): void {
       setDocumentTitle(previousTitle)
       removeMetaTag('name', 'robots')
     }
-  }, [title, active])
+  }, [nativeMetadata, title, active])
 }

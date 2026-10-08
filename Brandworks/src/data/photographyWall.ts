@@ -1,5 +1,4 @@
-const thumbnails = import.meta.glob<string>('../assets/photography/*-720.jpg', { eager: true, import: 'default' })
-const originals = import.meta.glob<string>('../assets/photography/*-1600.jpg', { eager: true, import: 'default' })
+import { photographyLarge as originals, photographySmall as thumbnails } from './photographyAssetManifest'
 
 export type PhotographyProject = {
   id: string

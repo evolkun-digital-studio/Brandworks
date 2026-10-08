@@ -9,7 +9,7 @@ import {
   HERO_SERVICE_ORDER,
 } from "../../data/heroServices";
 import "./Hero.css";
-import { isIntroSettled, onIntroSettled } from "../../lib/introGate";
+import { onIntroSettled } from "../../lib/introGate";
 type IdleWindow = Window & {
   requestIdleCallback?: (
     cb: () => void,
@@ -68,7 +68,10 @@ function Hero() {
   // The poster is already in place underneath, so the reveal never shows
   // a blank hero.
 
-  const [introSettled, setIntroSettled] = useState(isIntroSettled);
+  // Start identically during SSR and hydration. The preloader's gate is
+  // module-global and can only be armed in the browser, so reading it in
+  // the state initializer made the first HeroMedia tree disagree in Next.
+  const [introSettled, setIntroSettled] = useState(false);
 
   useEffect(() => onIntroSettled(() => setIntroSettled(true)), []); // Once the page has finished loading and gone quiet, fetch the other
   // services' stills in the background (never the film — that waits for
@@ -167,30 +170,23 @@ function Hero() {
       data-service={activeId}
       aria-labelledby="hero-heading"
     >
-           {" "}
       <HeroMedia
         activeId={activeId}
         mounted={mounted}
         inView={inView && introSettled}
         reducedMotion={reducedMotion}
       />
-            <div className="hero-overlay" aria-hidden="true" />     {" "}
+      <div className="hero-overlay" aria-hidden="true" />
       <div ref={contentRef} className="hero-content">
-               {" "}
         <div className="hero-aside">
-                   {" "}
           <HeroCaption activeId={activeId} reducedMotion={reducedMotion} />
-                   {" "}
           <ServiceSwitcher
             activeId={activeId}
             onSelect={select}
             onIntent={warm}
           />
-                {" "}
         </div>
-             {" "}
       </div>
-         {" "}
     </section>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from '../../../routing'
 import { useAdminAuth } from '../../context/useAdminAuth'
 import * as blogApi from '../../api/blogAdminApi'
 import { ApiError } from '../../api/client'
@@ -233,6 +233,13 @@ function BlogList() {
   const [scheduledView, setScheduledView] = useState(() => searchParams.get('scheduled') === 'true')
   const [trashView, setTrashView] = useState(false)
   const [page, setPage] = useState(1)
+
+  // Next's router exposes the browser query after hydration. Applying the
+  // same one-time deep-link flag when that URL snapshot arrives preserves
+  // `/admin/blogs?scheduled=true` on a direct App Router request as well.
+  useEffect(() => {
+    if (searchParams.get('scheduled') === 'true') setScheduledView(true)
+  }, [searchParams])
 
   const [items, setItems] = useState<AdminBlogPost[] | null>(null)
   const [pageInfo, setPageInfo] = useState({ page: 1, totalPages: 1, total: 0 })

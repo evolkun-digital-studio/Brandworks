@@ -1,3 +1,5 @@
+import { publicAnalyticsEnvironment } from './environment'
+
 /**
  * All analytics/measurement configuration comes from VITE_* env vars —
  * never hardcoded IDs (Phase 12, Part 2). An empty/unset value means
@@ -24,11 +26,11 @@ export interface AnalyticsConfig {
 }
 
 export const analyticsConfig: AnalyticsConfig = {
-  gaMeasurementId: readEnvValue(import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined),
-  clarityProjectId: readEnvValue(import.meta.env.VITE_CLARITY_PROJECT_ID as string | undefined),
-  gtmContainerId: readEnvValue(import.meta.env.VITE_GTM_CONTAINER_ID as string | undefined),
-  metaPixelId: readEnvValue(import.meta.env.VITE_META_PIXEL_ID as string | undefined),
-  gscVerification: readEnvValue(import.meta.env.VITE_GSC_VERIFICATION as string | undefined),
+  gaMeasurementId: readEnvValue(publicAnalyticsEnvironment.gaMeasurementId),
+  clarityProjectId: readEnvValue(publicAnalyticsEnvironment.clarityProjectId),
+  gtmContainerId: readEnvValue(publicAnalyticsEnvironment.gtmContainerId),
+  metaPixelId: readEnvValue(publicAnalyticsEnvironment.metaPixelId),
+  gscVerification: readEnvValue(publicAnalyticsEnvironment.gscVerification),
 }
 
 /**

@@ -82,11 +82,16 @@ jobs:
             exit 1
           fi
 
-      # VITE_* values are compiled into the bundle, so they have to be
-      # present now; nothing is read from a .env file in CI. The
-      # analytics identifiers are optional repository variables — an
-      # unset one simply leaves that provider switched off.
-      - name: Build
+      # Phase 1: validate the new App Router foundation without making
+      # it the production artifact before route parity is complete.
+      - name: Build Next.js foundation
+        run: npm run build
+
+      # VITE_* values are compiled into the current production bundle,
+      # so they have to be present now; nothing is read from a .env file
+      # in CI. The analytics identifiers are optional repository
+      # variables — an unset one simply leaves that provider switched off.
+      - name: Build production Vite reference
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_URL }}
           VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}
@@ -94,7 +99,7 @@ jobs:
           VITE_GTM_CONTAINER_ID: ${{ vars.VITE_GTM_CONTAINER_ID }}
           VITE_META_PIXEL_ID: ${{ vars.VITE_META_PIXEL_ID }}
           VITE_GSC_VERIFICATION: ${{ vars.VITE_GSC_VERIFICATION }}
-        run: npm run build
+        run: npm run build:vite
 
       - name: Verify build output
         run: |

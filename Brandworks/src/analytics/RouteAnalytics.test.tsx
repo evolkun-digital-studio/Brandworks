@@ -20,6 +20,7 @@ vi.mock('./gsc', () => ({
 }))
 
 const { default: RouteAnalytics } = await import('./RouteAnalytics.tsx')
+const { ViteNavigationProvider } = await import('../routing/vite')
 
 beforeEach(() => {
   initAnalyticsMock.mockClear()
@@ -51,13 +52,15 @@ function NavButtons() {
 function TestTree({ initialPath, strict = false }: { initialPath: string; strict?: boolean }) {
   const tree = (
     <MemoryRouter initialEntries={[initialPath]}>
-      <RouteAnalytics />
-      <NavButtons />
-      <Routes>
-        <Route path="/" element={<div>home</div>} />
-        <Route path="/blog" element={<div>blog</div>} />
-        <Route path="/blog/:slug" element={<div>article</div>} />
-      </Routes>
+      <ViteNavigationProvider>
+        <RouteAnalytics />
+        <NavButtons />
+        <Routes>
+          <Route path="/" element={<div>home</div>} />
+          <Route path="/blog" element={<div>blog</div>} />
+          <Route path="/blog/:slug" element={<div>article</div>} />
+        </Routes>
+      </ViteNavigationProvider>
     </MemoryRouter>
   )
   return strict ? <StrictMode>{tree}</StrictMode> : tree

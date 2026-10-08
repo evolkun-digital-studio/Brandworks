@@ -7,6 +7,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BlogRow } from './BlogList'
 import type { AdminBlogPost } from '../../api/blogTypes'
+import { ViteNavigationProvider } from '../../../routing/vite'
 
 const listBlogPostsMock = vi.fn()
 
@@ -86,11 +87,13 @@ function post(overrides: Partial<AdminBlogPost> = {}): AdminBlogPost {
 function renderRow(p: AdminBlogPost, trashView = false) {
   return renderToStaticMarkup(
     <MemoryRouter>
-      <table>
-        <tbody>
-          <BlogRow post={p} isAdmin trashView={trashView} onChanged={() => {}} onRemoved={() => {}} />
-        </tbody>
-      </table>
+      <ViteNavigationProvider>
+        <table>
+          <tbody>
+            <BlogRow post={p} isAdmin trashView={trashView} onChanged={() => {}} onRemoved={() => {}} />
+          </tbody>
+        </table>
+      </ViteNavigationProvider>
     </MemoryRouter>,
   )
 }
@@ -174,7 +177,7 @@ describe('BlogList — Scheduled filter (Phase 16)', () => {
       root = createRoot(container!)
       root!.render(
         <MemoryRouter initialEntries={initialEntries}>
-          <BlogList />
+          <ViteNavigationProvider><BlogList /></ViteNavigationProvider>
         </MemoryRouter>,
       )
       await vi.advanceTimersByTimeAsync(0)

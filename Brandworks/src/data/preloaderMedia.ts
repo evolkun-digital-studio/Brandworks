@@ -10,7 +10,7 @@
  * All WebP, none over ~160KB. Order is the edit order — neighbours
  * alternate bright/dark and product/people so consecutive cuts read.
  */
-const files = import.meta.glob<string>('../assets/preloader/*.webp', { eager: true, import: 'default' })
+import { preloaderFiles as files } from './preloaderAssetManifest'
 
 export type PreloaderImage = { lg?: string; md: string; sm: string }
 

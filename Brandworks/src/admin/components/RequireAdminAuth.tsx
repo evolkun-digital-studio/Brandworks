@@ -1,4 +1,5 @@
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation } from '../../routing'
+import type { ReactNode } from 'react'
 import { useAdminAuth } from '../context/useAdminAuth'
 import AdminShell from './AdminShell'
 
@@ -8,7 +9,7 @@ import AdminShell from './AdminShell'
  * flashing the login page. Once resolved, unauthenticated visitors are
  * redirected to /admin/login (remembering where they were headed).
  */
-function RequireAdminAuth() {
+function RequireAdminAuth({ children }: { children?: ReactNode }) {
   const { admin, loading } = useAdminAuth()
   const location = useLocation()
 
@@ -24,7 +25,7 @@ function RequireAdminAuth() {
     return <Navigate to="/admin/login" replace state={{ from: location }} />
   }
 
-  return <AdminShell />
+  return <AdminShell>{children}</AdminShell>
 }
 
 export default RequireAdminAuth
