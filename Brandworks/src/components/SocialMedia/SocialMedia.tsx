@@ -1,4 +1,3 @@
-import { mediaUrl } from '../../lib/media'
 import { useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -16,7 +15,7 @@ const EASE = 'power3.out'
 
 /**
  * Social Media: one strong idea — a large phone playing the reels, floating
- * over the lime pattern, with the copy set as an editorial block to its
+ * over a scattered star pattern, with the copy set as an editorial block to its
  * left. All motion is GSAP + ScrollTrigger; Lenis drives the real window
  * scroll, so the triggers need no proxy.
  *   - the pattern drifts a touch slower than the page (scrubbed parallax);
@@ -94,18 +93,26 @@ function SocialMedia() {
   return (
     <section ref={sectionRef} id="social-media" aria-labelledby="social-media-heading" className="social-section">
       <div className="social-pattern" aria-hidden="true">
-        <div className="social-pattern__layer" style={{ backgroundImage: `url("${mediaUrl("pattern @4x.png")}")` }} />
+        <div className="social-pattern__layer">
+          {Array.from({ length: 48 }, (_, index) => (
+            <span key={index} className="social-pattern__star" />
+          ))}
+        </div>
       </div>
 
       <SectionContainer className="social-layout">
         <div className="social-copy"> 
+          <span className="social-label">Ideas with a little extra ✦</span>
           <SectionHeading id="social-media-heading" className="social-heading">
-            {heading}
+            {heading.split(' & ')[0]}<br />
+            <span className="social-heading__highlight">& {heading.split(' & ')[1]}</span>
           </SectionHeading>
           <SectionDescription className="social-description">{description}</SectionDescription>
         </div>
 
         <div className="social-stage">
+          <div className="social-stage__sticker" aria-hidden="true">Made to<br />connect.</div>
+          <div className="social-stage__like" aria-hidden="true">♥</div>
           <div className="social-stage__phone">
             <SocialPhone>
               <ReelFeed reels={SOCIAL_REELS} label={phoneLabel} />
