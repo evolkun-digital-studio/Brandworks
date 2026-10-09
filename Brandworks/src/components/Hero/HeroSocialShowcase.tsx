@@ -4,7 +4,7 @@ import type { Variants } from 'motion/react'
 import type { HeroImage } from '../../data/heroServices'
 import { HeroImg } from './HeroImg'
 import type { ImagePriority } from './HeroImg'
-import HeroSocialLine from './HeroSocialLine'
+// import HeroSocialLine from './HeroSocialLine'
 import HeroSocialGrid from './HeroSocialGrid'
 
 // Same curve as --hero-ease in Hero.css.
@@ -105,7 +105,7 @@ function HeroSocialShowcase({
 }) {
   return (
     <motion.div className="social-showcase" initial="hidden" animate={active ? 'shown' : 'hidden'}>
-      <HeroSocialLine active={active} reducedMotion={reducedMotion} />
+      {/* <HeroSocialLine active={active} reducedMotion={reducedMotion} /> */}
 
       <div className="social-showcase__stage">
         <HeroSocialGrid images={grid} priority={priority} reducedMotion={reducedMotion} />

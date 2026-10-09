@@ -276,8 +276,8 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
   social: {
     id: 'social',
     label: 'Social & Content', 
-    headline: 'Content with a reason to exist.',
-    text: 'Strategy, concepts, design and production for an ongoing social presence that stays consistent with the brand.',
+    headline: 'Culture Moves Through Content.',
+    text: 'Stories, visuals, and ideas made to spark conversations, express identity, and become part of the culture.',
     serviceList: 'Strategy · Reels · Campaigns · Daily Content',
     media: {
       kind: 'showcase',
@@ -341,8 +341,8 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
   pr: {
     id: 'pr',
     label: 'Founder Reputation', 
-    headline: 'Build the presence behind the name.',
-    text: 'We shape how founders appear across media, search, social platforms and public conversations.',
+    headline: 'Your Story Shapes Perception.',
+    text: 'Every voice carries a story. We shape yours with authenticity, purpose, and a presence that earns lasting trust.',
     serviceList: 'Positioning · Media · Search · Content',
     media: {
       kind: 'image',

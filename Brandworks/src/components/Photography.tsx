@@ -513,7 +513,7 @@ export default function PhotographyGallery() {
       id="photography"
       aria-roledescription="carousel"
       aria-label="Photography"
-      className="relative h-svh min-h-[560px] w-full overflow-hidden bg-white text-[#111] sm:min-h-[600px] lg:min-h-[620px]"
+      className="relative h-svh min-h-[560px] w-full overflow-hidden bg-black text-[#fff] sm:min-h-[600px] lg:min-h-[620px]"
     >
       <div
   ref={introRef}
@@ -523,7 +523,7 @@ export default function PhotographyGallery() {
     Photography
   </h2>
 
-  <p className="mt-4 max-w-[720px] font-secondary text-[13px] font-normal leading-[1.55] tracking-[-0.015em] text-neutral-600 sm:text-[14px] md:text-[15px]">
+  <p className="mt-4 max-w-[720px] font-secondary text-[13px] font-normal leading-[1.55] tracking-[-0.015em] text-white/70 sm:text-[14px] md:text-[15px]">
     People notice the image before they read the message.
     <br className="hidden sm:block" />
     We create portraits, products, editorial images and campaign photography
