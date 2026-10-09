@@ -1,8 +1,8 @@
-/* Services showcase: 3D cylindrical service ring driven by scroll */
+/* Services showcase: flat horizontal service track driven by scroll */
 .services-showcase {
-  --card-w: clamp(240px, min(21vw, 38vh), 290px);
-  --card-h: calc(var(--card-w) * 1.42);
-  --ring-perspective: 1300px;
+  --card-w: clamp(420px, min(38vw, 60vh), 520px);
+  --card-h: calc(var(--card-w) * 0.625);
+  --card-gap: 72px;
 
   background: #ffffff;
   color: #000;
@@ -15,17 +15,17 @@
 .services-showcase__header {
   flex-shrink: 0;
   margin-top: clamp(72px, 10vh, 112px);
-  margin-bottom: clamp(20px, 4vh, 48px);
+  margin-bottom: clamp(28px, 4vh, 52px);
   padding-inline: clamp(16px, 4vw, 32px);
   text-align: center;
 }
 
 .services-showcase__title {
   font-family: var(--font-primary, 'Courier Prime', serif);
-  font-size: clamp(46px, 6vw, 58px);
-  font-weight: 700;
+  font-size: clamp(46px, 6vw, 48px);
+  font-weight: 500;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  /* letter-spacing: -0.02em; */
   color: #000;
   margin: 0;
   max-width: 100%;
@@ -33,37 +33,37 @@
 
 .services-showcase__description {
   font-family: var(--font-secondary, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
-  font-size: clamp(17px, 2vw, 18px);
+  font-size: clamp(12px, 1.5vw, 14px);
   font-weight: 400;
   line-height: 1.4;
   color: #555;
-  margin: clamp(20px, 3vh, 36px) auto 0;
+  margin: clamp(8px, 1.2vh, 14px) auto 0;
   max-width: min(550px, 90vw);
   padding-inline: 16px;
 }
 
-/* Camera: perspective lives on the container so the ring's centre is the vanishing point */
+/* Viewport for the flat horizontal track */
 .services-showcase__container {
   position: relative;
   flex: 1;
   width: 100%;
+  box-sizing: border-box;
   min-height: 0;
   display: flex;
   align-items: center;
   overflow: hidden;
+  padding-inline: clamp(28px, 6vw, 96px);
   padding-bottom: clamp(24px, 5vh, 56px);
-  perspective: var(--ring-perspective);
-  perspective-origin: 50% 50%;
 }
 
 .services-showcase__ring {
   position: relative;
   width: 100%;
   height: calc(var(--card-h) + 48px);
-  transform-style: preserve-3d;
+  clip-path: inset(-72px 0);
 }
 
-/* Cards are absolutely centred; GSAP places them on the cylinder via transform only */
+/* Cards are centred; GSAP distributes them across one horizontal axis */
 .services-showcase__card {
   position: absolute;
   left: 50%;
@@ -75,9 +75,6 @@
   overflow: hidden;
   border-radius: 10px;
   background: #e5e5e5;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   will-change: transform, opacity;
 }
 
@@ -91,7 +88,6 @@
   -webkit-user-drag: none;
 }
 
-/* Darkens cards away from centre (opacity-only, cheaper than filter: brightness) */
 .services-showcase__shade {
   position: absolute;
   inset: 0;
@@ -106,57 +102,66 @@
   display: flex;
   align-items: flex-end;
   padding: 0 20px 22px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 55%);
   pointer-events: none;
 }
 
 .services-showcase__label {
+  display: inline-block;
   font-family: var(--font-secondary, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   font-size: clamp(12px, 1vw, 16px);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
   color: #fff;
   margin: 0;
   white-space: normal;
+  transform-origin: left bottom;
+  will-change: transform, opacity;
 }
 
-/* Reduced motion: no pin, no 3D — a clean static grid of every service */
+/* Reduced motion: no pin or animated track; cards remain a horizontal row */
 .services-showcase--static {
   min-height: auto;
 }
 
 .services-showcase--static .services-showcase__container {
-  perspective: none;
   padding: 0 clamp(16px, 4vw, 32px) clamp(48px, 8vh, 96px);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
 }
 
 .services-showcase--static .services-showcase__ring {
   height: auto;
-  max-width: 1100px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
-  transform-style: flat;
+  width: max-content;
+  margin: 0;
+  display: flex;
+  gap: var(--card-gap);
+  clip-path: none;
 }
 
 .services-showcase--static .services-showcase__card {
   position: relative;
   left: auto;
   top: auto;
-  width: 100%;
+  width: var(--card-w);
   height: auto;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 16 / 10;
   margin: 0;
   transform: none;
   will-change: auto;
+  scroll-snap-align: center;
 }
 
-/* Tablet: tighter ring, ~3 cards clearly visible */
+.services-showcase--static .services-showcase__label {
+  color: #fff;
+  opacity: 1;
+  transform: none;
+}
+
+/* Tablet: keep approximately three cards visible across the track */
 @media (max-width: 1023px) {
   .services-showcase {
-    --card-w: clamp(240px, min(34vw, 36vh), 280px);
-    --ring-perspective: 1200px;
+    --card-w: clamp(340px, min(52vw, 58vh), 460px);
+    --card-gap: 52px;
   }
 
   .services-showcase__title {
@@ -171,9 +176,9 @@
 /* Mobile: one dominant card with small peeks of its neighbours */
 @media (max-width: 700px) {
   .services-showcase {
-    --card-w: min(76vw, 320px, 44vh);
-    --card-h: calc(var(--card-w) * 1.36);
-    --ring-perspective: 1500px;
+    --card-w: min(90vw, 390px, 64vh);
+    --card-h: calc(var(--card-w) * 0.625);
+    --card-gap: 32px;
     min-height: 100svh;
   }
 
@@ -192,10 +197,11 @@
 
   .services-showcase__description {
     font-size: clamp(15px, 2vw, 17px);
-    margin: clamp(16px, 2vh, 24px) auto 0;
+    margin: clamp(8px, 1.2vh, 14px) auto 0;
   }
 
   .services-showcase__container {
+    padding-inline: 16px;
     padding-bottom: clamp(32px, 8vh, 48px);
   }
 

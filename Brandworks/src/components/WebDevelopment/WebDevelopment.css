@@ -15,9 +15,9 @@
  * site's --color-bw-lime and appears only as 1px rules and one tiny index.
  */
 .wdr {
-  --wdr-bg: #0a0a0a;
+  --wdr-bg: #fff;
   --wdr-sheet: #121212;
-  --ink: #f2f1ec;
+  --ink: #000;
   /* ≈ 7:1 on --wdr-bg. */
   --ink-muted: rgba(242, 241, 236, 0.62);
   --wdr-faint: rgba(242, 241, 236, 0.44);

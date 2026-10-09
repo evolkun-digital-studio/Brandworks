@@ -8,48 +8,24 @@ import './Services.css'
 gsap.registerPlugin(ScrollTrigger)
 
 const services = [
-  { image: mediaUrl('kyle-loftus-DqmXihYx5UE-unsplash.jpg'), label: 'Videography' },
-  { image: mediaUrl('moisturizer mock up.png'), label: 'Photography' },
-  { image: mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png'), label: 'Social Media & Content Creation' },
-  { image: mediaUrl('vcvcvcvcv.jpg'), label: 'PR & Founder Reputation' },
-  { image: mediaUrl('seo.jpg'), label: 'Performance & SEO Marketing' },
-  { image: mediaUrl('creative.jpg'), label: 'Graphics & Animation' },
+  { image: mediaUrl('kyle-loftus-DqmXihYx5UE-unsplash.jpg'), label: 'Better Experience' },
+  { image: mediaUrl('moisturizer mock up.png'), label: 'More Efficiency' },
+  { image: mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png'), label: 'Higher Conversions' },
+  { image: mediaUrl('vcvcvcvcv.jpg'), label: 'Greater Scalability' },
+  { image: mediaUrl('seo.jpg'), label: 'Strong Digital Presence' },
+  { image: mediaUrl('creative.jpg'), label: 'Better Business Outcomes' },
 ]
 
-type RingGeometry = {
-  radius: number // cylinder radius in px
-  step: number // degrees between neighbouring cards
-  maxAngle: number // cards beyond this angle are culled
-  fade: number // degrees before maxAngle over which cards fade out
-  rotateFactor: number // softens rotateY on small screens
+type TrackGeometry = {
+  cardWidth: number
+  gap: number
 }
 
-// Per-breakpoint ring tuning; radius is derived from the rendered card width
-// so neighbouring cards keep a consistent gap along the arc.
-const getGeometry = (cardWidth: number): RingGeometry => {
-  const vw = window.innerWidth
-  let step = 24
-  let maxAngle = 58
-  let fade = 12
-  let rotateFactor = 1
-  let spacing = 1.16
+const ACTIVE_LABEL_INCREASE_PX = 4
 
-  if (vw <= 700) {
-    step = 30
-    maxAngle = 42
-    fade = 10
-    rotateFactor = 0.65
-    spacing = 1.06
-  } else if (vw <= 1023) {
-    step = 28
-    maxAngle = 44
-    fade = 12
-    rotateFactor = 0.85
-    spacing = 1.12
-  }
-
-  const radius = (cardWidth * spacing) / (step * (Math.PI / 180))
-  return { radius, step, maxAngle, fade, rotateFactor }
+const getTrackGeometry = (card: HTMLElement): TrackGeometry => {
+  const gap = Number.parseFloat(getComputedStyle(card).getPropertyValue('--card-gap')) || 48
+  return { cardWidth: card.offsetWidth, gap }
 }
 
 export default function Services() {
@@ -73,40 +49,53 @@ export default function Services() {
     if (cards.length !== services.length) return
 
     const shades = cards.map(card => card.querySelector<HTMLElement>('.services-showcase__shade'))
+    const labels = cards.map(card => card.querySelector<HTMLElement>('.services-showcase__label'))
     const lastIndex = services.length - 1
     const state = { phase: 0 }
-    let geometry = getGeometry(cards[0].offsetWidth)
+    let geometry = getTrackGeometry(cards[0])
+    let activeLabelScales = labels.map(label => {
+      if (!label) return 1
 
-    // Position every card on the cylinder for the current phase.
-    // Card i sits at angle (i - phase) * step; phase 0 centres Videography,
-    // phase = lastIndex centres Graphics & Animation.
+      const baseFontSize = Number.parseFloat(getComputedStyle(label).fontSize)
+      return baseFontSize > 0 ? (baseFontSize + ACTIVE_LABEL_INCREASE_PX) / baseFontSize : 1
+    })
+
+    // Keep every card on one flat horizontal track. The active card stays
+    // centred while scrolling moves the row from the first card to the last.
     const placeCards = () => {
-      const { radius, step, maxAngle, fade, rotateFactor } = geometry
+      const { cardWidth, gap } = geometry
 
       cards.forEach((card, i) => {
-        const angle = (i - state.phase) * step
-        const absAngle = Math.abs(angle)
-
-        if (absAngle >= maxAngle) {
-          gsap.set(card, { autoAlpha: 0 })
-          return
-        }
-
-        const rad = angle * (Math.PI / 180)
-        const depth = absAngle / maxAngle
-        const edgeFade = gsap.utils.clamp(0, 1, (maxAngle - absAngle) / fade)
+        const distanceFromCenter = Math.abs(i - state.phase)
+        const linearFocus = 1 - gsap.utils.clamp(0, 1, distanceFromCenter)
+        const focus = linearFocus * linearFocus * (3 - 2 * linearFocus)
 
         gsap.set(card, {
-          x: radius * Math.sin(rad),
-          z: -radius * (1 - Math.cos(rad)),
-          rotationY: angle * rotateFactor,
-          scale: 1 - depth * 0.08,
-          autoAlpha: (1 - depth * 0.2) * edgeFade,
-          zIndex: Math.round(100 - absAngle),
+          x: (i - state.phase) * (cardWidth + gap),
+          y: -10 * focus,
+          z: 0,
+          rotationY: 0,
+          scale: 0.975 + focus * 0.065,
+          autoAlpha: 0.84 + focus * 0.16,
+          zIndex: Math.round(1 + focus * 10),
+          boxShadow: gsap.utils.interpolate(
+            '0 10px 30px rgba(0, 0, 0, 0.04)',
+            '0 26px 55px rgba(0, 0, 0, 0.16)',
+            focus,
+          ),
         })
 
         const shade = shades[i]
-        if (shade) gsap.set(shade, { opacity: depth * 0.18 })
+        if (shade) gsap.set(shade, { opacity: (1 - focus) * 0.1 })
+
+        const label = labels[i]
+        if (label) {
+          gsap.set(label, {
+            y: 0,
+            scale: 1 + focus * (activeLabelScales[i] - 1),
+            opacity: 0.72 + focus * 0.28,
+          })
+        }
       })
     }
 
@@ -136,7 +125,13 @@ export default function Services() {
           ease: 'power2.out',
         },
         onRefresh: () => {
-          geometry = getGeometry(cards[0].offsetWidth)
+          geometry = getTrackGeometry(cards[0])
+          activeLabelScales = labels.map(label => {
+            if (!label) return 1
+
+            const baseFontSize = Number.parseFloat(getComputedStyle(label).fontSize)
+            return baseFontSize > 0 ? (baseFontSize + ACTIVE_LABEL_INCREASE_PX) / baseFontSize : 1
+          })
           placeCards()
         },
       },
@@ -151,10 +146,11 @@ export default function Services() {
     >
       <header className="services-showcase__header">
         <h2 id="services-heading" className="services-showcase__title">
-          What we do
+         Brandworks Gives you
         </h2>
         <p className="services-showcase__description">
-          Bringing strategy, creativity and execution together to build brands that grow.
+          {/* Bringing strategy, creativity and execution together to build brands that grow. */}
+          We work with a limited number of businesses so every project receives the strategic attention and execution it deserves.
         </p>
       </header>
 

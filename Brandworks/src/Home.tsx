@@ -82,7 +82,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       <GraphicsMotionExperience />
       <PRReputation />
       <SocialMedia />
-      <WebDevelopment />
+      {/* <WebDevelopment /> */}
       {/* <Photography /> */}
       <WebsiteSectionProps />
       <Capabilities />
