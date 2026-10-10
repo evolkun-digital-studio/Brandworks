@@ -2,7 +2,7 @@
 .services-showcase {
   --card-w: clamp(440px, min(45vw, 66vh), 640px);
   --card-h: calc(var(--card-w) * 0.625);
-  --card-gap: clamp(20px, 2.25vw, 36px);
+  --card-gap: clamp(8px, 1vw, 16px);
 
   background: #ffffff;
   color: #000;
@@ -22,11 +22,11 @@
 
 .services-showcase__title {
   font-family: var(--font-primary, 'Courier Prime', serif);
-  font-size: clamp(40px, calc(5.8vw - 20px), 64px);
-  font-weight: 500;
+  font-size: clamp(40px, calc(5.8vw - 20px), 54px);
+  font-weight: 300;
   line-height: 0.95;
   letter-spacing: -0.035em;
-  color: #000;
+  color: #111111;
   margin: 0;
   max-width: 100%;
 }
@@ -228,7 +228,7 @@
 @media (max-width: 1023px) {
   .services-showcase {
     --card-w: clamp(360px, min(58vw, 60vh), 520px);
-    --card-gap: 22px;
+    --card-gap: 10px;
   }
 
   .services-showcase__title {
@@ -245,7 +245,7 @@
   .services-showcase {
     --card-w: min(78vw, 360px, 58vh);
     --card-h: calc(var(--card-w) * 0.625);
-    --card-gap: 12px;
+    --card-gap: 8px;
     min-height: 100svh;
   }
 

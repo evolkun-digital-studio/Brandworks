@@ -18,11 +18,11 @@ const services = [
 ]
 
 type TrackGeometry = {
-  cardWidth: number
+  activeScale: number
   step: number
 }
 
-const ACTIVE_CARD_SCALE = 1
+const ACTIVE_CARD_GROWTH_PX = 15
 const RESTING_CARD_SCALE = 0.82
 const MAX_IMAGE_BLUR_PX = 0.6
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
@@ -39,8 +39,10 @@ const getReducedMotionServerSnapshot = () => false
 const getTrackGeometry = (card: HTMLElement): TrackGeometry => {
   const gap = Number.parseFloat(getComputedStyle(card).getPropertyValue('--card-gap')) || 48
   const cardWidth = card.offsetWidth
-  const step = window.innerWidth <= 700 ? cardWidth * 0.84 : cardWidth + gap
-  return { cardWidth, step }
+  const activeScale = (cardWidth + ACTIVE_CARD_GROWTH_PX) / cardWidth
+  const scaledCardWidth = cardWidth * ((activeScale + RESTING_CARD_SCALE) / 2)
+  const step = scaledCardWidth + gap
+  return { activeScale, step }
 }
 
 export default function Services() {
@@ -74,7 +76,7 @@ export default function Services() {
     // Cards wrap outside the viewport, creating a continuous sequence. Focus
     // is derived from each card's distance from the exact centre of the track.
     const placeCards = () => {
-      const { step } = geometry
+      const { activeScale, step } = geometry
 
       cards.forEach((card, i) => {
         const relativePosition = gsap.utils.wrap(-halfTrack, halfTrack, i - state.phase)
@@ -86,7 +88,7 @@ export default function Services() {
         gsap.set(card, {
           x: relativePosition * step,
           y: edge * 18,
-          scale: RESTING_CARD_SCALE + focus * (ACTIVE_CARD_SCALE - RESTING_CARD_SCALE),
+          scale: RESTING_CARD_SCALE + focus * (activeScale - RESTING_CARD_SCALE),
           opacity: 0.32 + focus * 0.68,
           zIndex: Math.round(1 + focus * 10),
           force3D: true,

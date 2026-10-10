@@ -38,7 +38,8 @@
   align-items: center;
   min-height: auto;
   padding-top: clamp(3.5rem, 17vw, 15rem);
-  padding-bottom: clamp(1rem, 8vw, 8rem);
+  padding-bottom: clamp(3.5rem, 17vw, 15rem);
+  /* padding-bottom: clamp(1rem, 8vw, 8rem); */
 }
 
 .statement {

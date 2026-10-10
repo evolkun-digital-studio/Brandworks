@@ -151,7 +151,7 @@ type Profile = {
 };
 
 const TABLET_PROFILE: Profile = {
-  x: [0, 0.58, 1.0, 1.32],
+  x: [0, 0.5, 0.9, 1.2],
 
   z: [180, 55, -105, -260],
 
@@ -163,7 +163,7 @@ const TABLET_PROFILE: Profile = {
 };
 
 const LAPTOP_PROFILE: Profile = {
-  x: [0, 0.54, 0.94, 1.25],
+  x: [0, 0.46, 0.84, 1.13],
 
   z: [245, 90, -145, -330],
 
@@ -175,7 +175,7 @@ const LAPTOP_PROFILE: Profile = {
 };
 
 const DESKTOP_PROFILE: Profile = {
-  x: [0, 0.5, 0.88, 1.2],
+  x: [0, 0.42, 0.78, 1.08],
 
   z: [320, 120, -160, -420],
 
@@ -187,7 +187,7 @@ const DESKTOP_PROFILE: Profile = {
 };
 
 const WIDE_PROFILE: Profile = {
-  x: [0, 0.47, 0.82, 1.12],
+  x: [0, 0.39, 0.72, 1.0],
 
   z: [365, 145, -185, -470],
 
