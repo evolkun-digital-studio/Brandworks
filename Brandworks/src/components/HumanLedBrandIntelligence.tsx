@@ -893,11 +893,11 @@ export default function BrandStatementPrecision() {
             {/* Intro */}
             <div className="bw2-intro">
               <div className="bw2-intro-mask">
-                <div className="bw2-intro-top">A brand is built through</div>
+                <div className="bw2-intro-top">Brandwork Works with the limited </div>
               </div>
 
               <div className="bw2-intro-mask">
-                <div className="bw2-intro-bottom">what people repeatedly</div>
+                <div className="bw2-intro-bottom"></div>
               </div>
             </div>
             {/* Main kinetic words */}

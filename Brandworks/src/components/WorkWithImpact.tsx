@@ -266,11 +266,10 @@ const HEADING_CLASS =
   "site-display max-w-full font-primary text-[clamp(42px,6vw,78px)] font-medium leading-[0.92] tracking-[-0.05em] text-neutral-900";
 
 const COPY_CLASS =
-  "site-copy mt-4 w-[560px] max-w-[90vw] text-center font-secondary text-[13px] leading-[1.5] text-neutral-600 sm:mt-5 sm:text-[14px] lg:text-[15px]";
+  "site-copy mt-4 w-[580px] max-w-[90vw] text-center font-secondary text-[13px] leading-[1.5] text-neutral-600 sm:mt-5 sm:text-[14px] lg:text-[15px]";
 
 const COPY =
-  "Photography, motion, film, design and digital work from different parts of BRANDWORKS.";
-
+  "Photography, motion, film, design and digital work from different parts of BRANDWORKS. ";
 const GIANT_CLASS =
   "block whitespace-nowrap font-primary text-[clamp(38px,4vw,68px)] font-normal leading-[0.95] tracking-[-0.045em] text-neutral-900";
 

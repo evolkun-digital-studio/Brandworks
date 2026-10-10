@@ -979,14 +979,14 @@ function ChapterEyebrow({ number, label }: { number: string; label: string }) {
 
 function Chapter({
   number,
-  label,
+  // label,
   title,
   figureFirst = false,
   figure,
   children,
 }: {
   number: string;
-  label: string;
+  // label: string;
   title: ReactNode;
   figureFirst?: boolean;
   figure: ReactNode;
@@ -1012,7 +1012,7 @@ function Chapter({
         }`}
       >
         <RevealGroup className={`min-w-0 ${figureFirst ? "xl:order-2" : ""}`}>
-          <ChapterEyebrow number={number} label={label} />
+          {/* <ChapterEyebrow number={number} label={label} /> */}
 
           <Reveal delay={80} className="mt-4 sm:mt-5 md:mt-6">
             <h3 id={titleId} className={CHAPTER_HEADING}>
@@ -1131,8 +1131,7 @@ export default function WebsiteSection({
         <div className="mt-4 sm:mt-6 md:mt-8 lg:mt-10">
           {/* ESSENTIAL 01 */}
           <Chapter
-            number="01"
-            label="Search Demand"
+            number="01" 
             title="Start with what people are looking for."
             figure={<SearchFigure />}
           >
@@ -1144,8 +1143,7 @@ export default function WebsiteSection({
 
           {/* ESSENTIAL 02 */}
           <Chapter
-            number="02"
-            label="Technical Foundation"
+            number="02" 
             title="Make the site easy to crawl and understand."
             figureFirst
             figure={<AuditFigure />}
@@ -1158,8 +1156,7 @@ export default function WebsiteSection({
 
           {/* ESSENTIAL 03 */}
           <Chapter
-            number="03"
-            label="Ongoing Visibility"
+            number="03" 
             title="Measure. Improve. Repeat."
             figure={<LoopFigure />}
           >

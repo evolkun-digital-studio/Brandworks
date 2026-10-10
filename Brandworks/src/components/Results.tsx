@@ -173,7 +173,7 @@ function CardContent({ result }: { result: Result }) {
           {result.stat}
         </div>
         <div className="mt-1.5 max-w-[30ch] text-[clamp(12px,3.5vw,15px)] font-normal leading-[1.45] text-white/90 sm:mt-2 sm:text-[clamp(13px,1.6vw,15px)]">
-          {result.label}
+          {/* {result.label} */}
         </div>
       </div>
     </>

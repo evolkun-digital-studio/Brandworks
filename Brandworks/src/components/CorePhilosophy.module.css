@@ -1,0 +1,120 @@
+.section {
+  position: relative;
+  width: 100%;
+  overflow: clip;
+  background: #fff;
+  color: #111;
+  
+}
+
+.inner {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin-inline: auto;
+  padding: 0 var(--page-gutter) clamp(96px, 10vw, 160px);
+}
+
+.head {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  row-gap: 20px;
+  align-items: end;
+      padding-top: clamp(30px, 10.2vw, 6px);
+}
+
+.title {
+  grid-column: 1 / span 6;
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: clamp(2rem, 3.4vw, 3.25rem);
+  font-weight: 300;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.intro {
+  grid-column: 8 / span 5;
+  margin: 0;
+  padding-bottom: 0.4em;
+  font-family: var(--font-secondary);
+  font-size: clamp(1rem, 1.2vw, 1.125rem);
+  line-height: 1.5;
+  color: rgba(17, 17, 17, 0.62);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(17, 17, 17, 0.14);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  align-items: baseline;
+  padding-block: clamp(28px, 3.2vw, 44px);
+  border-bottom: 1px solid rgba(17, 17, 17, 0.14);
+}
+
+.number {
+  grid-column: 1 / span 1;
+  font-family: var(--font-secondary);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: rgba(17, 17, 17, 0.5);
+}
+
+.name {
+  grid-column: 2 / span 6;
+  margin: 0;
+  font-family: 'Kerosene', 'Bebas Neue', 'Oswald', 'Arial Narrow', Impact, var(--font-primary);
+  font-size: clamp(1.75rem, 3vw, 2.75rem);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  font-stretch: condensed;
+}
+
+.text {
+  grid-column: 8 / span 5;
+  margin: 0;
+  font-family: var(--font-secondary);
+  font-size: clamp(0.9375rem, 1.1vw, 1.0625rem);
+  line-height: 1.55;
+  color: rgba(17, 17, 17, 0.68);
+}
+
+@media (max-width: 767px) {
+  .head {
+    display: block;
+  }
+
+  .intro {
+    margin-top: 16px;
+    padding-bottom: 0;
+  }
+
+  .row {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 12px;
+  }
+
+  .number {
+    grid-column: 1;
+  }
+
+  .name {
+    grid-column: 2;
+  }
+
+  .text {
+    grid-column: 2;
+  }
+}

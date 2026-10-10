@@ -8,6 +8,7 @@ import {
   setMetaTag,
 } from './blog/lib/documentHead'
 import Hero from './components/Hero/Hero'
+import HomeIntroStatement from './components/HomeIntroStatement'
 import BrandStatement from './components/HumanLedBrandIntelligence'
 import Services from './components/Service/Services'
 import About from './components/About'
@@ -69,9 +70,8 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
   return (
     <main>
       <Hero />
-      {/* <HumanLedBrandIntelligence />
-       */}
-      <BrandStatement />
+      <HomeIntroStatement />
+      {/* <BrandStatement /> */}
       <Services />
       {/* <BrandIntelligence /> */}
       <About />

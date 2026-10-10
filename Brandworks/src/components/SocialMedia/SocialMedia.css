@@ -141,9 +141,9 @@
   inset: 12% -26%;
   border: 2px solid var(--social-pink);
   border-radius: 48% 52% 60% 40% / 54% 38% 62% 46%;
-  background: #ffc5df;
+  /* background: #ffc5df; */
   transform: rotate(-14deg);
-  box-shadow: 12px 10px 0 #ffdfed;
+  /* box-shadow: 12px 10px 0 #ffdfed; */
   pointer-events: none;
 }
 
@@ -179,8 +179,8 @@
   width: 72px;
   height: 62px;
   border-radius: 18px 18px 18px 4px;
-  background: #fff;
-  color: #f8f8f8;
+  background: #ffe2f2;
+  color: #f46cb7;
   font-size: 38px;
   transform: rotate(-12deg);
 }
