@@ -19,13 +19,13 @@ const VIDEO_PROJECTS: VideoProject[] = [
     id: "01",
     title: "Brand Film",
     line: "Ideas, given movement.",
-    src: "/video/CENTRAL CEE - BOOGA (MUSIC VIDEO).mp4",
+    src: "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ForWebsite_Full.mp4",
   },
   {
     id: "02",
     title: "Campaign Film",
     line: "Rhythm becomes direction.",
-    src: "/video/Central Cee - Obsessed With You (Official Video).mp4",
+    src: "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ForWebsite_Full.mp4",
   },
   {
     id: "03",

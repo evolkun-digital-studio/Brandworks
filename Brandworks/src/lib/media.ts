@@ -201,7 +201,8 @@ export const MEDIA_FILES = {
   "windowdesk.jpg": "windowdesk.jpg",
   "website_dev.jpg": "website_dev.jpg",
   "working.jpg": "working.jpg",
-  "team-04.webp": "team-04.webp"
+  "team-04.webp": "team-04.webp",
+  "ForWebsite_Full.mp4": "ForWebsite_Full.mp4"
 } as const
 
 export type MediaId = keyof typeof MEDIA_FILES

@@ -264,11 +264,11 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
     serviceList: 'Brand Films · Campaigns · Commercials · Short-form',
     media: {
       kind: 'video',
-      src: mediaUrl("Idea - Cinematic Video _ Shot on Canon EOS250D.mp4"),
+      src: mediaUrl("ForWebsite_Full.mp4"),
       poster: originalImage(mediaUrl("first.webp"), {
         width: 1535,
         height: 862,
-        alt: 'Close-up of a face with eyes lit by a band of warm light',
+        alt: 'Cinematic brand film by BrandWorks',
         position: '50% 50%',
       }),
     },
