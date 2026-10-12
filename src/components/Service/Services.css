@@ -15,7 +15,8 @@
 .services-showcase__header {
   flex-shrink: 0;
   margin-top: clamp(82px, 10vh, 112px);
-  margin-bottom: clamp(18px, 2.8vh, 32px);
+  /* Keep the description visually connected to the showcase imagery. */
+  margin-bottom: clamp(6px, 1vh, 12px);
   padding-inline: clamp(16px, 4vw, 32px);
   text-align: center;
 }
@@ -34,9 +35,9 @@
 .services-showcase__description {
   font-family: var(--font-secondary, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   font-size: clamp(16px, 1.4vw, 19px);
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.5;
-  color: #555;
+  color: rgb(83, 83, 83);
   margin: clamp(12px, 2.5vh, 24px) auto 0;
   max-width: min(660px, 90vw);
   padding-inline: 16px;
@@ -255,7 +256,7 @@
 
   .services-showcase__header {
     margin-top: clamp(72px, 10vh, 96px);
-    margin-bottom: clamp(16px, 2.5vh, 24px);
+    margin-bottom: clamp(4px, 0.8vh, 8px);
   }
 
   .services-showcase__title {

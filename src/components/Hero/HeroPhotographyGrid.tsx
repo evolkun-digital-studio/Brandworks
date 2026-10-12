@@ -6,13 +6,15 @@ import type { ImagePriority } from './HeroImg'
 const FEATURED_SIZE = '(max-width: 639px) 100vw, 34vw'
 const THUMBNAIL_SIZE = '(max-width: 639px) 25vw, (max-width: 1023px) 17vw, 13vw'
 const FEATURED_COUNT = 3
+const FEATURED_CENTER = Math.floor(FEATURED_COUNT / 2)
 
 const isLandscape = (image: HeroGalleryImage) => image.width > image.height
 const featuredSize = (image: HeroGalleryImage) =>
   isLandscape(image) ? '(max-width: 639px) 100vw, 60vw' : FEATURED_SIZE
 
-// Auto-rotation: after a rest the three feature frames move on to the next
-// three photographs, one frame at a time, left to right.
+// Auto-rotation: after a rest, promote the next contact-sheet photograph to
+// the centre feature frame. Moving by one keeps every thumbnail selectable
+// and lets the lower gallery feed the three-frame row in order.
 const ROTATE_REST = 6500
 const ROTATE_STAGGER = 550
 // A click answers at once; the frames beside it follow a beat behind.
@@ -24,7 +26,7 @@ type IdleWindow = Window & {
 }
 
 type Selection = {
-  /** Index into `images` of the photograph in the leading feature frame. */
+  /** Index into `images` of the photograph in the centre feature frame. */
   index: number
   /** Delay between frames for this change, in ms. */
   stagger: number
@@ -131,8 +133,8 @@ function FeaturedFrame({
 /**
  * Two-level editorial gallery: three feature frames above a fixed contact
  * sheet. One piece of state — the selected photograph — drives both a click
- * on the contact sheet and the automatic rotation: the feature frames show
- * the selected photograph and the two that follow it.
+ * on the contact sheet and the automatic rotation: the selected photograph
+ * sits in the centre with its previous and next neighbours beside it.
  */
 function HeroPhotographyGrid({
   images,
@@ -145,12 +147,17 @@ function HeroPhotographyGrid({
   active: boolean
   reducedMotion: boolean
 }) {
-  const [selection, setSelection] = useState<Selection>({ index: 0, stagger: 0 })
+  // Start with images 0, 1 and 2 in their original order, with image 1 at
+  // the centre. Subsequent thumbnail selections take that centre position.
+  const [selection, setSelection] = useState<Selection>({ index: FEATURED_CENTER, stagger: 0 })
   const hovering = useRef(false)
   const count = images.length
 
-  const photoAt = (offset: number) => images[(selection.index + offset) % count] ?? images[0]
-  const featuredImages = Array.from({ length: Math.min(FEATURED_COUNT, count) }, (_, slot) => photoAt(slot))
+  const photoAt = (offset: number) => images[(selection.index + offset + count) % count] ?? images[0]
+  const featuredImages = Array.from(
+    { length: Math.min(FEATURED_COUNT, count) },
+    (_, slot) => photoAt(slot - FEATURED_CENTER),
+  )
   const thumbnailImages = images.slice(FEATURED_COUNT)
   const selectedId = photoAt(0)?.id
 
@@ -195,9 +202,18 @@ function HeroPhotographyGrid({
         timer = window.setTimeout(advance, ROTATE_REST)
         return
       }
-      const next = (from + FEATURED_COUNT) % count
+      // The first three photographs seed the feature row; the contact sheet
+      // starts at FEATURED_COUNT. Once rotation reaches the end, continue at
+      // the first thumbnail instead of replaying the initial seed frames.
+      const next = from < FEATURED_COUNT
+        ? FEATURED_COUNT
+        : from + 1 < count
+          ? from + 1
+          : FEATURED_COUNT
       await Promise.all(
-        Array.from({ length: FEATURED_COUNT }, (_, slot) => preload(images[(next + slot) % count], FEATURED_SIZE)),
+        Array.from({ length: FEATURED_COUNT }, (_, slot) =>
+          preload(images[(next + slot - FEATURED_CENTER + count) % count], FEATURED_SIZE),
+        ),
       )
       if (cancelled) return
       setSelection((current) => (current.index === from ? { index: next, stagger: ROTATE_STAGGER } : current))
@@ -231,7 +247,11 @@ function HeroPhotographyGrid({
       >
         {featuredImages.map((image, slot) => (
           <div key={slot} className="featured-image">
-            <FeaturedFrame image={image} delay={slot * selection.stagger} priority={priority} />
+            <FeaturedFrame
+              image={image}
+              delay={Math.abs(slot - FEATURED_CENTER) * selection.stagger}
+              priority={priority}
+            />
           </div>
         ))}
       </div>

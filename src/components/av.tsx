@@ -115,7 +115,7 @@ function PrincipleIcon({ name }: { name: (typeof PRINCIPLES)[number]['icon'] }) 
 export default function BrandworksPhilosophy() {
   return (
     <section
-      className={`${styles.section} home-section`}
+      className={`${styles.section} home-section home-section--philosophy`}
       aria-labelledby="core-philosophy-title"
     >
       <div className={styles.inner}>
