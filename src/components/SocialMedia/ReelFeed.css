@@ -1,0 +1,819 @@
+/*
+ * Reel feed (ReelFeed.tsx): the phone screen dressed as Instagram Reels.
+ * Reels stack full-screen above the app's bottom bar and are moved by GSAP.
+ * Sizes are in cqw of the phone (SocialPhone.css sets container-type), so
+ * the whole interface scales with it.
+ */
+.reel-feed {
+  --reel-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --reel-nav-h: 15cqw;
+  --reel-edge: 3.6cqw;
+  --reel-like: #ff3040;
+  --reel-blue: #0095f6;
+  --reel-sheet-bg: #262626;
+  --reel-muted: #a8a8a8;
+
+  position: absolute;
+  inset: 0;
+  color: #fff;
+  font-family: var(--reel-font);
+  background: #000;
+  /* Vertical swipes drive the reel; horizontal stays with the browser. */
+  touch-action: pan-x;
+  cursor: grab;
+  user-select: none;
+}
+
+.reel-feed:active {
+  cursor: grabbing;
+}
+
+.reel-feed:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
+
+.reel-feed button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.reel-feed svg {
+  display: block;
+}
+
+/* The video area stops at the bottom bar, as in the app. */
+.reel-feed__slides {
+  position: absolute;
+  inset: 0 0 var(--reel-nav-h);
+  overflow: hidden;
+}
+
+.social-reel {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0b0b0b;
+  will-change: transform;
+}
+
+.social-reel__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.social-reel__shade {
+  position: absolute;
+  inset: auto 0 0;
+  height: 42%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  pointer-events: none;
+}
+
+/* ---------- Status bar + header ---------- */
+
+.reel-top {
+  position: absolute;
+  z-index: 4;
+  inset: 0 0 auto;
+  padding: 0 var(--reel-edge) 7cqw;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.38), transparent);
+  pointer-events: none;
+}
+
+/* Either side of the camera island. */
+.reel-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 11cqw;
+  padding: 0 5.4cqw 0 6.4cqw;
+  font-size: max(10px, 3.9cqw);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.reel-status svg {
+  width: 14.5cqw;
+  height: auto;
+}
+
+.reel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.6cqw;
+}
+
+.reel-header__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 1cqw;
+  font-size: max(13px, 5.6cqw);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.reel-header__title svg {
+  width: 4cqw;
+  height: 4cqw;
+}
+
+.reel-header > svg {
+  width: 6.8cqw;
+  height: 6.8cqw;
+}
+
+/* ---------- Action rail ---------- */
+
+.reel-actions {
+  position: absolute;
+  z-index: 3;
+  right: 2.2cqw;
+  bottom: 4cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4.4cqw;
+}
+
+.reel-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1cqw;
+  min-width: 10cqw;
+  padding: 0;
+  border: 0;
+  background: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+.reel-action__icon {
+  display: block;
+  width: 7.4cqw;
+  height: 7.4cqw;
+  transition: transform 0.15s ease;
+}
+
+.reel-action__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.reel-action:active .reel-action__icon {
+  transform: scale(0.86);
+}
+
+.reel-action__count {
+  font-size: max(9px, 3.1cqw);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.reel-action.is-liked .reel-action__icon {
+  color: var(--reel-like);
+  animation: reel-pop 0.45s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+
+.reel-action.is-saved .reel-action__icon {
+  animation: reel-pop 0.45s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+
+.reel-action--static {
+  cursor: default;
+}
+
+.reel-action:focus-visible,
+.reel-follow:focus-visible,
+.reel-info__caption:focus-visible,
+.reel-play:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  border-radius: 1.5cqw;
+}
+
+.reel-audio-thumb {
+  width: 7.2cqw;
+  height: 7.2cqw;
+  border: 2px solid #fff;
+  border-radius: 1.8cqw;
+  background: #111;
+  object-fit: contain;
+}
+
+/* ---------- Account, caption, audio ---------- */
+
+.reel-info {
+  position: absolute;
+  z-index: 3;
+  left: var(--reel-edge);
+  right: 17cqw;
+  bottom: 4.6cqw;
+  display: grid;
+  gap: 2.4cqw;
+  font-size: max(10px, 3.5cqw);
+  line-height: 1.3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.reel-info__account {
+  display: flex;
+  align-items: center;
+  gap: 2.4cqw;
+  min-width: 0;
+}
+
+.reel-avatar {
+  flex: none;
+  width: 8.4cqw;
+  height: 8.4cqw;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  background: #111;
+  object-fit: contain;
+}
+
+.reel-info__handle {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.reel-follow {
+  flex: none;
+  padding: 1.1cqw 2.8cqw;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 2cqw;
+  background: transparent;
+  font-size: max(9px, 3.2cqw) !important;
+  font-weight: 600 !important;
+  transition: background-color 0.2s ease;
+}
+
+.reel-follow.is-following {
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* One line with an ellipsis until tapped, like the app's "… more". */
+.reel-info__caption {
+  display: -webkit-box;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.reel-info__caption.is-open {
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+}
+
+.reel-info__audio {
+  display: flex;
+  align-items: center;
+  gap: 1.6cqw;
+  margin: 0;
+  overflow: hidden;
+  font-size: max(9px, 3.2cqw);
+  white-space: nowrap;
+}
+
+.reel-info__audio svg {
+  flex: none;
+  width: 3.4cqw;
+  height: 3.4cqw;
+}
+
+.reel-info__audio span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Pause indicator + double-tap heart ---------- */
+
+.reel-play {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 17cqw;
+  height: 17cqw;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: none;
+}
+
+.reel-play svg {
+  width: 45%;
+  height: 45%;
+  margin-left: 6%;
+}
+
+.reel-play.is-paused,
+.reel-play:focus-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
+}
+
+.reel-burst {
+  position: absolute;
+  z-index: 4;
+  width: 26cqw;
+  height: 26cqw;
+  color: var(--reel-like);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: reel-burst 0.9s ease forwards;
+}
+
+.reel-burst svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes reel-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes reel-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(-12deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15) rotate(-12deg);
+  }
+  45% {
+    transform: translate(-50%, -50%) scale(0.95) rotate(-12deg);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -60%) scale(1) rotate(-12deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -110%) scale(0.8) rotate(-12deg);
+  }
+}
+
+/* ---------- Swipe-up hint (phones, once) ---------- */
+
+/* A soft dark pool behind the hand so it reads over any video. The whole
+   hint fades in, holds for two sweeps, then fades out. */
+.reel-hint {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 2.4cqw;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.12) 60%);
+  pointer-events: none;
+  animation: reel-hint-life 3.4s ease both;
+}
+
+.reel-hint__chevrons {
+  display: grid;
+  justify-items: center;
+}
+
+.reel-hint__chevrons svg {
+  width: 7cqw;
+  height: 7cqw;
+  margin-bottom: -3cqw;
+  opacity: 0;
+  animation: reel-hint-chevron 1.6s ease-in-out infinite;
+}
+
+/* The upper chevron lights second, so the pair reads as moving up. */
+.reel-hint__chevrons svg:first-child {
+  animation-delay: 0.2s;
+}
+
+.reel-hint__hand {
+  width: 15cqw;
+  height: 15cqw;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+  animation: reel-hint-swipe 1.6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
+.reel-hint__hand svg {
+  width: 100%;
+  height: 100%;
+}
+
+.reel-hint__text {
+  margin-top: 2cqw;
+  padding: 1.8cqw 4cqw;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  font-size: max(11px, 3.8cqw);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(6px);
+}
+
+@keyframes reel-hint-life {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes reel-hint-swipe {
+  0% {
+    opacity: 0;
+    transform: translateY(12cqw) rotate(-8deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(10cqw) rotate(-8deg) scale(0.94);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-8cqw) rotate(-8deg) scale(0.94);
+  }
+  85%,
+  100% {
+    opacity: 0;
+    transform: translateY(-12cqw) rotate(-8deg);
+  }
+}
+
+@keyframes reel-hint-chevron {
+  0%,
+  25% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  80%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- Bottom bar ---------- */
+
+.reel-nav {
+  position: absolute;
+  z-index: 4;
+  inset: auto 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-around;
+  height: var(--reel-nav-h);
+  padding: 2.6cqw 4cqw 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  background: #000;
+}
+
+.reel-nav > svg,
+.reel-nav__active svg {
+  width: 6.6cqw;
+  height: 6.6cqw;
+}
+
+.reel-nav__active {
+  color: #fff;
+}
+
+.reel-nav__active svg {
+  stroke-width: 2.4;
+}
+
+.reel-nav__avatar {
+  width: 6.8cqw;
+  height: 6.8cqw;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  background: #111;
+  object-fit: contain;
+}
+
+/* Home indicator. */
+.reel-nav::after {
+  content: '';
+  position: absolute;
+  bottom: 1.6cqw;
+  left: 50%;
+  width: 34cqw;
+  height: 1.3cqw;
+  border-radius: 999px;
+  background: #fff;
+  transform: translateX(-50%);
+}
+
+/* ---------- Bottom sheets ---------- */
+
+.reel-sheet-layer {
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  cursor: default;
+}
+
+.reel-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  animation: reel-fade 0.25s ease both;
+}
+
+.reel-sheet {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 5cqw 5cqw 0 0;
+  background: var(--reel-sheet-bg);
+  user-select: text;
+  animation: reel-sheet-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reel-sheet--comments {
+  height: 70%;
+}
+
+.reel-sheet__grip {
+  align-self: center;
+  width: 10cqw;
+  height: 1.1cqw;
+  margin-top: 2.4cqw;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.reel-sheet__head {
+  position: relative;
+  padding: 2.6cqw 0 3cqw;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reel-sheet__title {
+  margin: 0;
+  font-size: max(11px, 3.9cqw);
+  font-weight: 700;
+  text-align: center;
+}
+
+.reel-sheet__close {
+  position: absolute;
+  top: 50%;
+  right: 3cqw;
+  padding: 0 1.6cqw;
+  border: 0;
+  background: none;
+  font-size: max(16px, 6.4cqw) !important;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.reel-comments {
+  flex: 1;
+  margin: 0;
+  padding: 2cqw var(--reel-edge);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.reel-comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 2.8cqw;
+  padding: 2.4cqw 0;
+}
+
+.reel-comment__avatar {
+  display: grid;
+  flex: none;
+  width: 8cqw;
+  height: 8cqw;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #833ab4, #fd1d1d 60%, #fcb045);
+  font-size: max(9px, 3.4cqw);
+  font-weight: 700;
+}
+
+.reel-comment__avatar--you {
+  background: #4a4a4a;
+}
+
+.reel-comment__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.reel-comment__meta,
+.reel-comment__text {
+  margin: 0;
+  font-size: max(9.5px, 3.3cqw);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.reel-comment__meta span {
+  color: var(--reel-muted);
+}
+
+.reel-comment__like {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6cqw;
+  padding: 0.6cqw 0 0;
+  border: 0;
+  background: none;
+  color: var(--reel-muted) !important;
+  font-size: max(8px, 2.7cqw) !important;
+}
+
+.reel-comment__like svg {
+  width: 3.8cqw;
+  height: 3.8cqw;
+}
+
+.reel-comment__like.is-liked svg {
+  color: var(--reel-like);
+  animation: reel-pop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+
+.reel-compose {
+  display: flex;
+  align-items: center;
+  gap: 2.4cqw;
+  padding: 2.6cqw var(--reel-edge) 6cqw;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reel-compose__input {
+  flex: 1;
+  min-width: 0;
+  padding: 2.2cqw 3.4cqw;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: max(10px, 3.3cqw);
+}
+
+.reel-compose__input:focus {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.reel-compose__input::placeholder {
+  color: var(--reel-muted);
+}
+
+.reel-compose__post {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--reel-blue) !important;
+  font-size: max(10px, 3.4cqw) !important;
+  font-weight: 700 !important;
+}
+
+.reel-compose__post:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.reel-share {
+  display: flex;
+  justify-content: center;
+  gap: 8cqw;
+  padding: 5cqw var(--reel-edge) 9cqw;
+}
+
+.reel-share__target {
+  display: grid;
+  justify-items: center;
+  gap: 2cqw;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: max(9px, 3cqw) !important;
+}
+
+.reel-share__circle {
+  display: grid;
+  width: 14cqw;
+  height: 14cqw;
+  place-items: center;
+  border-radius: 999px;
+  background: #363636;
+  transition: background-color 0.2s ease;
+}
+
+.reel-share__target:hover .reel-share__circle {
+  background: #444;
+}
+
+.reel-share__circle svg {
+  width: 6cqw;
+  height: 6cqw;
+}
+
+.reel-sheet__close:focus-visible,
+.reel-share__target:focus-visible,
+.reel-comment__like:focus-visible,
+.reel-compose__post:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  border-radius: 1.5cqw;
+}
+
+.reel-toast {
+  position: absolute;
+  z-index: 7;
+  bottom: calc(var(--reel-nav-h) + 6cqw);
+  left: 50%;
+  margin: 0;
+  padding: 2.2cqw 4.4cqw;
+  border-radius: 2.4cqw;
+  background: rgba(38, 38, 38, 0.95);
+  font-size: max(10px, 3.3cqw);
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: reel-fade 0.2s ease both;
+}
+
+@keyframes reel-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes reel-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel-action.is-liked .reel-action__icon,
+  .reel-action.is-saved .reel-action__icon,
+  .reel-comment__like.is-liked svg,
+  .reel-sheet,
+  .reel-sheet-backdrop,
+  .reel-toast {
+    animation: none;
+  }
+
+  .reel-burst {
+    animation-duration: 0.6s;
+  }
+
+  /* The hint still shows, just without the sweep. */
+  .reel-hint__hand,
+  .reel-hint__chevrons svg {
+    animation: none;
+    opacity: 1;
+  }
+}

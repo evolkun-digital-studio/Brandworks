@@ -1,0 +1,127 @@
+import { useRef } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { SplitText } from 'gsap/SplitText'
+import { useGSAP } from '@gsap/react'
+import { SectionContainer, SectionDescription, SectionHeading } from '../../SectionPrimitives'
+import { SOCIAL_REELS, SOCIAL_SECTION } from '../../data/socialMedia'
+import SocialPhone from './SocialPhone'
+import ReelFeed from './ReelFeed'
+import './SocialMedia.css'
+
+gsap.registerPlugin(ScrollTrigger, SplitText)
+
+const EASE = 'power3.out'
+
+/**
+ * Social Media: one strong idea — a large phone playing the reels, floating
+ * over a scattered star pattern, with the copy set as an editorial block to its
+ * left. All motion is GSAP + ScrollTrigger; Lenis drives the real window
+ * scroll, so the triggers need no proxy.
+ *   - the pattern drifts a touch slower than the page (scrubbed parallax);
+ *   - the phone rises and settles from 0.94 → 1 as it scrolls in (scrubbed; not on
+ *     phones, where the reel runs edge to edge without the mock-up);
+ *   - the label, heading and description reveal once, line by line, from
+ *     behind a mask (SplitText re-splits on resize and font load).
+ * With reduced motion none of this runs; everything is simply in place.
+ */
+function SocialMedia() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const { heading, description, phoneLabel } = SOCIAL_SECTION
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia()
+
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        const section = sectionRef.current
+        if (!section) return
+
+        gsap.fromTo(
+          '.social-pattern__layer',
+          { yPercent: -5 },
+          {
+            yPercent: 5,
+            ease: 'none',
+            scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
+          },
+        )
+
+        const copyTrigger = { trigger: '.social-copy', start: 'top 78%', once: true }
+
+        gsap.from('.social-label', { autoAlpha: 0, y: 14, duration: 0.8, ease: EASE, scrollTrigger: copyTrigger })
+
+        const lines = (target: string, delay: number, stagger: number) =>
+          SplitText.create(target, {
+            type: 'lines',
+            mask: 'lines',
+            linesClass: 'social-line',
+            autoSplit: true,
+            onSplit: (self) =>
+              gsap.from(self.lines, {
+                yPercent: 110,
+                duration: 1.1,
+                delay,
+                stagger,
+                ease: EASE,
+                scrollTrigger: copyTrigger,
+              }),
+          })
+
+        lines('.social-heading', 0.08, 0.09)
+        lines('.social-description', 0.3, 0.06)
+      })
+
+      // The phone's rise-and-settle. On phones the reel runs edge to edge,
+      // where a scale would open gaps at the sides, so it stays put.
+      mm.add('(prefers-reduced-motion: no-preference) and (min-width: 768px)', () => {
+        gsap.fromTo(
+          '.social-stage__phone',
+          { y: 90, scale: 0.94 },
+          {
+            y: 0,
+            scale: 1,
+            ease: 'none',
+            scrollTrigger: { trigger: '.social-stage', start: 'top bottom', end: 'center center', scrub: true },
+          },
+        )
+      })
+    },
+    { scope: sectionRef },
+  )
+
+  return (
+    <section ref={sectionRef} id="social-media" aria-labelledby="social-media-heading" className="social-section">
+      <div className="social-pattern" aria-hidden="true">
+        <div className="social-pattern__layer">
+          {Array.from({ length: 48 }, (_, index) => (
+            <span key={index} className="social-pattern__star" />
+          ))}
+        </div>
+      </div>
+
+      <SectionContainer className="social-layout">
+        <div className="social-copy"> 
+          <span className="social-label">Ideas with a little extra ✦</span>
+          <SectionHeading id="social-media-heading" className="social-heading">
+            {heading.split(' & ')[0]}<br />
+            <span className="social-heading__highlight">& {heading.split(' & ')[1]}</span>
+          </SectionHeading>
+          <SectionDescription className="social-description">{description}</SectionDescription>
+        </div>
+
+        <div className="social-stage">
+          <div className="social-stage__sticker" aria-hidden="true">Made to<br />connect.</div>
+          <div className="social-stage__like" aria-hidden="true">♥</div>
+          <div className="social-stage__phone">
+            <SocialPhone>
+              <ReelFeed reels={SOCIAL_REELS} label={phoneLabel} />
+            </SocialPhone>
+          </div>
+        </div>
+      </SectionContainer>
+    </section>
+  )
+}
+
+export default SocialMedia

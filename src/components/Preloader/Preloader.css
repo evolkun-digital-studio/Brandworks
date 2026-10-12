@@ -1,0 +1,209 @@
+/*
+ * Opening preloader. White ground, project photography, and a black
+ * Brandworks.me wordmark set like the hero headline — nothing else.
+ * Photo crops take the same soft radius as the site's image cards.
+ *
+ * Performance rules for this file:
+ * - GSAP animates only transform and opacity; nothing here has a CSS
+ *   transition, so no property is ever driven by two systems.
+ * - Every box is sized up front (% of the viewport or of the word box),
+ *   so an image arriving can never change layout.
+ * - will-change is reserved for the few layers that move continuously;
+ *   everything else is promoted by GSAP only while it is tweening.
+ */
+.bw-pl {
+  --pl-ink: #111;
+  --pl-radius: clamp(6px, 0.8vw, 12px);
+
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #fff;
+  overscroll-behavior: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.bw-pl__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.bw-pl__inner,
+.bw-pl__stage {
+  position: absolute;
+  inset: 0;
+}
+
+/* The camera push runs under the whole montage. */
+.bw-pl__stage {
+  will-change: transform;
+}
+
+/* ── Frames, panels and strips ───────────────────────────────────────
+   Each is an overflow-hidden window with a "curtain" child: revealing
+   slides the window in and the curtain out by the same amount, so the
+   photograph holds still while its window grows. */
+
+.bw-pl__frame,
+.bw-pl__strip {
+  position: absolute;
+  overflow: hidden;
+  visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.bw-pl__frame {
+  border-radius: var(--pl-radius);
+}
+
+.bw-pl__strip {
+  left: 0;
+  right: 0;
+}
+
+.bw-pl__curtain {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.bw-pl__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* A frame cut into vertical slices: every slice carries the full image,
+   offset so together they line up as one picture. */
+.bw-pl__slice {
+  position: absolute;
+  top: 0;
+  left: calc(100% / var(--n) * var(--i));
+  width: calc(100% / var(--n));
+  height: 100%;
+  overflow: hidden;
+}
+
+.bw-pl__slice .bw-pl__img {
+  position: absolute;
+  top: 0;
+  left: calc(-100% * var(--i));
+  width: calc(100% * var(--n));
+}
+
+.bw-pl__track {
+  display: flex;
+  gap: 0.6vw;
+  width: max-content;
+  height: 100%;
+  will-change: transform;
+}
+
+.bw-pl__tile {
+  display: block;
+  flex: none;
+  width: 16vw;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.bw-pl.is-compact .bw-pl__tile {
+  width: 34vw;
+}
+
+/* ── Wordmark ────────────────────────────────────────────────────── */
+
+.bw-pl__center {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Sized once from the measured glyphs and never changed afterwards. The
+   solid wordmark and the photo layer both fill exactly this box. */
+.bw-pl__word {
+  position: relative;
+  width: min(72vw, calc(30vh * var(--aspect)));
+  aspect-ratio: var(--aspect);
+}
+
+.bw-pl.is-compact .bw-pl__word {
+  width: 86vw;
+}
+
+.bw-pl__solid,
+.bw-pl__photos {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bw-pl__solid {
+  display: block;
+  overflow: visible;
+}
+
+.bw-pl__ink {
+  fill: var(--pl-ink);
+}
+
+/* ".me" in the site lime (index.css @theme); the hex is a fallback in
+   case the token isn't emitted. */
+.bw-pl__accent {
+  fill: var(--color-bw-lime, #cefd10);
+}
+
+/* One masked container for all the letter photography. The mask image
+   (the word, rasterised once at display size) is set from script. */
+.bw-pl__photos {
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.bw-pl__col {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.bw-pl__col-rise {
+  position: absolute;
+  inset: 0;
+}
+
+/* Larger than its column so the slow drift never shows an edge. */
+.bw-pl__col-img {
+  position: absolute;
+  top: -12%;
+  left: -12%;
+  display: block;
+  width: 124%;
+  height: 124%;
+  object-fit: cover;
+  will-change: transform;
+}

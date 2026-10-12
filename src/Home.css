@@ -1,0 +1,50 @@
+.home-page {
+  --home-section-space-top: clamp(3.5rem, 17vw, 15rem);
+  --home-section-space-bottom: clamp(3.5rem, 17vw, 15rem);
+}
+
+/* Frame each content section without changing its pinned animation stage. */
+.home-page .home-section {
+  padding-top: var(--home-section-space-top);
+  padding-bottom: var(--home-section-space-bottom);
+  background: white;
+}
+
+.home-page .home-section--dark {
+  background: black;
+}
+
+/* Replace existing outer spacing instead of adding it twice. */
+.home-page .home-section > section {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.home-page .home-section > section[aria-labelledby='about-heading'] > div,
+.home-page .home-section > section[aria-labelledby='our-services-heading'] > div {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.home-page .home-section .services-showcase__header {
+  margin-top: 0;
+}
+
+.home-page .home-section .services-showcase__container {
+  padding-bottom: 0;
+}
+
+.home-page .home-section #search-seo > div > :first-child {
+  padding-top: 0;
+}
+
+.home-page .home-section #search-seo > div > :last-child {
+  padding-bottom: 0;
+}
+
+@media (max-width: 47.9375rem) {
+  .home-page {
+    --home-section-space-top: 2.5rem;
+    --home-section-space-bottom: 1.5rem;
+  }
+}

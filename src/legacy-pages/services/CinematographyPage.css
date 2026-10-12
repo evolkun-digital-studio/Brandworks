@@ -1,0 +1,334 @@
+.videography-page {
+  --video-gutter: clamp(20px, 3vw, 48px);
+  background: #fff;
+  color: #111;
+}
+
+/* Kept for document outline / SEO; the films are the visual opener. */
+.videography-page__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * One pinned showcase (pinned by ScrollTrigger, which also adds the scroll
+ * distance). All five projects share the one full-bleed stage; scroll
+ * progress slides them through it vertically.
+ */
+.film-showcase {
+  position: relative;
+  height: 100svh;
+  background: #080808;
+}
+
+.film-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.film-project {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #121212;
+  color: #fff;
+  will-change: transform;
+}
+
+.film-project__media {
+  position: absolute;
+  inset: -8% 0;
+  will-change: transform;
+}
+
+.film-project__video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.film-project__video::-webkit-media-controls {
+  display: none !important;
+}
+
+/*
+ * Split project: two clips side by side inside the project's (oversized)
+ * media layer, flush with no gap. Each clip is a little taller than its
+ * panel so its own opposite drift never shows an edge.
+ */
+.dual-video-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+}
+
+.dual-video-item {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dual-video-item:not(:last-child) {
+  margin-right: -1px;
+}
+
+.dual-video-item video {
+  position: absolute;
+  top: -4%;
+  left: 0;
+  width: 100%;
+  height: 108%;
+  display: block;
+  object-fit: cover;
+  will-change: transform;
+}
+
+.dual-video-item video::-webkit-media-controls {
+  display: none !important;
+}
+
+/*
+ * Portrait slide: a full-bleed banner exactly like the other projects — the
+ * same full-stage slide, no padding — made of three equal panels that sit
+ * flush against each other. The 9:16 footage covers each panel (trimming
+ * top and bottom).
+ */
+.film-project--portrait {
+  padding: 0;
+}
+
+.portrait-films {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.portrait-film-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+}
+
+/* Each panel reaches 1px under its neighbour, so fractional column widths
+   never open a hairline seam between them. */
+.portrait-video-item {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.portrait-video-item:not(:last-child) {
+  margin-right: -1px;
+}
+
+.portrait-video-item video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+.portrait-video-item video::-webkit-media-controls {
+  display: none !important;
+}
+
+.videography-cta {
+  position: relative;
+  z-index: 20;
+  min-height: 82svh;
+  padding: clamp(92px, 13vw, 170px) var(--hero-gutter);
+  display: flex;
+  align-items: center;
+  background: #fff;
+}
+
+.videography-cta__inner {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+}
+
+.videography-cta__kicker {
+  margin: 0 0 clamp(26px, 4vw, 54px);
+  color: rgba(17, 17, 17, 0.5);
+  font-family: var(--font-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.videography-cta h2 {
+  max-width: 950px;
+  margin: 0;
+  font-size: clamp(44px, 6.5vw, 76px);
+  font-weight: 400;
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+}
+
+.videography-cta__footer {
+  display: flex;
+  margin-top: clamp(50px, 8vw, 100px);
+  padding-top: 22px;
+  border-top: 1px solid rgba(17, 17, 17, 0.18);
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.videography-cta__footer p {
+  max-width: 430px;
+  margin: 0;
+  color: rgba(17, 17, 17, 0.64);
+  font-family: var(--font-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.videography-cta__link {
+  display: inline-flex;
+  min-height: 48px;
+  padding: 0 6px 0 22px;
+  border: 1px solid #111;
+  border-radius: 999px;
+  align-items: center;
+  gap: 16px;
+  color: #111;
+  font-family: var(--font-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+.videography-cta__arrow {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  border-radius: 50%;
+  place-items: center;
+  background: #111;
+  color: #fff;
+  font-size: 15px;
+  transition: transform 0.35s ease, background-color 0.35s ease;
+}
+
+.videography-cta__link:hover,
+.videography-cta__link:focus-visible {
+  background: #111;
+  color: #fff;
+}
+
+.videography-cta__link:hover .videography-cta__arrow,
+.videography-cta__link:focus-visible .videography-cta__arrow {
+  background: var(--color-bw-lime);
+  color: #111;
+  transform: translate(2px, -2px);
+}
+
+.videography-cta__link:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 4px;
+}
+
+@media (max-width: 640px) {
+  .videography-page {
+    --video-gutter: 18px;
+  }
+
+  /* Phones: one full-bleed 9:16 column; the showcase timeline scrolls it
+     up through the stage before the next project rises. */
+  .portrait-films,
+  .portrait-film-grid {
+    height: auto;
+  }
+
+  .portrait-film-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .portrait-video-item {
+    aspect-ratio: 9 / 16;
+  }
+
+  .portrait-video-item:not(:last-child) {
+    margin: 0 0 -1px;
+  }
+
+  /* Split project: the two clips stack, each taking half the stage. */
+  .dual-video-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .dual-video-item:not(:last-child) {
+    margin: 0 0 -1px;
+  }
+
+  .videography-cta {
+    min-height: 72svh;
+  }
+
+  .videography-cta__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* Reduced motion: no pin, the films simply follow one another. */
+@media (prefers-reduced-motion: reduce) {
+  .film-showcase,
+  .film-stage {
+    height: auto;
+  }
+
+  .film-project {
+    position: relative;
+    inset: auto;
+    height: clamp(480px, 78svh, 820px);
+    transform: none !important;
+  }
+
+  .film-project--portrait {
+    height: 100svh;
+  }
+
+  .film-project__media,
+  .portrait-video-item,
+  .dual-video-item video {
+    transform: none !important;
+  }
+
+  .videography-cta__link,
+  .videography-cta__arrow {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 640px) {
+  .film-project--portrait {
+    height: auto;
+  }
+}

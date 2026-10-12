@@ -1,0 +1,340 @@
+/*
+ * Photography archive. Dark, image-led, almost no copy: the photographs are
+ * the content. Frames sit inside a fixed box (grid area or aspect-ratio)
+ * and crop with object-fit, so nothing shifts while images load.
+ */
+.bwp-page {
+  --bwp-bg: #080808;
+  --bwp-text: #f2f2f2;
+  --bwp-muted: rgba(255, 255, 255, 0.55);
+  --bwp-line: rgba(255, 255, 255, 0.12);
+  --bwp-lime: var(--color-bw-lime, #cefd10);
+  --bwp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bwp-gutter: clamp(12px, 1.4vw, 24px);
+  --bwp-gap: clamp(2px, 0.35vw, 6px);
+  /* Clears the floating site header (20px offset + 64px bar). */
+  --bwp-header-offset: 84px;
+  background: var(--bwp-bg);
+  color: var(--bwp-text);
+  font-family: var(--font-secondary);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+.bwp-page * { box-sizing: border-box; }
+.bwp-page :where(h1, h2, p, figure) { margin: 0; }
+.bwp-page ::selection { background: var(--bwp-lime); color: #000; }
+
+.bwp-label {
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bwp-muted);
+}
+
+/* ---- Frame ---------------------------------------------------------- */
+
+.bwp-photo { position: relative; min-width: 0; transition: opacity 0.35s ease; }
+.bwp-open {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: zoom-in;
+}
+.bwp-open:focus-visible { outline: 2px solid var(--bwp-text); outline-offset: 2px; }
+.bwp-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #121212;
+}
+.bwp-media img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  filter: brightness(0.9);
+  transition: transform 0.9s var(--bwp-ease), filter 0.6s ease;
+}
+.bwp-photo figcaption {
+  position: absolute;
+  left: 10px;
+  bottom: 9px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 0.5s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .bwp-photo:is(:hover, :focus-within) img { transform: scale(1.03); filter: brightness(1.05); }
+  .bwp-photo:is(:hover, :focus-within) figcaption { opacity: 1; transform: none; }
+  /* The rest of the set steps back while one frame is looked at. */
+  :is(.bwp-wall, .bwp-seq-pair, .bwp-closing):has(.bwp-photo:hover) > .bwp-photo:not(:hover) { opacity: 0.78; }
+}
+@media (hover: none) {
+  .bwp-photo figcaption { display: none; }
+}
+
+/* ---- 1. Archive wall ------------------------------------------------- */
+
+.bwp-archive {
+  position: relative;
+  container-type: inline-size;
+  padding: calc(var(--bwp-header-offset) + clamp(20px, 3vw, 48px)) 0 clamp(48px, 6vw, 96px);
+}
+.bwp-wall {
+  /* Square row unit: one column's width, so spans map to aspect ratios. */
+  --u: calc((100cqw - 2 * var(--bwp-gutter) - 23 * var(--bwp-gap)) / 24);
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  grid-auto-rows: var(--u);
+  gap: var(--bwp-gap);
+  padding-inline: var(--bwp-gutter);
+}
+.bwp-wall > * {
+  grid-column: var(--c) / span var(--cs);
+  grid-row: var(--r) / span var(--rs);
+}
+.bwp-intro {
+  position: relative;
+  z-index: 2;
+  align-self: start;
+  /* Dragging the WebGL field can slide photographs under the headline. */
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.55);
+}
+.bwp-intro h1 {
+  margin-top: 14px;
+  font-family: var(--font-primary);
+  font-size: clamp(30px, 3.4vw, 52px);
+  font-weight: 400;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+/* ---- 1b. Spatial hero (WebGL, mouse-driven screens) ------------------ */
+
+/* A fullscreen window into a sphere of photographs, drawn by the canvas. */
+.bwp-hero {
+  position: relative;
+  height: 100svh;
+  min-height: 560px;
+  overflow: clip;
+  background: var(--bwp-bg);
+}
+/* The sphere's photographs as a list for screen readers and keyboard users;
+   the canvas shows focus by turning to and lifting the photo. */
+.bwp-sphere-index {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  list-style: none;
+}
+/* Kept on the photo's on-screen box so the viewer opens from it and closes back to it. */
+.bwp-proxy { position: fixed; pointer-events: none; }
+
+/* No z-index: the canvas paints under the edge blur, the caption above it. */
+.bwp-gl {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  user-select: none;
+}
+.bwp-gl.is-dragging { cursor: grabbing; }
+.bwp-gl-caption {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.bwp-gl-caption.is-visible { opacity: 1; }
+
+/* The sphere softens toward the screen edges: a light blur that deepens at
+   the very rim, with a touch of shade, like the falloff of a lens. */
+.bwp-hero-edge {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.bwp-hero-edge::before,
+.bwp-hero-edge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.bwp-hero-edge::before {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 52%, #000 82%);
+  mask-image: radial-gradient(ellipse at center, transparent 52%, #000 82%);
+}
+.bwp-hero-edge::after {
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 68%, #000 100%);
+  mask-image: radial-gradient(ellipse at center, transparent 68%, #000 100%);
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(8, 8, 8, 0.38) 100%);
+}
+
+.bwp-hero-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: calc(var(--bwp-header-offset) + 20px) var(--bwp-gutter) 20px;
+  pointer-events: none;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.7);
+}
+/* Soft shade at the top and bottom edges so the header and hints stay legible. */
+.bwp-hero-ui::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(rgba(8, 8, 8, 0.55), transparent 22%, transparent 86%, rgba(8, 8, 8, 0.5));
+}
+.bwp-hero-ui h1 {
+  font-family: var(--font-primary);
+  font-size: clamp(20px, 1.8vw, 28px);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+.bwp-hint {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ---- 2. Larger sequence --------------------------------------------- */
+
+.bwp-sequence {
+  display: grid;
+  gap: var(--bwp-gap);
+  padding: var(--bwp-gap) var(--bwp-gutter);
+}
+.bwp-seq-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bwp-gap);
+  align-items: start;
+}
+.bwp-seq-pair .bwp-media { aspect-ratio: 2 / 3; }
+
+/* ---- 4. Closing grid ------------------------------------------------ */
+
+.bwp-closing {
+  columns: 3;
+  column-gap: var(--bwp-gap);
+  padding: 0 var(--bwp-gutter);
+}
+.bwp-closing > .bwp-photo { break-inside: avoid; margin-bottom: var(--bwp-gap); }
+.bwp-closing .bwp-media { aspect-ratio: var(--ratio); }
+
+/* ---- 5. CTA --------------------------------------------------------- */
+
+.bwp-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 40px;
+  margin: clamp(64px, 9vw, 140px) var(--bwp-gutter) 0;
+  padding: 28px 0 clamp(48px, 6vw, 88px);
+  border-top: 1px solid var(--bwp-line);
+}
+.bwp-cta h2 {
+  font-family: var(--font-primary);
+  font-size: clamp(24px, 2.4vw, 36px);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.bwp-cta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 14px;
+  color: var(--bwp-text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--bwp-line);
+  transition: border-color 0.4s ease;
+}
+.bwp-cta-link span { transition: transform 0.45s var(--bwp-ease); }
+.bwp-cta-link:hover { border-color: var(--bwp-text); }
+.bwp-cta-link:is(:hover, :focus-visible) span { transform: translateX(4px); }
+.bwp-cta-link:focus-visible { outline: 2px solid var(--bwp-text); outline-offset: 5px; }
+
+/* ---- Tablet: mixed sizes on 12 columns, packed densely --------------- */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .bwp-wall {
+    --bwp-gap: 5px;
+    --u: calc((100cqw - 2 * var(--bwp-gutter) - 11 * var(--bwp-gap)) / 12);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-flow: dense;
+  }
+  .bwp-wall > .bwp-photo { grid-column: span var(--tc); grid-row: span var(--tr); }
+  .bwp-wall > .bwp-intro { grid-column: 1 / -1; grid-row: span 2; }
+}
+
+/* ---- Mobile: readable 2-column editorial grid ------------------------ */
+
+@media (max-width: 767px) {
+  .bwp-page { --bwp-header-offset: 82px; --bwp-gutter: 12px; --bwp-gap: 4px; }
+  .bwp-wall {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: auto;
+    grid-auto-flow: dense;
+  }
+  .bwp-wall > * { grid-column: auto; grid-row: auto; }
+  .bwp-wall > .bwp-intro { grid-column: 1 / -1; margin-bottom: 16px; }
+  .bwp-wall .bwp-media { height: auto; aspect-ratio: 4 / 5; }
+  .bwp-wall > .is-wide { grid-column: 1 / -1; }
+  .bwp-wall > .is-wide .bwp-media { aspect-ratio: var(--natural); }
+
+  .bwp-closing { columns: 2; }
+
+  .bwp-cta { flex-direction: column; align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bwp-photo, .bwp-media img, .bwp-photo figcaption, .bwp-cta-link span { transition: none; }
+}
