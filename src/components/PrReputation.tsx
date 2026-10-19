@@ -183,7 +183,7 @@ export default function PRReputation() {
         <motion.div
           {...reveal}
           variants={rise(22, 0.05)}
-          className="mt-5 grid grid-cols-1 gap-6 pt-5 sm:mt-14 sm:pt-6 md:mt-16 md:grid-cols-12 md:gap-6 lg:mt-18 lg:gap-8 xl:mt-18"
+          className="mt-5 grid grid-cols-1 gap-6 pt-5 sm:mt-14 sm:pt-6 md:mt-16 md:grid-cols-12 md:gap-6 lg:mt-15 lg:gap-8 xl:mt-15"
         >
           <div className="md:col-span-9">
             <p className="max-w-[1050px] text-[clamp(1.2rem,4.4vw,1.5rem)] font-medium leading-[0.96] tracking-[-0.045em] sm:leading-[0.94] md:tracking-[-0.05em]">

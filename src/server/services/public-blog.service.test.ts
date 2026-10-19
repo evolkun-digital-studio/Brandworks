@@ -8,7 +8,7 @@ vi.mock('../repositories/blog.repository', () => ({
 }))
 
 import { countPublicBlogDocuments, findBlogBySlug, listPublicBlogDocuments } from '../repositories/blog.repository'
-import { getPublicBlogBySlug, listPublicBlogs } from './public-blog.service'
+import { getPublicBlogBySlug, getPublicBlogPage, listPublicBlogs } from './public-blog.service'
 import type { BlogDocument } from '../types/blog'
 import { ObjectId } from 'mongodb'
 
@@ -108,5 +108,20 @@ describe('public blog service', () => {
       status: 404,
       message: 'Blog post not found.',
     })
+  })
+
+  it('does not expose the legacy fallback when a matching CMS slug exists but is not public', async () => {
+    vi.mocked(findBlogBySlug).mockResolvedValue(document({ status: 'draft' }))
+
+    await expect(getPublicBlogPage('published-article')).rejects.toMatchObject({ status: 404 })
+  })
+
+  it('keeps the legacy page resolver available when no CMS record exists', async () => {
+    vi.mocked(findBlogBySlug).mockResolvedValue(null)
+
+    const result = await getPublicBlogPage('why-brand-photography-changes-perceived-value')
+
+    expect(result.source).toBe('legacy')
+    expect(result.blog.slug).toBe('why-brand-photography-changes-perceived-value')
   })
 })

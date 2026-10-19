@@ -8,5 +8,8 @@ export function formatBlogDate(value: string): string {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    // Blog dates are editorial calendar dates, not viewer-local timestamps.
+    // Keeping the timezone fixed makes SSR and client hydration deterministic.
+    timeZone: 'UTC',
   })
 }

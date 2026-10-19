@@ -29,7 +29,8 @@
 .inner {
   width: min(100% - 3rem, 90rem);
   margin-inline: auto;
-  padding-bottom: 0;
+  padding-bottom: 50px;
+  padding-top: 50px;
 }
 
 .statementBlock {
@@ -49,12 +50,13 @@
   margin: 0 auto;
   color: var(--intro-text);
   font-size: clamp(36px, 4vw, 46px);
-  font-weight: 300;
+  font-weight: 200;
   letter-spacing: -0.028em;
   line-height: 1.14;
   text-align: center;
   text-wrap: balance;
   word-spacing: normal;
+  /* text: #212121; */
 }
 
 .statementText {

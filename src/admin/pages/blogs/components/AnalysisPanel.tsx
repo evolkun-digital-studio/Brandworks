@@ -1,4 +1,5 @@
 import CollapsibleSection from './CollapsibleSection'
+import { AlertTriangle, Check, Info, X } from 'lucide-react'
 import type { AnalysisResult, CheckStatus } from '../lib/blogAnalyzer'
 
 const STATUS_STYLES: Record<CheckStatus, string> = {
@@ -8,17 +9,17 @@ const STATUS_STYLES: Record<CheckStatus, string> = {
   info: 'text-neutral-400',
 }
 
-const STATUS_ICON: Record<CheckStatus, string> = {
-  pass: '✓',
-  warning: '⚠',
-  fail: '✕',
-  info: 'ℹ',
+const STATUS_ICON: Record<CheckStatus, typeof Check> = {
+  pass: Check,
+  warning: AlertTriangle,
+  fail: X,
+  info: Info,
 }
 
 function ScoreBadge({ label, score }: { label: string; score: number }) {
   const tone = score >= 70 ? 'text-emerald-700' : score >= 40 ? 'text-amber-700' : 'text-red-600'
   return (
-    <div className="flex flex-col items-center gap-1 rounded-[8px] border border-neutral-200 px-4 py-3">
+    <div className="flex flex-col items-center gap-1 rounded-[10px] border border-neutral-200 bg-neutral-50 px-3 py-3">
       <span className={`text-[24px] font-semibold ${tone}`}>{score}</span>
       <span className="text-[11px] font-medium tracking-wide text-neutral-500 uppercase">{label}</span>
     </div>
@@ -37,9 +38,7 @@ function MetricStat({ label, value }: { label: string; value: string | number })
 function CheckRow({ status, label, message }: { status: CheckStatus; label: string; message: string }) {
   return (
     <div className="flex items-start gap-2 py-1.5">
-      <span className={`mt-[1px] w-4 shrink-0 text-center text-[13px] font-semibold ${STATUS_STYLES[status]}`} aria-hidden="true">
-        {STATUS_ICON[status]}
-      </span>
+      {(() => { const Icon = STATUS_ICON[status]; return <Icon size={14} className={`mt-[1px] w-4 shrink-0 ${STATUS_STYLES[status]}`} aria-hidden="true" /> })()}
       <div className="flex flex-col">
         <span className="text-[13px] font-medium text-neutral-900">{label}</span>
         <span className="text-[12px] text-neutral-500">{message}</span>
@@ -57,7 +56,7 @@ function CheckRow({ status, label, message }: { status: CheckStatus; label: stri
 export function ContentHealthSummary({ analysis }: { analysis: AnalysisResult }) {
   const { metrics } = analysis
   return (
-    <div className="rounded-[12px] border border-neutral-200 bg-white p-6">
+    <div className="admin-editor-section !p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-[16px] font-semibold text-neutral-900">Content Health</h2>
         <span className="text-[11px] text-neutral-400">Internal editorial guidance — not a Google score</span>
@@ -155,8 +154,9 @@ export function AnalysisDetails({ analysis }: { analysis: AnalysisResult }) {
         <div className="grid grid-cols-1 gap-x-8 gap-y-1 sm:grid-cols-2">
           {analysis.schemaReadiness.map((item) => (
             <div key={item.type} className="flex items-start gap-2 py-1">
-              <span
-                className={`mt-[1px] w-4 shrink-0 text-center text-[13px] font-semibold ${
+              {(() => { const Icon = item.status === 'ready' ? STATUS_ICON.pass : item.status === 'not_configured' ? STATUS_ICON.info : STATUS_ICON.warning; return <Icon
+                size={14}
+                className={`mt-[1px] w-4 shrink-0 ${
                   item.status === 'ready'
                     ? STATUS_STYLES.pass
                     : item.status === 'not_configured'
@@ -164,9 +164,7 @@ export function AnalysisDetails({ analysis }: { analysis: AnalysisResult }) {
                       : STATUS_STYLES.warning
                 }`}
                 aria-hidden="true"
-              >
-                {item.status === 'ready' ? STATUS_ICON.pass : item.status === 'not_configured' ? STATUS_ICON.info : STATUS_ICON.warning}
-              </span>
+              /> })()}
               <div className="flex flex-col">
                 <span className="text-[13px] font-medium text-neutral-900">{item.type}</span>
                 <span className="text-[12px] text-neutral-500">{item.message}</span>

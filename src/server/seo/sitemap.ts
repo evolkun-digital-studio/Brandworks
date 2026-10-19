@@ -1,5 +1,6 @@
 import type { SitemapBlogProjection } from '../repositories/blog.repository'
 import { listSitemapEligibleBlogs } from '../repositories/blog.repository'
+import { getLegacyPublicBlogList, isLegacyPublicBlogFallbackEnabled } from '../services/public-blog-migration'
 
 export interface SitemapUrlEntry { loc: string; lastmod?: string }
 const STATIC_PUBLIC_PATHS = ['/','/blog']
@@ -32,5 +33,14 @@ export function buildSitemapXml(entries:SitemapUrlEntry[]):string{
 }
 
 export async function buildSitemapEntries(publicOrigin:string){
-  return composeSitemapEntries(await listSitemapEligibleBlogs(),publicOrigin)
+  const cmsPosts = await listSitemapEligibleBlogs()
+  if (cmsPosts.length > 0 || !isLegacyPublicBlogFallbackEnabled()) {
+    return composeSitemapEntries(cmsPosts,publicOrigin)
+  }
+  const legacyPosts: SitemapBlogProjection[] = getLegacyPublicBlogList().map((post) => ({
+    slug: post.slug,
+    canonicalUrl: null,
+    updatedAt: new Date(post.publishedAt),
+  }))
+  return composeSitemapEntries(legacyPosts,publicOrigin)
 }

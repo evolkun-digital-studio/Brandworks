@@ -1,5 +1,6 @@
 // Mirrors backend/src/types/blog.ts's AdminBlogResponse shape.
 export type BlogStatus = 'draft' | 'published' | 'unpublished'
+export type ReviewStatus = 'draft' | 'in_review' | 'changes_requested' | 'approved'
 
 export interface AiContext {
   targetCountry: string | null
@@ -56,6 +57,10 @@ export interface AdminBlogPost {
   coverImageDescription: string | null
   authorName: string
   status: BlogStatus
+  reviewStatus: ReviewStatus
+  reviewNote: string | null
+  reviewedBy: string | null
+  reviewedAt: string | null
   publishedAt: string | null
   /** Phase 14 — a pending future publish date, if this post has one; `null` otherwise. Always `null` once `status` is `'published'`. */
   scheduledAt: string | null

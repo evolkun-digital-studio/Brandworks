@@ -9,8 +9,9 @@ const showreelPoster = mediaUrl("footer-showreel-poster.webp")
 import { matches } from '../../lib/scrollMotion'
 import './Footer.css'
 import LegalLinks from '../../legacy-pages/legal/LegalLinks'
+import type { SiteSocialLink } from '../../server/site-settings/types'
 
-const LOGO_SRC = '/brandworks.svg'
+const LOGO_SRC = '/BWorksLogo-01.svg'
 
 gsap.registerPlugin(useGSAP)
 
@@ -70,7 +71,7 @@ function Arrow() {
   )
 }
 
-function Footer() {
+function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based in India, working worldwide.', socialLinks = socials }: { contactEmail?: string; footerTagline?: string; socialLinks?: Array<SiteSocialLink | { label: string; href: string }> }) {
   const rootRef = useRef<HTMLElement>(null)
   const videoRef = useRef<FullscreenVideo>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
@@ -558,7 +559,7 @@ function Footer() {
         </Link>
 
         <a
-          href="mailto:hello@brandworks.com"
+          href={`mailto:${contactEmail}`}
           className="footer-cta"
         >
           <span>
@@ -604,14 +605,14 @@ function Footer() {
 
         <div className="footer-contact">
           <ul className="footer-socials">
-            {socials.map(
+            {socialLinks.map(
               (social) => (
                 <li
                   key={social.label}
                 >
                   <a
                     href={
-                      social.href
+                      'url' in social ? social.url : social.href
                     }
                   >
                     {social.label}{' '}
@@ -628,9 +629,9 @@ function Footer() {
 
           <a
             className="footer-email"
-            href="mailto:hello@brandworks.com"
+            href={`mailto:${contactEmail}`}
           >
-            hello@brandworks.com
+            {contactEmail}
           </a>
         </div>
       </div>
@@ -638,8 +639,7 @@ function Footer() {
       {/* META */}
       <div className="footer-meta">
         <span className="footer-meta__left">
-          Based in India, working
-          worldwide.
+          {footerTagline}
         </span>
 
         <div className="footer-meta__center">

@@ -5,6 +5,9 @@ import * as adminApi from '../api/adminApi'
 import { ApiError } from '../api/client'
 import FormField from '../components/FormField'
 import FormMessage from '../components/FormMessage'
+import AdminButton from '../components/AdminButton'
+import AdminPageHeader from '../components/AdminPageHeader'
+import AdminStatusBadge from '../components/AdminStatusBadge'
 import type { AdminAccount } from '../api/types'
 
 function errorMessage(err: unknown): string {
@@ -45,7 +48,7 @@ function CreateSubAdminForm({ onCreated }: { onCreated: (admin: AdminAccount) =>
 
   return (
     <form
-      className="flex flex-col gap-5 rounded-[12px] border border-neutral-200 bg-white p-6"
+      className="admin-surface flex flex-col gap-5 p-6"
       onSubmit={handleSubmit}
     >
       <h2 className="text-[16px] font-semibold text-neutral-900">
@@ -74,13 +77,13 @@ function CreateSubAdminForm({ onCreated }: { onCreated: (admin: AdminAccount) =>
         />
       </div>
 
-      <button
+      <AdminButton
         type="submit"
+        variant="primary"
         disabled={submitting}
-        className="flex h-[42px] w-full items-center justify-center rounded-[6px] bg-neutral-900 text-[14px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-fit sm:px-6"
       >
         {submitting ? 'Creating…' : 'Create sub-admin'}
-      </button>
+      </AdminButton>
     </form>
   )
 }
@@ -145,15 +148,7 @@ function AdminRow({
         {account.role === 'admin' ? 'Admin' : 'Sub-admin'}
       </td>
       <td className="py-3 pr-4">
-        <span
-          className={`rounded-[4px] px-2 py-0.5 text-[12px] font-medium ${
-            account.enabled
-              ? 'bg-emerald-50 text-emerald-700'
-              : 'bg-neutral-100 text-neutral-500'
-          }`}
-        >
-          {account.enabled ? 'Enabled' : 'Disabled'}
-        </span>
+        <AdminStatusBadge tone={account.enabled ? 'success' : 'neutral'}>{account.enabled ? 'Enabled' : 'Disabled'}</AdminStatusBadge>
       </td>
       <td className="py-3 pr-4 text-[13px] text-neutral-500">
         {formatDate(account.lastLoginAt)}
@@ -214,16 +209,14 @@ function Users() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-[24px] font-semibold text-neutral-900">
-        Admins &amp; Sub-admins
-      </h1>
+    <div>
+      <AdminPageHeader eyebrow="Access control" title="Team" description="Manage administrator and sub-admin access without changing role permissions." />
 
       <CreateSubAdminForm
         onCreated={(created) => setAdmins((prev) => (prev ? [...prev, created] : [created]))}
       />
 
-      <div className="rounded-[12px] border border-neutral-200 bg-white p-6">
+      <div className="admin-surface mt-4 p-6">
         <h2 className="mb-4 text-[16px] font-semibold text-neutral-900">
           All accounts
         </h2>

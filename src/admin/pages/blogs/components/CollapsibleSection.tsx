@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 interface CollapsibleSectionProps {
   title: string
@@ -23,26 +24,15 @@ function CollapsibleSection({
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="rounded-[12px] border border-neutral-200 bg-white p-6">
+    <div className="admin-editor-section !p-5">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between text-left"
+        className="flex min-h-[40px] w-full items-center justify-between text-left"
       >
-        <span className="text-[16px] font-semibold text-neutral-900">{title}</span>
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`h-4 w-4 shrink-0 text-neutral-500 transition-transform ${open ? 'rotate-180' : ''}`}
-          aria-hidden="true"
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
+        <span className="text-[15px] font-bold tracking-[-0.02em] text-neutral-900">{title}</span>
+        <ChevronDown size={17} className={`shrink-0 text-neutral-500 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {description && <p className="mt-1 text-[13px] text-neutral-500">{description}</p>}

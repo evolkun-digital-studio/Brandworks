@@ -1175,11 +1175,11 @@ export default function Videography() {
                 ref={wordTopRef}
                 className="
                   font-primary
-                  text-[clamp(2.8rem,10.4vw,5.4rem)]
+                  text-[clamp(2.8rem,10.4vw,6rem)]
                   font-medium
                   uppercase
                   leading-[0.8]
-                  tracking-[-0.065em]
+                  tracking-[-0.015em]
                 "
               >
                 cinematography
@@ -1195,7 +1195,7 @@ export default function Videography() {
                   font-medium
                   uppercase
                   leading-[0.8]
-                  tracking-[-0.075em]
+                  tracking-[-0.025em]
                 "
               >
                 {/* graphy */}

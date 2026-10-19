@@ -2,11 +2,13 @@ import type { ObjectId } from 'mongodb'
 import type { AiContext, EntitySeo, ExpertQuote, FaqItem, TwitterCardType } from '../../blog/api/types'
 
 export type AdminBlogStatus = 'draft' | 'published' | 'unpublished'
+export type AdminReviewStatus = 'draft' | 'in_review' | 'changes_requested' | 'approved'
 export interface AdminBlogDocument {
   _id: ObjectId; title: string; slug: string; excerpt: string; content: string
   coverImage: string; coverImageAlt: string; coverImageTitle?: string | null
   coverImageCaption?: string | null; coverImageDescription?: string | null
   authorName: string; authorId: ObjectId; status: AdminBlogStatus
+  reviewStatus?: AdminReviewStatus; reviewNote?: string | null; reviewedBy?: ObjectId | null; reviewedAt?: Date | null
   publishedAt: Date | null; scheduledAt?: Date | null; createdAt: Date; updatedAt: Date; deletedAt: Date | null
   seoTitle: string | null; seoDescription: string | null; category?: string | null; tags?: string[]
   aiSummary?: string | null; keyTakeaways?: string[]; aiContext?: AiContext | null; entitySeo?: EntitySeo | null
@@ -21,7 +23,9 @@ export function toAdminBlogResponse(doc: AdminBlogDocument) {
     id: doc._id.toHexString(), title: doc.title, slug: doc.slug, excerpt: doc.excerpt, content: doc.content,
     coverImage: doc.coverImage, coverImageAlt: doc.coverImageAlt, coverImageTitle: doc.coverImageTitle ?? null,
     coverImageCaption: doc.coverImageCaption ?? null, coverImageDescription: doc.coverImageDescription ?? null,
-    authorName: doc.authorName, status: doc.status, publishedAt: doc.publishedAt?.toISOString() ?? null,
+    authorName: doc.authorName, status: doc.status, reviewStatus: doc.reviewStatus ?? 'draft', reviewNote: doc.reviewNote ?? null,
+    reviewedBy: doc.reviewedBy?.toHexString() ?? null, reviewedAt: doc.reviewedAt?.toISOString() ?? null,
+    publishedAt: doc.publishedAt?.toISOString() ?? null,
     scheduledAt: doc.scheduledAt?.toISOString() ?? null, createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(), deletedAt: doc.deletedAt?.toISOString() ?? null,
     seoTitle: doc.seoTitle, seoDescription: doc.seoDescription, category: doc.category ?? null, tags: doc.tags ?? [],

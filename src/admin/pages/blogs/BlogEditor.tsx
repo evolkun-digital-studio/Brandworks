@@ -1,12 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import { ArrowLeft, Bold, Code2, Eye, Heading2, History, Italic, Keyboard, Link2, List, Maximize2, Minimize2, RotateCcw, Save, X } from 'lucide-react'
 import { useNavigate, useParams } from '../../../routing'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import * as blogApi from '../../api/blogAdminApi'
+import * as operationsApi from '../../api/operationsApi'
 import { ApiError } from '../../api/client'
 import FormField from '../../components/FormField'
 import FormMessage from '../../components/FormMessage'
+import AdminButton from '../../components/AdminButton'
+import AdminStatusBadge from '../../components/AdminStatusBadge'
 import CollapsibleSection from './components/CollapsibleSection'
 import TagInput from './components/TagInput'
 import RepeatingTextField from './components/RepeatingTextField'
@@ -14,7 +18,7 @@ import FaqEditor from './components/FaqEditor'
 import CustomMetaTagsEditor from './components/CustomMetaTagsEditor'
 import { ContentHealthSummary, AnalysisDetails } from './components/AnalysisPanel'
 import { analyzeBlog } from './lib/blogAnalyzer'
-import type { AnalyzerInput } from './lib/blogAnalyzer'
+import type { AnalysisResult, AnalyzerInput } from './lib/blogAnalyzer'
 import type {
   AdminBlogPost,
   AiContext,
@@ -25,6 +29,8 @@ import type {
   FaqItem,
   TwitterCardType,
 } from '../../api/blogTypes'
+import type { AdminBlogRevision } from '../../api/blogAdminApi'
+import { useAdminAuth } from '../../context/useAdminAuth'
 
 function errorMessage(err: unknown): string {
   return err instanceof ApiError
@@ -324,6 +330,34 @@ function validateForm(form: FormState): string | null {
   return null
 }
 
+type InlineField = 'title' | 'slug' | 'excerpt' | 'coverImage' | 'coverImageAlt' | 'content'
+
+function fieldError(form: FormState, field: InlineField): string | null {
+  if (field === 'title') {
+    if (!form.title.trim()) return 'Title is required.'
+    if (form.title.length > TITLE_MAX) return `Keep the title under ${TITLE_MAX} characters.`
+  }
+  if (field === 'slug') {
+    if (!form.slug.trim()) return 'Slug is required.'
+    if (form.slug.length > SLUG_MAX) return `Keep the slug under ${SLUG_MAX} characters.`
+    if (!SLUG_FORMAT_PATTERN.test(form.slug)) return 'Use lowercase letters, numbers, and hyphens.'
+  }
+  if (field === 'excerpt') {
+    if (!form.excerpt.trim()) return 'Excerpt is required.'
+    if (form.excerpt.length > EXCERPT_MAX) return `Keep the excerpt under ${EXCERPT_MAX} characters.`
+  }
+  if (field === 'content') {
+    if (!form.content.trim()) return 'Content is required.'
+    if (form.content.length > CONTENT_MAX) return `Keep the content under ${CONTENT_MAX.toLocaleString()} characters.`
+  }
+  if (field === 'coverImage') {
+    if (!form.coverImage.trim()) return 'Cover image is required.'
+    if (!isLikelyUrl(form.coverImage)) return 'Use a valid http(s) image URL.'
+  }
+  if (field === 'coverImageAlt' && !form.coverImageAlt.trim()) return 'Alt text is required for accessibility.'
+  return null
+}
+
 function buildAiContext(form: FormState): AiContext | null {
   const context: AiContext = {
     targetCountry: form.targetCountry.trim() || null,
@@ -442,11 +476,31 @@ function SeoPreview({
 function MarkdownField({
   value,
   onChange,
+  onBlur,
+  error,
 }: {
   value: string
   onChange: (next: string) => void
+  onBlur?: () => void
+  error?: string | null
 }) {
   const [tab, setTab] = useState<'write' | 'preview'>('write')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  function insertMarkdown(prefix: string, suffix = '', placeholder = 'text') {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selected = value.slice(start, end) || placeholder
+    const next = `${value.slice(0, start)}${prefix}${selected}${suffix}${value.slice(end)}`
+    onChange(next)
+    window.requestAnimationFrame(() => {
+      textarea.focus()
+      const nextStart = start + prefix.length
+      textarea.setSelectionRange(nextStart, nextStart + selected.length)
+    })
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -479,14 +533,28 @@ function MarkdownField({
       </div>
 
       {tab === 'write' ? (
-        <textarea
-          id="content"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          rows={16}
-          placeholder="Write in Markdown — headings, lists, links, blockquotes, and code blocks are all supported."
-          className="w-full resize-y rounded-[10px] border border-neutral-300 px-4 py-3 font-mono text-[14px] leading-[1.6] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none"
-        />
+        <>
+          <div className="admin-editor-toolbar" aria-label="Markdown formatting tools">
+            <button type="button" onClick={() => insertMarkdown('## ', '', 'Heading') } title="Heading 2"><Heading2 size={15} aria-hidden="true" /> <span>Heading</span></button>
+            <button type="button" onClick={() => insertMarkdown('**', '**')} title="Bold"><Bold size={15} aria-hidden="true" /> <span>Bold</span></button>
+            <button type="button" onClick={() => insertMarkdown('*', '*')} title="Italic"><Italic size={15} aria-hidden="true" /> <span>Italic</span></button>
+            <button type="button" onClick={() => insertMarkdown('[', '](https://)', 'link text')} title="Link"><Link2 size={15} aria-hidden="true" /> <span>Link</span></button>
+            <button type="button" onClick={() => insertMarkdown('- ', '', 'List item')} title="Bullet list"><List size={15} aria-hidden="true" /> <span>List</span></button>
+            <button type="button" onClick={() => insertMarkdown('`', '`')} title="Inline code"><Code2 size={15} aria-hidden="true" /> <span>Code</span></button>
+          </div>
+          <textarea
+            ref={textareaRef}
+            id="content"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onBlur={onBlur}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'content-error' : undefined}
+            rows={18}
+            placeholder="Write in Markdown — headings, lists, links, blockquotes, and code blocks are all supported."
+            className="admin-textarea min-h-[380px] resize-y font-mono text-[14px] leading-[1.7] placeholder:text-neutral-400"
+          />
+        </>
       ) : (
         <div className="min-h-[300px] rounded-[10px] border border-neutral-200 bg-neutral-50 px-4 py-3">
           {value.trim() ? (
@@ -518,6 +586,8 @@ function MarkdownField({
         </div>
       )}
 
+      {error && <p id="content-error" className="admin-field-error" role="alert">{error}</p>}
+
       <div className="text-right text-[12px] text-neutral-400">
         {value.length.toLocaleString()} / {CONTENT_MAX.toLocaleString()}
       </div>
@@ -525,13 +595,154 @@ function MarkdownField({
   )
 }
 
+function DraftPreview({ form, onClose }: { form: FormState; onClose: () => void }) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  return (
+    <div className="admin-draft-preview" role="dialog" aria-modal="true" aria-labelledby="draft-preview-title">
+      <div className="admin-draft-preview__backdrop" onClick={onClose} aria-hidden="true" />
+      <section className="admin-draft-preview__surface">
+        <header className="admin-draft-preview__header">
+          <div>
+            <p className="admin-eyebrow">Local draft preview</p>
+            <h2 id="draft-preview-title">How this article reads</h2>
+          </div>
+          <button type="button" className="admin-icon-button" aria-label="Close draft preview" onClick={onClose}>
+            <X size={18} aria-hidden="true" />
+          </button>
+        </header>
+        <div className="admin-draft-preview__body">
+          {isLikelyUrl(form.coverImage) && <img src={form.coverImage} alt={form.coverImageAlt || ''} className="admin-draft-preview__image" />}
+          <p className="admin-eyebrow">{form.category || 'Article'}</p>
+          <h3>{form.title || 'Untitled article'}</h3>
+          <p className="admin-draft-preview__excerpt">{form.excerpt || 'Add an excerpt to introduce this article.'}</p>
+          <div className="admin-draft-preview__markdown">
+            {form.content.trim() ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.content}</ReactMarkdown> : <p>Nothing to preview yet.</p>}
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function RevisionHistory({
+  id,
+  onRestore,
+}: {
+  id?: string
+  onRestore: (revision: AdminBlogRevision) => Promise<void>
+}) {
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [restoring, setRestoring] = useState<string | null>(null)
+  const [revisions, setRevisions] = useState<AdminBlogRevision[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [comparison, setComparison] = useState<string | null>(null)
+
+  async function load() {
+    if (!id) return
+    setOpen(true)
+    if (revisions.length) return
+    setLoading(true)
+    setError(null)
+    try {
+      const result = await blogApi.listBlogRevisions(id)
+      setRevisions(result.revisions)
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function restore(revision: AdminBlogRevision) {
+    if (!id || !window.confirm(`Restore the saved version from ${new Date(revision.createdAt).toLocaleString()}? Your current edits will remain unsaved until you choose Save.`)) return
+    setRestoring(revision.id)
+    setError(null)
+    try {
+      await onRestore(revision)
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setRestoring(null)
+    }
+  }
+
+  async function compareLatest() {
+    if (!id || revisions.length < 2) return
+    setError(null)
+    try {
+      const { comparison: result } = await blogApi.compareBlogRevisions(id, revisions[0].id, revisions[1].id)
+      setComparison(result.changedFields.length ? `Changed fields: ${result.changedFields.join(', ')}.` : 'No tracked fields changed between these revisions.')
+    } catch (err) { setError(errorMessage(err)) }
+  }
+
+  return (
+    <section className="admin-editor-section admin-revision-panel">
+      <button type="button" className="admin-editor-section__toggle" aria-expanded={open} onClick={() => open ? setOpen(false) : void load()} disabled={!id}>
+        <span><History size={16} aria-hidden="true" /> Revision history</span>
+        <span className="admin-revision-panel__meta">{id ? (open ? 'Hide' : 'View') : 'Available after first save'}</span>
+      </button>
+      {open && (
+        <div className="admin-revision-panel__body">
+          <p className="admin-editor-section__description">Saved server snapshots. Restoring replaces saved content while leaving publishing status unchanged.</p>
+          {loading && <p className="admin-revision-panel__note">Loading revisions…</p>}
+          {error && <p className="admin-field-error" role="alert">{error}</p>}
+          {!loading && !error && revisions.length === 0 && <p className="admin-revision-panel__note">No earlier saved versions yet.</p>}
+          {!loading && revisions.length > 0 && <div className="admin-revision-list">
+            {revisions.length > 1 && <button type="button" className="admin-button admin-button--quiet mb-2" onClick={() => void compareLatest()}>Compare latest two</button>}
+            {comparison && <p className="mb-3 text-[12px] text-neutral-600" role="status">{comparison}</p>}
+            {revisions.map((revision) => (
+              <div key={revision.id} className="admin-revision-item">
+                <div>
+                  <strong>{revision.title || 'Untitled article'}</strong>
+                  <span>{new Date(revision.createdAt).toLocaleString()} · {revision.authorName}</span>
+                </div>
+                <button type="button" className="admin-button admin-button--secondary" disabled={restoring !== null} onClick={() => void restore(revision)}>
+                  <RotateCcw size={14} aria-hidden="true" /> {restoring === revision.id ? 'Loading…' : 'Restore'}
+                </button>
+              </div>
+            ))}
+          </div>}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function OutlinePanel({ entries }: { entries: AnalysisResult['toc'] }) {
+  return (
+    <section className="admin-editor-section admin-outline-panel">
+      <div className="admin-editor-section__heading mb-0">
+        <div>
+          <h2 className="admin-editor-section__title">Outline</h2>
+          <p className="admin-editor-section__description">Your article structure, based on H2–H4 headings.</p>
+        </div>
+        <Keyboard size={17} className="text-neutral-400" aria-hidden="true" />
+      </div>
+      {entries.length ? <ol className="admin-outline-list">
+        {entries.map((entry) => <li key={entry.id} style={{ paddingLeft: `${(entry.level - 2) * 14}px` }}>{entry.text}</li>)}
+      </ol> : <p className="admin-revision-panel__note">Add headings to build a navigable outline.</p>}
+    </section>
+  )
+}
+
 function BlogEditor() {
   const { id } = useParams<{ id: string }>()
   const isEditing = Boolean(id)
   const navigate = useNavigate()
+  const { admin } = useAdminAuth()
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [status, setStatus] = useState<BlogStatus | null>(null)
+  const [reviewStatus, setReviewStatus] = useState<import('../../api/blogTypes').ReviewStatus>('draft')
+  const [reviewNote, setReviewNote] = useState<string | null>(null)
   const [publishedAtDisplay, setPublishedAtDisplay] = useState<string | null>(null)
   // Phase 14 — a pending future publish date, if any (never set while
   // status === 'published'; the backend enforces that, this just
@@ -553,6 +764,12 @@ function BlogEditor() {
   const [authorName, setAuthorName] = useState<string | undefined>(undefined)
   const [slugTouched, setSlugTouched] = useState(false)
   const [dirty, setDirty] = useState(false)
+  const [focusMode, setFocusMode] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [recoverySnapshot, setRecoverySnapshot] = useState<{ form: FormState; savedAt: string } | null>(null)
+  const [localDraftSavedAt, setLocalDraftSavedAt] = useState<string | null>(null)
+  const [touched, setTouched] = useState<Partial<Record<InlineField, boolean>>>({})
+  const recoveryKey = `brandworks.editor.recovery.${id ?? 'new'}`
 
   const [loading, setLoading] = useState(isEditing)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -572,6 +789,8 @@ function BlogEditor() {
         if (cancelled) return
         setForm(formFromPost(blog))
         setStatus(blog.status)
+        setReviewStatus(blog.reviewStatus ?? 'draft')
+        setReviewNote(blog.reviewNote ?? null)
         setPublishedAtDisplay(blog.publishedAt)
         setScheduledAt(blog.scheduledAt)
         setAuthorName(blog.authorName)
@@ -587,6 +806,32 @@ function BlogEditor() {
       cancelled = true
     }
   }, [id])
+
+  useEffect(() => {
+    if (loading) return
+    try {
+      const raw = window.localStorage.getItem(recoveryKey)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as { form?: FormState; savedAt?: string }
+      if (parsed.form && parsed.savedAt) setRecoverySnapshot({ form: parsed.form, savedAt: parsed.savedAt })
+    } catch {
+      // Local recovery is best-effort and must never block the editor.
+    }
+  }, [loading, recoveryKey])
+
+  useEffect(() => {
+    if (!dirty || loading || recoverySnapshot) return
+    const timer = window.setTimeout(() => {
+      try {
+        const savedAt = new Date().toISOString()
+        window.localStorage.setItem(recoveryKey, JSON.stringify({ version: 1, savedAt, form }))
+        setLocalDraftSavedAt(savedAt)
+      } catch {
+        // Storage can be disabled or full; explicit saving remains available.
+      }
+    }, 1200)
+    return () => window.clearTimeout(timer)
+  }, [dirty, form, loading, recoveryKey, recoverySnapshot])
 
   // Warns on tab close/refresh/external navigation while there are
   // unsaved changes. Minimal, standards-compliant beforeunload usage —
@@ -651,6 +896,32 @@ function BlogEditor() {
     setForm((prev) => ({ ...prev, [key]: value }))
     setDirty(true)
     setSuccessMessage(null)
+  }
+
+  function markTouched(field: InlineField) {
+    setTouched((current) => ({ ...current, [field]: true }))
+  }
+
+  function clearLocalRecovery() {
+    try {
+      window.localStorage.removeItem(recoveryKey)
+    } catch {
+      // Ignore storage restrictions.
+    }
+    setRecoverySnapshot(null)
+    setLocalDraftSavedAt(null)
+  }
+
+  function restoreLocalRecovery() {
+    if (!recoverySnapshot) return
+    setForm(recoverySnapshot.form)
+    setDirty(true)
+    setRecoverySnapshot(null)
+    setSuccessMessage('Local recovery loaded. Save to commit these changes.')
+  }
+
+  function discardLocalRecovery() {
+    clearLocalRecovery()
   }
 
   function handleTitleChange(value: string) {
@@ -748,12 +1019,16 @@ function BlogEditor() {
 
   async function handleSave(event: FormEvent) {
     event.preventDefault()
+    setTouched({ title: true, slug: true, excerpt: true, content: true, coverImage: true, coverImageAlt: true })
     setSubmitting('save')
     try {
       const saved = await persist()
       if (!saved) return
+      clearLocalRecovery()
       setDirty(false)
       setStatus(saved.status)
+      setReviewStatus(saved.reviewStatus ?? 'draft')
+      setReviewNote(saved.reviewNote ?? null)
       setPublishedAtDisplay(saved.publishedAt)
       setScheduledAt(saved.scheduledAt)
       if (!isEditing) {
@@ -797,8 +1072,11 @@ function BlogEditor() {
       if (!saved) return
 
       const { blog } = await blogApi.setBlogPostStatus(saved.id, nextStatus)
+      clearLocalRecovery()
       setDirty(false)
       setStatus(blog.status)
+      setReviewStatus(blog.reviewStatus ?? 'draft')
+      setReviewNote(blog.reviewNote ?? null)
       setPublishedAtDisplay(blog.publishedAt)
       // A manual status change always cancels a pending schedule
       // (Phase 14, Part 8) — the backend already did this; reflect it.
@@ -857,6 +1135,7 @@ function BlogEditor() {
       if (!saved) return
 
       const { blog } = await blogApi.scheduleBlogPost(saved.id, parsed.toISOString())
+      clearLocalRecovery()
       setDirty(false)
       setStatus(blog.status)
       setScheduledAt(blog.scheduledAt)
@@ -881,6 +1160,7 @@ function BlogEditor() {
     setSubmitting('unschedule')
     try {
       const { blog } = await blogApi.unscheduleBlogPost(id)
+      clearLocalRecovery()
       setStatus(blog.status)
       setScheduledAt(blog.scheduledAt) // triggers the sync effect above, clearing scheduleInput too
       setSuccessMessage('Schedule canceled.')
@@ -890,6 +1170,48 @@ function BlogEditor() {
       setSubmitting(null)
     }
   }
+
+  async function handleReview(nextStatus: import('../../api/blogTypes').ReviewStatus, note: string | null = null) {
+    if (!id) return
+    setSubmitting('save')
+    try {
+      const { blog } = await operationsApi.updateReview(id, nextStatus, note)
+      setReviewStatus(blog.reviewStatus ?? nextStatus)
+      setReviewNote(blog.reviewNote ?? note)
+      setSuccessMessage(nextStatus === 'in_review' ? 'Submitted for review.' : nextStatus === 'approved' ? 'Article approved.' : 'Changes requested.')
+    } catch (err) { setFormError(errorMessage(err)) } finally { setSubmitting(null) }
+  }
+
+  async function handleRestoreRevision(revision: AdminBlogRevision) {
+    if (!id) return
+    const { blog } = await blogApi.restoreBlogRevision(id, revision.id)
+    setForm(formFromPost(blog))
+    setStatus(blog.status)
+    setPublishedAtDisplay(blog.publishedAt)
+    setScheduledAt(blog.scheduledAt)
+    clearLocalRecovery()
+    setDirty(false)
+    setSuccessMessage(`Revision from ${new Date(revision.createdAt).toLocaleString()} restored. Publishing status unchanged.`)
+  }
+
+  useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      const command = event.metaKey || event.ctrlKey
+      if (!command) return
+      if (event.key.toLowerCase() === 's') {
+        event.preventDefault()
+        void handleSave(event as unknown as FormEvent)
+      } else if (event.shiftKey && event.key.toLowerCase() === 'p') {
+        event.preventDefault()
+        setPreviewOpen(true)
+      } else if (event.shiftKey && event.key.toLowerCase() === 'f') {
+        event.preventDefault()
+        setFocusMode((current) => !current)
+      }
+    }
+    window.addEventListener('keydown', handleShortcut)
+    return () => window.removeEventListener('keydown', handleShortcut)
+  })
 
   const busy = submitting !== null
 
@@ -902,66 +1224,78 @@ function BlogEditor() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className={`admin-editor-shell flex flex-col gap-6 ${focusMode ? 'admin-editor-shell--focus' : ''}`}>
       <button
         type="button"
         onClick={handleBack}
-        className="flex w-fit items-center gap-1.5 text-[13px] font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+        className="admin-button admin-button--quiet -ml-2 w-fit"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-3.5 w-3.5"
-          aria-hidden="true"
-        >
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
-        Back to Blogs
+        <ArrowLeft size={16} aria-hidden="true" />
+        <span>Back to articles</span>
       </button>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-[24px] font-semibold text-neutral-900">
+      <div className="admin-editor-header flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <p className="admin-eyebrow mb-2">Editorial workspace</p>
+          <h1 className="admin-page-title">
           {isEditing ? 'Edit Blog' : 'New Blog'}
-        </h1>
+          </h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
         {status && (
-          <span
-            className={`inline-flex items-center rounded-[4px] px-2 py-0.5 text-[12px] font-medium ${
-              status === 'published'
-                ? 'bg-emerald-50 text-emerald-700'
-                : status === 'unpublished'
-                  ? 'bg-neutral-200 text-neutral-700'
-                  : 'bg-neutral-100 text-neutral-500'
-            }`}
-          >
+          <AdminStatusBadge tone={status === 'published' ? 'success' : status === 'unpublished' ? 'warning' : 'neutral'}>
             {status === 'published' ? 'Published' : status === 'unpublished' ? 'Unpublished' : 'Draft'}
-          </span>
+          </AdminStatusBadge>
         )}
+        {isEditing && <AdminStatusBadge tone={reviewStatus === 'approved' ? 'success' : reviewStatus === 'changes_requested' ? 'warning' : reviewStatus === 'in_review' ? 'accent' : 'neutral'}>{reviewStatus === 'in_review' ? 'In review' : reviewStatus === 'changes_requested' ? 'Changes requested' : reviewStatus === 'approved' ? 'Approved' : 'Review draft'}</AdminStatusBadge>}
         {publishedAtDisplay && (
           <span className="text-[12px] text-neutral-500">
             First published {new Date(publishedAtDisplay).toLocaleDateString()}
           </span>
         )}
         {scheduledAt && (
-          <span className="inline-flex items-center rounded-[4px] bg-sky-50 px-2 py-0.5 text-[12px] font-medium text-sky-700">
+          <AdminStatusBadge tone="accent">
             Scheduled for {new Date(scheduledAt).toLocaleString()}
-          </span>
+          </AdminStatusBadge>
         )}
+        <button type="button" className="admin-button admin-button--secondary" onClick={() => setPreviewOpen(true)}>
+          <Eye size={15} aria-hidden="true" /> Preview <kbd>⌘⇧P</kbd>
+        </button>
+        <button type="button" className="admin-button admin-button--quiet" onClick={() => setFocusMode((current) => !current)}>
+          {focusMode ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}
+          {focusMode ? 'Exit focus' : 'Focus mode'} <kbd>⌘⇧F</kbd>
+        </button>
+        </div>
       </div>
 
-      <ContentHealthSummary analysis={analysis} />
+      <form onSubmit={handleSave} className="admin-editor-layout">
+        <div className="col-span-full flex flex-col gap-2">
+          {formError && <FormMessage type="error">{formError}</FormMessage>}
+          {successMessage && <FormMessage type="success">{successMessage}</FormMessage>}
+          {recoverySnapshot && (
+            <div className="admin-recovery-banner" role="status">
+              <div>
+                <strong>Uncommitted local recovery found</strong>
+                <span>Saved on this browser {new Date(recoverySnapshot.savedAt).toLocaleString()}. It has not been sent to the server.</span>
+              </div>
+              <div className="admin-recovery-banner__actions">
+                <button type="button" className="admin-button admin-button--secondary" onClick={restoreLocalRecovery}>Restore</button>
+                <button type="button" className="admin-button admin-button--quiet" onClick={discardLocalRecovery}>Discard</button>
+              </div>
+            </div>
+          )}
+        </div>
 
-      <form onSubmit={handleSave} className="flex flex-col gap-6">
-        {formError && <FormMessage type="error">{formError}</FormMessage>}
-        {successMessage && <FormMessage type="success">{successMessage}</FormMessage>}
+        <div className="admin-editor-primary">
 
         {/* CONTENT ------------------------------------------------------ */}
-        <div className="flex flex-col gap-5 rounded-[12px] border border-neutral-200 bg-white p-6">
-          <h2 className="text-[16px] font-semibold text-neutral-900">Content</h2>
+        <div className="admin-editor-section flex flex-col gap-5">
+          <div className="admin-editor-section__heading mb-0">
+            <div>
+              <h2 className="admin-editor-section__title">Content</h2>
+              <p className="admin-editor-section__description">Shape the article first. Search and publishing details stay in the inspector.</p>
+            </div>
+          </div>
 
           <FormField
             id="title"
@@ -971,6 +1305,8 @@ function BlogEditor() {
             maxLength={TITLE_MAX}
             value={form.title}
             onChange={(e) => handleTitleChange(e.target.value)}
+            onBlur={() => markTouched('title')}
+            error={touched.title ? fieldError(form, 'title') ?? undefined : undefined}
           />
 
           <div className="flex flex-col gap-2">
@@ -982,6 +1318,8 @@ function BlogEditor() {
               maxLength={SLUG_MAX}
               value={form.slug}
               onChange={(e) => handleSlugChange(e.target.value)}
+              onBlur={() => markTouched('slug')}
+              error={touched.slug ? fieldError(form, 'slug') ?? undefined : undefined}
             />
             <p className="text-[12px] text-neutral-500">
               Lowercase letters, numbers, and hyphens only.
@@ -1002,6 +1340,8 @@ function BlogEditor() {
             maxLength={EXCERPT_MAX}
             value={form.excerpt}
             onChange={(e) => updateField('excerpt', e.target.value)}
+            onBlur={() => markTouched('excerpt')}
+            error={touched.excerpt ? fieldError(form, 'excerpt') ?? undefined : undefined}
           />
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -1051,6 +1391,8 @@ function BlogEditor() {
                 placeholder="https://…"
                 value={form.coverImage}
                 onChange={(e) => updateField('coverImage', e.target.value)}
+                onBlur={() => markTouched('coverImage')}
+                error={touched.coverImage ? fieldError(form, 'coverImage') ?? undefined : undefined}
               />
               <CoverImagePreview url={form.coverImage} alt={form.coverImageAlt} />
 
@@ -1061,6 +1403,8 @@ function BlogEditor() {
                 required
                 value={form.coverImageAlt}
                 onChange={(e) => updateField('coverImageAlt', e.target.value)}
+                onBlur={() => markTouched('coverImageAlt')}
+                error={touched.coverImageAlt ? fieldError(form, 'coverImageAlt') ?? undefined : undefined}
               />
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <FormField
@@ -1091,10 +1435,36 @@ function BlogEditor() {
             </div>
           </div>
 
-          <MarkdownField value={form.content} onChange={(v) => updateField('content', v)} />
+          <MarkdownField
+            value={form.content}
+            onChange={(v) => updateField('content', v)}
+            onBlur={() => markTouched('content')}
+            error={touched.content ? fieldError(form, 'content') : null}
+          />
         </div>
 
+        <div className="admin-editor-actions">
+          <div className="admin-editor-actions__status" aria-live="polite">
+            {dirty ? localDraftSavedAt ? `Local recovery saved ${new Date(localDraftSavedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Unsaved changes' : successMessage ? 'All changes saved' : 'Ready to edit'}
+          </div>
+          <div className="admin-editor-actions__buttons">
+            {isEditing && reviewStatus !== 'in_review' && reviewStatus !== 'approved' && <AdminButton type="button" variant="quiet" disabled={busy || !admin} onClick={() => void handleReview('in_review')}>Submit for review</AdminButton>}
+            {isEditing && admin?.role === 'admin' && reviewStatus === 'in_review' && <><AdminButton type="button" variant="quiet" disabled={busy} onClick={() => { const note = window.prompt('What needs to change?'); if (note !== null) void handleReview('changes_requested', note) }}>Request changes</AdminButton><AdminButton type="button" variant="secondary" disabled={busy} onClick={() => void handleReview('approved')}>Approve</AdminButton></>}
+            <AdminButton type="submit" variant="secondary" disabled={busy} icon={<Save size={15} aria-hidden="true" />}>
+              {submitting === 'save' ? 'Saving…' : isEditing ? 'Save changes' : 'Save draft'}
+            </AdminButton>
+            <AdminButton type="button" variant="primary" disabled={busy || admin?.role !== 'admin'} onClick={() => void handlePublishToggle()}>
+              {admin?.role !== 'admin' ? 'Admin approval required' : submitting === 'publish' ? 'Publishing…' : submitting === 'unpublish' ? 'Unpublishing…' : status === 'published' ? 'Unpublish' : 'Publish'}
+            </AdminButton>
+          </div>
+        </div>
+        </div>
+
+        <aside className="admin-editor-inspector" aria-label="Article inspector">
+        <OutlinePanel entries={analysis.toc} />
+        <ContentHealthSummary analysis={analysis} />
         <AnalysisDetails analysis={analysis} />
+        <RevisionHistory id={id} onRestore={handleRestoreRevision} />
 
         {/* AI SUMMARY ---------------------------------------------------- */}
         <CollapsibleSection
@@ -1452,30 +1822,6 @@ function BlogEditor() {
           />
         </CollapsibleSection>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <button
-            type="submit"
-            disabled={busy}
-            className="flex h-[44px] items-center justify-center rounded-[6px] border border-neutral-900 px-6 text-[14px] font-medium text-neutral-900 transition-opacity hover:opacity-70 disabled:opacity-50"
-          >
-            {submitting === 'save' ? 'Saving…' : isEditing ? 'Save changes' : 'Save Draft'}
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void handlePublishToggle()}
-            className="flex h-[44px] items-center justify-center rounded-[6px] bg-neutral-900 px-6 text-[14px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {submitting === 'publish'
-              ? 'Publishing…'
-              : submitting === 'unpublish'
-                ? 'Unpublishing…'
-                : status === 'published'
-                  ? 'Unpublish'
-                  : 'Publish'}
-          </button>
-        </div>
-
         {/* SCHEDULING (Phase 14) — meaningless for an already-published
            post (the backend rejects it — see blog.service.ts's
            scheduleBlogPost), so hidden rather than shown-then-erroring. */}
@@ -1497,6 +1843,8 @@ function BlogEditor() {
                 'No schedule is currently set for this post.'
               )}
             </p>
+
+            {admin?.role !== 'admin' && <p className="text-[12px] text-amber-700">Only administrators can schedule or cancel publishing.</p>}
 
             <div className="flex flex-wrap items-end gap-3">
               <div className="flex flex-col gap-1">
@@ -1525,7 +1873,7 @@ function BlogEditor() {
               </div>
               <button
                 type="button"
-                disabled={busy}
+                disabled={busy || admin?.role !== 'admin'}
                 onClick={() => void handleSchedule()}
                 className="flex h-[38px] items-center justify-center rounded-[6px] border border-neutral-900 px-4 text-[13px] font-medium text-neutral-900 transition-opacity hover:opacity-70 disabled:opacity-50"
               >
@@ -1540,7 +1888,7 @@ function BlogEditor() {
               {scheduledAt && (
                 <button
                   type="button"
-                  disabled={busy}
+                  disabled={busy || admin?.role !== 'admin'}
                   onClick={() => void handleUnschedule()}
                   className="flex h-[38px] items-center justify-center rounded-[6px] border border-neutral-300 px-4 text-[13px] font-medium text-neutral-700 transition-colors hover:border-neutral-900 hover:text-neutral-900 disabled:opacity-50"
                 >
@@ -1550,7 +1898,9 @@ function BlogEditor() {
             </div>
           </div>
         )}
+        </aside>
       </form>
+      {previewOpen && <DraftPreview form={form} onClose={() => setPreviewOpen(false)} />}
     </div>
   )
 }

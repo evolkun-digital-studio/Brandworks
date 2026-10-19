@@ -45,3 +45,13 @@ export async function adminApiRequest<T>(
 
   return data as T
 }
+
+export async function adminApiFormRequest<T>(path: string, form: FormData): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}/api/admin${path}`, {
+    method: 'POST', credentials: 'include', body: form,
+  })
+  if (res.status === 204) return undefined as T
+  const data = await res.json().catch(() => null) as { error?: string } | null
+  if (!res.ok) throw new ApiError(res.status, data?.error ?? `Request failed with status ${res.status}.`)
+  return data as T
+}

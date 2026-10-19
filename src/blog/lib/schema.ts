@@ -30,7 +30,15 @@ export interface SiteContext {
 
 /** Resolves the canonical URL exactly the way the document-head logic does: configured value wins, else the site's own article URL. */
 export function resolveCanonicalUrl(post: PublicBlogDetail, site: SiteContext): string {
-  return post.canonicalUrl || `${site.origin}/blog/${post.slug}`
+  if (post.canonicalUrl) {
+    try {
+      const candidate = new URL(post.canonicalUrl)
+      if (candidate.origin === site.origin) return candidate.toString()
+    } catch {
+      // Invalid canonical values fall back to the generated article URL.
+    }
+  }
+  return `${site.origin}/blog/${post.slug}`
 }
 
 function effectiveTitle(post: PublicBlogDetail): string {
