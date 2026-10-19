@@ -36,10 +36,14 @@ function useDelhiTime() {
   const format = () =>
     new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }).format(new Date())
   const hour = () => Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Asia/Kolkata' }).format(new Date()))
-  const [time, setTime] = useState(format)
-  const [h, setH] = useState(hour)
+  // Keep the initial render identical on the server and client. The live
+  // clock is browser-only and is populated after hydration.
+  const [time, setTime] = useState('')
+  const [h, setH] = useState(0)
   useEffect(() => {
-    const id = window.setInterval(() => { setTime(format()); setH(hour()) }, 30_000)
+    const update = () => { setTime(format()); setH(hour()) }
+    update()
+    const id = window.setInterval(update, 30_000)
     return () => window.clearInterval(id)
   }, [])
   const awake = h >= 9 && h < 20

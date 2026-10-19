@@ -21,6 +21,18 @@
   background: black;
 }
 
+/* Photography used to sit between Work and Cinematography. Keep the normal
+   rhythm everywhere else, but remove the now-empty upper beat here. */
+.home-page .home-section--after-removed-photography {
+  padding-top: 0;
+}
+
+/* Work now flows directly into Cinematography. Its normal bottom edge was
+   sized for the Photography chapter that used to follow it. */
+.home-page .home-section--before-cinematography {
+  padding-bottom: clamp(3.75rem, 5vw, 5rem);
+}
+
 /* The opening statement and Core Philosophy are related, but intentionally
    separate chapters. Give that one transition an additional 5rem pause. */
 .home-page .home-section--philosophy {
@@ -73,6 +85,10 @@
   .home-page {
     /* Mobile needs a clear chapter break without wasting most of a screen. */
     --home-section-gap: clamp(5rem, 21vw, 6rem);
+  }
+
+  .home-page .home-section--before-cinematography {
+    padding-bottom: clamp(2.1875rem, 10vw, 3.125rem);
   }
 }
 

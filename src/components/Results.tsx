@@ -71,38 +71,38 @@ type Profile = {
 // Profiles are intentionally tuned per device width. This prevents the
 // desktop cylinder from feeling cramped on tablets or oversized on laptops.
 const WIDE_PROFILE: Profile = {
-  x: [0, 1.02, 1.82],
+  x: [0, 0.91, 1.62],
   z: [280, 0, -220],
   ry: [0, 24, 40],
-  s: [0.93, 0.84, 0.7],
+  s: [0.88, 0.79, 0.66],
   o: [1, 1, 0.62],
 }
 const DESKTOP_PROFILE: Profile = {
-  x: [0, 0.96, 1.7],
+  x: [0, 0.86, 1.52],
   z: [240, 0, -180],
   ry: [0, 22, 38],
-  s: [0.94, 0.84, 0.72],
+  s: [0.89, 0.79, 0.68],
   o: [1, 1, 0.6],
 }
 const LAPTOP_PROFILE: Profile = {
-  x: [0, 0.9, 1.58],
+  x: [0, 0.81, 1.42],
   z: [190, -10, -155],
   ry: [0, 19, 32],
-  s: [0.96, 0.85, 0.74],
+  s: [0.91, 0.8, 0.7],
   o: [1, 0.98, 0.52],
 }
 const TABLET_PROFILE: Profile = {
-  x: [0, 0.84, 1.47],
+  x: [0, 0.76, 1.32],
   z: [130, -20, -125],
   ry: [0, 15, 26],
-  s: [0.98, 0.87, 0.76],
+  s: [0.93, 0.82, 0.72],
   o: [1, 0.94, 0.35],
 }
 const MOBILE_PROFILE: Profile = {
-  x: [0, 0.8, 1.42],
+  x: [0, 0.72, 1.28],
   z: [0, -45, -100],
   ry: [0, 8, 12],
-  s: [1, 0.9, 0.8],
+  s: [0.95, 0.84, 0.75],
   o: [1, 0.84, 0],
 }
 const START = 1
@@ -249,13 +249,13 @@ function useCoverflow(
       } else if (m.tier === 'tablet') {
         const width = Math.min(m.vw * 0.44, 390)
         const heightFromWidth = width / ratio
-        m.h = Math.min(heightFromWidth, m.stageH * 0.8, 455)
+        m.h = Math.min(heightFromWidth, m.stageH * 0.74, 425)
       } else if (m.tier === 'laptop') {
-        m.h = Math.min(470, m.stageH * 0.79, m.vw * 0.43)
+        m.h = Math.min(440, m.stageH * 0.73, m.vw * 0.4)
       } else if (m.tier === 'desktop') {
-        m.h = Math.min(505, m.stageH * 0.81)
+        m.h = Math.min(475, m.stageH * 0.75)
       } else {
-        m.h = Math.min(540, m.stageH * 0.83)
+        m.h = Math.min(510, m.stageH * 0.77)
       }
       const minHeight = m.tier === 'mobile' ? 250 : 320
       const stageCap = Math.max(220, m.stageH * (m.tier === 'mobile' ? 0.9 : 0.86))
@@ -368,7 +368,9 @@ function useCoverflow(
       }
       // Faster than the old 0.075 damping, but still eased enough to hide
       // wheel/trackpad steps. This is frame-rate independent.
-      const followRate = mobileMode ? 18 : m.tier === 'tablet' ? 20 : 19
+      // Deliberately slow follow-through keeps the card travel silky on both
+      // wheel and trackpad input, without changing the scroll distance.
+      const followRate = mobileMode ? 9 : m.tier === 'tablet' ? 8.5 : 8
       const follow = 1 - Math.exp((-followRate * dt) / 1000)
       current += (target - current) * follow
       if (Math.abs(target - current) < 0.00004) current = target

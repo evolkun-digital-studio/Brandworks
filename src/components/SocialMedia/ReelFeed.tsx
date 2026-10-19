@@ -93,7 +93,8 @@ function ReelFeed({ reels, label }: { reels: SocialReel[]; label: string }) {
 
   const [active, setActive] = useState(0)
   const [onScreen, setOnScreen] = useState(false)
-  const [tabHidden, setTabHidden] = useState(() => typeof document !== 'undefined' && document.hidden)
+  // Browser visibility is unknown during SSR; resolve it after hydration.
+  const [tabHidden, setTabHidden] = useState(false)
   // null until the visitor chooses; then their choice wins over the default.
   const [userPaused, setUserPaused] = useState<boolean | null>(null)
   const [sheet, setSheet] = useState<Sheet>(null)

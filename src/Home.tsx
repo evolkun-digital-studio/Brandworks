@@ -12,7 +12,6 @@ import HomeIntroStatement from './components/HomeIntroStatement'
 import BrandStatement from './components/HumanLedBrandIntelligence'
 import Services from './components/Service/Services'
 import About from './components/About'
-import Photography from './components/Photography'
 import Work from './components/WorkWithImpact'
 import Videography from './components/Videography'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
@@ -76,15 +75,12 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       <div className="home-section"><Services /></div>
       {/* <BrandIntelligence /> */}
       <div className="home-section"><About /></div>
-      <div className="home-section"><Work /></div>
-      {/* <PhotographyTransition /> */}
-      <div className="home-section home-section--dark"><Photography /></div>
-      <div className="home-section"><Videography /></div>
+      <div className="home-section home-section--before-cinematography"><Work /></div>
+      <div className="home-section home-section--after-removed-photography"><Videography /></div>
       <div className="home-section"><GraphicsMotionExperience /></div>
       <div className="home-section"><PRReputation /></div>
       <div className="home-section"><SocialMedia /></div>
       {/* <WebDevelopment /> */}
-      {/* <Photography /> */}
       <div className="home-section"><WebsiteSectionProps /></div>
       <div className="home-section"><Capabilities /></div>
       <div className="home-section"><Results /></div>
