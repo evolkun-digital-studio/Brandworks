@@ -17,10 +17,6 @@
   background: white;
 }
 
-.home-page .home-section--dark {
-  background: black;
-}
-
 /* The opening statement and Core Philosophy are related, but intentionally
    separate chapters. Give that one transition an additional 5rem pause. */
 .home-page .home-section--philosophy {
