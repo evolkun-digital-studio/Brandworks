@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from '../../routing'
 import { useAdminAuth } from '../context/useAdminAuth'
 import { ApiError } from '../api/client'
+import AdminButton from '../components/AdminButton'
 import FormField from '../components/FormField'
 import FormMessage from '../components/FormMessage'
 
@@ -16,11 +17,8 @@ function Login() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  // Already signed in — no reason to show the login form again.
   if (!loading && admin) {
-    const from =
-      (location.state as { from?: { pathname: string } } | null)?.from
-        ?.pathname ?? '/admin'
+    const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/admin'
     return <Navigate to={from} replace />
   }
 
@@ -32,29 +30,27 @@ function Login() {
       await login(username, password)
       navigate('/admin', { replace: true })
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : 'Something went wrong. Please try again.',
-      )
+      setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4">
-      <div className="w-full max-w-[400px] rounded-[16px] border border-neutral-200 bg-white p-8">
-        <div className="mb-8 text-center">
-          <div className="text-[20px] font-medium text-neutral-900">
-            BRANDWORKS
-          </div>
-          <div className="mt-1 text-[13px] uppercase tracking-wide text-neutral-500">
-            Admin Panel
+    <div className="admin-app admin-login">
+      <section className="admin-login__card" aria-labelledby="login-title">
+        <div className="admin-login__brand">
+          <span className="admin-brand-mark" aria-hidden="true">B</span>
+          <div>
+            <p className="admin-eyebrow mb-0">BRANDWORKS</p>
+            <p className="text-[12px] font-semibold tracking-[0.08em] text-neutral-500">CONTENT STUDIO</p>
           </div>
         </div>
 
-        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        <h1 id="login-title" className="admin-login__title">Welcome back.</h1>
+        <p className="admin-login__subtitle">Sign in to continue shaping the editorial workspace.</p>
+
+        <form className="mt-8 flex flex-col gap-5" onSubmit={handleSubmit}>
           {error && <FormMessage type="error">{error}</FormMessage>}
 
           <FormField
@@ -63,6 +59,7 @@ function Login() {
             type="text"
             autoComplete="username"
             required
+            autoFocus
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
@@ -77,15 +74,11 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-1 flex h-[44px] w-full items-center justify-center rounded-[6px] bg-neutral-900 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
+          <AdminButton type="submit" variant="primary" disabled={submitting} className="mt-2 w-full">
             {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
+          </AdminButton>
         </form>
-      </div>
+      </section>
     </div>
   )
 }

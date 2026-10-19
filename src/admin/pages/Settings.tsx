@@ -5,6 +5,8 @@ import * as adminApi from '../api/adminApi'
 import { ApiError } from '../api/client'
 import FormField from '../components/FormField'
 import FormMessage from '../components/FormMessage'
+import AdminButton from '../components/AdminButton'
+import AdminPageHeader from '../components/AdminPageHeader'
 
 function errorMessage(err: unknown): string {
   return err instanceof ApiError
@@ -39,7 +41,7 @@ function UsernameForm() {
 
   return (
     <form
-      className="flex flex-col gap-5 rounded-[12px] border border-neutral-200 bg-white p-6"
+      className="admin-surface flex flex-col gap-5 p-6"
       onSubmit={handleSubmit}
     >
       <div>
@@ -75,13 +77,13 @@ function UsernameForm() {
         onChange={(e) => setCurrentPassword(e.target.value)}
       />
 
-      <button
+      <AdminButton
         type="submit"
+        variant="primary"
         disabled={submitting}
-        className="flex h-[42px] w-full items-center justify-center rounded-[6px] bg-neutral-900 text-[14px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-fit sm:px-6"
       >
         {submitting ? 'Saving…' : 'Update login ID'}
-      </button>
+      </AdminButton>
     </form>
   )
 }
@@ -114,7 +116,7 @@ function PasswordForm() {
 
   return (
     <form
-      className="flex flex-col gap-5 rounded-[12px] border border-neutral-200 bg-white p-6"
+      className="admin-surface flex flex-col gap-5 p-6"
       onSubmit={handleSubmit}
     >
       <div>
@@ -156,23 +158,23 @@ function PasswordForm() {
         onChange={(e) => setConfirmPassword(e.target.value)}
       />
 
-      <button
+      <AdminButton
         type="submit"
+        variant="primary"
         disabled={submitting}
-        className="flex h-[42px] w-full items-center justify-center rounded-[6px] bg-neutral-900 text-[14px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-fit sm:px-6"
       >
         {submitting ? 'Saving…' : 'Update password'}
-      </button>
+      </AdminButton>
     </form>
   )
 }
 
 function Settings() {
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-[24px] font-semibold text-neutral-900">Settings</h1>
+    <div>
+      <AdminPageHeader eyebrow="Workspace preferences" title="Settings" description="Keep your access secure and your account details current." />
       <UsernameForm />
-      <PasswordForm />
+      <div className="mt-4"><PasswordForm /></div>
     </div>
   )
 }

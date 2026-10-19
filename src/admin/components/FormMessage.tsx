@@ -11,7 +11,7 @@ function FormMessage({ type, children }: FormMessageProps) {
   return (
     <div
       role={isError ? 'alert' : 'status'}
-      className={`rounded-[8px] border px-4 py-3 text-[14px] leading-[1.4] ${
+      className={`rounded-[10px] border px-4 py-3 text-[13px] leading-[1.5] ${
         isError
           ? 'border-red-200 bg-red-50 text-red-700'
           : 'border-emerald-200 bg-emerald-50 text-emerald-700'

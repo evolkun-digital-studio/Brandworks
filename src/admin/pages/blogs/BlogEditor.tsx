@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import { ArrowLeft, Bold, Code2, Heading2, Italic, Link2, List, Save } from 'lucide-react'
 import { useNavigate, useParams } from '../../../routing'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -7,6 +8,8 @@ import * as blogApi from '../../api/blogAdminApi'
 import { ApiError } from '../../api/client'
 import FormField from '../../components/FormField'
 import FormMessage from '../../components/FormMessage'
+import AdminButton from '../../components/AdminButton'
+import AdminStatusBadge from '../../components/AdminStatusBadge'
 import CollapsibleSection from './components/CollapsibleSection'
 import TagInput from './components/TagInput'
 import RepeatingTextField from './components/RepeatingTextField'
@@ -447,6 +450,22 @@ function MarkdownField({
   onChange: (next: string) => void
 }) {
   const [tab, setTab] = useState<'write' | 'preview'>('write')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  function insertMarkdown(prefix: string, suffix = '', placeholder = 'text') {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selected = value.slice(start, end) || placeholder
+    const next = `${value.slice(0, start)}${prefix}${selected}${suffix}${value.slice(end)}`
+    onChange(next)
+    window.requestAnimationFrame(() => {
+      textarea.focus()
+      const nextStart = start + prefix.length
+      textarea.setSelectionRange(nextStart, nextStart + selected.length)
+    })
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -479,14 +498,25 @@ function MarkdownField({
       </div>
 
       {tab === 'write' ? (
-        <textarea
-          id="content"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          rows={16}
-          placeholder="Write in Markdown — headings, lists, links, blockquotes, and code blocks are all supported."
-          className="w-full resize-y rounded-[10px] border border-neutral-300 px-4 py-3 font-mono text-[14px] leading-[1.6] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none"
-        />
+        <>
+          <div className="admin-editor-toolbar" aria-label="Markdown formatting tools">
+            <button type="button" onClick={() => insertMarkdown('## ', '', 'Heading') } title="Heading 2"><Heading2 size={15} aria-hidden="true" /> <span>Heading</span></button>
+            <button type="button" onClick={() => insertMarkdown('**', '**')} title="Bold"><Bold size={15} aria-hidden="true" /> <span>Bold</span></button>
+            <button type="button" onClick={() => insertMarkdown('*', '*')} title="Italic"><Italic size={15} aria-hidden="true" /> <span>Italic</span></button>
+            <button type="button" onClick={() => insertMarkdown('[', '](https://)', 'link text')} title="Link"><Link2 size={15} aria-hidden="true" /> <span>Link</span></button>
+            <button type="button" onClick={() => insertMarkdown('- ', '', 'List item')} title="Bullet list"><List size={15} aria-hidden="true" /> <span>List</span></button>
+            <button type="button" onClick={() => insertMarkdown('`', '`')} title="Inline code"><Code2 size={15} aria-hidden="true" /> <span>Code</span></button>
+          </div>
+          <textarea
+            ref={textareaRef}
+            id="content"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            rows={18}
+            placeholder="Write in Markdown — headings, lists, links, blockquotes, and code blocks are all supported."
+            className="admin-textarea min-h-[380px] resize-y font-mono text-[14px] leading-[1.7] placeholder:text-neutral-400"
+          />
+        </>
       ) : (
         <div className="min-h-[300px] rounded-[10px] border border-neutral-200 bg-neutral-50 px-4 py-3">
           {value.trim() ? (
@@ -906,40 +936,24 @@ function BlogEditor() {
       <button
         type="button"
         onClick={handleBack}
-        className="flex w-fit items-center gap-1.5 text-[13px] font-medium text-neutral-600 transition-colors hover:text-neutral-900"
+        className="admin-button admin-button--quiet -ml-2 w-fit"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-3.5 w-3.5"
-          aria-hidden="true"
-        >
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-        </svg>
-        Back to Blogs
+        <ArrowLeft size={16} aria-hidden="true" />
+        <span>Back to articles</span>
       </button>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-[24px] font-semibold text-neutral-900">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <p className="admin-eyebrow mb-2">Editorial workspace</p>
+          <h1 className="admin-page-title">
           {isEditing ? 'Edit Blog' : 'New Blog'}
-        </h1>
+          </h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
         {status && (
-          <span
-            className={`inline-flex items-center rounded-[4px] px-2 py-0.5 text-[12px] font-medium ${
-              status === 'published'
-                ? 'bg-emerald-50 text-emerald-700'
-                : status === 'unpublished'
-                  ? 'bg-neutral-200 text-neutral-700'
-                  : 'bg-neutral-100 text-neutral-500'
-            }`}
-          >
+          <AdminStatusBadge tone={status === 'published' ? 'success' : status === 'unpublished' ? 'warning' : 'neutral'}>
             {status === 'published' ? 'Published' : status === 'unpublished' ? 'Unpublished' : 'Draft'}
-          </span>
+          </AdminStatusBadge>
         )}
         {publishedAtDisplay && (
           <span className="text-[12px] text-neutral-500">
@@ -947,21 +961,29 @@ function BlogEditor() {
           </span>
         )}
         {scheduledAt && (
-          <span className="inline-flex items-center rounded-[4px] bg-sky-50 px-2 py-0.5 text-[12px] font-medium text-sky-700">
+          <AdminStatusBadge tone="accent">
             Scheduled for {new Date(scheduledAt).toLocaleString()}
-          </span>
+          </AdminStatusBadge>
         )}
+        </div>
       </div>
 
-      <ContentHealthSummary analysis={analysis} />
+      <form onSubmit={handleSave} className="admin-editor-layout">
+        <div className="col-span-full flex flex-col gap-2">
+          {formError && <FormMessage type="error">{formError}</FormMessage>}
+          {successMessage && <FormMessage type="success">{successMessage}</FormMessage>}
+        </div>
 
-      <form onSubmit={handleSave} className="flex flex-col gap-6">
-        {formError && <FormMessage type="error">{formError}</FormMessage>}
-        {successMessage && <FormMessage type="success">{successMessage}</FormMessage>}
+        <div className="admin-editor-primary">
 
         {/* CONTENT ------------------------------------------------------ */}
-        <div className="flex flex-col gap-5 rounded-[12px] border border-neutral-200 bg-white p-6">
-          <h2 className="text-[16px] font-semibold text-neutral-900">Content</h2>
+        <div className="admin-editor-section flex flex-col gap-5">
+          <div className="admin-editor-section__heading mb-0">
+            <div>
+              <h2 className="admin-editor-section__title">Content</h2>
+              <p className="admin-editor-section__description">Shape the article first. Search and publishing details stay in the inspector.</p>
+            </div>
+          </div>
 
           <FormField
             id="title"
@@ -1094,6 +1116,23 @@ function BlogEditor() {
           <MarkdownField value={form.content} onChange={(v) => updateField('content', v)} />
         </div>
 
+        <div className="admin-editor-actions">
+          <div className="admin-editor-actions__status" aria-live="polite">
+            {dirty ? 'Unsaved changes' : successMessage ? 'All changes saved' : 'Ready to edit'}
+          </div>
+          <div className="admin-editor-actions__buttons">
+            <AdminButton type="submit" variant="secondary" disabled={busy} icon={<Save size={15} aria-hidden="true" />}>
+              {submitting === 'save' ? 'Saving…' : isEditing ? 'Save changes' : 'Save draft'}
+            </AdminButton>
+            <AdminButton type="button" variant="primary" disabled={busy} onClick={() => void handlePublishToggle()}>
+              {submitting === 'publish' ? 'Publishing…' : submitting === 'unpublish' ? 'Unpublishing…' : status === 'published' ? 'Unpublish' : 'Publish'}
+            </AdminButton>
+          </div>
+        </div>
+        </div>
+
+        <aside className="admin-editor-inspector" aria-label="Article inspector">
+        <ContentHealthSummary analysis={analysis} />
         <AnalysisDetails analysis={analysis} />
 
         {/* AI SUMMARY ---------------------------------------------------- */}
@@ -1452,30 +1491,6 @@ function BlogEditor() {
           />
         </CollapsibleSection>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <button
-            type="submit"
-            disabled={busy}
-            className="flex h-[44px] items-center justify-center rounded-[6px] border border-neutral-900 px-6 text-[14px] font-medium text-neutral-900 transition-opacity hover:opacity-70 disabled:opacity-50"
-          >
-            {submitting === 'save' ? 'Saving…' : isEditing ? 'Save changes' : 'Save Draft'}
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void handlePublishToggle()}
-            className="flex h-[44px] items-center justify-center rounded-[6px] bg-neutral-900 px-6 text-[14px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {submitting === 'publish'
-              ? 'Publishing…'
-              : submitting === 'unpublish'
-                ? 'Unpublishing…'
-                : status === 'published'
-                  ? 'Unpublish'
-                  : 'Publish'}
-          </button>
-        </div>
-
         {/* SCHEDULING (Phase 14) — meaningless for an already-published
            post (the backend rejects it — see blog.service.ts's
            scheduleBlogPost), so hidden rather than shown-then-erroring. */}
@@ -1550,6 +1565,7 @@ function BlogEditor() {
             </div>
           </div>
         )}
+        </aside>
       </form>
     </div>
   )
