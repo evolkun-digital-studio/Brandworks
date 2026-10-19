@@ -10,7 +10,6 @@ import {
 import Hero from './components/Hero/Hero'
 import HomeIntroStatement from './components/HomeIntroStatement'
 import BrandStatement from './components/HumanLedBrandIntelligence'
-import Services from './components/Service/Services'
 import About from './components/About'
 import Photography from './components/Photography'
 import Work from './components/WorkWithImpact'
@@ -73,7 +72,6 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       <Hero />
       <HomeIntroStatement />
       {/* <BrandStatement /> */}
-      <div className="home-section"><Services /></div>
       {/* <BrandIntelligence /> */}
       <div className="home-section"><About /></div>
       <div className="home-section"><Work /></div>

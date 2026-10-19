@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useGSAP } from '@gsap/react'
+import { ConstellationField } from '@designcodeio/threeui'
+import '@designcodeio/threeui/style.css'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useReducedMotion } from 'motion/react'
-import SystemField from '../../components/Technology/SystemField'
 import CapabilityVisual from '../../components/Technology/CapabilityVisual'
 import RibbonTrace from '../../components/Technology/RibbonTrace'
 import { EVOLKUN_URL } from '../../config/evolkun'
@@ -124,7 +125,6 @@ function useTechnologyMetadata() {
 
 function Hero({ reduced }: { reduced: boolean }) {
   const sectionRef = useRef<HTMLElement>(null)
-  const progress = useRef(0)
 
   useGSAP(
     () => {
@@ -139,17 +139,6 @@ function Hero({ reduced }: { reduced: boolean }) {
         stagger: 0.08,
         delay: 0.15,
       })
-
-      if (reduced) return
-      // The canvas eases toward this on its own frames; no scrub needed.
-      ScrollTrigger.create({
-        trigger: section,
-        start: 'top top',
-        end: 'bottom bottom',
-        onUpdate: (self) => {
-          progress.current = self.progress
-        },
-      })
     },
     { scope: sectionRef, dependencies: [reduced], revertOnUpdate: true },
   )
@@ -157,7 +146,20 @@ function Hero({ reduced }: { reduced: boolean }) {
   return (
     <section ref={sectionRef} className="bwt-hero" aria-labelledby="bwt-hero-title">
       <div className="bwt-hero__stage">
-        <SystemField className="bwt-hero__field" progress={progress} reducedMotion={reduced} />
+        <div className="bwt-hero__field shader-frame" aria-hidden="true">
+          <ConstellationField
+            mode="light"
+            speed={1.0}
+            size={1.0}
+            strokeWidth={1.0}
+            length={1.0}
+            density={1.0}
+            opacity={1.0}
+            hue={0}
+            saturation={1.0}
+            brightness={1.0}
+          />
+        </div>
         <div className="bwt-container bwt-hero__inner" data-hero>
           <p className="bwt-label" data-hero-fade>
             {technologyHero.label}

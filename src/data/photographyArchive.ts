@@ -173,15 +173,14 @@ export const sphereTiles: SphereTile[] = sectorFrames.flatMap((keys, sector) =>
     }
   }))
 
-/** Closing grid on 12 columns: [column, colSpan, aspect ratio, offset in rem]. */
-export const closingGrid: { key: FrameKey; at: [number, number]; ratio: string; offset?: number; wide?: boolean }[] = [
-  { key: 'balance', at: [1, 5], ratio: '4 / 3', wide: true },
-  { key: 'visor', at: [7, 3], ratio: '3 / 4', offset: 4 },
-  { key: 'film', at: [10, 3], ratio: '1 / 1', offset: 1.5 },
-  { key: 'reader', at: [2, 3], ratio: '2 / 3' },
-  { key: 'afterimage', at: [5, 5], ratio: '3 / 2', offset: 6, wide: true },
-  { key: 'tube', at: [10, 3], ratio: '4 / 5', offset: 2 },
-  { key: 'bottle', at: [1, 3], ratio: '1 / 1', offset: 3 },
-  { key: 'street', at: [4, 4], ratio: '4 / 5' },
-  { key: 'desk', at: [8, 5], ratio: '3 / 2', offset: 5, wide: true },
+/**
+ * Art-directed closing masonry. The lane widths are tuned against these
+ * natural aspect ratios, so all three desktop edges finish together without
+ * fixed heights or placeholder space. These frames extend the archive rather
+ * than repeating the photographs already used in the DOM wall above.
+ */
+export const closingColumns: FrameKey[][] = [
+  ['jeansPocket', 'dropper'],
+  ['shoulder', 'lotion', 'arcade', 'cafeNapkin'],
+  ['trackBottle', 'cafeCards', 'jellystar'],
 ]
