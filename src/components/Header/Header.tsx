@@ -1,4 +1,5 @@
 import { Link, useLocation } from '../../routing'
+import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import './Header.css'
 
@@ -53,7 +54,7 @@ function Header() {
   // other public page starts on white, so the header keeps dark ink there.
   const isDarkHero = pathname === '/' || pathname === '/services/photography'
   const tone = isDarkHero ? 'is-on-dark' : 'is-on-light'
-  const logoSrc = isDarkHero ? '/brandworks-dark.svg' : '/brandworks.svg'
+  const logoSrc = '/BWorksLogo-01.svg'
 
   return (
     <header className={`site-header ${hidden ? "is-hidden" : ""}`}>
@@ -65,7 +66,13 @@ function Header() {
         {/* Left */}
         <div className="justify-self-start flex items-center">
           <Link to="/" aria-label="Brandworks home" className="block">
-            <img src={logoSrc} alt="BrandWorks" className="site-header__logo block h-auto w-[175px] object-contain" />
+            <Image
+              src={logoSrc}
+              alt="BrandWorks"
+              width={175}
+              height={30}
+              className="site-header__logo block h-auto w-[175px] object-contain"
+            />
           </Link>
         </div>
 
@@ -74,21 +81,15 @@ function Header() {
           aria-label="Primary"
           className="justify-self-center flex items-center gap-[10px]"
         >
-          {navLinks.map((link) =>
-            link.href.startsWith('/') ? (
-              <Link key={link.label} to={link.href} className="nav-pill">
-                <RollLabel>{link.label}</RollLabel>
-              </Link>
-            ) : (
-              <a key={link.label} href={link.href} className="nav-pill">
-                <RollLabel>{link.label}</RollLabel>
-              </a>
-            ),
-          )}
+          {navLinks.map((link) => (
+            <Link key={link.label} to={link.href} className="nav-pill">
+              <RollLabel>{link.label}</RollLabel>
+            </Link>
+          ))}
         </nav>
 
         {/* Right */}
-        <a href="#" className="nav-pill nav-pill--cta justify-self-end">
+        <Link to="/contact" className="nav-pill nav-pill--cta justify-self-end">
           <RollLabel>Let's Talk</RollLabel>
           <svg
             viewBox="0 0 24 24"
@@ -103,14 +104,20 @@ function Header() {
             <line x1="6" y1="18" x2="18" y2="6" />
             <polyline points="8 6 18 6 18 16" />
           </svg>
-        </a>
+        </Link>
       </div>
 
       {/* Mobile/Tablet Layout */}
       <div className={`site-header__surface ${tone} flex lg:hidden w-full h-[64px] items-center justify-between px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}>
         <div className="flex items-center">
           <Link to="/" aria-label="Brandworks home" className="block">
-            <img src={logoSrc} alt="BrandWorks" className="site-header__logo block h-auto w-[145px] object-contain" />
+            <Image
+              src={logoSrc}
+              alt="BrandWorks"
+              width={145}
+              height={25}
+              className="site-header__logo block h-auto w-[145px] object-contain"
+            />
           </Link>
         </div>
 

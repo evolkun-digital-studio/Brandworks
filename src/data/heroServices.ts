@@ -27,14 +27,9 @@ import studioRedSweatshirtSmall from '../assets/photography/hero-p1001110-480.we
 // Every service the hero can preview lives here, so swapping a photo,
 // a film or a line of copy never means touching the components.
 
-const photo01 = mediaUrl("photo-01.webp")
-const photo01Small = mediaUrl("photo-01-640.webp")
-const photo03 = mediaUrl("photo-03.webp")
-const photo03Small = mediaUrl("photo-03-480.webp")
-const motionLifestyle =mediaUrl("campaign-motion.jpg")
-const cinematicAction = mediaUrl("campaign-action.jpg")
 const experimentalCreative = mediaUrl("gm-06-800.webp")
-const socialAerial = mediaUrl("campaign-aerial.jpg")
+const socialReel = "/video/ForWebsite.mp4"
+const socialReelPoster = mediaUrl("footer-showreel-poster.webp")
 
 export type HeroImage = {
   src: string
@@ -287,58 +282,51 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
       kind: 'showcase',
       grid: [
         {
-          src: socialAerial,
+          src: mediaUrl("Photo1.jpg"),
           width: 1200,
           height: 800,
-          alt: 'Aerial campaign frame of a coastal road meeting a dark ocean',
-          position: '50% 56%',
+          alt: 'BrandWorks campaign photograph',
         },
         {
-          src: photo01,
-          srcSet: `${photo01Small} 640w, ${photo01} 960w`,
-          width: 960,
-          height: 1200,
-          alt: 'Editorial campaign portrait of a rider on horseback',
-          position: '50% 35%',
-        },
-        {
-          src: photo03,
-          srcSet: `${photo03Small} 480w, ${photo03} 736w`,
-          width: 736,
-          height: 980,
-          alt: 'High-contrast product campaign frame of a can suspended in netting',
-        },
-        {
-          src: motionLifestyle,
+          src: mediaUrl("Photo2.jpg"),
           width: 1200,
-          height: 673,
-          alt: 'Motion-led monochrome lifestyle portrait',
-          position: '46% 42%',
+          height: 800,
+          alt: 'BrandWorks editorial photograph',
         },
         {
-          src: experimentalCreative,
-          width: 800,
-          height: 603,
-          alt: 'Experimental spectrum of coloured light rising through black',
-          position: '50% 65%',
-        },
-        {
-          src: cinematicAction,
+          src: mediaUrl("Photo3.jpg"),
           width: 1200,
-          height: 673,
-          alt: 'Cinematic action portrait surrounded by a ring of light',
+          height: 800,
+          alt: 'BrandWorks creative photograph',
+        },
+        {
+          src: mediaUrl("Photo4.png"),
+          width: 1200,
+          height: 800,
+          alt: 'BrandWorks campaign photograph',
+        },
+        {
+          src: mediaUrl("Photo5.png"),
+          width: 1200,
+          height: 800,
+          alt: 'BrandWorks editorial photograph',
+        },
+        {
+          src: mediaUrl("Photo6.png"),
+          width: 1200,
+          height: 800,
+          alt: 'BrandWorks creative photograph',
         },
       ],
-      image: originalImage(mediaUrl("ChatGPT Image Sep 24, 2026, 11_20_21 AM.png"), {
-        width: 1086,
-        height: 1448,
-        alt: 'BrandWorks Instagram profile on a phone, surrounded by growth, engagement and content-plan cards',
+      image: originalImage(socialReelPoster, {
+        width: 1920,
+        height: 1080,
+        alt: 'BrandWorks showreel poster',
       }),
       video: {
-        src: mediaUrl("Screen_Recording_20260924_112309_Instagram_ppz2yx.mp4"),
-        // Cloudinary's first frame as a still, shown until the recording plays.
-        poster: mediaUrl("Screen_Recording_20260924_112309_Instagram_ppz2yx.jpg"),
-        label: 'Screen recording of an Instagram reel being scrolled',
+        src: socialReel,
+        poster: socialReelPoster,
+        label: 'BrandWorks showreel',
       },
     },
   },

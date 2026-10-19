@@ -34,6 +34,25 @@ describe('Header — logo link', () => {
     expect(html).toContain('href="/blog"')
   })
 
+  it('uses the supplied BWorks logo asset', () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <ViteNavigationProvider><Header /></ViteNavigationProvider>
+      </MemoryRouter>,
+    )
+    expect(html).toContain('src="/BWorksLogo-01.svg"')
+  })
+
+  it('uses app links for the primary navigation and contact CTA', () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter>
+        <ViteNavigationProvider><Header /></ViteNavigationProvider>
+      </MemoryRouter>,
+    )
+    expect(html).toContain('href="/contact"')
+    expect(html).not.toContain('href="#"')
+  })
+
   it('renders a real link to the work page in the primary nav', () => {
     const html = renderToStaticMarkup(
       <MemoryRouter>

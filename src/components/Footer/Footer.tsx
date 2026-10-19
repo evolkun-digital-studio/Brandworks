@@ -10,7 +10,7 @@ import { matches } from '../../lib/scrollMotion'
 import './Footer.css'
 import LegalLinks from '../../legacy-pages/legal/LegalLinks'
 
-const LOGO_SRC = '/brandworks.svg'
+const LOGO_SRC = '/BWorksLogo-01.svg'
 
 gsap.registerPlugin(useGSAP)
 

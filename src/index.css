@@ -3,10 +3,14 @@
 /* Brand typography: Grimblade is reserved for headings/display type, while
    Open Sans handles body copy, navigation, forms, and UI text. */
 @theme {
-  --font-primary: 'Grimblade', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-secondary: 'Open Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-inter: 'Open Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-instrument: 'Grimblade', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-primary:
+    "Grimblade", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-secondary:
+    "Open Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-inter:
+    "Open Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-instrument:
+    "Grimblade", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   /* The single BrandWorks accent, sampled from the lime highlight in the
      PR & Founder Reputation artwork so a rule drawn next to that image
@@ -52,24 +56,27 @@
  */
 
 @font-face {
-  font-family: 'Grimblade';
-  src: url('./components/brandWorkFONT/creative-agency-font-grimblade-2026-04-07-06-20-57-utc/Grimblade.woff') format('woff');
+  font-family: "Grimblade";
+  src: url("./components/brandWorkFONT/creative-agency-font-grimblade-2026-04-07-06-20-57-utc/Grimblade.woff")
+    format("woff");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("./components/brandWorkFONT/open-sans/OpenSans-Regular.ttf")
+    format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  src: url('./components/brandWorkFONT/open-sans/OpenSans-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  src: url('./components/brandWorkFONT/open-sans/OpenSans-Semibold.ttf') format('truetype');
+  font-family: "Open Sans";
+  src: url("./components/brandWorkFONT/open-sans/OpenSans-Semibold.ttf")
+    format("truetype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -77,47 +84,52 @@
 
 /* The remaining weights/styles live in the supplied brandWorkFONT folder. */
 @font-face {
-  font-family: 'Open Sans';
-  src: url('./components/brandWorkFONT/open-sans/OpenSans-Light.ttf') format('truetype');
+  font-family: "Open Sans";
+  src: url("./components/brandWorkFONT/open-sans/OpenSans-Light.ttf")
+    format("truetype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  src: url('./components/brandWorkFONT/open-sans/OpenSans-Bold.ttf') format('truetype');
+  font-family: "Open Sans";
+  src: url("./components/brandWorkFONT/open-sans/OpenSans-Bold.ttf")
+    format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  src: url('./components/brandWorkFONT/open-sans/OpenSans-ExtraBold.ttf') format('truetype');
+  font-family: "Open Sans";
+  src: url("./components/brandWorkFONT/open-sans/OpenSans-ExtraBold.ttf")
+    format("truetype");
   font-weight: 800;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  src: url('./components/brandWorkFONT/open-sans/OpenSans-Italic.ttf') format('truetype');
+  font-family: "Open Sans";
+  src: url("./components/brandWorkFONT/open-sans/OpenSans-Italic.ttf")
+    format("truetype");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  src: url('./components/brandWorkFONT/open-sans/OpenSans-BoldItalic.ttf') format('truetype');
+  font-family: "Open Sans";
+  src: url("./components/brandWorkFONT/open-sans/OpenSans-BoldItalic.ttf")
+    format("truetype");
   font-weight: 700;
   font-style: italic;
   font-display: swap;
 }
 
 .services-display {
-  font-family: 'Grimblade', 'Helvetica', sans-serif;
+  font-family: "Grimblade", "Helvetica", sans-serif;
 }
 
 /* Our Services index: the row the arrow points at is SemiBold and full
@@ -138,8 +150,14 @@
 }
 
 body {
-  font-family: 'Open Sans', ui-sans-serif, system-ui, -apple-system,
-    'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    "Open Sans",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -538,7 +556,12 @@ select {
   /* Over a narrow crop the words cover most of the width, so the shade
      does too — still lightest at the far edge. */
   .pt-shade {
-    background: linear-gradient(90deg, rgba(10, 10, 10, 0.75) 0%, rgba(10, 10, 10, 0.55) 60%, rgba(10, 10, 10, 0.3) 100%);
+    background: linear-gradient(
+      90deg,
+      rgba(10, 10, 10, 0.75) 0%,
+      rgba(10, 10, 10, 0.55) 60%,
+      rgba(10, 10, 10, 0.3) 100%
+    );
   }
 
   /* PERCEPTION runs ~5.3em wide: 13vw keeps it inside an 18px gutter
@@ -570,7 +593,10 @@ select {
  * heading and the first card to the site's 1440px container.
  */
 .brand-intelligence {
-  --bi-inset: max(var(--page-gutter), calc((100% - var(--page-max-width)) / 2 + var(--page-gutter)));
+  --bi-inset: max(
+    var(--page-gutter),
+    calc((100% - var(--page-max-width)) / 2 + var(--page-gutter))
+  );
   --bi-card-gap: clamp(16px, 2vw, 30px);
   --bi-card-pad: clamp(24px, 3vw, 54px);
   /* Room around the track so card shadows are not clipped. */
@@ -921,7 +947,7 @@ select {
 }
 
 .photo-nav__line::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   width: 7px;
@@ -1256,7 +1282,4 @@ select {
   .photo-ipad-controller {
     transition: none !important;
   }
-} 
-
-
-
+}
