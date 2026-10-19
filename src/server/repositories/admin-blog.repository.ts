@@ -26,6 +26,10 @@ export async function updateAdminBlogSchedule(id: string, scheduledAt: Date | nu
   if (!/^[a-f\d]{24}$/i.test(id)) return null
   return (await blogs()).findOneAndUpdate({ _id: new ObjectId(id), deletedAt: null }, { $set: { scheduledAt, ...(setDraft ? { status: 'draft' } : {}), updatedAt: new Date() } }, { returnDocument: 'after' })
 }
+export async function updateAdminBlogReview(id: string, reviewStatus: import('../admin/blog-types').AdminReviewStatus, reviewNote: string | null, reviewedBy: ObjectId | null) {
+  if (!/^[a-f\d]{24}$/i.test(id)) return null
+  return (await blogs()).findOneAndUpdate({ _id: new ObjectId(id), deletedAt: null }, { $set: { reviewStatus, reviewNote, reviewedBy, reviewedAt: reviewStatus === 'in_review' || reviewStatus === 'draft' ? null : new Date(), updatedAt: new Date() } }, { returnDocument: 'after' })
+}
 export async function softDeleteAdminBlog(id: string) {
   if (!/^[a-f\d]{24}$/i.test(id)) return null
   return (await blogs()).findOneAndUpdate({ _id: new ObjectId(id), deletedAt: null }, { $set: { deletedAt: new Date(), updatedAt: new Date() } }, { returnDocument: 'after' })
@@ -34,13 +38,23 @@ export async function restoreAdminBlog(id: string, clearSchedule: boolean) {
   if (!/^[a-f\d]{24}$/i.test(id)) return null
   return (await blogs()).findOneAndUpdate({ _id: new ObjectId(id) }, { $set: { deletedAt: null, ...(clearSchedule ? { scheduledAt: null } : {}), updatedAt: new Date() } }, { returnDocument: 'after' })
 }
-export async function queryAdminBlogs(options: {status?:AdminBlogStatus;includeDeleted:boolean;search?:string;scheduled?:boolean;page:number;limit:number}) {
+export type AdminBlogSort = 'updated_desc' | 'published_desc' | 'title_asc' | 'scheduled_asc'
+
+export async function queryAdminBlogs(options: {status?:AdminBlogStatus;includeDeleted:boolean;search?:string;scheduled?:boolean;sort?:AdminBlogSort;page:number;limit:number}) {
   const filter: Filter<AdminBlogDocument> = options.scheduled
     ? { status: 'draft', deletedAt: null, scheduledAt: { $type: 'date', $gt: new Date() } }
     : { ...(options.status ? { status: options.status } : {}), ...(options.includeDeleted ? {} : { deletedAt: null }) }
   if (options.search) filter.title = { $regex: options.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' }
-  const col = await blogs(); const [items,total] = await Promise.all([
-    col.find(filter).sort(options.scheduled ? { scheduledAt: 1 } : { createdAt: -1 }).skip((options.page-1)*options.limit).limit(options.limit).toArray(),
+  const col = await blogs()
+  const sort = options.scheduled || options.sort === 'scheduled_asc'
+    ? { scheduledAt: 1 as const }
+    : options.sort === 'published_desc'
+      ? { publishedAt: -1 as const }
+      : options.sort === 'title_asc'
+        ? { title: 1 as const }
+        : { updatedAt: -1 as const }
+  const [items,total] = await Promise.all([
+    col.find(filter).sort(sort).skip((options.page-1)*options.limit).limit(options.limit).toArray(),
     col.countDocuments(filter),
   ])
   return { items, page: options.page, limit: options.limit, total, totalPages: options.limit ? Math.ceil(total/options.limit) : 0 }

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { FileText, LayoutDashboard, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings2, UsersRound } from 'lucide-react'
+import { Activity, CalendarDays, FileText, Images, LayoutDashboard, LogOut, Menu, PanelLeftClose, PanelLeftOpen, SearchCheck, Settings2, UsersRound } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink, Outlet } from '../../routing'
@@ -17,6 +17,10 @@ interface NavigationItem {
 const workspaceItems: NavigationItem[] = [
   { label: 'Overview', to: '/admin', icon: LayoutDashboard, end: true },
   { label: 'Articles', to: '/admin/blogs', icon: FileText },
+  { label: 'Media', to: '/admin/media', icon: Images },
+  { label: 'SEO', to: '/admin/seo', icon: SearchCheck },
+  { label: 'Calendar', to: '/admin/calendar', icon: CalendarDays },
+  { label: 'Activity', to: '/admin/activity', icon: Activity },
 ]
 
 const manageItems: NavigationItem[] = [

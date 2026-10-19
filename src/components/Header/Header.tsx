@@ -2,6 +2,7 @@ import { Link, useLocation } from '../../routing'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import './Header.css'
+import type { SiteNavigationLabels } from '../../server/site-settings/types'
 
 const navLinks:{ label: string; href: string }[] = [
   { label: 'Home', href: '/' },
@@ -23,7 +24,7 @@ function RollLabel({ children }: { children: string }) {
   )
 }
 
-function Header() {
+function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   const [hidden, setHidden] = useState(false)
   const lastScrollY = useRef(0)
   const { pathname } = useLocation()
@@ -83,7 +84,7 @@ function Header() {
         >
           {navLinks.map((link) => (
             <Link key={link.label} to={link.href} className="nav-pill">
-              <RollLabel>{link.label}</RollLabel>
+              <RollLabel>{navLabels?.[link.label.toLowerCase() as keyof SiteNavigationLabels] ?? link.label}</RollLabel>
             </Link>
           ))}
         </nav>

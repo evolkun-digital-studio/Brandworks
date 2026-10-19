@@ -2,14 +2,23 @@ import 'server-only'
 
 import { badRequest, conflict, forbidden, notFound } from '../http/errors'
 import type { AdminDocument } from './types'
-import type { AdminBlogDocument, AdminBlogStatus } from './blog-types'
+import type { AdminBlogDocument, AdminBlogStatus, AdminReviewStatus } from './blog-types'
 import { toAdminBlogResponse } from './blog-types'
 import { validateStructuredBlogFields } from './blog-validation'
 import {
   countAdminScheduledBlogs, createAdminBlog, findAdminBlog, findAdminBlogBySlug,
   patchAdminBlog, queryAdminBlogs, restoreAdminBlog, softDeleteAdminBlog,
   updateAdminBlogSchedule, updateAdminBlogStatus,
+  updateAdminBlogReview,
 } from '../repositories/admin-blog.repository'
+import { activityFor } from './activity'
+import {
+  createAdminBlogRevision,
+  findAdminBlogRevision,
+  listAdminBlogRevisions,
+  compareAdminBlogRevisions,
+} from '../repositories/admin-blog-revisions.repository'
+import { upsertBlogSlugRedirect } from '../repositories/blog-redirects.repository'
 
 const idPattern = /^[a-f\d]{24}$/i
 const statuses: AdminBlogStatus[] = ['draft', 'published', 'unpublished']
@@ -59,7 +68,10 @@ export async function listBlogsForAdmin(actor: AdminDocument, params: URLSearchP
   const limitN = Number(params.get('limit'))
   const page = Number.isFinite(pageN) && pageN > 0 ? Math.floor(pageN) : 1
   const limit = Number.isFinite(limitN) && limitN > 0 ? Math.min(Math.floor(limitN),100) : 10
-  const result = await queryAdminBlogs({ status: rawStatus as AdminBlogStatus|undefined, scheduled, includeDeleted, search: params.get('search')?.trim() || undefined, page, limit })
+  const rawSort = params.get('sort') ?? undefined
+  const validSorts = ['updated_desc', 'published_desc', 'title_asc', 'scheduled_asc'] as const
+  if (rawSort && !validSorts.includes(rawSort as typeof validSorts[number])) throw badRequest(`Sort must be one of: ${validSorts.join(', ')}.`)
+  const result = await queryAdminBlogs({ status: rawStatus as AdminBlogStatus|undefined, scheduled, includeDeleted, search: params.get('search')?.trim() || undefined, sort: rawSort as typeof validSorts[number] | undefined, page, limit })
   return { items: result.items.map(mapBlog), page: result.page, limit: result.limit, total: result.total, totalPages: result.totalPages }
 }
 
@@ -88,6 +100,7 @@ export async function createBlogForAdmin(actor: AdminDocument, input: Record<str
   const doc: Record<string, unknown> = {
     title, slug, excerpt, content, coverImage, coverImageAlt, authorName: actor.username, authorId: actor._id,
     status:'draft', publishedAt, scheduledAt:null, deletedAt:null, seoTitle,
+    reviewStatus: 'draft', reviewNote: null, reviewedBy: null, reviewedAt: null,
     seoDescription, coverImageTitle:null, coverImageCaption:null,
     coverImageDescription:null, category:null, tags:[], aiSummary:null, keyTakeaways:[], aiContext:null,
     entitySeo:null, faq:[], expertQuote:null, callouts:[], focusKeyword:null, secondaryKeywords:[],
@@ -95,11 +108,15 @@ export async function createBlogForAdmin(actor: AdminDocument, input: Record<str
     twitterCard:null, breadcrumbEnabled:true, customMetaTags:[],
   }
   Object.assign(doc,validateStructuredBlogFields(input))
-  try { return mapBlog(await createAdminBlog(doc as Omit<AdminBlogDocument,'_id'|'createdAt'|'updatedAt'>)) }
+  try {
+    const created = await createAdminBlog(doc as Omit<AdminBlogDocument,'_id'|'createdAt'|'updatedAt'>)
+    await activityFor(actor, { action: 'created', entityType: 'blog', entityId: created._id.toHexString(), entityTitle: created.title, metadata: {} })
+    return mapBlog(created)
+  }
   catch (error) { if (isDuplicate(error)) throw conflict('That slug is already in use.'); throw error }
 }
 
-export async function updateBlogForAdmin(id: string, input: Record<string, unknown>) {
+export async function updateBlogForAdmin(actor: AdminDocument, id: string, input: Record<string, unknown>) {
   assertId(id)
   const old = await findAdminBlog(id)
   if (!old) throw notFound('Blog post not found.')
@@ -122,14 +139,95 @@ export async function updateBlogForAdmin(id: string, input: Record<string, unkno
     if (slug !== old.slug) patch.slug = slug
   }
   Object.assign(patch,validateStructuredBlogFields(input))
+  if (old.reviewStatus === 'approved' && Object.keys(patch).length > 0) patch.reviewStatus = 'draft'
   try {
     const updated = await patchAdminBlog(id,patch)
     if (!updated) throw notFound('Blog post not found.')
+    await createAdminBlogRevision(old, actor._id)
+    if (old.slug !== updated.slug) {
+      await upsertBlogSlugRedirect({
+        fromSlug: old.slug,
+        toSlug: updated.slug,
+        blogId: updated._id,
+        createdAt: new Date(),
+      })
+    }
+    await activityFor(actor, { action: 'updated', entityType: 'blog', entityId: updated._id.toHexString(), entityTitle: updated.title, metadata: {} })
     return mapBlog(updated)
   } catch (error) { if (isDuplicate(error)) throw conflict('That slug is already in use.'); throw error }
 }
 
-export async function setBlogStatus(id: string, status: unknown) {
+export async function getBlogRevisions(actor: AdminDocument, id: string) {
+  assertId(id)
+  const blog = await findAdminBlog(id, true)
+  if (!blog) throw notFound('Blog post not found.')
+  if (blog.deletedAt && actor.role !== 'admin') throw forbidden('Only admins can perform this action.')
+  return (await listAdminBlogRevisions(blog._id)).map((revision) => ({
+    id: revision._id.toHexString(),
+    blogId: revision.blogId.toHexString(),
+    title: revision.snapshot.title,
+    status: revision.snapshot.status,
+    createdAt: revision.createdAt.toISOString(),
+    authorName: revision.authorName,
+  }))
+}
+
+export async function compareBlogRevisions(actor: AdminDocument, id: string, leftId: string, rightId: string) {
+  assertId(id)
+  assertAdmin(actor)
+  const comparison = await compareAdminBlogRevisions(id, leftId, rightId)
+  if (!comparison) throw notFound('One or both revisions were not found.')
+  return comparison
+}
+
+export async function restoreBlogRevision(actor: AdminDocument, id: string, revisionId: string) {
+  assertAdmin(actor)
+  assertId(id)
+  const blog = await findAdminBlog(id)
+  if (!blog) throw notFound('Blog post not found.')
+  const revision = await findAdminBlogRevision(id, revisionId)
+  if (!revision) throw notFound('Revision not found.')
+  const snapshot = revision.snapshot
+  await createAdminBlogRevision(blog, actor._id)
+  const restored = await patchAdminBlog(id, {
+    title: snapshot.title,
+    slug: snapshot.slug,
+    excerpt: snapshot.excerpt,
+    content: snapshot.content,
+    coverImage: snapshot.coverImage,
+    coverImageAlt: snapshot.coverImageAlt,
+    seoTitle: snapshot.seoTitle,
+    seoDescription: snapshot.seoDescription,
+    coverImageTitle: snapshot.coverImageTitle ?? null,
+    coverImageCaption: snapshot.coverImageCaption ?? null,
+    coverImageDescription: snapshot.coverImageDescription ?? null,
+    category: snapshot.category ?? null,
+    tags: snapshot.tags ?? [],
+    aiSummary: snapshot.aiSummary ?? null,
+    keyTakeaways: snapshot.keyTakeaways ?? [],
+    aiContext: snapshot.aiContext ?? null,
+    entitySeo: snapshot.entitySeo ?? null,
+    faq: snapshot.faq ?? [],
+    expertQuote: snapshot.expertQuote ?? null,
+    callouts: snapshot.callouts ?? [],
+    focusKeyword: snapshot.focusKeyword ?? null,
+    secondaryKeywords: snapshot.secondaryKeywords ?? [],
+    canonicalUrl: snapshot.canonicalUrl ?? null,
+    robotsIndex: snapshot.robotsIndex ?? true,
+    ogTitle: snapshot.ogTitle ?? null,
+    ogDescription: snapshot.ogDescription ?? null,
+    ogImage: snapshot.ogImage ?? null,
+    twitterCard: snapshot.twitterCard ?? null,
+    breadcrumbEnabled: snapshot.breadcrumbEnabled ?? true,
+    customMetaTags: snapshot.customMetaTags ?? [],
+  })
+  if (!restored) throw notFound('Blog post not found.')
+  await activityFor(actor, { action: 'restored', entityType: 'blog', entityId: restored._id.toHexString(), entityTitle: restored.title, metadata: { source: 'revision' } })
+  return mapBlog(restored)
+}
+
+export async function setBlogStatus(actor: AdminDocument, id: string, status: unknown) {
+  assertAdmin(actor)
   assertId(id)
   if (typeof status !== 'string') throw badRequest('status is required.')
   if (!statuses.includes(status as AdminBlogStatus)) throw badRequest(`Status must be one of: ${statuses.join(', ')}.`)
@@ -138,10 +236,12 @@ export async function setBlogStatus(id: string, status: unknown) {
   const publishedAt = status === 'published' && old.publishedAt === null ? new Date() : old.publishedAt
   const updated = await updateAdminBlogStatus(id,status as AdminBlogStatus,publishedAt)
   if (!updated) throw notFound('Blog post not found.')
+  await activityFor(actor, { action: status === 'published' ? 'published' : 'unpublished', entityType: 'blog', entityId: updated._id.toHexString(), entityTitle: updated.title, metadata: {} })
   return mapBlog(updated)
 }
 
-export async function scheduleBlog(id: string, raw: unknown) {
+export async function scheduleBlog(actor: AdminDocument, id: string, raw: unknown) {
+  assertAdmin(actor)
   assertId(id)
   const old = await findAdminBlog(id)
   if (!old) throw notFound('Blog post not found.')
@@ -152,19 +252,23 @@ export async function scheduleBlog(id: string, raw: unknown) {
   if (when.getTime() <= Date.now()) throw badRequest('Scheduled date must be in the future.')
   const updated = await updateAdminBlogSchedule(id,when,true)
   if (!updated) throw notFound('Blog post not found.')
+  await activityFor(actor, { action: 'scheduled', entityType: 'blog', entityId: updated._id.toHexString(), entityTitle: updated.title, metadata: { scheduledAt: when.toISOString() } })
   return mapBlog(updated)
 }
 
-export async function unscheduleBlog(id: string) {
+export async function unscheduleBlog(actor: AdminDocument, id: string) {
+  assertAdmin(actor)
   assertId(id); if (!await findAdminBlog(id)) throw notFound('Blog post not found.')
   const updated = await updateAdminBlogSchedule(id,null)
   if (!updated) throw notFound('Blog post not found.')
+  await activityFor(actor, { action: 'unscheduled', entityType: 'blog', entityId: updated._id.toHexString(), entityTitle: updated.title, metadata: {} })
   return mapBlog(updated)
 }
 
 export async function deleteBlog(actor: AdminDocument, id: string) {
   assertAdmin(actor); assertId(id); if (!await findAdminBlog(id)) throw notFound('Blog post not found.')
   await softDeleteAdminBlog(id)
+  await activityFor(actor, { action: 'archived', entityType: 'blog', entityId: id, entityTitle: null, metadata: {} })
 }
 
 export async function restoreBlog(actor: AdminDocument, id: string) {
@@ -174,7 +278,25 @@ export async function restoreBlog(actor: AdminDocument, id: string) {
   const clearSchedule = Boolean(old.scheduledAt && old.scheduledAt.getTime() <= Date.now())
   const restored = await restoreAdminBlog(id,clearSchedule)
   if (!restored) throw notFound('Blog post not found.')
+  await activityFor(actor, { action: 'restored', entityType: 'blog', entityId: restored._id.toHexString(), entityTitle: restored.title, metadata: { source: 'archive' } })
   return mapBlog(restored)
+}
+
+export async function updateBlogReview(actor: AdminDocument, id: string, rawStatus: unknown, rawNote: unknown) {
+  assertId(id)
+  const status = rawStatus as AdminReviewStatus
+  const valid: AdminReviewStatus[] = ['draft', 'in_review', 'changes_requested', 'approved']
+  if (!valid.includes(status)) throw badRequest(`Review status must be one of: ${valid.join(', ')}.`)
+  const blog = await findAdminBlog(id)
+  if (!blog) throw notFound('Blog post not found.')
+  if (status === 'approved' || status === 'changes_requested') assertAdmin(actor)
+  if (status === 'changes_requested' && (typeof rawNote !== 'string' || !rawNote.trim())) throw badRequest('A note is required when requesting changes.')
+  const note = rawNote === null || rawNote === undefined ? null : typeof rawNote === 'string' ? rawNote.trim().slice(0, 1000) : null
+  const updated = await updateAdminBlogReview(id, status, note, status === 'in_review' || status === 'draft' ? null : actor._id)
+  if (!updated) throw notFound('Blog post not found.')
+  const action = status === 'in_review' ? 'submitted_for_review' : status === 'approved' ? 'approved' : status === 'changes_requested' ? 'changes_requested' : 'updated'
+  await activityFor(actor, { action, entityType: 'blog', entityId: updated._id.toHexString(), entityTitle: updated.title, metadata: note ? { note } : {} })
+  return mapBlog(updated)
 }
 
 export async function hasBlogId(id: string) { return idPattern.test(id) && !!(await findAdminBlog(id,true)) }

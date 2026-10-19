@@ -1,3 +1,5 @@
+'use client'
+
 import { useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -7,6 +9,10 @@ import { buildToc, parseMarkdown } from '../../lib/markdownMetrics'
 
 function isExternalHref(href: string | undefined): boolean {
   return /^https?:\/\//i.test(href ?? '')
+}
+
+function isSafeHref(href: string | undefined): boolean {
+  return /^(?:https?:\/\/|\/|#|mailto:|tel:)/i.test(href ?? '')
 }
 
 /**
@@ -87,7 +93,9 @@ function ArticleMarkdown({ content }: { content: string }) {
       // anything else (relative paths, #anchors, mailto:, tel:) stays
       // same-tab. A simple protocol check — not a link-rewriting system.
       a: ({ href, children, ...props }) =>
-        isExternalHref(href) ? (
+        !isSafeHref(href) ? (
+          <span {...props}>{children}</span>
+        ) : isExternalHref(href) ? (
           <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
             {children}
           </a>

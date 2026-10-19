@@ -12,6 +12,17 @@ import type {
   TwitterCardType,
 } from './blogTypes'
 
+export type AdminBlogSort = 'updated_desc' | 'published_desc' | 'title_asc' | 'scheduled_asc'
+
+export interface AdminBlogRevision {
+  id: string
+  blogId: string
+  title: string
+  status: BlogStatus
+  createdAt: string
+  authorName: string
+}
+
 export interface ListBlogPostsParams {
   status?: BlogStatus
   /**
@@ -21,6 +32,7 @@ export interface ListBlogPostsParams {
    */
   scheduled?: boolean
   search?: string
+  sort?: AdminBlogSort
   page?: number
   limit?: number
   includeDeleted?: boolean
@@ -31,6 +43,7 @@ function buildQueryString(params: ListBlogPostsParams): string {
   if (params.status) search.set('status', params.status)
   if (params.scheduled) search.set('scheduled', 'true')
   if (params.search) search.set('search', params.search)
+  if (params.sort) search.set('sort', params.sort)
   if (params.page) search.set('page', String(params.page))
   if (params.limit) search.set('limit', String(params.limit))
   if (params.includeDeleted) search.set('includeDeleted', 'true')
@@ -47,8 +60,36 @@ export function getScheduledCount() {
   return adminApiRequest<{ scheduled: number }>('/blogs/scheduled-count')
 }
 
+export type PublishDueJobStatus = {
+  job: 'publish-due'
+  status: 'healthy' | 'stale' | 'unknown' | 'failed'
+  worker: 'external'
+  lastRunAt: string | null
+  lastSuccessAt: string | null
+  lastPublishedCount: number | null
+  lastError: string | null
+}
+
+export function getPublishDueJobStatus() {
+  return adminApiRequest<PublishDueJobStatus>('/jobs/publish-due')
+}
+
 export function fetchBlogPost(id: string) {
   return adminApiRequest<{ blog: AdminBlogPost }>(`/blogs/${id}`)
+}
+
+export function listBlogRevisions(id: string) {
+  return adminApiRequest<{ revisions: AdminBlogRevision[] }>(`/blogs/${id}/revisions`)
+}
+
+export function compareBlogRevisions(id: string, leftId: string, rightId: string) {
+  return adminApiRequest<{ comparison: { left: { id: string; createdAt: string; title: string }; right: { id: string; createdAt: string; title: string }; changedFields: string[] } }>(`/blogs/${id}/revisions/compare`, { method: 'POST', body: { leftId, rightId } })
+}
+
+export function restoreBlogRevision(id: string, revisionId: string) {
+  return adminApiRequest<{ blog: AdminBlogPost }>(`/blogs/${id}/revisions/${revisionId}/restore`, {
+    method: 'POST',
+  })
 }
 
 /**

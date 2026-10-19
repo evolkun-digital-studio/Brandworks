@@ -7,6 +7,10 @@ import Settings from './pages/Settings'
 import Users from './pages/Users'
 import BlogList from './pages/blogs/BlogList'
 import BlogEditor from './pages/blogs/BlogEditor'
+import MediaLibrary from './pages/MediaLibrary'
+import SeoWorkspace from './pages/SeoWorkspace'
+import EditorialCalendar from './pages/EditorialCalendar'
+import ActivityLog from './pages/ActivityLog'
 
 /**
  * Everything under /admin lives here, isolated from the public site's
@@ -21,6 +25,10 @@ function AdminRoutes() {
         <Route element={<RequireAdminAuth />}>
           <Route index element={<Dashboard />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="media" element={<MediaLibrary />} />
+          <Route path="seo" element={<SeoWorkspace />} />
+          <Route path="calendar" element={<EditorialCalendar />} />
+          <Route path="activity" element={<ActivityLog />} />
           <Route path="users" element={<Users />} />
           <Route path="blogs" element={<BlogList />} />
           <Route path="blogs/new" element={<BlogEditor />} />
