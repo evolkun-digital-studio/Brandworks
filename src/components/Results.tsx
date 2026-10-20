@@ -1,570 +1,482 @@
+'use client'
+
+import Image from 'next/image'
+import { motion, useInView } from 'motion/react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
+import type { KeyboardEvent, WheelEvent } from 'react'
 import { mediaUrl } from '../lib/media'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { RefObject } from 'react'
-import { clamp01, lerp, matches, sample, smoothstep, write } from '../lib/scrollMotion'
-const results = [
-  {
-    image: mediaUrl("Visibility.jpg"),
-    stat: 'Visibility',
-    label: 'How often and where the brand is being discovered.',
-  },
-  {
-    image: mediaUrl("enga.webp"),
-    stat: 'Engagement',
-    label: 'How audiences respond to content and campaigns.',
-  },
-  {
-    image: mediaUrl("search.jpg"),
-    stat: 'Search',
-    label: 'Rankings, demand, traffic and search presence.',
-  },
-  {
-    image: mediaUrl("Reputation.jpg"),
-    stat: 'Reputation',
-    label: 'What appears around the brand and the people behind it.',
-  },
-  {
-    image: mediaUrl("performance.jpg"),
-    stat: 'Performance',
-    label: 'Leads, conversions and campaign efficiency.',
-  },
-]
-type Result = (typeof results)[number]
-const COUNT = results.length
-// Duplicate the cards so the coverflow can wrap without a visible gap.
-const RING = [...results, ...results]
-const RING_SIZE = RING.length
-type Mode = 'coverflow' | 'mobile' | 'static'
-const COVERFLOW_QUERY = '(min-width: 900px) and (min-height: 620px)'
-const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
-function currentMode(): Mode {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return 'static'
-  }
-  if (matches(REDUCED_MOTION)) return 'static'
-  return matches(COVERFLOW_QUERY) ? 'coverflow' : 'mobile'
-}
-function useMode() {
-  // Use the same first render on server and client, then apply viewport mode.
-  const [mode, setMode] = useState<Mode>('static')
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return
-    setMode(currentMode())
-    const queries = [COVERFLOW_QUERY, REDUCED_MOTION].map((query) =>
-      window.matchMedia(query),
-    )
-    const onChange = () => setMode(currentMode())
-    queries.forEach((query) => query.addEventListener('change', onChange))
-    return () => {
-      queries.forEach((query) => query.removeEventListener('change', onChange))
-    }
-  }, [])
-  return mode
-}
-type Profile = {
-  x: readonly number[]
-  z: readonly number[]
-  ry: readonly number[]
-  s: readonly number[]
-  o: readonly number[]
-}
-// Profiles are intentionally tuned per device width. This prevents the
-// desktop cylinder from feeling cramped on tablets or oversized on laptops.
-const WIDE_PROFILE: Profile = {
-  x: [0, 0.91, 1.62],
-  z: [280, 0, -220],
-  ry: [0, 24, 40],
-  s: [0.88, 0.79, 0.66],
-  o: [1, 1, 0.62],
-}
-const DESKTOP_PROFILE: Profile = {
-  x: [0, 0.86, 1.52],
-  z: [240, 0, -180],
-  ry: [0, 22, 38],
-  s: [0.89, 0.79, 0.68],
-  o: [1, 1, 0.6],
-}
-const LAPTOP_PROFILE: Profile = {
-  x: [0, 0.81, 1.42],
-  z: [190, -10, -155],
-  ry: [0, 19, 32],
-  s: [0.91, 0.8, 0.7],
-  o: [1, 0.98, 0.52],
-}
-const TABLET_PROFILE: Profile = {
-  x: [0, 0.76, 1.32],
-  z: [130, -20, -125],
-  ry: [0, 15, 26],
-  s: [0.93, 0.82, 0.72],
-  o: [1, 0.94, 0.35],
-}
-const MOBILE_PROFILE: Profile = {
-  x: [0, 0.72, 1.28],
-  z: [0, -45, -100],
-  ry: [0, 8, 12],
-  s: [0.95, 0.84, 0.75],
-  o: [1, 0.84, 0],
-}
-const START = 1
-type Pose = {
+import './Results.css'
+
+const metrics = [
+  { title: 'Reputation', image: mediaUrl('Reputation.jpg') },
+  { title: 'Performance', image: mediaUrl('performance.jpg') },
+  { title: 'Visibility', image: mediaUrl('Visibility.jpg') },
+  { title: 'Engagement', image: mediaUrl('enga.webp') },
+  { title: 'Search', image: mediaUrl('search.jpg') },
+] as const
+
+const CARD_COUNT = metrics.length
+const INITIAL_INDEX = 2
+
+type CardPose = {
   x: number
   y: number
-  z: number
-  ry: number
-  s: number
-  o: number
+  width: number
+  height: number
+  rotate: number
+  opacity: number
+  scale: number
+  zIndex: number
+  pointerEvents: 'auto' | 'none'
 }
-function mix(a: Pose, b: Pose, t: number): Pose {
-  if (t <= 0) return a
-  if (t >= 1) return b
+
+function subscribeToViewport(callback: () => void) {
+  window.addEventListener('resize', callback, { passive: true })
+  return () => window.removeEventListener('resize', callback)
+}
+
+function getViewportWidth() {
+  return window.innerWidth
+}
+
+function getServerViewportWidth() {
+  return 1440
+}
+
+function useViewportWidth() {
+  return useSyncExternalStore(
+    subscribeToViewport,
+    getViewportWidth,
+    getServerViewportWidth,
+  )
+}
+
+function subscribeToReducedMotion(callback: () => void) {
+  const query = window.matchMedia('(prefers-reduced-motion: reduce)')
+  query.addEventListener('change', callback)
+  return () => query.removeEventListener('change', callback)
+}
+
+function getReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+function getServerReducedMotion() {
+  return false
+}
+
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotion,
+    getServerReducedMotion,
+  )
+}
+
+function circularOffset(index: number, activeIndex: number) {
+  return ((index - activeIndex + 2 + CARD_COUNT) % CARD_COUNT) - 2
+}
+
+function getCardPose(offset: number, viewportWidth: number): CardPose {
+  const direction = Math.sign(offset)
+  const distance = Math.abs(offset)
+
+  if (viewportWidth >= 1024) {
+    const stageScale = Math.min(1, Math.max(0.57, (viewportWidth - 48) / 1700))
+    if (distance === 0) {
+      return {
+        x: 0,
+        y: 0,
+        width: 440 * stageScale,
+        height: 540 * stageScale,
+        rotate: 0,
+        opacity: 1,
+        scale: 1,
+        zIndex: 30,
+        pointerEvents: 'auto',
+      }
+    }
+    if (distance === 1) {
+      return {
+        x: direction * 300 * stageScale,
+        y: 95 * stageScale,
+        width: 390 * stageScale,
+        height: 430 * stageScale,
+        rotate: direction * 1.5,
+        opacity: 1,
+        scale: 1,
+        zIndex: 20,
+        pointerEvents: 'auto',
+      }
+    }
+    return {
+      x: direction * 470 * stageScale,
+      y: 145 * stageScale,
+      width: 310 * stageScale,
+      height: 350 * stageScale,
+      rotate: direction * 1.5,
+      opacity: 0.55,
+      scale: 1,
+      zIndex: 10,
+      pointerEvents: 'auto',
+    }
+  }
+
+  if (viewportWidth >= 768) {
+    const centerWidth = Math.min(520, viewportWidth * 0.62)
+    const centerHeight = centerWidth * 1.16
+    if (distance === 0) {
+      return {
+        x: 0,
+        y: 0,
+        width: centerWidth,
+        height: centerHeight,
+        rotate: 0,
+        opacity: 1,
+        scale: 1,
+        zIndex: 30,
+        pointerEvents: 'auto',
+      }
+    }
+    if (distance === 1) {
+      return {
+        x: direction * centerWidth * 0.75,
+        y: 48,
+        width: centerWidth * 0.88,
+        height: centerHeight * 0.79,
+        rotate: direction * 1.5,
+        opacity: 0.9,
+        scale: 1,
+        zIndex: 20,
+        pointerEvents: 'auto',
+      }
+    }
+    return {
+      x: direction * centerWidth * 1.23,
+      y: 80,
+      width: centerWidth * 0.75,
+      height: centerHeight * 0.64,
+      rotate: direction * 1.5,
+      opacity: 0,
+      scale: 1,
+      zIndex: 10,
+      pointerEvents: 'none',
+    }
+  }
+
+  const centerWidth = Math.min(380, viewportWidth * 0.8)
+  const centerHeight = centerWidth * 1.24
+  if (distance === 0) {
+    return {
+      x: 0,
+      y: 0,
+      width: centerWidth,
+      height: centerHeight,
+      rotate: 0,
+      opacity: 1,
+      scale: 1,
+      zIndex: 30,
+      pointerEvents: 'auto',
+    }
+  }
+  if (distance === 1) {
+    return {
+      x: direction * centerWidth * 0.88,
+      y: 22,
+      width: centerWidth * 0.92,
+      height: centerHeight * 0.9,
+      rotate: direction * 1.25,
+      opacity: 0.84,
+      scale: 1,
+      zIndex: 20,
+      pointerEvents: 'auto',
+    }
+  }
   return {
-    x: lerp(a.x, b.x, t),
-    y: lerp(a.y, b.y, t),
-    z: lerp(a.z, b.z, t),
-    ry: lerp(a.ry, b.ry, t),
-    s: lerp(a.s, b.s, t),
-    o: lerp(a.o, b.o, t),
+    x: direction * centerWidth * 1.55,
+    y: 44,
+    width: centerWidth * 0.8,
+    height: centerHeight * 0.76,
+    rotate: direction * 1.25,
+    opacity: 0,
+    scale: 1,
+    zIndex: 10,
+    pointerEvents: 'none',
   }
 }
-function ringOffset(index: number, active: number) {
-  const raw = index - active
-  return (
-    ((((raw + RING_SIZE / 2) % RING_SIZE) + RING_SIZE) % RING_SIZE) -
-    RING_SIZE / 2
-  )
+
+function getStageHeight(viewportWidth: number) {
+  if (viewportWidth >= 1024) {
+    const scale = Math.min(1, Math.max(0.57, (viewportWidth - 48) / 1700))
+    return 570 * scale
+  }
+  if (viewportWidth >= 768) {
+    const width = Math.min(520, viewportWidth * 0.62)
+    return width * 1.16 + 34
+  }
+  const width = Math.min(380, viewportWidth * 0.8)
+  return width * 1.24 + 30
 }
-function Header() {
-  return (
-    <>
-      <h2 className="site-display mt-2 w-full max-w-[900px] text-balance text-center text-[clamp(2.25rem,10vw,4.75rem)] font-normal leading-[0.94] tracking-[-0.045em] text-neutral-950 sm:mt-3 sm:text-[clamp(2.75rem,7.5vw,4.75rem)] md:text-[clamp(3rem,5.5vw,4.75rem)] lg:text-[clamp(3.25rem,4.5vw,4.75rem)]">
-        What we measure.
-      </h2>
-      {/* <p className="site-copy mt-3 w-full max-w-[620px] px-2 text-center text-[13px] leading-[1.55] text-neutral-600 sm:mt-4 sm:max-w-[680px] sm:px-0 sm:text-[14px] md:text-[15px] lg:text-[16px]">
-        Depending on the engagement:
-      </p>
-      <p className="mt-2 w-full max-w-[620px] px-2 text-center text-[11px] font-normal leading-[1.45] tracking-[-0.01em] text-neutral-500 sm:max-w-[680px] sm:px-0 sm:text-[12px] md:mt-2.5 md:text-[13px]">
-        Different work requires different measures.
-      </p> */}
-    </>
-  )
-}
-function CardContent({ result }: { result: Result }) {
-  return (
-    <>
-      <img
-        data-media
-        src={result.image}
-        alt={result.label}
-        loading="lazy"
-        decoding="async"
-        className="absolute inset-0 h-full w-full object-cover [backface-visibility:hidden] will-change-transform"
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent" />
-      <div
-        data-dim
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-black opacity-0 will-change-opacity"
-      />
-      <div
-        data-text
-        className="absolute bottom-[clamp(16px,4vw,28px)] left-[clamp(16px,4vw,28px)] right-[clamp(16px,4vw,28px)] text-left will-change-opacity"
-      >
-        <div className="text-[clamp(20px,5.2vw,24px)] font-medium leading-[1.12] tracking-[-0.03em] text-white sm:text-[clamp(21px,3vw,25px)]">
-          {result.stat}
-        </div>
-        <div className="mt-1.5 max-w-[30ch] text-[clamp(12px,3.5vw,15px)] font-normal leading-[1.45] text-white/90 sm:mt-2 sm:text-[clamp(13px,1.6vw,15px)]">
-          {/* {result.label} */}
-        </div>
-      </div>
-    </>
-  )
-}
-type Els = {
-  card: HTMLElement
-  media: HTMLElement
-  dim: HTMLElement
-  text: HTMLElement
-  cache: Record<string, string>
-}
-function useCoverflow(
-  mobileMode: boolean,
-  runwayRef: RefObject<HTMLDivElement | null>,
-  sectionRef: RefObject<HTMLElement | null>,
-) {
-  useLayoutEffect(() => {
-    const runway = runwayRef.current
-    const section = sectionRef.current
-    if (!runway || !section) return
-    const header = section.querySelector<HTMLElement>('[data-header]')
-    const els: Els[] = Array.from(
-      section.querySelectorAll<HTMLElement>('[data-card]'),
-    ).map((card) => ({
-      card,
-      media: card.querySelector<HTMLElement>('[data-media]')!,
-      dim: card.querySelector<HTMLElement>('[data-dim]')!,
-      text: card.querySelector<HTMLElement>('[data-text]')!,
-      cache: {},
-    }))
-    const m = {
-      vw: 0,
-      vh: 0,
-      w: 0,
-      h: 0,
-      stageH: 0,
-      stageTop: 0,
-      tier: 'mobile' as 'mobile' | 'tablet' | 'laptop' | 'desktop' | 'wide',
-    }
-    const profileForWidth = (): Profile => {
-      if (mobileMode || m.vw < 768) return MOBILE_PROFILE
-      if (m.vw < 1024) return TABLET_PROFILE
-      if (m.vw < 1280) return LAPTOP_PROFILE
-      if (m.vw < 1600) return DESKTOP_PROFILE
-      return WIDE_PROFILE
-    }
-    const measure = () => {
-      m.vw = section.clientWidth
-      m.vh = section.clientHeight
-      if (mobileMode || m.vw < 768) m.tier = 'mobile'
-      else if (m.vw < 1024) m.tier = 'tablet'
-      else if (m.vw < 1280) m.tier = 'laptop'
-      else if (m.vw < 1600) m.tier = 'desktop'
-      else m.tier = 'wide'
-      const headerBottom = header ? header.offsetTop + header.offsetHeight : 0
-      const stageGap =
-        m.tier === 'mobile'
-          ? 28
-          : m.tier === 'tablet'
-            ? 40
-            : m.tier === 'laptop'
-              ? 48
-              : 56
-      m.stageTop = headerBottom + stageGap
-      m.stageH = Math.max(220, m.vh - m.stageTop)
-      const ratio = 413 / 480
-      if (m.tier === 'mobile') {
-        const gutter = m.vw < 390 ? 24 : 32
-        const width = Math.min(Math.max(250, m.vw - gutter), 380)
-        const heightFromWidth = width / ratio
-        m.h = Math.min(heightFromWidth, m.stageH * 0.86)
-      } else if (m.tier === 'tablet') {
-        const width = Math.min(m.vw * 0.44, 390)
-        const heightFromWidth = width / ratio
-        m.h = Math.min(heightFromWidth, m.stageH * 0.74, 425)
-      } else if (m.tier === 'laptop') {
-        m.h = Math.min(440, m.stageH * 0.73, m.vw * 0.4)
-      } else if (m.tier === 'desktop') {
-        m.h = Math.min(475, m.stageH * 0.75)
-      } else {
-        m.h = Math.min(510, m.stageH * 0.77)
-      }
-      const minHeight = m.tier === 'mobile' ? 250 : 320
-      const stageCap = Math.max(220, m.stageH * (m.tier === 'mobile' ? 0.9 : 0.86))
-      m.h = Math.min(Math.max(minHeight, m.h), stageCap)
-      m.w = m.h * ratio
-      section.style.setProperty('--stage-top', `${m.stageTop}px`)
-      section.style.setProperty('--cw', `${m.w}px`)
-      section.style.setProperty('--ch', `${m.h}px`)
-      for (const e of els) e.cache = {}
-    }
-    const rowY = () => {
-      const lift =
-        m.tier === 'mobile'
-          ? 4
-          : m.tier === 'tablet'
-            ? 2
-            : 0
-      return -m.stageH / 2 + m.h / 2 + lift
-    }
-    const gridGap = () => {
-      if (m.tier === 'tablet') return 18
-      if (m.tier === 'laptop') return 22
-      return 24
-    }
-    const gridPose = (index: number): Pose => ({
-      x: (index - START) * (m.w + gridGap()),
-      y: rowY(),
-      z: 0,
-      ry: 0,
-      s: 1,
-      o: index < COUNT ? 1 : 0,
-    })
-    const cylinderPose = (offset: number): Pose => {
-      const profile = profileForWidth()
-      const distance = Math.abs(offset)
-      const sign = offset < 0 ? -1 : 1
-      const opacity =
-        distance <= 2
-          ? sample(profile.o, distance)
-          : lerp(
-              profile.o[2],
-              0,
-              smoothstep(clamp01((distance - 2) / 0.6)),
-            )
-      return {
-        x: sign * sample(profile.x, distance) * m.w,
-        y: rowY(),
-        z: sample(profile.z, distance),
-        ry: -sign * sample(profile.ry, distance),
-        s: sample(profile.s, distance),
-        o: opacity,
-      }
-    }
-    const fineMouse =
-      !mobileMode && matches('(hover: hover) and (pointer: fine)')
-    const mouse = { tx: 0, ty: 0, x: 0, y: 0 }
-    const shared: Record<string, string> = {}
-    const onPointer = (event: PointerEvent) => {
-      mouse.tx = (event.clientX / window.innerWidth) * 2 - 1
-      mouse.ty = (event.clientY / window.innerHeight) * 2 - 1
-    }
-    const resetPointer = () => {
-      mouse.tx = 0
-      mouse.ty = 0
-    }
-    if (fineMouse) {
-      window.addEventListener('pointermove', onPointer, { passive: true })
-      document.documentElement.addEventListener('mouseleave', resetPointer)
-      window.addEventListener('blur', resetPointer)
-    }
-    measure()
-    const ro =
-      typeof ResizeObserver !== 'undefined'
-        ? new ResizeObserver(measure)
-        : null
-    ro?.observe(section)
-    if (header) ro?.observe(header)
-    let alive = true
-    document.fonts?.ready.then(() => {
-      if (alive) measure()
-    })
-    let target = 0
-    let current = 0
-    let initialised = false
-    let raf = 0
-    let last = performance.now()
-    const render = (now: number) => {
-      raf = requestAnimationFrame(render)
-      const dt = Math.min(48, now - last)
-      last = now
-      const rect = runway.getBoundingClientRect()
-      const travel = Math.max(1, rect.height - m.vh)
-      target = clamp01(-rect.top / travel)
-      if (!initialised) {
-        current = target
-        initialised = true
-      }
-      const near = rect.bottom > -m.vh && rect.top < m.vh * 2
-      if (!near) {
-        if (shared.wc !== 'auto') {
-          shared.wc = 'auto'
-          for (const e of els) e.card.style.willChange = 'auto'
-        }
-        current = target
-        return
-      }
-      if (shared.wc !== 'transform') {
-        shared.wc = 'transform'
-        for (const e of els) e.card.style.willChange = 'transform, opacity'
-      }
-      // Faster than the old 0.075 damping, but still eased enough to hide
-      // wheel/trackpad steps. This is frame-rate independent.
-      // Deliberately slow follow-through keeps the card travel silky on both
-      // wheel and trackpad input, without changing the scroll distance.
-      const followRate = mobileMode ? 9 : m.tier === 'tablet' ? 8.5 : 8
-      const follow = 1 - Math.exp((-followRate * dt) / 1000)
-      current += (target - current) * follow
-      if (Math.abs(target - current) < 0.00004) current = target
-      const mouseFollow = 1 - Math.exp((-10 * dt) / 1000)
-      mouse.x += (mouse.tx - mouse.x) * mouseFollow
-      mouse.y += (mouse.ty - mouse.y) * mouseFollow
-      const p = current
-      const establishStart = mobileMode ? 0 : 0.1
-      const establishEnd = mobileMode ? 0 : 0.2
-      const travelStart = mobileMode ? 0.04 : 0.2
-      const travelEnd = mobileMode ? 0.92 : 0.88
-      const exitStart = mobileMode ? 0.97 : 0.94
-      const open = mobileMode
-        ? 1
-        : smoothstep(
-            clamp01(
-              (p - establishStart) /
-                Math.max(0.0001, establishEnd - establishStart),
-            ),
-          )
-      const travelT = smoothstep(
-        clamp01(
-          (p - travelStart) /
-            Math.max(0.0001, travelEnd - travelStart),
-        ),
-      )
-      const active = START + travelT * COUNT
-      const exit = mobileMode
-        ? 0
-        : smoothstep(
-            clamp01((p - exitStart) / Math.max(0.0001, 1 - exitStart)),
-          )
-      for (let i = 0; i < els.length; i++) {
-        const e = els[i]
-        const offset = ringOffset(i, active)
-        let pose = cylinderPose(offset)
-        if (open < 1) pose = mix(gridPose(i), pose, open)
-        let { z, ry } = pose
-        // Gentle flatten at the end so the section releases without a snap.
-        z *= 1 - exit
-        ry *= 1 - exit
-        const exitScale = lerp(1, 0.975, exit)
-        const scale = pose.s * exitScale
-        const centre = Math.max(0, 1 - Math.abs(offset)) * open
-        let rx = 0
-        if (fineMouse) {
-          const tilt = centre * (1 - exit)
-          const pointerStrength = m.tier === 'tablet' ? 0 : m.tier === 'laptop' ? 0.7 : 1
-          ry += mouse.x * 3.5 * tilt * pointerStrength
-          rx = -mouse.y * 2.6 * tilt * pointerStrength
-        }
-        const hidden = pose.o <= 0.01
-        write(
-          e.card,
-          e.cache,
-          'v',
-          'visibility',
-          hidden ? 'hidden' : 'visible',
-        )
-        if (hidden) continue
-        write(
-          e.card,
-          e.cache,
-          't',
-          'transform',
-          `translate3d(${pose.x.toFixed(2)}px, ${pose.y.toFixed(2)}px, ${z.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg) rotateX(${rx.toFixed(3)}deg) scale(${scale.toFixed(5)})`,
-        )
-        write(
-          e.card,
-          e.cache,
-          'o',
-          'opacity',
-          pose.o >= 0.999 ? '1' : pose.o.toFixed(3),
-        )
-        const dimStrength = m.tier === 'mobile' ? 0.12 : 0.18
-        write(
-          e.dim,
-          e.cache,
-          'd',
-          'opacity',
-          ((1 - centre) * dimStrength * open).toFixed(3),
-        )
-        write(
-          e.text,
-          e.cache,
-          'tx',
-          'opacity',
-          lerp(1, 0.62 + 0.38 * centre, open).toFixed(3),
-        )
-        const driftStrength =
-          m.tier === 'mobile' ? 1.4 : m.tier === 'tablet' ? 2 : 2.6
-        const drift =
-          Math.max(-1.5, Math.min(1.5, offset)) * driftStrength * open
-        write(
-          e.media,
-          e.cache,
-          'm',
-          'transform',
-          `translate3d(${(-drift).toFixed(3)}%, 0, 0) scale(${lerp(1, 1.075, open).toFixed(4)})`,
-        )
-      }
-    }
-    render(performance.now())
-    return () => {
-      alive = false
-      cancelAnimationFrame(raf)
-      ro?.disconnect()
-      if (fineMouse) {
-        window.removeEventListener('pointermove', onPointer)
-        document.documentElement.removeEventListener('mouseleave', resetPointer)
-        window.removeEventListener('blur', resetPointer)
-      }
-    }
-  }, [mobileMode, runwayRef, sectionRef])
-}
-function ResultsCoverflow({ mobileMode }: { mobileMode: boolean }) {
-  const runwayRef = useRef<HTMLDivElement>(null)
+
+export default function Results() {
+  const viewportWidth = useViewportWidth()
+  const reduceMotion = usePrefersReducedMotion()
   const sectionRef = useRef<HTMLElement>(null)
-  useCoverflow(mobileMode, runwayRef, sectionRef)
+  const cardRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const dragDistanceRef = useRef(0)
+  const wheelLockedRef = useRef(false)
+  const wheelUnlockRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const focusAfterChangeRef = useRef(false)
+  const isInView = useInView(sectionRef, { once: true, amount: 0.28 })
+  const [activeIndex, setActiveIndex] = useState(INITIAL_INDEX)
+  const [isHovered, setIsHovered] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isPageVisible, setIsPageVisible] = useState(true)
+
+  const stageHeight = getStageHeight(viewportWidth)
+  const entered = isInView || reduceMotion
+
+  const selectIndex = useCallback((index: number, focus = false) => {
+    focusAfterChangeRef.current = focus
+    setActiveIndex(((index % CARD_COUNT) + CARD_COUNT) % CARD_COUNT)
+  }, [])
+
+  const advance = useCallback((direction: -1 | 1, focus = false) => {
+    focusAfterChangeRef.current = focus
+    setActiveIndex((current) => (current + direction + CARD_COUNT) % CARD_COUNT)
+  }, [])
+
+  useEffect(() => {
+    if (!focusAfterChangeRef.current) return
+    focusAfterChangeRef.current = false
+    cardRefs.current[activeIndex]?.focus({ preventScroll: true })
+  }, [activeIndex])
+
+  useEffect(() => {
+    const onVisibilityChange = () => setIsPageVisible(!document.hidden)
+    onVisibilityChange()
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+  }, [])
+
+  useEffect(() => {
+    if (
+      reduceMotion ||
+      !entered ||
+      !isPageVisible ||
+      isHovered ||
+      isFocused ||
+      isDragging
+    ) {
+      return
+    }
+    const timer = window.setInterval(() => advance(1), 5000)
+    return () => window.clearInterval(timer)
+  }, [advance, entered, isDragging, isFocused, isHovered, isPageVisible, reduceMotion])
+
+  useEffect(() => {
+    return () => {
+      if (wheelUnlockRef.current) clearTimeout(wheelUnlockRef.current)
+    }
+  }, [])
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    event.preventDefault()
+    advance(event.key === 'ArrowRight' ? 1 : -1, true)
+  }
+
+  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
+    if (
+      Math.abs(event.deltaX) < 24 ||
+      Math.abs(event.deltaX) <= Math.abs(event.deltaY) ||
+      wheelLockedRef.current
+    ) {
+      return
+    }
+    event.preventDefault()
+    wheelLockedRef.current = true
+    advance(event.deltaX > 0 ? 1 : -1)
+    wheelUnlockRef.current = setTimeout(() => {
+      wheelLockedRef.current = false
+    }, 650)
+  }
+
   return (
-    <div
-      ref={runwayRef}
-      className={
-        mobileMode
-          ? 'relative h-[280svh] sm:h-[300svh]'
-          : 'relative h-[310vh] lg:h-[340vh] xl:h-[360vh] 2xl:h-[380vh]'
-      }
+    <section
+      ref={sectionRef}
+      className="measure"
+      aria-labelledby="measure-heading"
+      onPointerEnter={() => setIsHovered(true)}
+      onPointerLeave={() => setIsHovered(false)}
+      onFocusCapture={() => setIsFocused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setIsFocused(false)
+      }}
+      onKeyDown={handleKeyDown}
     >
-      <section
-        ref={sectionRef}
-        aria-label="BrandWorks results"
-        className="sticky top-0 h-svh min-h-[520px] overflow-hidden bg-white sm:min-h-[580px] md:min-h-[620px] lg:min-h-[640px]"
+      <motion.h2
+        id="measure-heading"
+        className="measure__heading site-display"
+        initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+        animate={entered ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+        transition={{ duration: reduceMotion ? 0 : 0.7, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div
-          data-header
-          className="mx-auto flex w-full max-w-[1320px] flex-col items-center px-4 pt-[clamp(28px,5svh,72px)] text-center sm:px-6 sm:pt-[clamp(34px,6svh,78px)] md:px-8 lg:pt-[clamp(42px,7svh,86px)]"
-        >
-          <Header />
-        </div>
-        <div
-          className="absolute inset-x-0 bottom-0 overflow-visible"
-          style={{
-            top: 'var(--stage-top)',
-            perspective: mobileMode ? '900px' : '1300px',
-          }}
-        >
-          <div className="absolute inset-0 [transform-style:preserve-3d]">
-            {RING.map((result, index) => (
-              <div
-                key={`${result.label}-${index}`}
-                data-card
-                aria-hidden={index >= COUNT ? true : undefined}
-                className="absolute left-1/2 top-1/2 overflow-hidden rounded-[12px] [backface-visibility:hidden] [transform-style:preserve-3d] sm:rounded-[14px] lg:rounded-[16px]"
-                style={{
-                  width: 'var(--cw)',
-                  height: 'var(--ch)',
-                  marginLeft: 'calc(var(--cw) / -2)',
-                  marginTop: 'calc(var(--ch) / -2)',
-                }}
+        What we measure.
+      </motion.h2>
+
+      <motion.div
+        className="measure__stage"
+        style={{ height: stageHeight }}
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Brand performance metrics"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.12}
+        dragMomentum={false}
+        onDragStart={() => {
+          dragDistanceRef.current = 0
+          setIsDragging(true)
+        }}
+        onDrag={(_, info) => {
+          dragDistanceRef.current = Math.max(
+            dragDistanceRef.current,
+            Math.abs(info.offset.x),
+          )
+        }}
+        onDragEnd={(_, info) => {
+          const threshold = viewportWidth < 768 ? 44 : 70
+          const velocityThreshold = 520
+          if (
+            Math.abs(info.offset.x) >= threshold ||
+            Math.abs(info.velocity.x) >= velocityThreshold
+          ) {
+            advance(info.offset.x < 0 || info.velocity.x < -velocityThreshold ? 1 : -1)
+          }
+          setIsDragging(false)
+        }}
+        onWheel={handleWheel}
+      >
+        {metrics.map((metric, index) => {
+          const offset = circularOffset(index, activeIndex)
+          const pose = getCardPose(offset, viewportWidth)
+          const distance = Math.abs(offset)
+          const entranceDelay = distance === 0 ? 0.12 : distance === 1 ? 0.22 : 0.3
+          const entranceDuration = distance === 0 ? 0.8 : distance === 1 ? 0.95 : 1.1
+          const initialX = pose.x + (offset === 0 ? 0 : -Math.sign(offset) * 42)
+
+          return (
+            <motion.div
+              key={metric.title}
+              className="measure__card-anchor"
+              animate={{ x: pose.x, y: pose.y }}
+              initial={reduceMotion ? false : { x: initialX, y: pose.y + 34 }}
+              transition={
+                reduceMotion
+                  ? { duration: 0 }
+                  : { type: 'spring', stiffness: 135, damping: 23, mass: 0.9 }
+              }
+              style={{ zIndex: pose.zIndex }}
+            >
+              <motion.div
+                className="measure__card-center"
+                initial={
+                  reduceMotion
+                    ? false
+                    : { width: pose.width, height: pose.height }
+                }
+                animate={{ width: pose.width, height: pose.height }}
+                transition={
+                  reduceMotion
+                    ? { duration: 0 }
+                    : { type: 'spring', stiffness: 135, damping: 23, mass: 0.9 }
+                }
               >
-                <CardContent result={result} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
-function ResultsStatic() {
-  return (
-    <section className="mx-auto flex w-full max-w-[1320px] flex-col items-center bg-white px-4 py-14 text-center sm:px-6 sm:py-20 md:py-20 lg:px-8 lg:py-24">
-      <Header />
-      <div className="mt-11 grid w-full grid-cols-1 gap-4 sm:mt-14 sm:grid-cols-2 sm:gap-5 md:mt-16 lg:mt-18 lg:grid-cols-3 lg:gap-6">
-        {results.map((result) => (
-          <div
-            key={result.label}
-            className="relative mx-auto aspect-[413/480] w-full max-w-[380px] overflow-hidden rounded-[12px] sm:max-w-[413px] sm:rounded-[14px] lg:rounded-[16px]"
-          >
-            <CardContent result={result} />
-          </div>
-        ))}
-      </div>
+                <motion.button
+                  ref={(node) => {
+                    cardRefs.current[index] = node
+                  }}
+                  type="button"
+                  className="measure__card"
+                  aria-label={`${metric.title}${offset === 0 ? ', current metric' : ''}`}
+                  aria-current={offset === 0 ? 'true' : undefined}
+                  tabIndex={offset === 0 ? 0 : -1}
+                  onClick={() => {
+                    if (dragDistanceRef.current > 8) {
+                      dragDistanceRef.current = 0
+                      return
+                    }
+                    selectIndex(index)
+                  }}
+                  initial={
+                    reduceMotion
+                      ? false
+                      : {
+                          rotate: pose.rotate,
+                          opacity: 0,
+                          scale: offset === 0 ? 0.92 : 0.96,
+                        }
+                  }
+                  animate={
+                    entered
+                      ? {
+                          rotate: pose.rotate,
+                          opacity: pose.opacity,
+                          scale: pose.scale,
+                        }
+                      : {
+                          rotate: pose.rotate,
+                          opacity: 0,
+                          scale: offset === 0 ? 0.92 : 0.96,
+                        }
+                  }
+                  transition={
+                    reduceMotion
+                      ? { duration: 0 }
+                      : entered
+                        ? {
+                            type: 'spring',
+                            stiffness: 135,
+                            damping: 23,
+                            mass: 0.9,
+                            opacity: {
+                              duration: entranceDuration,
+                              delay: entranceDelay,
+                              ease: [0.22, 1, 0.36, 1],
+                            },
+                          }
+                        : { duration: 0 }
+                  }
+                  style={{ pointerEvents: pose.pointerEvents }}
+                >
+                  <Image
+                    src={metric.image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 767px) 80vw, (max-width: 1023px) 62vw, 440px"
+                    className="measure__image"
+                    priority={index === INITIAL_INDEX}
+                  />
+                  <span className="measure__shade" aria-hidden="true" />
+                  <span className="measure__label">{metric.title}</span>
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          )
+        })}
+      </motion.div>
+
+      <p className="measure__announcement" aria-live="polite">
+        {metrics[activeIndex].title}, metric {activeIndex + 1} of {CARD_COUNT}
+      </p>
     </section>
   )
 }
-function Results() {
-  const mode = useMode()
-  if (mode === 'static') return <ResultsStatic />
-  return (
-    <ResultsCoverflow
-      key={mode}
-      mobileMode={mode === 'mobile'}
-    />
-  )
-}
-export default Results

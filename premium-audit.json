@@ -3,7 +3,11 @@
     {
       "category": "unresolved",
       "file": "src/admin/pages/blogs/BlogEditor.tsx",
+<<<<<<< ours
       "line": 539,
+=======
+      "line": 1854,
+>>>>>>> theirs
       "message": "Native date/time input is used without an explicit ownership decision.",
       "remediation": "Record Date as native or reuse the typed/authored canonical owner.",
       "ruleId": "ownership.native-date-undecided",
@@ -12,7 +16,25 @@
     {
       "category": "unresolved",
       "file": "src/admin/pages/blogs/BlogEditor.tsx",
+<<<<<<< ours
       "line": 1170,
+=======
+      "line": 1540,
+>>>>>>> theirs
+      "message": "Native select is used without an explicit ownership decision.",
+      "remediation": "Record Select/Listbox as native or reuse the authored canonical owner.",
+      "ruleId": "ownership.native-select-undecided",
+      "severity": "error"
+    },
+    {
+<<<<<<< ours
+      "category": "violation",
+      "file": "src/components/Header/Header.tsx",
+      "line": 117,
+=======
+      "category": "unresolved",
+      "file": "src/admin/pages/blogs/BlogList.tsx",
+      "line": 401,
       "message": "Native select is used without an explicit ownership decision.",
       "remediation": "Record Select/Listbox as native or reuse the authored canonical owner.",
       "ruleId": "ownership.native-select-undecided",
@@ -20,8 +42,27 @@
     },
     {
       "category": "violation",
+      "file": "src/admin/components/AdminButton.tsx",
+      "line": 18,
+      "message": "Enabled literal button has no detectable action or submit behavior.",
+      "remediation": "Connect the button to a real action, make it a submit button, or disable/remove it.",
+      "ruleId": "affordance.actionless-button",
+      "severity": "error"
+    },
+    {
+      "category": "violation",
+      "file": "src/admin/components/AdminIconButton.tsx",
+      "line": 14,
+      "message": "Enabled literal button has no detectable action or submit behavior.",
+      "remediation": "Connect the button to a real action, make it a submit button, or disable/remove it.",
+      "ruleId": "affordance.actionless-button",
+      "severity": "error"
+    },
+    {
+      "category": "violation",
       "file": "src/components/Header/Header.tsx",
-      "line": 117,
+      "line": 125,
+>>>>>>> theirs
       "message": "Enabled literal button has no detectable action or submit behavior.",
       "remediation": "Connect the button to a real action, make it a submit button, or disable/remove it.",
       "ruleId": "affordance.actionless-button",
@@ -65,8 +106,13 @@
     },
     {
       "category": "violation",
+<<<<<<< ours
       "file": "src/components/Header/Header.tsx",
       "line": 91,
+=======
+      "file": "src/components/Header/Header.test.tsx",
+      "line": 53,
+>>>>>>> theirs
       "message": "Empty hash links look actionable but have no destination.",
       "remediation": "Use a real route/action or render non-interactive text.",
       "ruleId": "affordance.empty-href",
@@ -93,7 +139,19 @@
     {
       "category": "violation",
       "file": "src/admin/pages/Login.tsx",
+<<<<<<< ours
       "line": 57,
+=======
+      "line": 53,
+      "message": "Application-owned form does not declare its validation owner.",
+      "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
+      "ruleId": "form.novalidate-missing",
+      "severity": "error"
+    },
+    {
+      "category": "violation",
+      "file": "src/admin/pages/SeoWorkspace.tsx",
+      "line": 75,
       "message": "Application-owned form does not declare its validation owner.",
       "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
       "ruleId": "form.novalidate-missing",
@@ -102,7 +160,21 @@
     {
       "category": "violation",
       "file": "src/admin/pages/Settings.tsx",
+      "line": 46,
+>>>>>>> theirs
+      "message": "Application-owned form does not declare its validation owner.",
+      "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
+      "ruleId": "form.novalidate-missing",
+      "severity": "error"
+    },
+    {
+      "category": "violation",
+      "file": "src/admin/pages/Settings.tsx",
+<<<<<<< ours
       "line": 41,
+=======
+      "line": 121,
+>>>>>>> theirs
       "message": "Application-owned form does not declare its validation owner.",
       "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
       "ruleId": "form.novalidate-missing",
@@ -111,7 +183,11 @@
     {
       "category": "violation",
       "file": "src/admin/pages/Settings.tsx",
+<<<<<<< ours
       "line": 116,
+=======
+      "line": 207,
+>>>>>>> theirs
       "message": "Application-owned form does not declare its validation owner.",
       "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
       "ruleId": "form.novalidate-missing",
@@ -120,7 +196,11 @@
     {
       "category": "violation",
       "file": "src/admin/pages/Users.tsx",
+<<<<<<< ours
       "line": 47,
+=======
+      "line": 50,
+>>>>>>> theirs
       "message": "Application-owned form does not declare its validation owner.",
       "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
       "ruleId": "form.novalidate-missing",
@@ -129,7 +209,11 @@
     {
       "category": "violation",
       "file": "src/admin/pages/blogs/BlogEditor.tsx",
+<<<<<<< ours
       "line": 958,
+=======
+      "line": 1271,
+>>>>>>> theirs
       "message": "Application-owned form does not declare its validation owner.",
       "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
       "ruleId": "form.novalidate-missing",
@@ -156,7 +240,11 @@
     {
       "category": "violation",
       "file": "src/admin/pages/blogs/BlogEditor.tsx",
+<<<<<<< ours
       "line": 482,
+=======
+      "line": 545,
+>>>>>>> theirs
       "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
       "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
       "ruleId": "form.textarea-resize-missing",
@@ -165,7 +253,11 @@
     {
       "category": "violation",
       "file": "src/admin/pages/blogs/BlogEditor.tsx",
+<<<<<<< ours
       "line": 1111,
+=======
+      "line": 1481,
+>>>>>>> theirs
       "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
       "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
       "ruleId": "form.textarea-resize-missing",
@@ -174,7 +266,11 @@
     {
       "category": "violation",
       "file": "src/admin/pages/blogs/BlogEditor.tsx",
+<<<<<<< ours
       "line": 1248,
+=======
+      "line": 1618,
+>>>>>>> theirs
       "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
       "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
       "ruleId": "form.textarea-resize-missing",
@@ -183,7 +279,11 @@
     {
       "category": "violation",
       "file": "src/admin/pages/blogs/BlogEditor.tsx",
+<<<<<<< ours
       "line": 1312,
+=======
+      "line": 1682,
+>>>>>>> theirs
       "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
       "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
       "ruleId": "form.textarea-resize-missing",
@@ -192,7 +292,11 @@
     {
       "category": "violation",
       "file": "src/admin/pages/blogs/BlogEditor.tsx",
+<<<<<<< ours
       "line": 1404,
+=======
+      "line": 1774,
+>>>>>>> theirs
       "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
       "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
       "ruleId": "form.textarea-resize-missing",
@@ -255,7 +359,11 @@
     {
       "category": "violation",
       "file": "src/index.css",
+<<<<<<< ours
       "line": 619,
+=======
+      "line": 2853,
+>>>>>>> theirs
       "message": "Scrollbar theme does not provide both standards-based scrollbar properties.",
       "remediation": "Add global scrollbar-color and scrollbar-width standards properties plus fallbacks.",
       "ruleId": "scrollbar.webkit-only",
@@ -275,10 +383,17 @@
   "projectRoot": "C:\\Users\\assas\\Downloads\\BW2.0\\Brandworks",
   "schemaVersion": 1,
   "summary": {
+<<<<<<< ours
     "errors": 30,
     "total": 30,
     "unresolved": 2,
     "violations": 28,
+=======
+    "errors": 35,
+    "total": 35,
+    "unresolved": 3,
+    "violations": 32,
+>>>>>>> theirs
     "warnings": 0
   }
 }

@@ -1,10 +1,7 @@
+import Image from 'next/image'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { mediaUrl } from '../lib/media'
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
 import { Link } from '../routing'
 import { useNativeMetadata } from '../routing/context'
 const photo1 = mediaUrl("our_stra.jpg")
@@ -252,93 +249,7 @@ const serviceGroups = [
 function usePageSeo() {
   const nativeMetadata = useNativeMetadata()
   useEffect(() => {
-    const title =
-      'Creative, Digital & Marketing Services | BrandWorks'
-
-    const description =
-      'Explore BrandWorks services across brand strategy, graphic design, content creation, photography, videography, social media marketing, PR, founder reputation management, performance marketing, SEO, and web design and development.'
-
-    if (!nativeMetadata) document.title = title
-
-    const setMeta = (
-      name: string,
-      content: string,
-      property = false,
-    ) => {
-      const selector = property
-        ? `meta[property="${name}"]`
-        : `meta[name="${name}"]`
-
-      let element =
-        document.head.querySelector<HTMLMetaElement>(selector)
-
-      if (!element) {
-        element = document.createElement('meta')
-
-        if (property) {
-          element.setAttribute('property', name)
-        } else {
-          element.setAttribute('name', name)
-        }
-
-        document.head.appendChild(element)
-      }
-
-      element.setAttribute('content', content)
-    }
-
-    if (!nativeMetadata) {
-      setMeta('description', description)
-      setMeta('robots', 'index,follow,max-image-preview:large')
-      setMeta('og:title', title, true)
-      setMeta('og:description', description, true)
-      setMeta('og:type', 'website', true)
-      setMeta('og:url', 'https://brandworks.me/services', true)
-      setMeta('twitter:card', 'summary_large_image')
-      setMeta('twitter:title', title)
-      setMeta('twitter:description', description)
-
-      let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
-      if (!canonical) {
-        canonical = document.createElement('link')
-        canonical.rel = 'canonical'
-        document.head.appendChild(canonical)
-      }
-      canonical.href = 'https://brandworks.me/services'
-    }
-
-    const schema = {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: 'https://brandworks.me/',
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: 'Services',
-          item: 'https://brandworks.me/services',
-        },
-      ],
-    }
-
-    let script =
-      document.head.querySelector<HTMLScriptElement>(
-        '#services-breadcrumb-schema',
-      )
-
-    if (!script) {
-      script = document.createElement('script')
-      script.id = 'services-breadcrumb-schema'
-      script.type = 'application/ld+json'
-      document.head.appendChild(script)
-    }
-
-    script.textContent = JSON.stringify(schema)
+    if (!nativeMetadata) document.title = 'Creative, Digital & Marketing Services | BrandWorks'
   }, [nativeMetadata])
 }
 
