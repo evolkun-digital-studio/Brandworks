@@ -42,7 +42,8 @@ function App() {
         <Route path="/services/technology" element={<TechnologyPage />} />
         <Route path="/services/photography" element={<PhotographyPage />} />
         <Route path="/services/pr-founder-reputation" element={<PRFounderReputationPage />} />
-        <Route path="/services/Concept-creation" element={<ConceptCreationPage />} />
+        <Route path="/services/concept-creation" element={<ConceptCreationPage />} />
+        <Route path="/services/content-creation" element={<ConceptCreationPage />} />
         <Route path="/services/graphic-design" element={<GraphicDesignPage />} />
         <Route path="/services/seo" element={<SeoPage />} />
         <Route path="/services/social-media" element={<SocialMediaPage />} />

@@ -51,14 +51,6 @@
   padding-bottom: 0;
 }
 
-.home-page .home-section .services-showcase__header {
-  margin-top: 0;
-}
-
-.home-page .home-section .services-showcase__container {
-  padding-bottom: 0;
-}
-
 .home-page .home-section #search-seo > div > :first-child {
   padding-top: 0;
 }
@@ -68,7 +60,7 @@
 }
 
 /* The intro follows a full-bleed hero, so it owns the complete opening beat.
-   Its lower edge remains half-sized and pairs with the Services upper edge. */
+   Its lower edge remains half-sized and pairs with the next chapter. */
 .home-page > section[aria-labelledby='brandworks-intro-statement'] {
   --home-section-space-top: var(--home-section-gap);
 }

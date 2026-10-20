@@ -50,7 +50,7 @@ export const GRAPHICS_PROJECTS: GraphicsProject[] = [
     height: 2138,
     alt: 'Man in a blue blazer cheering with raised fists at a laptop in a bright office',
     category: 'Campaign Design',
-    title: 'Ideas turned into scroll-stopping visual worlds.',
+    title: 'Ideas turned into visual worlds.',
     meta: 'Campaign / Key Visual / 2026',
   },
   {
@@ -72,7 +72,7 @@ export const GRAPHICS_PROJECTS: GraphicsProject[] = [
     height: 5026,
     alt: 'Designer in headphones sketching at a wooden desk beside a window',
     category: 'Social Graphics',
-    title: 'Content systems designed for everyday relevance.',
+    title: 'Content systems  everyday relevance.',
     meta: 'Social / Content System / 2026',
   },
   {
@@ -83,7 +83,7 @@ export const GRAPHICS_PROJECTS: GraphicsProject[] = [
     height: 3648,
     alt: 'Close-up of a rising line chart on a dark screen',
     category: 'Animation',
-    title: 'Movement that gives the message another dimension.',
+    title: 'Movement that gives the message.',
     meta: 'Animation / Loop / 2025',
   },
   {

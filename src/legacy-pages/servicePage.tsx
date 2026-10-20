@@ -77,8 +77,8 @@ const services: Service[] = [
   },
   {
     number: '03',
-    slug: 'content-creation',
-    title: 'Content Creation',
+    slug: 'concept-creation',
+    title: 'Concept Creation',
     group: 'Direction',
     description:
       'Concept-led brand content developed for campaigns, platforms and audiences instead of simply filling a content calendar.',
@@ -450,12 +450,8 @@ export default function ServicesPage() {
                   >
                     <Link
                       to={`/services/${service.slug}`}
-                      className="group grid min-h-[84px] grid-cols-[42px_1fr_auto] items-center gap-4 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-4 sm:min-h-[94px] sm:grid-cols-[52px_minmax(190px,0.72fr)_minmax(240px,1fr)_auto] sm:gap-5"
+                      className="group grid min-h-[84px] grid-cols-[1fr_auto] items-center gap-4 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-4 sm:min-h-[94px] sm:grid-cols-[minmax(190px,0.72fr)_minmax(240px,1fr)_auto] sm:gap-5"
                     >
-                      <span className="text-[11px] tabular-nums text-neutral-400">
-                        {service.number}
-                      </span>
-
                       <span className="text-[20px] font-medium leading-tight tracking-[-0.025em] sm:text-[22px]">
                         {service.shortTitle ??
                           service.title}
@@ -479,33 +475,33 @@ export default function ServicesPage() {
             className="hidden lg:block"
           >
             <div className="sticky top-24">
-              <div className="aspect-[4/5] overflow-hidden bg-neutral-100">
-                <img
-                  key={activeService.image}
-                  src={activeService.image}
-                  alt=""
-                  width={760}
-                  height={950}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover opacity-100 transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none"
-                />
-              </div>
-
-              <div className="mt-5 flex items-start justify-between gap-5">
-                <div>
-                  <p className="text-sm font-medium">
-                    {activeService.title}
-                  </p>
-
-                  <p className="mt-1 text-xs text-neutral-500">
-                    {activeService.group}
-                  </p>
-                </div>
-
-                <span className="text-xs text-neutral-400">
-                  {activeService.number} / 10
-                </span>
+              <div className="relative h-[clamp(620px,72vh,780px)] overflow-hidden rounded-[40px] bg-neutral-100 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:z-10 after:h-[38%] after:bg-gradient-to-t after:from-black/55 after:via-black/15 after:to-transparent after:content-['']">
+                {services.map((service, index) => {
+                  const isActive = service.slug === activeService.slug
+                  return (
+                    <img
+                      key={service.slug}
+                      src={service.image}
+                      alt=""
+                      width={760}
+                      height={950}
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      className={`absolute inset-0 h-full w-full transform-gpu object-cover object-center transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${isActive ? 'opacity-100' : 'opacity-0'}`}
+                    />
+                  )
+                })}
+                {services.map((service) => {
+                  const isActive = service.slug === activeService.slug
+                  return (
+                    <p
+                      key={service.slug}
+                      className={`pointer-events-none absolute bottom-6 left-6 z-20 max-w-[90%] text-[clamp(1.5rem,2vw,1.875rem)] font-medium leading-[1.05] tracking-[-0.03em] text-white transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${isActive ? 'opacity-100' : 'opacity-0'}`}
+                    >
+                      {service.title}
+                    </p>
+                  )
+                })}
               </div>
             </div>
           </aside>

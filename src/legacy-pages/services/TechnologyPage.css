@@ -414,10 +414,21 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
   display: block;
   width: min(52vw, 820px);
   height: min(76svh, 720px);
+  overflow: hidden;
+  background: transparent;
   transform: translateY(-46%);
   /* Fade the system's left edge out before it reaches the headline. */
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 8%, #000 38%);
   mask-image: linear-gradient(90deg, transparent 0%, transparent 8%, #000 38%);
+}
+
+.bwt-hero__field > iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent !important;
+  transform: scale(0.85);
+  transform-origin: center;
 }
 
 .bwt-hero__inner {

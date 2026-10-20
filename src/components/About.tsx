@@ -95,8 +95,8 @@ function About({ ctaHref = "#" }: AboutProps) {
           </figure>
 
           {/* Copy column */}
-          <div className="flex flex-col justify-center lg:col-span-7 lg:pl-[clamp(0px,3vw,48px)]">
-            <p className="font-primary font-light text-[clamp(24px,6.2vw,32px)] leading-[1.22] tracking-[-0.02em] sm:text-[clamp(28px,4.2vw,32px)] lg:text-[clamp(28px,2.3vw,32px)] lg:leading-[1.16]">
+          <div className="flex flex-col justify-end lg:col-span-7 lg:pl-[clamp(0px,3vw,48px)]">
+            <p className="font-primary text-[clamp(24px,6.2vw,32px)] leading-[1.22] tracking-[-0.02em] text-neutral-950 sm:text-[clamp(28px,4.2vw,32px)] lg:text-[clamp(28px,2.3vw,32px)] lg:leading-[1.16]">
               {ABOUT_TEXT}
             </p>
 

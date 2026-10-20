@@ -370,7 +370,7 @@ test('Next editorial metadata is present on the initial response', async ({ brow
 
   for (const item of [
     { path: '/privacy-policy', title: 'Privacy policy | Brand Works', canonical: 'https://brandworks.me/privacy-policy' },
-    { path: '/services/Concept-creation', title: 'Concept Creation | BrandWorks', canonical: 'https://brandworks.me/services/Concept-creation' },
+    { path: '/services/concept-creation', title: 'Concept Creation | BrandWorks', canonical: 'https://brandworks.me/services/concept-creation' },
   ]) {
     await page.goto(`http://127.0.0.1:3000${item.path}`, { waitUntil: 'domcontentloaded' })
     await expect(page).toHaveTitle(item.title)

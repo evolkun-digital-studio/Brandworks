@@ -113,7 +113,7 @@ function Hero() {
           <span className="block overflow-hidden text-[clamp(18px,1.6vw,22px)] font-normal tracking-[-0.01em] text-[#6b6b6b]">
             <span data-hero-line className="block">Concept creation</span>
           </span>
-          <span className={`${display} mt-5 block text-[clamp(52px,7.6vw,128px)] leading-[0.9] text-[#0d0d0d]`}>
+          <span className={`${display} mt-5 block text-[72px] leading-[0.9] text-[#0d0d0d]`}>
             <span className="block overflow-hidden pb-[0.04em]"><span data-hero-line className="block">One idea,</span></span>
             <span className="block overflow-hidden pb-[0.04em]"><span data-hero-line className="block">everywhere it</span></span>
             <span className="block overflow-hidden pb-[0.04em]"><span data-hero-line className="block">needs to go.</span></span>
@@ -245,10 +245,10 @@ function WhyItMatters() {
         <p className="m-0">
           Without one, every post, ad and launch is its own small project, and none of them add up. With one, people start to recognise you before they see the logo, and every new piece of work makes the last one stronger.
         </p>
-        <p className="m-0">
-          The evidence backs this up, with a warning attached. In Peter Field’s analysis of campaigns submitted to the IPA Effectiveness Awards, creatively awarded campaigns were once around twelve times more efficient at growing market share than other campaigns. As more of that work became short, one-off activity, the advantage fell to around four times.{' '}
-          <a href={SOURCES[1].url} target="_blank" rel="noopener noreferrer" className="underline decoration-[#0d0d0d]/25 underline-offset-4 hover:decoration-[#0d0d0d]">Source</a>
-        </p>
+          {/* <p className="m-0">
+            The evidence backs this up, with a warning attached. In Peter Field’s analysis of campaigns submitted to the IPA Effectiveness Awards, creatively awarded campaigns were once around twelve times more efficient at growing market share than other campaigns. As more of that work became short, one-off activity, the advantage fell to around four times.{' '}
+            <a href={SOURCES[1].url} target="_blank" rel="noopener noreferrer" className="underline decoration-[#0d0d0d]/25 underline-offset-4 hover:decoration-[#0d0d0d]">Source</a>
+          </p> */}
         <p className="m-0 text-[#0d0d0d]">
           Creativity pays when it’s given time to build. That’s why we design concepts to run for years, not weeks.
         </p>
