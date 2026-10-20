@@ -1,22 +1,10 @@
+import Image from 'next/image'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { mediaUrl } from '../lib/media'
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
 import { Link } from '../routing'
 import { useNativeMetadata } from '../routing/context'
-const photo1 = mediaUrl("our_stra.jpg")
-const photo2 = mediaUrl("graphic_design.jpg")
-const photo3 = mediaUrl("content_creation.avif")
-const photo4 = mediaUrl("photography.jpg")
-const photo5 = mediaUrl("videography.jpg")
-const photo6 = mediaUrl("socialmedia.jpg")
-const photo7 = mediaUrl("vcvcvcvcv.jpg")
-const photo8 = mediaUrl("Artboard 14@3x.png")
-const photo9 = mediaUrl("seo.jpg")
-const photo10 = mediaUrl("website_dev.jpg")
+import './servicePage.css'
 
 type Service = {
   number: string
@@ -25,738 +13,281 @@ type Service = {
   shortTitle?: string
   group: string
   description: string
-  capabilities: string[]
   image: string
   imageAlt: string
-}
-
-type Project = {
-  slug: string
-  client: string
-  title: string
-  services: string[]
-  image: string
-  imageAlt: string
-  year?: string
 }
 
 const services: Service[] = [
   {
-    number: '01',
-    slug: 'strategy',
-    title: 'Strategy',
-    group: 'Direction',
-    description:
-      'Brand strategy, positioning and creative direction built around where the business is going and how the brand needs to be understood.',
-    capabilities: [
-      'Brand Strategy',
-      'Positioning',
-      'Creative Direction',
-      'Campaign Strategy',
-    ],
-    image: photo1,
-    imageAlt:
-      'Brand strategy and creative direction work by BrandWorks',
+    number: '01', slug: 'strategy', title: 'Strategy', group: 'Direction',
+    description: 'Brand strategy, positioning and creative direction built around where the business is going and how the brand needs to be understood.',
+    image: mediaUrl('our_stra.jpg'), imageAlt: 'Brand strategy and creative direction work by BrandWorks',
   },
   {
-    number: '02',
-    slug: 'graphic-design',
-    title: 'Graphic Design',
-    group: 'Direction',
-    description:
-      'Visual identities, campaign systems and graphic communication designed to make brands clearer, more consistent and easier to recognise.',
-    capabilities: [
-      'Visual Identity',
-      'Campaign Design',
-      'Digital Graphics',
-      'Motion Graphics',
-    ],
-    image: photo2,
-    imageAlt:
-      'Graphic design and visual identity work by BrandWorks',
+    number: '02', slug: 'graphic-design', title: 'Graphic Design', group: 'Direction',
+    description: 'Visual identities, campaign systems and graphic communication designed to make brands clearer, more consistent and easier to recognise.',
+    image: mediaUrl('graphic_design.jpg'), imageAlt: 'Graphic design and visual identity work by BrandWorks',
   },
   {
-    number: '03',
-    slug: 'content-creation',
-    title: 'Content Creation',
-    group: 'Direction',
-    description:
-      'Concept-led brand content developed for campaigns, platforms and audiences instead of simply filling a content calendar.',
-    capabilities: [
-      'Content Strategy',
-      'Campaign Content',
-      'Short-form Content',
-      'Creative Production',
-    ],
-    image: photo3,
-    imageAlt:
-      'Brand content creation and campaign production by BrandWorks',
+    number: '03', slug: 'content-creation', title: 'Content Creation', group: 'Direction',
+    description: 'Concept-led brand content developed for campaigns, platforms and audiences instead of simply filling a content calendar.',
+    image: mediaUrl('content_creation.avif'), imageAlt: 'Brand content creation and campaign production by BrandWorks',
   },
   {
-    number: '04',
-    slug: 'photography',
-    title: 'Photography',
-    group: 'Production',
-    description:
-      'Commercial, campaign and editorial photography created to shape how a brand, product, place or person is perceived.',
-    capabilities: [
-      'Commercial Photography',
-      'Product Photography',
-      'Campaign Photography',
-      'Founder Portraits',
-    ],
-    image: photo4,
-    imageAlt:
-      'Commercial and campaign photography by BrandWorks',
+    number: '04', slug: 'photography', title: 'Photography', group: 'Production',
+    description: 'Commercial, campaign and editorial photography created to shape how a brand, product, place or person is perceived.',
+    image: mediaUrl('photography.jpg'), imageAlt: 'Commercial and campaign photography by BrandWorks',
   },
   {
-    number: '05',
-    slug: 'videography',
-    title: 'Videography & Cinematography',
-    shortTitle: 'Videography',
-    group: 'Production',
-    description:
-      'Brand films, commercial video and cinematic content developed from concept through production and post-production.',
-    capabilities: [
-      'Brand Films',
-      'Commercial Video',
-      'Cinematography',
-      'Post-production',
-    ],
-    image: photo5,
-    imageAlt:
-      'Videography, film production and cinematography by BrandWorks',
+    number: '05', slug: 'videography', title: 'Videography & Cinematography', shortTitle: 'Videography', group: 'Production',
+    description: 'Brand films, commercial video and cinematic content developed from concept through production and post-production.',
+    image: mediaUrl('videography.jpg'), imageAlt: 'Videography, film production and cinematography by BrandWorks',
   },
   {
-    number: '06',
-    slug: 'social-media',
-    title: 'Social Media',
-    group: 'Communication',
-    description:
-      'Social media strategy, content systems and platform management that keep brands consistent while building meaningful visibility.',
-    capabilities: [
-      'Social Strategy',
-      'Content Planning',
-      'Platform Management',
-      'Campaigns',
-    ],
-    image: photo6,
-    imageAlt:
-      'Social media marketing and content strategy by BrandWorks',
+    number: '06', slug: 'social-media', title: 'Social Media', group: 'Communication',
+    description: 'Social media strategy, content systems and platform management that keep brands consistent while building meaningful visibility.',
+    image: mediaUrl('socialmedia.jpg'), imageAlt: 'Social media marketing and content strategy by BrandWorks',
   },
   {
-    number: '07',
-    slug: 'pr-founder-reputation',
-    title: 'PR & Founder Reputation',
-    group: 'Communication',
-    description:
-      'PR, founder positioning and reputation management designed around what audiences discover, understand and remember about a brand and its leadership.',
-    capabilities: [
-      'PR Strategy',
-      'Founder Positioning',
-      'Thought Leadership',
-      'Reputation Management',
-    ],
-    image: photo7,
-    imageAlt:
-      'PR and founder reputation management services by BrandWorks',
+    number: '07', slug: 'pr-founder-reputation', title: 'PR & Founder Reputation', group: 'Communication',
+    description: 'PR, founder positioning and reputation management designed around what audiences discover, understand and remember about a brand and its leadership.',
+    image: mediaUrl('vcvcvcvcv.jpg'), imageAlt: 'PR and founder reputation management services by BrandWorks',
   },
   {
-    number: '08',
-    slug: 'performance-marketing',
-    title: 'Performance Marketing',
-    group: 'Growth',
-    description:
-      'Paid media and performance campaigns connecting strong creative with targeting, testing, optimisation and measurable business objectives.',
-    capabilities: [
-      'Paid Social',
-      'Paid Search',
-      'Media Strategy',
-      'Conversion Optimisation',
-    ],
-    image: photo8,
-    imageAlt:
-      'Performance marketing and paid media campaigns by BrandWorks',
+    number: '08', slug: 'performance-marketing', title: 'Performance Marketing', group: 'Growth',
+    description: 'Paid media and performance campaigns connecting strong creative with targeting, testing, optimisation and measurable business objectives.',
+    image: mediaUrl('Artboard 14@3x.png'), imageAlt: 'Performance marketing and paid media campaigns by BrandWorks',
   },
   {
-    number: '09',
-    slug: 'seo',
-    title: 'SEO',
-    group: 'Growth',
-    description:
-      'Search strategy, technical SEO and content systems built to improve discoverability, authority and sustainable organic visibility.',
-    capabilities: [
-      'SEO Strategy',
-      'Technical SEO',
-      'Content SEO',
-      'International SEO',
-    ],
-    image: photo9,
-    imageAlt:
-      'SEO strategy and search engine optimisation services by BrandWorks',
+    number: '09', slug: 'seo', title: 'SEO', group: 'Growth',
+    description: 'Search strategy, technical SEO and content systems built to improve discoverability, authority and sustainable organic visibility.',
+    image: mediaUrl('seo.jpg'), imageAlt: 'SEO strategy and search engine optimisation services by BrandWorks',
   },
   {
-    number: '10',
-    slug: 'technology',
-    title: 'Technology',
-    group: 'Technology',
-    description:
-      'AI agents, business automation, dashboards, ERP and custom systems designed around the way a business actually operates.',
-    capabilities: [
-      'AI Agents & Automation',
-      'Workflow Automation',
-      'Data & Dashboards',
-      'ERP & Custom Systems',
-    ],
-    image: photo10,
-    imageAlt:
-      'Technology, AI and business automation services by BrandWorks',
+    number: '10', slug: 'technology', title: 'Technology', group: 'Technology',
+    description: 'AI agents, business automation, dashboards, ERP and custom systems designed around the way a business actually operates.',
+    image: mediaUrl('website_dev.jpg'), imageAlt: 'Technology, AI and business automation services by BrandWorks',
   },
 ]
 
-/**
- * IMPORTANT:
- * Populate this with REAL BrandWorks projects only.
- * Do not publish fabricated clients, results or campaign metrics.
- */
-const featuredProjects: Project[] = []
+const entranceEase = [0.22, 1, 0.36, 1] as const
+const reducedMotionQuery = '(prefers-reduced-motion: reduce)'
 
-const serviceGroups = [
-  {
-    name: 'Direction',
-    description:
-      'The thinking and visual systems that define how a brand should communicate.',
-  },
-  {
-    name: 'Production',
-    description:
-      'Photography and film built around a clear creative point of view.',
-  },
-  {
-    name: 'Communication',
-    description:
-      'Content, social presence and reputation working under one direction.',
-  },
-  {
-    name: 'Growth',
-    description:
-      'Search and performance systems designed to improve discoverability and demand.',
-  },
-  {
-    name: 'Technology',
-    description:
-      'AI, automation and custom systems built around the way the business works.',
-  },
-]
+function subscribeToReducedMotion(onChange: () => void) {
+  const mediaQuery = window.matchMedia(reducedMotionQuery)
+  mediaQuery.addEventListener('change', onChange)
+  return () => mediaQuery.removeEventListener('change', onChange)
+}
+
+function useReducedMotionPreference() {
+  return useSyncExternalStore(
+    subscribeToReducedMotion,
+    () => window.matchMedia(reducedMotionQuery).matches,
+    () => false,
+  )
+}
 
 function usePageSeo() {
   const nativeMetadata = useNativeMetadata()
   useEffect(() => {
-    const title =
-      'Creative, Digital & Marketing Services | BrandWorks'
-
-    const description =
-      'Explore BrandWorks services across brand strategy, graphic design, content creation, photography, videography, social media marketing, PR, founder reputation management, performance marketing, SEO, and web design and development.'
-
-    if (!nativeMetadata) document.title = title
-
-    const setMeta = (
-      name: string,
-      content: string,
-      property = false,
-    ) => {
-      const selector = property
-        ? `meta[property="${name}"]`
-        : `meta[name="${name}"]`
-
-      let element =
-        document.head.querySelector<HTMLMetaElement>(selector)
-
-      if (!element) {
-        element = document.createElement('meta')
-
-        if (property) {
-          element.setAttribute('property', name)
-        } else {
-          element.setAttribute('name', name)
-        }
-
-        document.head.appendChild(element)
-      }
-
-      element.setAttribute('content', content)
-    }
-
-    if (!nativeMetadata) {
-      setMeta('description', description)
-      setMeta('robots', 'index,follow,max-image-preview:large')
-      setMeta('og:title', title, true)
-      setMeta('og:description', description, true)
-      setMeta('og:type', 'website', true)
-      setMeta('og:url', 'https://brandworks.me/services', true)
-      setMeta('twitter:card', 'summary_large_image')
-      setMeta('twitter:title', title)
-      setMeta('twitter:description', description)
-
-      let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
-      if (!canonical) {
-        canonical = document.createElement('link')
-        canonical.rel = 'canonical'
-        document.head.appendChild(canonical)
-      }
-      canonical.href = 'https://brandworks.me/services'
-    }
-
-    const schema = {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: 'https://brandworks.me/',
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: 'Services',
-          item: 'https://brandworks.me/services',
-        },
-      ],
-    }
-
-    let script =
-      document.head.querySelector<HTMLScriptElement>(
-        '#services-breadcrumb-schema',
-      )
-
-    if (!script) {
-      script = document.createElement('script')
-      script.id = 'services-breadcrumb-schema'
-      script.type = 'application/ld+json'
-      document.head.appendChild(script)
-    }
-
-    script.textContent = JSON.stringify(schema)
+    if (!nativeMetadata) document.title = 'Creative, Digital & Marketing Services | BrandWorks'
   }, [nativeMetadata])
 }
 
-function SectionLabel({
-  children,
-}: {
-  children: ReactNode
-}) {
+function NorthEastArrow() {
   return (
-    <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-500 sm:text-xs">
-      {children}
-    </p>
+    <svg viewBox="0 0 20 20" aria-hidden="true" className="bw-services__arrow">
+      <path d="M5 15 15 5M7 5h8v8" />
+    </svg>
   )
 }
 
-function Arrow() {
+function ServicePreview({ service, reduceMotion }: { service: Service; reduceMotion: boolean }) {
   return (
-    <span
-      aria-hidden="true"
-      className="inline-block transition-transform duration-300 ease-out group-hover:translate-x-1 motion-reduce:transition-none"
-    >
-      ↗
-    </span>
+    <div className="bw-services__preview">
+      <div className="bw-services__media">
+        <AnimatePresence initial={false} mode="sync">
+          <motion.div
+            key={service.slug}
+            className="bw-services__media-layer"
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduceMotion ? undefined : { opacity: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.45, ease: entranceEase }}
+          >
+            <Image
+              src={service.image}
+              alt={service.imageAlt}
+              fill
+              sizes="(max-width: 767px) calc(100vw - 58px), (max-width: 1199px) 40vw, 520px"
+              className="bw-services__image"
+            />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      <div className="bw-services__caption" aria-live="polite" aria-atomic="true">
+        <span>{service.title}</span>
+        <span>{service.number} / {String(services.length).padStart(2, '0')}</span>
+      </div>
+    </div>
   )
 }
 
 export default function ServicesPage() {
   usePageSeo()
+  const reduceMotion = useReducedMotionPreference()
+  const [scrollIndex, setScrollIndex] = useState(0)
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+  const rowRefs = useRef<(HTMLLIElement | null)[]>([])
+  const activeIndex = hoverIndex ?? scrollIndex
+  const activeService = services[activeIndex]
 
-  const [activeService, setActiveService] = useState(
-    services[0],
-  )
+  const entrance = useMemo(() => ({
+    initial: reduceMotion ? false : { opacity: 0, y: 20 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.01 },
+    transition: { duration: reduceMotion ? 0 : 0.65, ease: entranceEase },
+  }), [reduceMotion])
 
-  const groupedServices = useMemo(
-    () =>
-      serviceGroups.map((group) => ({
-        ...group,
-        services: services.filter(
-          (service) => service.group === group.name,
-        ),
-      })),
-    [],
-  )
+  useEffect(() => {
+    services.forEach(({ image }) => {
+      const preload = new window.Image()
+      preload.src = image
+    })
+  }, [])
+
+  useEffect(() => {
+    const rows = rowRefs.current.filter((row): row is HTMLLIElement => row !== null)
+    if (!rows.length) return
+    const visibleRows = new Map<Element, number>()
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) visibleRows.set(entry.target, entry.intersectionRatio)
+        else visibleRows.delete(entry.target)
+      })
+      let bestIndex = -1
+      let bestScore = -1
+      visibleRows.forEach((ratio, row) => {
+        const index = Number((row as HTMLElement).dataset.serviceIndex)
+        const rect = row.getBoundingClientRect()
+        const rowCenter = rect.top + rect.height / 2
+        const distanceScore = 1 - Math.min(1, Math.abs(rowCenter - window.innerHeight * 0.53) / window.innerHeight)
+        const score = ratio + distanceScore
+        if (score > bestScore) {
+          bestScore = score
+          bestIndex = index
+        }
+      })
+      if (bestIndex >= 0) setScrollIndex(bestIndex)
+    }, { rootMargin: '-34% 0px -38% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] })
+
+    rows.forEach((row) => observer.observe(row))
+    return () => observer.disconnect()
+  }, [])
+
+  const leaveRow = useCallback(() => setHoverIndex(null), [])
 
   return (
-    <main className="bg-white text-neutral-950">
-      {/* =====================================================
-          INTRO
-      ====================================================== */}
-
-      <section className="mx-auto w-full max-w-[1280px] px-5 pb-16 pt-24 sm:px-7 sm:pb-20 sm:pt-28 lg:px-10 lg:pb-24 lg:pt-32">
-        <div className="mx-auto max-w-[880px] text-center"> 
-
-          <h1 className="mx-auto mt-5 max-w-[820px] text-[clamp(2.25rem,4.4vw,3rem)] font-medium leading-[0.98] tracking-[-0.045em]">
-            From how a brand thinks to how the world sees it.
-          </h1>
-
-          <p className="mx-auto mt-7 max-w-[670px] text-[16px] leading-[1.65] text-neutral-600 sm:text-[17px]">
-            BrandWorks is a multidisciplinary creative and
-            digital agency bringing strategy, design,
-            photography, film, social media, reputation,
-            search, performance and technology together under
-            one direction.
-          </p>
-        </div>
-      </section>
-
-      {/* =====================================================
-          SERVICE INDEX
-      ====================================================== */}
-
-      <section
-        aria-labelledby="services-index-title"
-        className="border-t border-neutral-200"
-      >
-        <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-5 py-16 sm:px-7 sm:py-20 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:gap-16 lg:px-10 lg:py-24"
-        >
-          <div>
-            <div className="mb-8 flex items-end justify-between gap-6 border-b border-neutral-200 pb-5 sm:mb-10">
-              <div>
-                <SectionLabel>What we do</SectionLabel>
-
-                <h2
-                  id="services-index-title"
-                  className="mt-3 text-[clamp(1.8rem,2.6vw,2.4rem)] font-medium tracking-[-0.035em]"
-                >
-                  Capabilities
-                </h2>
-              </div>
-
-              {/* <p className="hidden max-w-[320px] text-right text-sm leading-6 text-neutral-500 md:block">
-                Specialist capabilities designed to work
-                independently or together.
-              </p> */}
-            </div>
-
-            <nav aria-label="BrandWorks services">
-              <ul>
-                {services.map((service) => (
-                  <li
-                    key={service.slug}
-                    onMouseEnter={() =>
-                      setActiveService(service)
-                    }
-                    onFocus={() =>
-                      setActiveService(service)
-                    }
-                    className="border-b border-neutral-200"
-                  >
-                    <Link
-                      to={`/services/${service.slug}`}
-                      className="group grid min-h-[84px] grid-cols-[42px_1fr_auto] items-center gap-4 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-4 sm:min-h-[94px] sm:grid-cols-[52px_minmax(190px,0.72fr)_minmax(240px,1fr)_auto] sm:gap-5"
-                    >
-                      <span className="text-[11px] tabular-nums text-neutral-400">
-                        {service.number}
-                      </span>
-
-                      <span className="text-[20px] font-medium leading-tight tracking-[-0.025em] sm:text-[22px]">
-                        {service.shortTitle ??
-                          service.title}
-                      </span>
-
-                      <span className="hidden max-w-[410px] text-sm leading-6 text-neutral-500 opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 sm:block pointer-coarse:opacity-100 motion-reduce:transition-none">
-                        {service.description}
-                      </span>
-
-                      <Arrow />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
-
-          {/* Desktop hover preview */}
-          <aside
-            aria-hidden="true"
-            className="hidden lg:block"
+    <main className="bw-services">
+      <section className="bw-services__hero" aria-labelledby="services-page-title">
+        <motion.div {...entrance} className="bw-services__hero-inner">
+          <h1 id="services-page-title">From how a brand thinks to how the world sees it.</h1>
+          <motion.p
+            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.65, delay: reduceMotion ? 0 : 0.12, ease: entranceEase }}
           >
-            <div className="sticky top-24">
-              <div className="aspect-[4/5] overflow-hidden bg-neutral-100">
-                <img
-                  key={activeService.image}
-                  src={activeService.image}
-                  alt=""
-                  width={760}
-                  height={950}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover opacity-100 transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none"
-                />
-              </div>
-
-              <div className="mt-5 flex items-start justify-between gap-5">
-                <div>
-                  <p className="text-sm font-medium">
-                    {activeService.title}
-                  </p>
-
-                  <p className="mt-1 text-xs text-neutral-500">
-                    {activeService.group}
-                  </p>
-                </div>
-
-                <span className="text-xs text-neutral-400">
-                  {activeService.number} / 10
-                </span>
-              </div>
-            </div>
-          </aside>
-        </div>
+            BrandWorks is a multidisciplinary creative and digital agency bringing strategy, design,
+            photography, film, social media, reputation, search, performance and technology together
+            under one direction.
+          </motion.p>
+        </motion.div>
       </section>
 
-      {/* =====================================================
-          SELECTED WORK
-          Only appears once REAL projects are added.
-      ====================================================== */}
+      <section className="bw-services__capabilities" aria-labelledby="services-index-title">
+        <div className="bw-services__layout">
+          <div className="bw-services__list-column">
+            <motion.header {...entrance} className="bw-services__section-heading">
+              <p>What we do</p>
+              <h2 id="services-index-title">Capabilities</h2>
+            </motion.header>
 
-      {featuredProjects.length > 0 && (
-        <section
-          aria-labelledby="selected-work-title"
-          className="border-t border-neutral-200"
-        >
-          <div className="mx-auto w-full max-w-[1280px] px-5 py-16 sm:px-7 sm:py-20 lg:px-10 lg:py-24">
-            <div className="mb-10 flex items-end justify-between gap-8 sm:mb-12">
-              <div>
-                <SectionLabel>
-                  Selected work
-                </SectionLabel>
-
-                <h2
-                  id="selected-work-title"
-                  className="mt-3 text-[clamp(1.8rem,3vw,2.5rem)] font-medium tracking-[-0.04em]"
-                >
-                  Work across the studio.
-                </h2>
-              </div>
-            </div>
-
-            <div className="grid gap-x-7 gap-y-12 md:grid-cols-2">
-              {featuredProjects.map(
-                (project, index) => (
-                  <article
-                    key={project.slug}
-                    className={
-                      index === 0
-                        ? 'md:col-span-2'
-                        : ''
-                    }
-                  >
-                    <Link
-                      to={`/work/${project.slug}`}
-                      className="group block"
+            <motion.nav
+              aria-label="BrandWorks services"
+              {...entrance}
+              transition={{ ...entrance.transition, delay: reduceMotion ? 0 : 0.08 }}
+            >
+              <ul className="bw-services__list">
+                {services.map((service, index) => {
+                  const isActive = index === activeIndex
+                  return (
+                    <li
+                      key={service.slug}
+                      ref={(element) => { rowRefs.current[index] = element }}
+                      data-service-index={index}
+                      data-active={isActive}
+                      className="bw-services__row"
+                      onPointerEnter={(event) => {
+                        if (event.pointerType === 'mouse') setHoverIndex(index)
+                      }}
+                      onMouseMove={() => setHoverIndex(index)}
+                      onPointerLeave={(event) => {
+                        if (event.pointerType === 'mouse') leaveRow()
+                      }}
+                      onFocusCapture={() => setHoverIndex(index)}
+                      onBlurCapture={(event) => {
+                        if (!event.currentTarget.contains(event.relatedTarget)) leaveRow()
+                      }}
+                      onPointerDown={(event) => {
+                        if (event.pointerType !== 'mouse') setScrollIndex(index)
+                      }}
                     >
-                      <div
-                        className={
-                          index === 0
-                            ? 'aspect-[16/9] overflow-hidden bg-neutral-100'
-                            : 'aspect-[4/3] overflow-hidden bg-neutral-100'
-                        }
+                      <Link
+                        to={`/services/${service.slug}`}
+                        aria-label={`Explore ${service.title} services`}
+                        aria-describedby={`service-description-${service.slug}`}
+                        className="bw-services__link"
                       >
-                        <img
-                          src={project.image}
-                          alt={project.imageAlt}
-                          width={
-                            index === 0 ? 1600 : 900
-                          }
-                          height={
-                            index === 0 ? 900 : 675
-                          }
-                          loading="lazy"
-                          decoding="async"
-                          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025] motion-reduce:transition-none"
-                        />
-                      </div>
-
-                      <div className="mt-5 flex items-start justify-between gap-6">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.1em] text-neutral-500">
-                            {project.client}
-                          </p>
-
-                          <h3 className="mt-2 text-[22px] font-medium tracking-[-0.025em] sm:text-[25px]">
-                            {project.title}
-                          </h3>
-
-                          <p className="mt-2 text-sm leading-6 text-neutral-500">
-                            {project.services.join(
-                              ' · ',
-                            )}
-                          </p>
-                        </div>
-
-                        <Arrow />
-                      </div>
-                    </Link>
-                  </article>
-                ),
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/*  GROUPED CAPABILITIES */}
-
-      {/* <section
-        aria-labelledby="capability-groups-title"
-        className="border-t border-neutral-200"
-      >
-        <div className="mx-auto w-full max-w-[1280px] px-5 py-16 sm:px-7 sm:py-20 lg:px-10 lg:py-24">
-          <div className="max-w-[900px]"> 
-            <h2
-              id="capability-groups-title"
-              className="mt-3 text-[clamp(1.8rem,3vw,2.5rem)] font-medium leading-[1.05] tracking-[-0.04em]"
-            >
-              Different disciplines. One clear direction.
-            </h2>
-
-            <p className="mt-5 max-w-[570px] text-[15px] leading-7 text-neutral-600 sm:text-base">
-              The strongest work rarely belongs to a single
-              discipline. Strategy can lead into design,
-              photography and film; content can continue
-              through social, search and performance; and
-              technology can bring the entire brand experience
-              together.
-            </p>
-          </div>
-
-          <div className="mt-14 divide-y divide-neutral-200 border-y border-neutral-200 sm:mt-16">
-            {groupedServices.map((group) => (
-              <section
-                key={group.name}
-                className="grid gap-8 py-10 md:grid-cols-[0.65fr_1.35fr] md:py-12"
-              >
-                <div>
-                  <p className="text-[14px] uppercase tracking-[0.12em] text-neutral-900">
-                    {group.name}
-                  </p>
-
-                  <p className="mt-3 max-w-[320px] text-sm leading-6 text-neutral-500">
-                    {group.description}
-                  </p>
-                </div>
-
-                <div className="grid gap-x-8 gap-y-8 sm:grid-cols-2">
-                  {group.services.map(
-                    (service) => (
-                      <article key={service.slug}>
-                        <Link
-                          to={`/services/${service.slug}`}
-                          className="group block"
-                        >
-                          <div className="flex items-start justify-between gap-5">
-                            <div>
-                              <h3 className="text-[21px] font-medium tracking-[-0.025em]">
-                                {service.title}
-                              </h3>
-
-                              <p className="mt-3 max-w-[430px] text-sm leading-6 text-neutral-500">
+                        <span className="bw-services__number">{service.number}</span>
+                        <span className="bw-services__name">{service.shortTitle ?? service.title}</span>
+                        <span id={`service-description-${service.slug}`} className="bw-services__description">
+                          <AnimatePresence initial={false}>
+                            {isActive && (
+                              <motion.span
+                                key={service.slug}
+                                initial={reduceMotion ? false : { opacity: 0, x: 12 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={reduceMotion ? undefined : { opacity: 0, x: 8 }}
+                                transition={{ duration: reduceMotion ? 0 : 0.3, ease: entranceEase }}
+                              >
                                 {service.description}
-                              </p>
-                            </div>
-
-                            <Arrow />
-                          </div>
-
-                          <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-2">
-                            {service.capabilities.map(
-                              (capability) => (
-                                <li
-                                  key={capability}
-                                  className="text-xs text-neutral-500"
-                                >
-                                  {capability}
-                                </li>
-                              ),
+                              </motion.span>
                             )}
-                          </ul>
-                        </Link>
-                      </article>
-                    ),
-                  )}
-                </div>
-              </section>
-            ))}
-          </div>
-        </div>
-      </section> */}
-
-      {/* 
-          INTEGRATED AGENCY MESSAGE */}
-
-      <section className="border-t border-neutral-200 bg-neutral-950 text-white">
-        <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-5 py-16 sm:px-7 sm:py-20 md:grid-cols-[0.8fr_1.2fr] lg:px-10 lg:py-24">
-          <SectionLabel>
-            One creative direction
-          </SectionLabel>
-
-          <div className="max-w-[720px]">
-            <h2 className="text-[clamp(1.9rem,3.4vw,2.8rem)] font-medium leading-[1.04] tracking-[-0.04em]">
-              The work rarely belongs to one discipline.
-            </h2>
-
-            <p className="mt-6 max-w-[610px] text-[15px] leading-7 text-neutral-400 sm:text-base">
-              A campaign may begin with strategy, move through
-              graphic design, photography and film, continue
-              across social media and PR, and grow through SEO,
-              performance marketing and technology. BrandWorks
-              connects those parts under one direction.
-            </p>
-
-            <Link
-              to="/contact"
-              className="group mt-8 inline-flex min-h-11 items-center gap-3 border-b border-white pb-1 text-sm font-medium"
-            >
-              Start a conversation
-              <Arrow />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/*  CLOSING / INTERNAL LINKING */}
-
-      <section className="border-t border-neutral-800 bg-neutral-950 text-white">
-        <div className="mx-auto w-full max-w-[1280px] px-5 py-14 sm:px-7 sm:py-16 lg:px-10">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-[650px]">
-              <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
-                Explore BrandWorks
-              </p>
-
-              <p className="mt-4 text-[24px] font-medium leading-tight tracking-[-0.03em] sm:text-[28px]">
-                Explore the discipline that matters most to
-                your next project.
-              </p>
-            </div>
-
-            <nav
-              aria-label="Explore BrandWorks services"
-              className="max-w-[620px]"
-            >
-              <ul className="flex flex-wrap gap-x-5 gap-y-3">
-                {services.map((service) => (
-                  <li key={service.slug}>
-                    <Link
-                      to={`/services/${service.slug}`}
-                      className="text-sm text-neutral-400 transition-colors duration-300 hover:text-white focus-visible:text-white focus-visible:outline-none"
-                    >
-                      {service.shortTitle ??
-                        service.title}
-                    </Link>
-                  </li>
-                ))}
+                          </AnimatePresence>
+                          <span className="bw-services__description-mobile">{service.description}</span>
+                        </span>
+                        <NorthEastArrow />
+                      </Link>
+                      {isActive && (
+                        <div className="bw-services__mobile-preview">
+                          <ServicePreview service={service} reduceMotion={reduceMotion} />
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
-            </nav>
+            </motion.nav>
           </div>
+
+          <motion.aside
+            {...entrance}
+            transition={{ ...entrance.transition, delay: reduceMotion ? 0 : 0.12 }}
+            className="bw-services__image-column"
+            aria-label={`Featured service: ${activeService.title}`}
+          >
+            <ServicePreview service={activeService} reduceMotion={reduceMotion} />
+          </motion.aside>
         </div>
       </section>
     </main>
