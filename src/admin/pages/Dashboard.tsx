@@ -66,6 +66,13 @@ function jobStatusLabel(status: PublishDueJobStatus['status']) {
   return 'No run recorded'
 }
 
+function jobStatusTone(status: PublishDueJobStatus['status'] | null) {
+  if (status === 'healthy') return 'success' as const
+  if (status === 'stale') return 'warning' as const
+  if (status === 'failed') return 'danger' as const
+  return 'neutral' as const
+}
+
 function ArticleRow({ post }: { post: AdminBlogPost }) {
   return (
     <Link to={`/admin/blogs/${post.id}/edit`} className="admin-dashboard__article-row">
@@ -94,15 +101,16 @@ function ArticleRow({ post }: { post: AdminBlogPost }) {
   )
 }
 
-function DashboardMetric({ label, value, detail }: { label: string; value: number | null; detail: string }) {
+function DashboardMetric({ label, value, detail, href }: { label: string; value: number | null; detail: string; href: string }) {
   return (
-    <div className="admin-dashboard__metric">
+    <Link to={href} className="admin-dashboard__metric admin-dashboard__metric-link">
       <div className="admin-dashboard__metric-label">{label}</div>
       <div className="admin-dashboard__metric-value" aria-live="polite">
         {value === null ? '—' : value}
       </div>
       <div className="admin-dashboard__metric-detail">{detail}</div>
-    </div>
+      <ArrowUpRight className="admin-dashboard__metric-arrow" size={15} strokeWidth={1.8} aria-hidden="true" />
+    </Link>
   )
 }
 
@@ -214,6 +222,9 @@ function Dashboard() {
           <span className="admin-dashboard__account-context">
             {admin?.role === 'admin' ? 'Administrator' : 'Sub-admin'} workspace
           </span>
+          <AdminButton variant="secondary" disabled={libraryLoading} onClick={retry} icon={<RefreshCw size={16} strokeWidth={1.8} />}>
+            {libraryLoading ? 'Refreshing…' : 'Refresh'}
+          </AdminButton>
           <Link to="/admin/blogs/new">
             <AdminButton variant="primary" icon={<FilePlus2 size={16} strokeWidth={1.8} />}>Create article</AdminButton>
           </Link>
@@ -221,10 +232,32 @@ function Dashboard() {
       </header>
 
       <section className="admin-dashboard__metrics" aria-label="Publishing overview">
-        <DashboardMetric label="Articles" value={library?.total ?? null} detail="In your library" />
-        <DashboardMetric label="Published" value={library?.published ?? null} detail="Live on the CMS" />
-        <DashboardMetric label="Drafts" value={library?.drafts ?? null} detail="Need your attention" />
-        <DashboardMetric label="Scheduled" value={scheduledValue} detail={scheduledError ? 'Unavailable' : 'Waiting to publish'} />
+        <DashboardMetric label="Articles" value={library?.total ?? null} detail="In your library" href="/admin/blogs" />
+        <DashboardMetric label="Published" value={library?.published ?? null} detail="Live on the CMS" href="/admin/blogs?status=published" />
+        <DashboardMetric label="Drafts" value={library?.drafts ?? null} detail="Need your attention" href="/admin/blogs?status=draft" />
+        <DashboardMetric label="Scheduled" value={scheduledValue} detail={scheduledError ? 'Unavailable' : 'Waiting to publish'} href="/admin/blogs?scheduled=true" />
+      </section>
+
+      <section className="admin-dashboard__health" aria-labelledby="workspace-health-heading">
+        <div className="admin-dashboard__health-copy">
+          <p className="admin-dashboard__section-kicker">Workspace health</p>
+          <h2 id="workspace-health-heading">Publishing system</h2>
+          <p>
+            {publishJobStatus?.status === 'healthy'
+              ? 'Scheduled publishing is responding normally.'
+              : publishJobStatus?.status === 'stale' || publishJobStatus?.status === 'failed'
+                ? 'Review the queue before relying on automatic publishing.'
+                : 'No scheduler heartbeat is available yet.'}
+          </p>
+        </div>
+        <div className="admin-dashboard__health-status" aria-live="polite">
+          <AdminStatusBadge tone={jobStatusTone(publishJobStatus?.status ?? null)}>
+            {publishJobStatus ? jobStatusLabel(publishJobStatus.status) : libraryLoading ? 'Checking status' : 'No heartbeat'}
+          </AdminStatusBadge>
+          <Link to="/admin/activity" className="admin-dashboard__text-link">
+            View activity <ArrowUpRight size={15} strokeWidth={1.8} aria-hidden="true" />
+          </Link>
+        </div>
       </section>
 
       <div className="admin-dashboard__workspace">

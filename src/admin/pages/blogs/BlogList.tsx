@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRight, Search, Trash2 } from 'lucide-react'
+import { ArrowRight, CalendarClock, Check, ChevronLeft, ChevronRight, ListFilter, Search, Trash2, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Link, useSearchParams } from '../../../routing'
 import { useAdminAuth } from '../../context/useAdminAuth'
 import * as blogApi from '../../api/blogAdminApi'
@@ -76,6 +77,7 @@ export function BlogRow({ post, isAdmin, trashView, onChanged, onRemoved, select
       const nextStatus: BlogStatus = post.status === 'published' ? 'unpublished' : 'published'
       const { blog } = await blogApi.setBlogPostStatus(post.id, nextStatus)
       onChanged(blog)
+      toast.success(nextStatus === 'published' ? 'Article published.' : 'Article unpublished.')
     } catch (err) {
       setRowError(errorMessage(err))
     } finally {
@@ -90,6 +92,7 @@ export function BlogRow({ post, isAdmin, trashView, onChanged, onRemoved, select
     try {
       await blogApi.deleteBlogPost(post.id)
       onRemoved(post.id)
+      toast.success('Article moved to Deleted.')
     } catch (err) {
       setRowError(errorMessage(err))
       setBusy(false)
@@ -102,6 +105,7 @@ export function BlogRow({ post, isAdmin, trashView, onChanged, onRemoved, select
     try {
       await blogApi.restoreBlogPost(post.id)
       onRemoved(post.id)
+      toast.success('Article restored.')
     } catch (err) {
       setRowError(errorMessage(err))
       setBusy(false)
@@ -120,7 +124,7 @@ export function BlogRow({ post, isAdmin, trashView, onChanged, onRemoved, select
       <div className="min-w-0">
         <div className="admin-article-title">{post.title}</div>
         <div className="admin-article-meta">/{post.slug}</div>
-        {rowError && <div className="mt-1 text-[12px] text-red-600">{rowError}</div>}
+        {rowError && <div className="admin-article-row__error" role="alert">{rowError}</div>}
       </div>
       <div className="text-[12px] text-neutral-600">{post.authorName}</div>
       <div className="flex min-w-0 flex-col items-start gap-1">
@@ -161,6 +165,7 @@ function MobileArticleCard({ post, isAdmin, trashView, onChanged, onRemoved, sel
       const nextStatus: BlogStatus = post.status === 'published' ? 'unpublished' : 'published'
       const { blog } = await blogApi.setBlogPostStatus(post.id, nextStatus)
       onChanged(blog)
+      toast.success(nextStatus === 'published' ? 'Article published.' : 'Article unpublished.')
     } catch (err) {
       setRowError(errorMessage(err))
     } finally {
@@ -175,6 +180,7 @@ function MobileArticleCard({ post, isAdmin, trashView, onChanged, onRemoved, sel
     try {
       await blogApi.deleteBlogPost(post.id)
       onRemoved(post.id)
+      toast.success('Article moved to Deleted.')
     } catch (err) {
       setRowError(errorMessage(err))
       setBusy(false)
@@ -187,6 +193,7 @@ function MobileArticleCard({ post, isAdmin, trashView, onChanged, onRemoved, sel
     try {
       await blogApi.restoreBlogPost(post.id)
       onRemoved(post.id)
+      toast.success('Article restored.')
     } catch (err) {
       setRowError(errorMessage(err))
       setBusy(false)
@@ -218,7 +225,7 @@ function MobileArticleCard({ post, isAdmin, trashView, onChanged, onRemoved, sel
         <span>Updated {formatDate(post.updatedAt)}</span>
         {post.scheduledAt && <span>Publishes {formatScheduledAt(post.scheduledAt)}</span>}
       </div>
-      {rowError && <p className="text-[12px] text-red-600" role="alert">{rowError}</p>}
+      {rowError && <p className="admin-article-row__error" role="alert">{rowError}</p>}
       <div className="admin-mobile-article__actions">
         {trashView ? isAdmin && <AdminButton variant="secondary" disabled={busy} onClick={() => void restore}>Restore</AdminButton> : (
           <>
@@ -332,7 +339,9 @@ function BlogList() {
     setItems((current) => current ? current.map((post) => succeeded.find((updated) => updated.id === post.id) ?? post) : current)
     setSelectedIds([])
     setBulkBusy(false)
-    setBulkMessage(`${succeeded.length} article${succeeded.length === 1 ? '' : 's'} updated.`)
+    const message = `${succeeded.length} article${succeeded.length === 1 ? '' : 's'} updated.`
+    setBulkMessage(message)
+    succeeded.length === selectedPosts.length ? toast.success(message) : toast.warning(`${message} Some updates need another try.`)
   }
 
   async function runBulkArchive() {
@@ -345,7 +354,9 @@ function BlogList() {
     setItems((current) => current ? current.filter((post) => !succeededIds.includes(post.id)) : current)
     setSelectedIds([])
     setBulkBusy(false)
-    setBulkMessage(`${succeededIds.length} article${succeededIds.length === 1 ? '' : 's'} moved to Deleted.`)
+    const message = `${succeededIds.length} article${succeededIds.length === 1 ? '' : 's'} moved to Deleted.`
+    setBulkMessage(message)
+    succeededIds.length === selectedPosts.length ? toast.success(message) : toast.warning(`${message} Some articles could not be moved.`)
   }
 
   function upsert(updated: AdminBlogPost) {
@@ -354,6 +365,25 @@ function BlogList() {
 
   function remove(id: string) {
     setItems((prev) => prev ? prev.filter((post) => post.id !== id) : prev)
+  }
+
+  const hasActiveFilters = Boolean(debouncedSearch || statusFilter || scheduledView || trashView || sortOrder !== 'updated_desc')
+
+  const activeViewLabel = trashView
+    ? 'Deleted articles'
+    : scheduledView
+      ? 'Scheduled articles'
+      : statusFilter
+        ? `${statusFilter[0].toUpperCase()}${statusFilter.slice(1)} articles`
+        : 'All articles'
+
+  function clearFilters() {
+    setSearchInput('')
+    setStatusFilter('')
+    setScheduledView(false)
+    setTrashView(false)
+    setSortOrder('updated_desc')
+    setPage(1)
   }
 
   return (
@@ -367,6 +397,16 @@ function BlogList() {
 
       <section className="admin-surface overflow-visible" aria-label="Article filters">
         <div className="admin-filter-bar">
+          <div className="admin-filter-bar__intro">
+            <div className="admin-filter-bar__intro-copy">
+              <span className="admin-filter-bar__label"><ListFilter size={14} strokeWidth={1.8} aria-hidden="true" /> Library view</span>
+              <strong>{activeViewLabel}</strong>
+            </div>
+            <div className="admin-filter-bar__result">
+              {loading ? 'Updating library…' : `${pageInfo.total} result${pageInfo.total === 1 ? '' : 's'}`}
+              {hasActiveFilters && <button type="button" className="admin-filter-clear" onClick={clearFilters}><X size={13} strokeWidth={2} aria-hidden="true" /> Clear filters</button>}
+            </div>
+          </div>
           <div className="admin-segmented-control" role="group" aria-label="Filter articles">
             {STATUS_FILTERS.map((filter) => (
               <button
@@ -429,7 +469,7 @@ function BlogList() {
         )}
         {loading && !loadError && <div className="admin-empty-state"><p className="admin-empty-state__title">Loading articles</p><p className="admin-empty-state__description">Your publishing library is on its way.</p></div>}
         {!loading && !loadError && items && items.length === 0 && (
-          <div className="admin-empty-state"><p className="admin-empty-state__title">{trashView ? 'No deleted articles.' : scheduledView ? 'Nothing is currently scheduled.' : 'No articles yet.'}</p><p className="admin-empty-state__description">{trashView ? 'Deleted posts will appear here for authorized restoration.' : 'Create the first article to begin building the library.'}</p></div>
+          <div className="admin-empty-state"><p className="admin-empty-state__title">{trashView ? 'No deleted articles.' : scheduledView ? 'Nothing is currently scheduled.' : hasActiveFilters ? 'No matching articles.' : 'No articles yet.'}</p><p className="admin-empty-state__description">{trashView ? 'Deleted posts will appear here for authorized restoration.' : hasActiveFilters ? 'Try a different search or clear the current filters.' : 'Create the first article to begin building the library.'}</p>{hasActiveFilters ? <AdminButton variant="secondary" onClick={clearFilters}>Reset filters</AdminButton> : <Link to="/admin/blogs/new" className="admin-button admin-button--primary">Create article</Link>}</div>
         )}
 
         {!loading && !loadError && items && items.length > 0 && (

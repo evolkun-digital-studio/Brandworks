@@ -1,5 +1,6 @@
 import Image from 'next/image'
-import { Copy, ImagePlus, Pencil, Search, Trash2, X } from 'lucide-react'
+import { Check, Copy, FileUp, ImagePlus, ListFilter, Pencil, Search, Trash2, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
 import * as mediaApi from '../api/mediaAdminApi'
 import { ApiError } from '../api/client'
@@ -16,6 +17,9 @@ function formatSize(size: number) {
   if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024
+const ACCEPTED_MEDIA_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif', 'video/mp4', 'video/webm'])
 
 function MediaCard({ asset, onEdit, onDelete, onCopy }: { asset: mediaApi.MediaAsset; onEdit: (asset: mediaApi.MediaAsset) => void; onDelete: (asset: mediaApi.MediaAsset) => void; onCopy: (asset: mediaApi.MediaAsset) => void }) {
   return (
@@ -60,6 +64,8 @@ function MediaLibrary() {
   const [editing, setEditing] = useState<mediaApi.MediaAsset | null>(null)
   const [busy, setBusy] = useState(false)
   const [file, setFile] = useState<File | null>(null)
+  const [fileError, setFileError] = useState<string | null>(null)
+  const [dropActive, setDropActive] = useState(false)
   const [altText, setAltText] = useState('')
   const [caption, setCaption] = useState('')
   const [description, setDescription] = useState('')
@@ -74,14 +80,32 @@ function MediaLibrary() {
 
   useEffect(() => { const timer = window.setTimeout(() => void load(), 250); return () => window.clearTimeout(timer) }, [search, type, page])
 
-  function openUpload() { setFile(null); setAltText(''); setCaption(''); setNotice(null); setUploadOpen(true) }
+  function openUpload() { setFile(null); setFileError(null); setAltText(''); setCaption(''); setNotice(null); setUploadOpen(true) }
   function openEditor(asset: mediaApi.MediaAsset) { setEditing(asset); setAltText(asset.altText); setCaption(asset.caption); setDescription(asset.description); setNotice(null) }
+
+  function chooseFile(nextFile: File | null) {
+    if (!nextFile) return
+    if (!ACCEPTED_MEDIA_TYPES.has(nextFile.type)) {
+      setFile(null)
+      setFileError('Choose a supported image or video file.')
+      toast.error('Unsupported media type.')
+      return
+    }
+    if (nextFile.size > MAX_FILE_SIZE) {
+      setFile(null)
+      setFileError('This file is larger than the 20 MB limit.')
+      toast.error('Media file is too large.')
+      return
+    }
+    setFileError(null)
+    setFile(nextFile)
+  }
 
   async function upload() {
     if (!file) return
     setBusy(true); setError(null)
-    try { await mediaApi.uploadMedia(file, altText, caption); setUploadOpen(false); setNotice('Media uploaded.'); setPage(1); await load() }
-    catch (err) { setError(errorMessage(err)) } finally { setBusy(false) }
+    try { await mediaApi.uploadMedia(file, altText, caption); setUploadOpen(false); setNotice('Media uploaded.'); toast.success('Media uploaded.'); setPage(1); await load() }
+    catch (err) { setError(errorMessage(err)); toast.error(errorMessage(err)) } finally { setBusy(false) }
   }
 
   async function saveMetadata() {
@@ -89,42 +113,61 @@ function MediaLibrary() {
     setBusy(true); setError(null)
     try {
       const { asset } = await mediaApi.updateMedia(editing.id, { altText, caption, description })
-      setAssets((current) => current.map((item) => item.id === asset.id ? asset : item)); setEditing(null); setNotice('Metadata saved.')
-    } catch (err) { setError(errorMessage(err)) } finally { setBusy(false) }
+      setAssets((current) => current.map((item) => item.id === asset.id ? asset : item)); setEditing(null); setNotice('Metadata saved.'); toast.success('Media metadata saved.')
+    } catch (err) { setError(errorMessage(err)); toast.error(errorMessage(err)) } finally { setBusy(false) }
   }
 
   async function remove(asset: mediaApi.MediaAsset) {
     if (!window.confirm(`Move “${asset.originalName}” out of the active library? Existing references will remain safe.`)) return
     setBusy(true); setError(null)
-    try { await mediaApi.deleteMedia(asset.id); setAssets((current) => current.filter((item) => item.id !== asset.id)); setTotal((value) => Math.max(0, value - 1)); setNotice('Media archived.') }
-    catch (err) { setError(errorMessage(err)) } finally { setBusy(false) }
+    try { await mediaApi.deleteMedia(asset.id); setAssets((current) => current.filter((item) => item.id !== asset.id)); setTotal((value) => Math.max(0, value - 1)); setNotice('Media archived.'); toast.success('Media archived.') }
+    catch (err) { setError(errorMessage(err)); toast.error(errorMessage(err)) } finally { setBusy(false) }
   }
 
   async function copyUrl(asset: mediaApi.MediaAsset) {
-    await navigator.clipboard.writeText(`${window.location.origin}${asset.publicUrl}`)
-    setNotice('Asset URL copied for reuse.')
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${asset.publicUrl}`)
+      setNotice('Asset URL copied for reuse.')
+      toast.success('Asset URL copied.')
+    } catch {
+      toast.error('Could not copy the asset URL.')
+    }
   }
+
+  const hasActiveFilters = Boolean(search.trim() || type)
+  const activeFilterLabel = type === 'image' ? 'Images' : type === 'video' ? 'Video' : 'All media'
 
   return (
     <div>
       <AdminPageHeader eyebrow="Asset library" title="Media" description="Upload, describe, and reuse approved images and video without changing the site’s authored interactions." actions={<AdminButton variant="primary" onClick={openUpload}><ImagePlus size={16} aria-hidden="true" /> Upload media</AdminButton>} />
       <section className="admin-surface admin-media-toolbar" aria-label="Media filters">
+        <div className="admin-media-toolbar__intro">
+          <div>
+            <span className="admin-media-toolbar__label"><ListFilter size={14} strokeWidth={1.8} aria-hidden="true" /> Library view</span>
+            <strong>{activeFilterLabel}</strong>
+          </div>
+          <div className="admin-media-toolbar__result">
+            {loading ? 'Updating library…' : `${total} asset${total === 1 ? '' : 's'}`}
+            {hasActiveFilters && <button type="button" className="admin-media-toolbar__clear" onClick={() => { setSearch(''); setType(''); setPage(1) }}><X size={13} strokeWidth={2} aria-hidden="true" /> Clear filters</button>}
+          </div>
+        </div>
         <div className="admin-segmented-control" role="group" aria-label="Filter media type">
           {([['', 'All'], ['image', 'Images'], ['video', 'Video']] as const).map(([value, label]) => <button key={value || 'all'} type="button" aria-pressed={type === value} onClick={() => { setType(value); setPage(1) }}>{label}</button>)}
         </div>
         <label className="relative block w-full sm:w-[280px]"><span className="sr-only">Search media</span><Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" aria-hidden="true" /><input className="admin-input pl-9 text-[13px]" type="search" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder="Search filename or metadata" /></label>
       </section>
-      {notice && <div className="admin-library-notice" role="status">{notice}</div>}
+      {notice && <div className="admin-library-notice" role="status"><Check size={15} aria-hidden="true" /> {notice}</div>}
       {error && <div className="mt-4"><FormMessage type="error">{error}</FormMessage></div>}
       <section className="admin-media-grid mt-4" aria-live="polite">
         {loading && <div className="admin-empty-state admin-media-grid__empty"><p className="admin-empty-state__title">Loading media</p><p className="admin-empty-state__description">Your library is on its way.</p></div>}
-        {!loading && assets.length === 0 && <div className="admin-empty-state admin-media-grid__empty"><p className="admin-empty-state__title">No media found</p><p className="admin-empty-state__description">Upload a first asset or adjust the search.</p></div>}
+        {!loading && assets.length === 0 && <div className="admin-empty-state admin-media-grid__empty"><p className="admin-empty-state__title">{hasActiveFilters ? 'No matching media' : 'No media yet'}</p><p className="admin-empty-state__description">{hasActiveFilters ? 'Try another search or clear the current filters.' : 'Upload a first asset to build the shared library.'}</p>{hasActiveFilters ? <AdminButton variant="secondary" onClick={() => { setSearch(''); setType(''); setPage(1) }}>Clear filters</AdminButton> : <AdminButton variant="primary" onClick={openUpload}><ImagePlus size={15} aria-hidden="true" /> Upload media</AdminButton>}</div>}
         {!loading && assets.map((asset) => <MediaCard key={asset.id} asset={asset} onEdit={openEditor} onDelete={(item) => void remove(item)} onCopy={(item) => void copyUrl(item)} />)}
       </section>
-      {!loading && total > 0 && <div className="flex items-center justify-between py-5"><AdminButton variant="secondary" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</AdminButton><span className="text-[12px] text-neutral-500">Page {page} of {totalPages} · {total} total</span><AdminButton variant="secondary" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)}>Next</AdminButton></div>}
+      {!loading && total > 0 && <div className="admin-media-pagination"><AdminButton variant="secondary" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</AdminButton><span>Page {page} of {totalPages} · {total} total</span><AdminButton variant="secondary" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)}>Next</AdminButton></div>}
 
       {(uploadOpen || editing) && <div className="admin-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) { setUploadOpen(false); setEditing(null) } }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="media-dialog-title"><div className="admin-modal__header"><div><p className="admin-eyebrow">{uploadOpen ? 'New asset' : 'Asset metadata'}</p><h2 id="media-dialog-title">{uploadOpen ? 'Upload media' : 'Describe this asset'}</h2></div><AdminButton variant="quiet" aria-label="Close" onClick={() => { setUploadOpen(false); setEditing(null) }}><X size={18} aria-hidden="true" /></AdminButton></div>
-          {uploadOpen && <label className="admin-upload-dropzone"><span className="font-medium text-neutral-900">Choose a file</span><span className="text-[12px] text-neutral-500">JPEG, PNG, WebP, AVIF, GIF, MP4, or WebM · 20 MB maximum</span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif,video/mp4,video/webm" onChange={(event) => setFile(event.target.files?.[0] ?? null)} /></label>}
+          {uploadOpen && <label className={`admin-upload-dropzone ${dropActive ? 'is-dragging' : ''} ${file ? 'has-file' : ''}`} onDragEnter={(event) => { event.preventDefault(); setDropActive(true) }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => { if (event.currentTarget === event.target) setDropActive(false) }} onDrop={(event) => { event.preventDefault(); setDropActive(false); chooseFile(event.dataTransfer.files?.[0] ?? null) }}><span className="admin-upload-dropzone__icon"><FileUp size={19} strokeWidth={1.8} aria-hidden="true" /></span><strong>{file ? file.name : 'Drop a file here or choose one'}</strong><span>{file ? `${formatSize(file.size)} · Ready to upload` : 'JPEG, PNG, WebP, AVIF, GIF, MP4, or WebM · 20 MB maximum'}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif,video/mp4,video/webm" onChange={(event) => chooseFile(event.target.files?.[0] ?? null)} /></label>}
+          {uploadOpen && fileError && <FormMessage type="error">{fileError}</FormMessage>}
           <div className="grid gap-4"><FormField id="media-alt" label="Alt text" required={uploadOpen} value={altText} onChange={(event) => setAltText(event.target.value)} /><FormField id="media-caption" label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} />{editing && <FormField id="media-description" label="Internal description" value={description} onChange={(event) => setDescription(event.target.value)} />}</div>
           <div className="admin-modal__actions"><AdminButton variant="secondary" onClick={() => { setUploadOpen(false); setEditing(null) }}>Cancel</AdminButton><AdminButton variant="primary" disabled={busy || (uploadOpen && !file)} onClick={() => void (uploadOpen ? upload() : saveMetadata())}>{busy ? 'Saving…' : uploadOpen ? 'Upload asset' : 'Save metadata'}</AdminButton></div>
         </section></div>}

@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { Activity, CalendarDays, FileText, Images, LayoutDashboard, LogOut, Menu, PanelLeftClose, PanelLeftOpen, SearchCheck, Settings2, UsersRound } from 'lucide-react'
+import { Activity, CalendarDays, FileText, Images, LayoutDashboard, LogOut, Menu, Palette, PanelLeftClose, PanelLeftOpen, SearchCheck, Settings2, UsersRound } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
+import { Toaster } from 'sonner'
 import { NavLink, Outlet } from '../../routing'
 import type { ReactNode } from 'react'
 import { useAdminAuth } from '../context/useAdminAuth'
@@ -27,6 +28,22 @@ const manageItems: NavigationItem[] = [
   { label: 'Settings', to: '/admin/settings', icon: Settings2 },
 ]
 
+type AdminTheme = 'light' | 'dark' | 'graphite' | 'ivory'
+
+const ADMIN_THEMES: Array<{ id: AdminTheme; label: string; description: string; swatch: string }> = [
+  { id: 'light', label: 'Light', description: 'Bright studio', swatch: '#ffffff' },
+  { id: 'dark', label: 'Dark', description: 'Low light', swatch: '#0d0f12' },
+  { id: 'graphite', label: 'Graphite', description: 'Neutral focus', swatch: '#202329' },
+  { id: 'ivory', label: 'Ivory', description: 'Warm paper', swatch: '#f4efe5' },
+]
+
+const ADMIN_THEME_STORAGE_KEY = 'brandworks.admin.theme.v2'
+const DEFAULT_ADMIN_THEME: AdminTheme = 'light'
+
+function isAdminTheme(value: string | null): value is AdminTheme {
+  return value !== null && ADMIN_THEMES.some((option) => option.id === value)
+}
+
 function getInitials(username: string | undefined): string {
   if (!username) return 'BW'
   return username.slice(0, 2).toUpperCase()
@@ -45,15 +62,11 @@ function NavigationLink({ item, onNavigate }: { item: NavigationItem; onNavigate
 /** Shared chrome for every authenticated admin page: responsive rail + workspace. */
 function AdminShell({ children }: { children?: ReactNode }) {
   const { admin, logout } = useAdminAuth()
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false
-    try {
-      return window.localStorage.getItem('brandworks.admin.sidebar') === 'collapsed'
-    } catch {
-      return false
-    }
-  })
+  const [collapsed, setCollapsed] = useState(false)
+  const [sidebarReady, setSidebarReady] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [theme, setTheme] = useState<AdminTheme>(DEFAULT_ADMIN_THEME)
+  const [themeReady, setThemeReady] = useState(false)
   const sidebarRef = useRef<HTMLElement>(null)
   const mobileMenuRef = useRef<HTMLButtonElement>(null)
   const hadMobileFocus = useRef(false)
@@ -70,16 +83,62 @@ function AdminShell({ children }: { children?: ReactNode }) {
 
   useEffect(() => {
     try {
+      setCollapsed(window.localStorage.getItem('brandworks.admin.sidebar') === 'collapsed')
+    } catch {
+      // Ignore storage restrictions such as private browsing policies.
+    } finally {
+      setSidebarReady(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!sidebarReady) return
+    try {
       window.localStorage.setItem('brandworks.admin.sidebar', collapsed ? 'collapsed' : 'expanded')
     } catch {
       // Ignore storage restrictions such as private browsing policies.
     }
-  }, [collapsed])
+  }, [collapsed, sidebarReady])
+
+  useEffect(() => {
+    try {
+      const savedTheme = window.localStorage.getItem(ADMIN_THEME_STORAGE_KEY)
+      if (isAdminTheme(savedTheme)) setTheme(savedTheme)
+    } catch {
+      // Ignore storage restrictions such as private browsing policies.
+    } finally {
+      setThemeReady(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!themeReady) return
+    try {
+      window.localStorage.setItem(ADMIN_THEME_STORAGE_KEY, theme)
+    } catch {
+      // Ignore storage restrictions such as private browsing policies.
+    }
+  }, [theme, themeReady])
 
   useEffect(() => {
     if (!mobileOpen) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setMobileOpen(false)
+      if (event.key !== 'Tab') return
+
+      const focusable = Array.from(
+        sidebarRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])') ?? [],
+      )
+      if (!focusable.length) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -95,7 +154,27 @@ function AdminShell({ children }: { children?: ReactNode }) {
   }
 
   return (
-    <div className="admin-app">
+    <div className={`admin-app admin-theme-${theme}`}>
+      <Toaster
+        position="bottom-right"
+        closeButton
+        richColors
+        expand
+        visibleToasts={4}
+        theme={theme === 'dark' || theme === 'graphite' ? 'dark' : 'light'}
+        toastOptions={{
+          className: 'admin-toast',
+          duration: 4200,
+          classNames: {
+            toast: 'admin-toast',
+            title: 'admin-toast__title',
+            description: 'admin-toast__description',
+            actionButton: 'admin-toast__action',
+            cancelButton: 'admin-toast__cancel',
+            closeButton: 'admin-toast__close',
+          },
+        }}
+      />
       <a className="admin-skip-link" href="#admin-main">Skip to workspace</a>
 
       <AnimatePresence>
@@ -174,6 +253,29 @@ function AdminShell({ children }: { children?: ReactNode }) {
             <span className="admin-topbar__context">BRANDWORKS / Content Studio</span>
           </div>
           <div className="admin-topbar__actions">
+            <details className="admin-theme-picker">
+              <summary className="admin-theme-picker__trigger" aria-label="Change admin theme">
+                <Palette size={15} aria-hidden="true" />
+                <span>{ADMIN_THEMES.find((option) => option.id === theme)?.label ?? 'Light'}</span>
+              </summary>
+              <div className="admin-theme-picker__menu" role="menu" aria-label="Admin themes">
+                <p className="admin-theme-picker__title">Workspace appearance</p>
+                {ADMIN_THEMES.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={theme === option.id}
+                    className="admin-theme-option"
+                    onClick={() => setTheme(option.id)}
+                  >
+                    <span className="admin-theme-option__swatch" style={{ backgroundColor: option.swatch }} aria-hidden="true" />
+                    <span><strong>{option.label}</strong><small>{option.description}</small></span>
+                    {theme === option.id && <span className="admin-theme-option__check" aria-hidden="true">✓</span>}
+                  </button>
+                ))}
+              </div>
+            </details>
             <span className="hidden text-[12px] text-neutral-500 sm:inline">{admin?.username}</span>
           </div>
         </header>

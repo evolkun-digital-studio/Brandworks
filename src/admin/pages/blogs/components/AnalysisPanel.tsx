@@ -1,5 +1,5 @@
 import CollapsibleSection from './CollapsibleSection'
-import { AlertTriangle, Check, Info, X } from 'lucide-react'
+import { AlertTriangle, Check, Gauge, Info, ListChecks, X } from 'lucide-react'
 import type { AnalysisResult, CheckStatus } from '../lib/blogAnalyzer'
 
 const STATUS_STYLES: Record<CheckStatus, string> = {
@@ -19,9 +19,14 @@ const STATUS_ICON: Record<CheckStatus, typeof Check> = {
 function ScoreBadge({ label, score }: { label: string; score: number }) {
   const tone = score >= 70 ? 'text-emerald-700' : score >= 40 ? 'text-amber-700' : 'text-red-600'
   return (
-    <div className="flex flex-col items-center gap-1 rounded-[10px] border border-neutral-200 bg-neutral-50 px-3 py-3">
-      <span className={`text-[24px] font-semibold ${tone}`}>{score}</span>
-      <span className="text-[11px] font-medium tracking-wide text-neutral-500 uppercase">{label}</span>
+    <div className="admin-health-score">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[12px] font-semibold text-neutral-600">{label}</span>
+        <span className={`text-[15px] font-bold ${tone}`}>{score}</span>
+      </div>
+      <div className="admin-health-score__track" aria-hidden="true">
+        <span className={`admin-health-score__fill ${score >= 70 ? 'is-good' : score >= 40 ? 'is-warning' : 'is-low'}`} style={{ width: `${Math.max(4, Math.min(100, score))}%` }} />
+      </div>
     </div>
   )
 }
@@ -56,19 +61,25 @@ function CheckRow({ status, label, message }: { status: CheckStatus; label: stri
 export function ContentHealthSummary({ analysis }: { analysis: AnalysisResult }) {
   const { metrics } = analysis
   return (
-    <div className="admin-editor-section !p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[16px] font-semibold text-neutral-900">Content Health</h2>
-        <span className="text-[11px] text-neutral-400">Internal editorial guidance — not a Google score</span>
+    <section className="admin-editor-section admin-health-card !p-5" aria-labelledby="content-health-title">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2.5">
+          <span className="admin-editor-section__icon admin-editor-section__icon--strong" aria-hidden="true"><Gauge size={16} strokeWidth={1.8} /></span>
+          <div>
+            <h2 id="content-health-title" className="text-[16px] font-semibold text-neutral-900">Content Health</h2>
+            <p className="mt-1 text-[12px] leading-[1.45] text-neutral-500">Live editorial signals, not a Google score.</p>
+          </div>
+        </div>
+        <span className="admin-health-live">Live</span>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="mt-5 flex flex-col gap-3">
         <ScoreBadge label="SEO" score={analysis.seo.score} />
         <ScoreBadge label="AEO" score={analysis.aeo.score} />
         <ScoreBadge label="GEO" score={analysis.geo.score} />
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-4 border-t border-neutral-100 pt-4 sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-neutral-100 pt-4 sm:grid-cols-4">
         <MetricStat label="Words" value={metrics.wordCount.toLocaleString()} />
         <MetricStat label="Reading time" value={`${metrics.readingTimeMinutes} min`} />
         <MetricStat label="Headings" value={metrics.headingCount} />
@@ -78,7 +89,7 @@ export function ContentHealthSummary({ analysis }: { analysis: AnalysisResult })
         <MetricStat label="Readability" value={analysis.readability.label} />
         <MetricStat label="TOC entries" value={analysis.toc.length} />
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -93,6 +104,8 @@ export function AnalysisDetails({ analysis }: { analysis: AnalysisResult }) {
     <CollapsibleSection
       title="Content Analysis"
       description="Detailed SEO / AEO / GEO checklist, table of contents, and schema readiness."
+      icon={ListChecks}
+      meta="Checks"
     >
       <div>
         <h3 className="mb-2 text-[13px] font-semibold tracking-wide text-neutral-500 uppercase">

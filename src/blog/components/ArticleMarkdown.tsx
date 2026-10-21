@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
 import type { Element } from 'hast'
 import { buildToc, parseMarkdown } from '../../lib/markdownMetrics'
+import { markdownRehypePlugins } from '../lib/markdownConfig'
 
 function isExternalHref(href: string | undefined): boolean {
   return /^https?:\/\//i.test(href ?? '')
@@ -27,13 +28,11 @@ function sourceStartLine(node: Element | undefined): number | undefined {
 }
 
 /**
- * Renders blog post content as safe, styled HTML. `rehype-raw` is
- * never enabled, so raw HTML in the Markdown source is never
- * executed — only recognized Markdown nodes are rendered, the same
- * safe-by-default assumption the admin editor's preview already uses
- * (see src/admin/pages/blogs/BlogEditor.tsx). Editorial styling is
- * applied manually via arbitrary-variant Tailwind utilities rather
- * than installing @tailwindcss/typography.
+ * Renders blog post content as safe, styled HTML. A small sanitized
+ * inline HTML layer supports editor marks such as underline, highlight,
+ * and semantic text color; scripts, styles, embeds, and arbitrary tags
+ * are removed by markdownConfig.ts. Editorial styling is applied
+ * manually via utility classes rather than installing typography plugins.
  *
  * H2/H3/H4 headings get an `id` so the Table of Contents (see
  * BlogDetailPage.tsx) can link directly to them. The id for each
@@ -109,7 +108,7 @@ function ArticleMarkdown({ content }: { content: string }) {
 
   return (
     <div
-      className="max-w-none text-[16px] leading-[1.75] text-neutral-800
+      className="markdown-rich-content max-w-none text-[16px] leading-[1.75] text-neutral-800
         [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24 [&_h4]:scroll-mt-24
         [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-[26px] [&_h2]:leading-[1.2] [&_h2]:font-bold [&_h2]:text-neutral-900 [&_h2]:first:mt-0
         [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:text-[20px] [&_h3]:leading-[1.3] [&_h3]:font-semibold [&_h3]:text-neutral-900
@@ -126,7 +125,7 @@ function ArticleMarkdown({ content }: { content: string }) {
         [&_hr]:my-8 [&_hr]:border-neutral-200
         [&_img]:my-6 [&_img]:w-full [&_img]:rounded-[8px]"
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={markdownRehypePlugins} components={components}>
         {content}
       </ReactMarkdown>
     </div>

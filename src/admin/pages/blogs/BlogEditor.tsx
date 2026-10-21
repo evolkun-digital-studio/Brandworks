@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ArrowLeft, Bold, Code2, Eye, Heading2, History, Italic, Keyboard, Link2, List, Maximize2, Minimize2, RotateCcw, Save, X } from 'lucide-react'
+import { ArrowLeft, Bold, Bot, CalendarDays, CircleHelp, Code2, Eraser, Eye, Gauge, Heading2, Heading3, Highlighter, History, Italic, Keyboard, Link2, List, ListOrdered, Maximize2, Minimize2, MoreHorizontal, Palette, Quote, RotateCcw, Save, SearchCheck, Settings2, Sparkles, Strikethrough, Tags, Underline, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { useNavigate, useParams } from '../../../routing'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -16,8 +17,10 @@ import TagInput from './components/TagInput'
 import RepeatingTextField from './components/RepeatingTextField'
 import FaqEditor from './components/FaqEditor'
 import CustomMetaTagsEditor from './components/CustomMetaTagsEditor'
+import RichContentEditor from './components/RichContentEditor'
 import { ContentHealthSummary, AnalysisDetails } from './components/AnalysisPanel'
 import { analyzeBlog } from './lib/blogAnalyzer'
+import { markdownRehypePlugins } from '../../../blog/lib/markdownConfig'
 import type { AnalysisResult, AnalyzerInput } from './lib/blogAnalyzer'
 import type {
   AdminBlogPost,
@@ -71,6 +74,7 @@ const TITLE_MAX = 200
 const EXCERPT_MAX = 500
 const CONTENT_MAX = 100_000
 const SLUG_MAX = 200
+const EDITOR_NAME_MAX = 100
 const SEO_TITLE_MAX = 200
 const SEO_DESCRIPTION_MAX = 300
 
@@ -140,6 +144,7 @@ interface FormState {
   title: string
   slug: string
   excerpt: string
+  authorName: string
   coverImage: string
   coverImageAlt: string
   content: string
@@ -190,6 +195,7 @@ const EMPTY_FORM: FormState = {
   title: '',
   slug: '',
   excerpt: '',
+  authorName: '',
   coverImage: '',
   coverImageAlt: '',
   content: '',
@@ -240,6 +246,7 @@ function formFromPost(post: AdminBlogPost): FormState {
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
+    authorName: post.authorName,
     coverImage: post.coverImage,
     coverImageAlt: post.coverImageAlt,
     content: post.content,
@@ -292,6 +299,8 @@ function validateForm(form: FormState): string | null {
   if (form.title.length > TITLE_MAX) return `Title must be at most ${TITLE_MAX} characters.`
   if (!form.excerpt.trim()) return 'Excerpt is required.'
   if (form.excerpt.length > EXCERPT_MAX) return `Excerpt must be at most ${EXCERPT_MAX} characters.`
+  if (!form.authorName.trim()) return 'Editor name is required.'
+  if (form.authorName.length > EDITOR_NAME_MAX) return `Editor name must be at most ${EDITOR_NAME_MAX} characters.`
   if (!form.content.trim()) return 'Content is required.'
   if (form.content.length > CONTENT_MAX) return `Content must be at most ${CONTENT_MAX} characters.`
   if (!form.coverImage.trim()) return 'Cover image is required.'
@@ -330,7 +339,7 @@ function validateForm(form: FormState): string | null {
   return null
 }
 
-type InlineField = 'title' | 'slug' | 'excerpt' | 'coverImage' | 'coverImageAlt' | 'content'
+type InlineField = 'title' | 'slug' | 'excerpt' | 'authorName' | 'coverImage' | 'coverImageAlt' | 'content'
 
 function fieldError(form: FormState, field: InlineField): string | null {
   if (field === 'title') {
@@ -345,6 +354,10 @@ function fieldError(form: FormState, field: InlineField): string | null {
   if (field === 'excerpt') {
     if (!form.excerpt.trim()) return 'Excerpt is required.'
     if (form.excerpt.length > EXCERPT_MAX) return `Keep the excerpt under ${EXCERPT_MAX} characters.`
+  }
+  if (field === 'authorName') {
+    if (!form.authorName.trim()) return 'Editor name is required.'
+    if (form.authorName.length > EDITOR_NAME_MAX) return `Keep the editor name under ${EDITOR_NAME_MAX} characters.`
   }
   if (field === 'content') {
     if (!form.content.trim()) return 'Content is required.'
@@ -485,6 +498,8 @@ function MarkdownField({
   error?: string | null
 }) {
   const [tab, setTab] = useState<'write' | 'preview'>('write')
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [colorOpen, setColorOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   function insertMarkdown(prefix: string, suffix = '', placeholder = 'text') {
@@ -501,6 +516,50 @@ function MarkdownField({
       textarea.setSelectionRange(nextStart, nextStart + selected.length)
     })
   }
+
+  function insertBlock(valueToInsert: string) {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const before = value.slice(0, start)
+    const after = value.slice(end)
+    const needsLeadingBreak = before.length > 0 && !before.endsWith('\n') ? '\n' : ''
+    const needsTrailingBreak = after.length > 0 && !after.startsWith('\n') ? '\n' : ''
+    const insertion = `${needsLeadingBreak}${valueToInsert}${needsTrailingBreak}`
+    onChange(`${before}${insertion}${after}`)
+    window.requestAnimationFrame(() => {
+      textarea.focus()
+      const cursor = start + insertion.length
+      textarea.setSelectionRange(cursor, cursor)
+    })
+  }
+
+  function clearFormatting() {
+    const textarea = textareaRef.current
+    if (!textarea || textarea.selectionStart === textarea.selectionEnd) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selected = value.slice(start, end)
+    const cleaned = selected
+      .replace(/\*\*|__|~~|`|<\/?u>|<\/?mark>/g, '')
+      .replace(/<span data-color="(?:red|orange|green|blue|purple|accent)">|<\/span>/g, '')
+    onChange(`${value.slice(0, start)}${cleaned}${value.slice(end)}`)
+    window.requestAnimationFrame(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start, start + cleaned.length)
+    })
+  }
+
+  const preventToolbarBlur = (event: React.MouseEvent<HTMLButtonElement>) => event.preventDefault()
+  const colors = [
+    { label: 'Red', value: 'red', className: 'bg-[#b42318]' },
+    { label: 'Orange', value: 'orange', className: 'bg-[#c76a16]' },
+    { label: 'Green', value: 'green', className: 'bg-[#34764a]' },
+    { label: 'Blue', value: 'blue', className: 'bg-[#2463a8]' },
+    { label: 'Purple', value: 'purple', className: 'bg-[#7446a8]' },
+    { label: 'Accent', value: 'accent', className: 'bg-[#9bb900]' },
+  ] as const
 
   return (
     <div className="flex flex-col gap-2">
@@ -535,12 +594,32 @@ function MarkdownField({
       {tab === 'write' ? (
         <>
           <div className="admin-editor-toolbar" aria-label="Markdown formatting tools">
-            <button type="button" onClick={() => insertMarkdown('## ', '', 'Heading') } title="Heading 2"><Heading2 size={15} aria-hidden="true" /> <span>Heading</span></button>
-            <button type="button" onClick={() => insertMarkdown('**', '**')} title="Bold"><Bold size={15} aria-hidden="true" /> <span>Bold</span></button>
-            <button type="button" onClick={() => insertMarkdown('*', '*')} title="Italic"><Italic size={15} aria-hidden="true" /> <span>Italic</span></button>
-            <button type="button" onClick={() => insertMarkdown('[', '](https://)', 'link text')} title="Link"><Link2 size={15} aria-hidden="true" /> <span>Link</span></button>
-            <button type="button" onClick={() => insertMarkdown('- ', '', 'List item')} title="Bullet list"><List size={15} aria-hidden="true" /> <span>List</span></button>
-            <button type="button" onClick={() => insertMarkdown('`', '`')} title="Inline code"><Code2 size={15} aria-hidden="true" /> <span>Code</span></button>
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('## ', '', 'Heading')} title="Heading 2" aria-label="Heading 2"><Heading2 size={15} aria-hidden="true" /> <span>Heading</span></button>
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('### ', '', 'Subheading')} title="Heading 3" aria-label="Heading 3"><Heading3 size={15} aria-hidden="true" /> <span>H3</span></button>
+            <span className="admin-editor-toolbar__divider" aria-hidden="true" />
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('**', '**')} title="Bold" aria-label="Bold"><Bold size={15} aria-hidden="true" /> <span>Bold</span></button>
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('*', '*')} title="Italic" aria-label="Italic"><Italic size={15} aria-hidden="true" /> <span>Italic</span></button>
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('<u>', '</u>')} title="Underline" aria-label="Underline"><Underline size={15} aria-hidden="true" /> <span>Underline</span></button>
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('~~', '~~')} title="Strikethrough" aria-label="Strikethrough"><Strikethrough size={15} aria-hidden="true" /> <span>Strike</span></button>
+            <span className="admin-editor-toolbar__divider" aria-hidden="true" />
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('[', '](https://)', 'link text')} title="Link" aria-label="Link"><Link2 size={15} aria-hidden="true" /> <span>Link</span></button>
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('- ', '', 'List item')} title="Bullet list" aria-label="Bullet list"><List size={15} aria-hidden="true" /> <span>List</span></button>
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('1. ', '', 'List item')} title="Numbered list" aria-label="Numbered list"><ListOrdered size={15} aria-hidden="true" /> <span>Numbered</span></button>
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('`', '`')} title="Inline code" aria-label="Inline code"><Code2 size={15} aria-hidden="true" /> <span>Code</span></button>
+            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertBlock('> Quote')} title="Blockquote" aria-label="Blockquote"><Quote size={15} aria-hidden="true" /> <span>Quote</span></button>
+            <button type="button" className="admin-editor-toolbar__more" onMouseDown={preventToolbarBlur} onClick={() => setAdvancedOpen((open) => !open)} aria-expanded={advancedOpen} title="More formatting"><MoreHorizontal size={16} aria-hidden="true" /> <span>More</span></button>
+
+            {advancedOpen && <div className="admin-editor-toolbar__advanced">
+              <div className="admin-editor-toolbar__color-wrap">
+                <button type="button" onMouseDown={preventToolbarBlur} onClick={() => setColorOpen((open) => !open)} aria-expanded={colorOpen} title="Text color" aria-label="Text color"><Palette size={15} aria-hidden="true" /> <span>Color</span></button>
+                {colorOpen && <div className="admin-editor-toolbar__color-menu" role="menu" aria-label="Text colors">
+                  {colors.map((color) => <button key={color.value} type="button" role="menuitem" onMouseDown={preventToolbarBlur} onClick={() => { insertMarkdown(`<span data-color="${color.value}">`, '</span>'); setColorOpen(false) }} title={color.label} aria-label={`Text color ${color.label}`}><span className={`admin-editor-toolbar__swatch ${color.className}`} aria-hidden="true" />{color.label}</button>)}
+                </div>}
+              </div>
+              <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('<mark>', '</mark>')} title="Highlight" aria-label="Highlight"><Highlighter size={15} aria-hidden="true" /> <span>Highlight</span></button>
+              <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertBlock('---')} title="Horizontal rule" aria-label="Horizontal rule"><span className="text-[15px] font-semibold" aria-hidden="true">—</span> <span>Rule</span></button>
+              <button type="button" onMouseDown={preventToolbarBlur} onClick={clearFormatting} title="Clear formatting" aria-label="Clear formatting"><Eraser size={15} aria-hidden="true" /> <span>Clear</span></button>
+            </div>}
           </div>
           <textarea
             ref={textareaRef}
@@ -551,9 +630,10 @@ function MarkdownField({
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? 'content-error' : undefined}
             rows={18}
-            placeholder="Write in Markdown — headings, lists, links, blockquotes, and code blocks are all supported."
+            placeholder="Write in Markdown — headings, lists, links, quotes, code, color, underline, and highlights are supported."
             className="admin-textarea min-h-[380px] resize-y font-mono text-[14px] leading-[1.7] placeholder:text-neutral-400"
           />
+          <p className="text-[12px] text-neutral-400">Formatting stays portable Markdown with a safe inline layer for underline, highlights, and color.</p>
         </>
       ) : (
         <div className="min-h-[300px] rounded-[10px] border border-neutral-200 bg-neutral-50 px-4 py-3">
@@ -562,7 +642,7 @@ function MarkdownField({
             // styled directly via arbitrary-variant utilities — enough
             // for a lightweight preview without a new dependency.
             <div
-              className="max-w-none text-[14px] leading-[1.7] text-neutral-800
+              className="markdown-rich-content max-w-none text-[14px] leading-[1.7] text-neutral-800
                 [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-[24px] [&_h1]:font-semibold [&_h1]:text-neutral-900 [&_h1]:first:mt-0
                 [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-[20px] [&_h2]:font-semibold [&_h2]:text-neutral-900 [&_h2]:first:mt-0
                 [&_h3]:mt-3 [&_h3]:mb-1.5 [&_h3]:text-[16px] [&_h3]:font-semibold [&_h3]:text-neutral-900
@@ -574,11 +654,10 @@ function MarkdownField({
                 [&_code]:rounded-[4px] [&_code]:bg-neutral-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[13px] [&_pre_code]:bg-transparent [&_pre_code]:p-0
                 [&_hr]:my-4 [&_hr]:border-neutral-200"
             >
-              {/* rehype-raw is intentionally never enabled — raw HTML in the
-                  source is never executed, only recognized Markdown nodes
-                  are rendered. Same safe-by-default assumption the future
-                  public renderer will use. */}
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
+              {/* The shared rehype pipeline parses only the small sanitized
+                  inline layer used by the toolbar (underline, highlight,
+                  and semantic color). */}
+              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={markdownRehypePlugins}>{value}</ReactMarkdown>
             </div>
           ) : (
             <p className="text-[13px] text-neutral-400">Nothing to preview yet.</p>
@@ -596,34 +675,71 @@ function MarkdownField({
 }
 
 function DraftPreview({ form, onClose }: { form: FormState; onClose: () => void }) {
+  const surfaceRef = useRef<HTMLElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+
   useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const previousOverflow = document.body.style.overflow
+
+    document.body.style.overflow = 'hidden'
+    closeButtonRef.current?.focus()
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onClose()
+        return
+      }
+
+      if (event.key !== 'Tab') return
+      const focusable = Array.from(
+        surfaceRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      )
+      if (!focusable.length) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
+
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+      previouslyFocused?.focus()
+    }
   }, [onClose])
 
   return (
     <div className="admin-draft-preview" role="dialog" aria-modal="true" aria-labelledby="draft-preview-title">
       <div className="admin-draft-preview__backdrop" onClick={onClose} aria-hidden="true" />
-      <section className="admin-draft-preview__surface">
+      <section ref={surfaceRef} className="admin-draft-preview__surface">
         <header className="admin-draft-preview__header">
           <div>
             <p className="admin-eyebrow">Local draft preview</p>
             <h2 id="draft-preview-title">How this article reads</h2>
           </div>
-          <button type="button" className="admin-icon-button" aria-label="Close draft preview" onClick={onClose}>
+          <button ref={closeButtonRef} type="button" className="admin-icon-button" aria-label="Close draft preview" onClick={onClose}>
             <X size={18} aria-hidden="true" />
           </button>
         </header>
         <div className="admin-draft-preview__body">
-          {isLikelyUrl(form.coverImage) && <img src={form.coverImage} alt={form.coverImageAlt || ''} className="admin-draft-preview__image" />}
+          {isLikelyUrl(form.coverImage) && <img src={form.coverImage} alt={form.coverImageAlt || form.title || 'Article cover image'} className="admin-draft-preview__image" />}
           <p className="admin-eyebrow">{form.category || 'Article'}</p>
           <h3>{form.title || 'Untitled article'}</h3>
           <p className="admin-draft-preview__excerpt">{form.excerpt || 'Add an excerpt to introduce this article.'}</p>
+          <p className="admin-draft-preview__byline">Edited by <strong>{form.authorName || 'Editorial team'}</strong></p>
           <div className="admin-draft-preview__markdown">
-            {form.content.trim() ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.content}</ReactMarkdown> : <p>Nothing to preview yet.</p>}
+            {form.content.trim() ? <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={markdownRehypePlugins}>{form.content}</ReactMarkdown> : <p>Nothing to preview yet.</p>}
           </div>
         </div>
       </section>
@@ -733,6 +849,15 @@ function OutlinePanel({ entries }: { entries: AnalysisResult['toc'] }) {
   )
 }
 
+type InspectorTab = 'overview' | 'editorial' | 'seo' | 'publishing'
+
+const INSPECTOR_TABS: Array<{ id: InspectorTab; label: string; description: string; icon: typeof Gauge }> = [
+  { id: 'overview', label: 'Overview', description: 'Health and structure', icon: Gauge },
+  { id: 'editorial', label: 'Editorial', description: 'AI, FAQ, and quote', icon: Sparkles },
+  { id: 'seo', label: 'SEO', description: 'Search and metadata', icon: SearchCheck },
+  { id: 'publishing', label: 'Publishing', description: 'Schedule and release', icon: CalendarDays },
+]
+
 function BlogEditor() {
   const { id } = useParams<{ id: string }>()
   const isEditing = Boolean(id)
@@ -761,15 +886,25 @@ function BlogEditor() {
   useEffect(() => {
     setScheduleInput(scheduledAt ? toDatetimeLocalValue(scheduledAt) : '')
   }, [scheduledAt])
-  const [authorName, setAuthorName] = useState<string | undefined>(undefined)
   const [slugTouched, setSlugTouched] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [focusMode, setFocusMode] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [isAppleDevice, setIsAppleDevice] = useState(false)
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('overview')
   const [recoverySnapshot, setRecoverySnapshot] = useState<{ form: FormState; savedAt: string } | null>(null)
   const [localDraftSavedAt, setLocalDraftSavedAt] = useState<string | null>(null)
   const [touched, setTouched] = useState<Partial<Record<InlineField, boolean>>>({})
   const recoveryKey = `brandworks.editor.recovery.${id ?? 'new'}`
+
+  useEffect(() => {
+    setIsAppleDevice(/Mac|iPhone|iPad|iPod/.test(window.navigator.platform))
+  }, [])
+
+  useEffect(() => {
+    if (isEditing || !admin?.username) return
+    setForm((current) => current.authorName ? current : { ...current, authorName: admin.username })
+  }, [admin?.username, isEditing])
 
   const [loading, setLoading] = useState(isEditing)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -778,6 +913,18 @@ function BlogEditor() {
   const [submitting, setSubmitting] = useState<
     'save' | 'publish' | 'unpublish' | 'schedule' | 'unschedule' | null
   >(null)
+
+  useEffect(() => {
+    if (loadError) toast.error(loadError)
+  }, [loadError])
+
+  useEffect(() => {
+    if (formError) toast.error(formError)
+  }, [formError])
+
+  useEffect(() => {
+    if (successMessage) toast.success(successMessage)
+  }, [successMessage])
 
   useEffect(() => {
     if (!id) return
@@ -793,7 +940,6 @@ function BlogEditor() {
         setReviewNote(blog.reviewNote ?? null)
         setPublishedAtDisplay(blog.publishedAt)
         setScheduledAt(blog.scheduledAt)
-        setAuthorName(blog.authorName)
         setSlugTouched(true) // an existing slug is never auto-derived from title edits
       })
       .catch((err: unknown) => {
@@ -812,12 +958,21 @@ function BlogEditor() {
     try {
       const raw = window.localStorage.getItem(recoveryKey)
       if (!raw) return
-      const parsed = JSON.parse(raw) as { form?: FormState; savedAt?: string }
-      if (parsed.form && parsed.savedAt) setRecoverySnapshot({ form: parsed.form, savedAt: parsed.savedAt })
+      const parsed = JSON.parse(raw) as { form?: Partial<FormState>; savedAt?: string }
+      if (parsed.form && parsed.savedAt) {
+        setRecoverySnapshot({
+          form: {
+            ...EMPTY_FORM,
+            ...parsed.form,
+            authorName: parsed.form.authorName || admin?.username || '',
+          },
+          savedAt: parsed.savedAt,
+        })
+      }
     } catch {
       // Local recovery is best-effort and must never block the editor.
     }
-  }, [loading, recoveryKey])
+  }, [admin?.username, loading, recoveryKey])
 
   useEffect(() => {
     if (!dirty || loading || recoverySnapshot) return
@@ -884,9 +1039,9 @@ function BlogEditor() {
       twitterCard: debouncedForm.twitterCard,
       breadcrumbEnabled: debouncedForm.breadcrumbEnabled,
       customMetaTags: debouncedForm.customMetaTags,
-      authorName,
+      authorName: debouncedForm.authorName,
     }),
-    [debouncedForm, authorName],
+    [debouncedForm],
   )
 
   // Pure + memoized — only recomputes when the debounced input actually changes.
@@ -961,6 +1116,7 @@ function BlogEditor() {
     const seoDescription = form.seoDescription.trim() ? form.seoDescription.trim() : null
 
     const structuredFields = {
+      authorName: form.authorName.trim(),
       coverImageTitle: form.coverImageTitle.trim() || null,
       coverImageCaption: form.coverImageCaption.trim() || null,
       coverImageDescription: form.coverImageDescription.trim() || null,
@@ -1034,6 +1190,7 @@ function BlogEditor() {
       if (!isEditing) {
         // Redirect to the edit page, as specified, rather than staying
         // on the create form or going back to the list.
+        toast.success('Draft created.')
         navigate(`/admin/blogs/${saved.id}/edit`, { replace: true })
         return
       }
@@ -1259,11 +1416,11 @@ function BlogEditor() {
           </AdminStatusBadge>
         )}
         <button type="button" className="admin-button admin-button--secondary" onClick={() => setPreviewOpen(true)}>
-          <Eye size={15} aria-hidden="true" /> Preview <kbd>⌘⇧P</kbd>
+          <Eye size={15} aria-hidden="true" /> Preview <kbd>{isAppleDevice ? '⌘⇧P' : 'Ctrl+Shift+P'}</kbd>
         </button>
         <button type="button" className="admin-button admin-button--quiet" onClick={() => setFocusMode((current) => !current)}>
           {focusMode ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}
-          {focusMode ? 'Exit focus' : 'Focus mode'} <kbd>⌘⇧F</kbd>
+          {focusMode ? 'Exit focus' : 'Focus mode'} <kbd>{isAppleDevice ? '⌘⇧F' : 'Ctrl+Shift+F'}</kbd>
         </button>
         </div>
       </div>
@@ -1344,7 +1501,19 @@ function BlogEditor() {
             error={touched.excerpt ? fieldError(form, 'excerpt') ?? undefined : undefined}
           />
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 ${isEditing ? '' : 'lg:grid-cols-3'}`}>
+            <FormField
+              id="authorName"
+              label="Editor name"
+              helperText="Displayed in the public article byline."
+              type="text"
+              required
+              maxLength={EDITOR_NAME_MAX}
+              value={form.authorName}
+              onChange={(e) => updateField('authorName', e.target.value)}
+              onBlur={() => markTouched('authorName')}
+              error={touched.authorName ? fieldError(form, 'authorName') ?? undefined : undefined}
+            />
             <FormField
               id="category"
               label="Category"
@@ -1435,7 +1604,7 @@ function BlogEditor() {
             </div>
           </div>
 
-          <MarkdownField
+          <RichContentEditor
             value={form.content}
             onChange={(v) => updateField('content', v)}
             onBlur={() => markTouched('content')}
@@ -1461,15 +1630,47 @@ function BlogEditor() {
         </div>
 
         <aside className="admin-editor-inspector" aria-label="Article inspector">
-        <OutlinePanel entries={analysis.toc} />
-        <ContentHealthSummary analysis={analysis} />
-        <AnalysisDetails analysis={analysis} />
-        <RevisionHistory id={id} onRestore={handleRestoreRevision} />
+        <div className="admin-inspector-intro">
+          <div>
+            <p className="admin-eyebrow">Inspector</p>
+            <h2>Editorial signals</h2>
+            <p>Keep the article clear, discoverable, and ready to publish.</p>
+          </div>
+          <span className="admin-inspector-intro__dot" aria-hidden="true" />
+        </div>
+        <div className="admin-inspector-tabs" role="tablist" aria-label="Article tools">
+          {INSPECTOR_TABS.map(({ id: tabId, label, description, icon: Icon }) => (
+            <button
+              key={tabId}
+              type="button"
+              id={`inspector-tab-${tabId}`}
+              role="tab"
+              aria-selected={inspectorTab === tabId}
+              aria-controls={`inspector-panel-${tabId}`}
+              tabIndex={inspectorTab === tabId ? 0 : -1}
+              className="admin-inspector-tab"
+              onClick={() => setInspectorTab(tabId)}
+            >
+              <Icon size={15} aria-hidden="true" />
+              <span><strong>{label}</strong><small>{description}</small></span>
+            </button>
+          ))}
+        </div>
+
+        <div id="inspector-panel-overview" role="tabpanel" aria-labelledby="inspector-tab-overview" className={`admin-inspector-tabpanel ${inspectorTab === 'overview' ? '' : 'is-hidden'}`}>
+          <OutlinePanel entries={analysis.toc} />
+          <ContentHealthSummary analysis={analysis} />
+          <AnalysisDetails analysis={analysis} />
+          <RevisionHistory id={id} onRestore={handleRestoreRevision} />
+        </div>
 
         {/* AI SUMMARY ---------------------------------------------------- */}
+        <div id="inspector-panel-editorial" role="tabpanel" aria-labelledby="inspector-tab-editorial" className={`admin-inspector-tabpanel ${inspectorTab === 'editorial' ? '' : 'is-hidden'}`}>
         <CollapsibleSection
           title="AI Summary"
           description="Manually written — not generated automatically."
+          icon={Sparkles}
+          meta="Optional"
         >
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
@@ -1500,8 +1701,10 @@ function BlogEditor() {
 
         {/* AI CONTEXT ------------------------------------------------------ */}
         <CollapsibleSection
-          title="AI Context"
+          title="AI Content"
           description="Structured editorial context for future optimization — not enforced SEO claims."
+          icon={Bot}
+          meta="Context"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <FormField
@@ -1573,7 +1776,7 @@ function BlogEditor() {
         </CollapsibleSection>
 
         {/* ENTITY SEO ------------------------------------------------------ */}
-        <CollapsibleSection title="Entity SEO" description="Structured topic/entity context.">
+        <CollapsibleSection title="Entity SEO" description="Structured topic/entity context." icon={Tags} meta="Topic">
           <FormField
             id="mainEntity"
             label="Main Entity"
@@ -1605,12 +1808,14 @@ function BlogEditor() {
         <CollapsibleSection
           title="FAQ"
           description="Structured question/answer pairs — not embedded in the Markdown body."
+          icon={CircleHelp}
+          meta="Optional"
         >
           <FaqEditor items={form.faq} onChange={(next) => updateField('faq', next)} />
         </CollapsibleSection>
 
         {/* EXPERT QUOTE ------------------------------------------------------ */}
-        <CollapsibleSection title="Expert Quote">
+        <CollapsibleSection title="Expert Quote" icon={Quote} meta="Optional">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="expertQuoteText" className="text-[14px] font-medium text-neutral-900">
               Quote
@@ -1651,9 +1856,11 @@ function BlogEditor() {
             onChange={(e) => updateField('expertQuoteRole', e.target.value)}
           />
         </CollapsibleSection>
+        </div>
 
         {/* SEO ------------------------------------------------------ */}
-        <CollapsibleSection title="SEO" defaultOpen>
+        <div id="inspector-panel-seo" role="tabpanel" aria-labelledby="inspector-tab-seo" className={`admin-inspector-tabpanel ${inspectorTab === 'seo' ? '' : 'is-hidden'}`}>
+        <CollapsibleSection title="SEO" defaultOpen icon={SearchCheck} meta="Metadata">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <label htmlFor="seoTitle" className="text-[14px] font-medium text-neutral-900">
@@ -1815,19 +2022,21 @@ function BlogEditor() {
         </CollapsibleSection>
 
         {/* CUSTOM META TAGS ------------------------------------------------------ */}
-        <CollapsibleSection title="Custom Meta Tags">
+        <CollapsibleSection title="Custom Meta Tags" icon={Settings2} meta="Advanced">
           <CustomMetaTagsEditor
             items={form.customMetaTags}
             onChange={(next) => updateField('customMetaTags', next)}
           />
         </CollapsibleSection>
+        </div>
 
         {/* SCHEDULING (Phase 14) — meaningless for an already-published
            post (the backend rejects it — see blog.service.ts's
            scheduleBlogPost), so hidden rather than shown-then-erroring. */}
+        <div id="inspector-panel-publishing" role="tabpanel" aria-labelledby="inspector-tab-publishing" className={`admin-inspector-tabpanel ${inspectorTab === 'publishing' ? '' : 'is-hidden'}`}>
         {status !== 'published' && (
           <div className="flex flex-col gap-3 rounded-[12px] border border-neutral-200 bg-white p-6">
-            <h2 className="text-[16px] font-semibold text-neutral-900">Scheduled Publishing</h2>
+            <h2 className="text-[16px] text-neutral-900">Scheduled Publishing</h2>
 
             {/* State is always shown explicitly — scheduled with its
                date, or "no schedule set" — rather than only being
@@ -1898,6 +2107,8 @@ function BlogEditor() {
             </div>
           </div>
         )}
+        {status === 'published' && <div className="admin-editor-section admin-publishing-note"><p className="admin-eyebrow">Publishing</p><h2>Already published</h2><p>This article is live. Unpublish it before creating a future publishing schedule.</p></div>}
+        </div>
         </aside>
       </form>
       {previewOpen && <DraftPreview form={form} onClose={() => setPreviewOpen(false)} />}

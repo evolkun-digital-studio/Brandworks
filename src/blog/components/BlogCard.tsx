@@ -67,8 +67,8 @@ function BlogCard({ post, showExcerpt = false, priority = false }: BlogCardProps
       )}
 
       <div className="mt-4 flex w-full items-center justify-between gap-4">
-        <span className="text-[14px] leading-tight font-medium text-neutral-900">
-          {post.authorName}
+        <span className="min-w-0 truncate text-[13px] leading-tight text-neutral-500">
+          Edited by <span className="font-medium text-neutral-900">{post.authorName}</span>
         </span>
         <span className="text-[13px] text-neutral-500">
           {formatBlogDate(post.publishedAt)}

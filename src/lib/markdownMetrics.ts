@@ -58,6 +58,36 @@ const ORDERED_LIST_LINE_PATTERN = /^\s*\d+\.\s+/
 const TABLE_ROW_PATTERN = /^\s*\|/
 const HORIZONTAL_RULE_PATTERN = /^\s*(-{3,}|\*{3,}|_{3,})\s*$/
 
+/**
+ * The admin editor is visual-first and stores a small, sanitized HTML layer
+ * for layouts and inline styling. Normalize its block semantics into the
+ * Markdown shapes understood by this lightweight analyzer. Plain Markdown
+ * stays byte-for-byte untouched, so existing line numbers and checks remain
+ * deterministic.
+ */
+function normalizeRichContent(content: string): string {
+  if (!/<(?:p|h[1-6]|ul|ol|li|blockquote|figure|img|div|br)\b/i.test(content)) return content
+
+  return content
+    .replace(/<h([1-6])\b[^>]*>/gi, (_, level: string) => `${'#'.repeat(Number(level))} `)
+    .replace(/<\/h[1-6]>/gi, '\n')
+    .replace(/<li\b[^>]*>/gi, '- ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<blockquote\b[^>]*>/gi, '> ')
+    .replace(/<\/blockquote>/gi, '\n')
+    .replace(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, '[$2]($1)')
+    .replace(/<img\b[^>]*src=["']([^"']+)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi, '![$2]($1)')
+    .replace(/<img\b[^>]*alt=["']([^"']*)["'][^>]*src=["']([^"']+)["'][^>]*>/gi, '![$1]($2)')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(?:p|div|figure|figcaption|section|main)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\n{3,}/g, '\n\n')
+}
+
 /** Strips inline Markdown formatting, leaving plain readable text (used for heading/TOC display text). */
 function cleanInlineMarkdown(text: string): string {
   return text
@@ -116,6 +146,7 @@ export function computeWordCount(plainText: string): number {
 }
 
 export function parseMarkdown(content: string): ParsedMarkdown {
+  content = normalizeRichContent(content)
   const codeBlockMatches = content.match(FENCED_CODE_BLOCK_PATTERN) ?? []
   // Replaced with the same number of blank lines the block itself
   // spanned (not collapsed to a single line) so every line number

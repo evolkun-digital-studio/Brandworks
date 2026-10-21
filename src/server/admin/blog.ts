@@ -79,6 +79,8 @@ export async function scheduledBlogCount() { return countAdminScheduledBlogs() }
 
 export async function createBlogForAdmin(actor: AdminDocument, input: Record<string, unknown>) {
   const title = requiredText(input.title,'Title',200)
+  const requestedAuthorName = optionalText(input.authorName,'Editor name')
+  const authorName = requestedAuthorName === undefined ? actor.username : requiredText(requestedAuthorName,'Editor name',100).trim()
   const excerpt = requiredText(input.excerpt,'Excerpt',500)
   const content = requiredText(input.content,'Content',100000)
   const coverImage = requiredText(input.coverImage,'Cover image',Number.MAX_SAFE_INTEGER)
@@ -98,7 +100,7 @@ export async function createBlogForAdmin(actor: AdminDocument, input: Record<str
     if (Number.isNaN(publishedAt.getTime())) throw badRequest('Publish date is not a valid date.')
   }
   const doc: Record<string, unknown> = {
-    title, slug, excerpt, content, coverImage, coverImageAlt, authorName: actor.username, authorId: actor._id,
+    title, slug, excerpt, content, coverImage, coverImageAlt, authorName, authorId: actor._id,
     status:'draft', publishedAt, scheduledAt:null, deletedAt:null, seoTitle,
     reviewStatus: 'draft', reviewNote: null, reviewedBy: null, reviewedAt: null,
     seoDescription, coverImageTitle:null, coverImageCaption:null,
@@ -125,6 +127,8 @@ export async function updateBlogForAdmin(actor: AdminDocument, id: string, input
     const value = optionalText(input[key],key)
     if (value !== undefined) patch[key] = requiredText(value,key,max)
   }
+  const authorName = optionalText(input.authorName,'Editor name')
+  if (authorName !== undefined) patch.authorName = requiredText(authorName,'Editor name',100).trim()
   const coverImage=optionalText(input.coverImage,'coverImage')
   if(coverImage!==undefined){if(!coverImage.trim())throw badRequest('Cover image is required.');try{if(!['http:','https:'].includes(new URL(coverImage).protocol))throw new Error()}catch{throw badRequest('Cover image must be a valid URL.')}patch.coverImage=coverImage}
   for (const [key,max,label] of [['seoTitle',200,'SEO title'],['seoDescription',300,'SEO description']] as const) {

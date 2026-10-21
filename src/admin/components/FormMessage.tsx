@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { CheckCircle2, TriangleAlert } from 'lucide-react'
 
 interface FormMessageProps {
   type: 'error' | 'success'
@@ -11,12 +12,9 @@ function FormMessage({ type, children }: FormMessageProps) {
   return (
     <div
       role={isError ? 'alert' : 'status'}
-      className={`rounded-[10px] border px-4 py-3 text-[13px] leading-[1.5] ${
-        isError
-          ? 'border-red-200 bg-red-50 text-red-700'
-          : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-      }`}
+      className={`admin-form-message admin-form-message--${type}`}
     >
+      {isError ? <TriangleAlert size={17} aria-hidden="true" /> : <CheckCircle2 size={17} aria-hidden="true" />}
       {children}
     </div>
   )

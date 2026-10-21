@@ -37,7 +37,7 @@ function Login() {
   }
 
   return (
-    <div className="admin-app admin-login">
+    <div className="admin-app admin-theme-light admin-login">
       <section className="admin-login__card" aria-labelledby="login-title">
         <div className="admin-login__brand">
           <span className="admin-brand-mark" aria-hidden="true">B</span>

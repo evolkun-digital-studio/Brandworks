@@ -124,6 +124,7 @@ interface StructuredFields {
 
 export interface CreateBlogPostInput extends StructuredFields {
   title: string
+  authorName?: string
   excerpt: string
   content: string
   coverImage: string
@@ -144,6 +145,7 @@ export function createBlogPost(input: CreateBlogPostInput) {
 
 export interface UpdateBlogPostInput extends StructuredFields {
   title?: string
+  authorName?: string
   slug?: string
   excerpt?: string
   content?: string

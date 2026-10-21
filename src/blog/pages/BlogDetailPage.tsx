@@ -432,7 +432,7 @@ function BlogDetailPage() {
         <p className="site-copy mt-4 text-neutral-600">{post.excerpt}</p>
 
         <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px] text-neutral-600">
-          <span className="font-medium text-neutral-900">{post.authorName}</span>
+          <span>Edited by <span className="font-medium text-neutral-900">{post.authorName}</span></span>
           <span aria-hidden="true">&middot;</span>
           <span>
             Published <time dateTime={post.publishedAt}>{formatBlogDate(post.publishedAt)}</time>

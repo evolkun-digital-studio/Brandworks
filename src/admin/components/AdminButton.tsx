@@ -11,12 +11,14 @@ function AdminButton({
   variant = 'secondary',
   icon,
   className = '',
+  type = 'button',
   children,
   ...props
 }: AdminButtonProps) {
   return (
     <button
       {...props}
+      type={type}
       className={`admin-button admin-button--${variant} ${className}`}
     >
       {icon}

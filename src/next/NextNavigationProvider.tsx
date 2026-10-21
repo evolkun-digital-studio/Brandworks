@@ -2,7 +2,7 @@
 
 import NextLink from 'next/link'
 import { useParams as useNextParams, usePathname, useRouter, useSearchParams as useNextSearchParams } from 'next/navigation'
-import { useCallback, useMemo, useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { RouterBindingsProvider, routerHref, type RouterBindings, type RouterLinkProps, type RouterSearchSetter } from '../routing/context'
 
 function NextRouteLink({ to, replace, state: _state, className: rawClassName, style: rawStyle, ...props }: RouterLinkProps) {
@@ -85,13 +85,17 @@ export default function NextNavigationProvider({ children }: { children: ReactNo
     if (options.replace) router.replace(href)
     else router.push(href)
   }, [router])
-  const state = useMemo(() => {
+  const [state, setState] = useState<unknown>(null)
+
+  useEffect(() => {
+    let nextState: unknown = null
     try {
       const serialized = window.sessionStorage.getItem(`brandworks-router-state:${pathname}${search ? `?${search}` : ''}`)
-      return serialized ? JSON.parse(serialized) as unknown : null
+      nextState = serialized ? JSON.parse(serialized) as unknown : null
     } catch {
-      return null
+      nextState = null
     }
+    setState(nextState)
   }, [pathname, search])
   const value = useMemo<RouterBindings>(() => ({
     Link: NextRouteLink,

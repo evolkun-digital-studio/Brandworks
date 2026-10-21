@@ -42,6 +42,11 @@ function imgTag(html: string): string {
 }
 
 describe('BlogCard image attributes', () => {
+  it('renders the CMS editor name as a labelled public byline', () => {
+    expect(renderCard()).toContain('Edited by')
+    expect(renderCard()).toContain('Jane Doe')
+  })
+
   it('uses the CMS-provided coverImageAlt verbatim as the alt text', () => {
     const html = renderCard()
     expect(imgTag(html)).toContain('alt="A meaningful description of the cover"')

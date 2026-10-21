@@ -65,7 +65,7 @@ export default function PublicBlogArticle({ post, related }: { post: PublicBlogD
         {post.category && <span className="mt-6 rounded-[4px] bg-neutral-100 px-2.5 py-1 text-[12px] font-medium tracking-wide text-neutral-600 uppercase">{post.category}</span>}
         <h1 className={`${post.category ? 'mt-3' : 'mt-6'} site-heading text-neutral-900 uppercase`}>{post.title}</h1>
         <p className="site-copy mt-4 text-neutral-600">{post.excerpt}</p>
-        <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px] text-neutral-600"><span className="font-medium text-neutral-900">{post.authorName}</span><span aria-hidden="true">&middot;</span><span>Published <time dateTime={post.publishedAt}>{formatBlogDate(post.publishedAt)}</time></span>{showUpdated && <><span aria-hidden="true">&middot;</span><span>Updated <time dateTime={post.updatedAt}>{formatBlogDate(post.updatedAt)}</time></span></>}</div>
+        <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px] text-neutral-600"><span>Edited by <span className="font-medium text-neutral-900">{post.authorName}</span></span><span aria-hidden="true">&middot;</span><span>Published <time dateTime={post.publishedAt}>{formatBlogDate(post.publishedAt)}</time></span>{showUpdated && <><span aria-hidden="true">&middot;</span><span>Updated <time dateTime={post.updatedAt}>{formatBlogDate(post.updatedAt)}</time></span></>}</div>
         {post.coverImage && <PublicArticleCover src={post.coverImage} alt={post.coverImageAlt} />}
         {post.coverImageCaption && <p className="mt-2 text-[13px] text-neutral-500">{post.coverImageCaption}</p>}
         <SummarySection summary={post.aiSummary} />
