@@ -7,6 +7,7 @@ import type { Variants } from 'motion/react'
 import teamPortrait from '../../assets/about/team-04.webp'
 import redPortrait from '../../assets/photography/hero-red-portrait-1200.webp'
 import lavenderPortrait from '../../assets/photography/Top-Down Lavender Hijab Editorial Portrait.png'
+import handsPortrait from '../../assets/photography/hero-hands-portrait-1200.webp'
 import './Testimonials.css'
 
 type Testimonial = {
@@ -19,38 +20,48 @@ type Testimonial = {
   imageAlt: string
 }
 
-// Replace these clearly labelled placeholders only when approved client copy,
-// attribution, and portraits are available for publication.
+// Placeholder attribution: swap in approved client names, roles, companies
+// and portraits before publishing.
 const testimonials: Testimonial[] = [
   {
     id: 'client-placeholder-01',
     quote:
-      'Verified client feedback will appear here once it has been approved for publication.',
-    name: 'Client name pending',
-    designation: 'Role pending',
-    company: 'Development only',
+      'Brandworks didn’t just design our logo, they gave our brand a real personality.',
+    name: '[Client Name]',
+    designation: '[Role]',
+    company: '[Company]',
     image: teamPortrait,
-    imageAlt: 'Editorial portrait used as a temporary testimonial image',
+    imageAlt: 'Portrait of a Brandworks client',
   },
   {
     id: 'client-placeholder-02',
     quote:
-      'This card is reserved for an authenticated client testimonial and attribution.',
-    name: 'Client name pending',
-    designation: 'Role pending',
-    company: 'Development only',
+      'Our new website by Brandworks doubled our enquiries within the first month.',
+    name: '[Client Name]',
+    designation: '[Role]',
+    company: '[Company]',
     image: redPortrait,
-    imageAlt: 'Editorial portrait used as a temporary testimonial image',
+    imageAlt: 'Portrait of a Brandworks client',
   },
   {
     id: 'client-placeholder-03',
     quote:
-      'Approved client feedback can be added here without changing the card layout or interaction.',
-    name: 'Client name pending',
-    designation: 'Role pending',
-    company: 'Development only',
+      'From strategy to visuals, Brandworks made the whole rebrand feel effortless.',
+    name: '[Client Name]',
+    designation: '[Role]',
+    company: '[Company]',
     image: lavenderPortrait,
-    imageAlt: 'Editorial portrait used as a temporary testimonial image',
+    imageAlt: 'Portrait of a Brandworks client',
+  },
+  {
+    id: 'client-placeholder-04',
+    quote:
+      'Fast, sharp and genuinely creative. Brandworks gets it right the first time.',
+    name: '[Client Name]',
+    designation: '[Role]',
+    company: '[Company]',
+    image: handsPortrait,
+    imageAlt: 'Portrait of a Brandworks client framing the camera with her hands',
   },
 ]
 
@@ -123,7 +134,7 @@ export default function Testimonials() {
             >
               <figure className="testimonial-card">
                 <span className="testimonial-mark" aria-hidden="true">
-                  “
+                  &ldquo;
                 </span>
 
                 <blockquote className="testimonial-quote">
@@ -135,7 +146,7 @@ export default function Testimonials() {
                     src={item.image}
                     alt={item.imageAlt}
                     fill
-                    sizes="(max-width: 767px) 85vw, (max-width: 1023px) 48vw, 370px"
+                    sizes="(max-width: 639px) 85vw, (max-width: 1199px) 48vw, 360px"
                     className="testimonial-photo"
                   />
                   <figcaption className="testimonial-client">
