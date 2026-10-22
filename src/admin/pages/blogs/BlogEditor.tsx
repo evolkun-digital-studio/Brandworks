@@ -12,8 +12,11 @@ import {
   PanelRight,
   Pencil,
   ExternalLink,
+  ImageOff,
   ImagePlus,
+  RefreshCw,
   Redo2,
+  Replace,
   Rocket,
   SearchCheck,
   Sparkles,
@@ -34,10 +37,12 @@ import { useConfirm } from '../../components/ConfirmDialog'
 import { useAdminAuth } from '../../context/useAdminAuth'
 import DocumentPanel from './components/DocumentPanel'
 import EnrichPanel from './components/EnrichPanel'
+import ImageDetailsDialog from './components/ImageDetailsDialog'
 import MediaPicker from './components/MediaPicker'
 import RichContentEditor from './components/RichContentEditor'
 import SeoPanel from './components/SeoPanel'
 import { PreviewDialog, PublishSheet, ShortcutsSheet } from './components/EditorDialogs'
+import type { ImageDetails } from './components/ImageDetailsDialog'
 import type { RichEditorHandle } from './components/RichContentEditor'
 import { analyzeBlog } from './lib/blogAnalyzer'
 import type { AnalyzerInput } from './lib/blogAnalyzer'
@@ -130,8 +135,11 @@ function CoverImage({
   const [linkOpen, setLinkOpen] = useState(false)
   const [linkDraft, setLinkDraft] = useState('')
   const [failed, setFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const [dialog, setDialog] = useState<{ src: string; initial: Partial<ImageDetails> } | null>(null)
   const hasImage = isLikelyUrl(form.coverImage)
   const altError = touched.coverImageAlt ? fieldError(form, 'coverImageAlt') : null
+  const fromLibrary = form.coverImage.includes('/api/media/')
 
   useEffect(() => setFailed(false), [form.coverImage])
 
@@ -141,9 +149,18 @@ function CoverImage({
       toast.error('Enter an image address that starts with https://')
       return
     }
-    update('coverImage', value)
     setLinkOpen(false)
     setLinkDraft('')
+    setDialog({ src: value, initial: { alt: form.coverImageAlt, title: form.coverImageTitle, caption: form.coverImageCaption } })
+  }
+
+  function saveDetails(result: ImageDetails) {
+    if (!dialog) return
+    update('coverImage', dialog.src)
+    update('coverImageAlt', result.alt)
+    update('coverImageTitle', result.title)
+    update('coverImageCaption', result.caption)
+    setDialog(null)
   }
 
   return (
@@ -151,14 +168,30 @@ function CoverImage({
       {hasImage ? (
         <div className="group relative overflow-hidden rounded-a-xl bg-a-fill">
           {failed ? (
-            <div className="grid aspect-[16/7] place-items-center text-[13px] text-a-ink-2">We couldn’t load that image.</div>
+            <div className="flex aspect-[16/7] flex-col items-center justify-center gap-2 px-6 text-center">
+              <span className="grid size-11 place-items-center rounded-[13px] bg-a-surface text-a-ink-2"><ImageOff size={20} strokeWidth={1.6} aria-hidden="true" /></span>
+              <p className="text-[15px] font-semibold tracking-[-0.012em]">This image can’t be loaded</p>
+              <p className="max-w-[46ch] text-[13px] leading-snug text-a-ink-2">
+                {fromLibrary ? 'It may have been removed from the media library, or it belongs to a different site. ' : 'The address may be wrong, or the image may have been taken down. '}
+                Choose another image, or try again.
+              </p>
+              <p className="max-w-full truncate text-xs text-a-ink-3" title={form.coverImage}>{form.coverImage}</p>
+              <div className="mt-1 flex flex-wrap justify-center gap-2">
+                <AdminButton variant="primary" onClick={() => setPickerOpen(true)} icon={<Replace size={14} aria-hidden="true" />}>Replace image</AdminButton>
+                <AdminButton onClick={() => { setFailed(false); setAttempt((count) => count + 1) }} icon={<RefreshCw size={14} aria-hidden="true" />}>Try again</AdminButton>
+                <AdminButton variant="quiet" onClick={() => { update('coverImage', ''); update('coverImageAlt', '') }}>Remove</AdminButton>
+              </div>
+            </div>
           ) : (
-            <img src={form.coverImage} alt={form.coverImageAlt || 'Cover image'} className="aspect-[16/7] w-full object-cover" onError={() => setFailed(true)} />
+            <>
+              <img key={attempt} src={form.coverImage} alt={form.coverImageAlt || 'Cover image'} title={form.coverImageTitle || undefined} className="aspect-[16/7] w-full object-cover" onError={() => setFailed(true)} />
+              <div className="absolute top-3 right-3 flex gap-2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
+                <button type="button" className="admin-chip-button" onClick={() => setDialog({ src: form.coverImage, initial: { alt: form.coverImageAlt, title: form.coverImageTitle, caption: form.coverImageCaption } })}><Pencil size={14} aria-hidden="true" /> Details</button>
+                <button type="button" className="admin-chip-button" onClick={() => setPickerOpen(true)}><Replace size={14} aria-hidden="true" /> Replace</button>
+                <button type="button" className="admin-chip-button" onClick={() => { update('coverImage', ''); update('coverImageAlt', '') }}><X size={14} aria-hidden="true" /> Remove</button>
+              </div>
+            </>
           )}
-          <div className="absolute top-3 right-3 flex gap-2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
-            <button type="button" className="admin-chip-button" onClick={() => setPickerOpen(true)}><ImagePlus size={14} aria-hidden="true" /> Replace</button>
-            <button type="button" className="admin-chip-button" onClick={() => { update('coverImage', ''); update('coverImageAlt', '') }}><X size={14} aria-hidden="true" /> Remove</button>
-          </div>
         </div>
       ) : (
         <div className="admin-ed-cover__empty">
@@ -173,7 +206,7 @@ function CoverImage({
             <div className="mt-2 flex w-full max-w-md gap-2" onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); applyLink() } }}>
               <label htmlFor="cover-link" className="sr-only">Image address</label>
               <input id="cover-link" className="admin-input" autoFocus placeholder="https://…" value={linkDraft} onChange={(event) => setLinkDraft(event.target.value)} />
-              <AdminButton variant="primary" onClick={applyLink}>Add</AdminButton>
+              <AdminButton variant="primary" onClick={applyLink}>Continue</AdminButton>
             </div>
           )}
           {touched.coverImage && fieldError(form, 'coverImage') && <p className="admin-field-error" role="alert">{fieldError(form, 'coverImage')}</p>}
@@ -194,19 +227,42 @@ function CoverImage({
             onBlur={() => onTouch('coverImageAlt')}
           />
           {altError && <p className="admin-field-error" role="alert">{altError}</p>}
+          {(form.coverImageTitle || form.coverImageCaption) && (
+            <p className="mt-1.5 truncate text-xs text-a-ink-2">
+              {form.coverImageTitle && <>Title: <span className="text-a-ink">{form.coverImageTitle}</span></>}
+              {form.coverImageTitle && form.coverImageCaption && ' · '}
+              {form.coverImageCaption && <>Caption: <span className="text-a-ink">{form.coverImageCaption}</span></>}
+            </p>
+          )}
         </div>
       )}
 
       {pickerOpen && (
         <MediaPicker
-          title="Choose a cover image"
+          title={hasImage ? 'Replace the cover image' : 'Choose a cover image'}
           onClose={() => setPickerOpen(false)}
           onPick={({ asset, url }) => {
-            update('coverImage', url)
-            if (!form.coverImageAlt.trim()) update('coverImageAlt', asset.altText || asset.originalName.replace(/\.[^.]+$/, ''))
-            if (!form.coverImageCaption.trim() && asset.caption) update('coverImageCaption', asset.caption)
             setPickerOpen(false)
+            setDialog({
+              src: url,
+              initial: {
+                alt: asset.altText || form.coverImageAlt,
+                title: form.coverImageTitle,
+                caption: asset.caption || form.coverImageCaption,
+              },
+            })
           }}
+        />
+      )}
+
+      {dialog && (
+        <ImageDetailsDialog
+          src={dialog.src}
+          mode="cover"
+          initial={dialog.initial}
+          onCancel={() => setDialog(null)}
+          onSubmit={saveDetails}
+          onReplace={() => { setDialog(null); setPickerOpen(true) }}
         />
       )}
     </div>

@@ -58,8 +58,11 @@ function inlineMarkdownToHtml(value: string): string {
 const EDITABLE_TAGS = new Set([
   'a', 'blockquote', 'br', 'code', 'div', 'em', 'figcaption', 'figure',
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'img', 'li', 'mark', 'ol',
-  'p', 'pre', 's', 'span', 'strong', 'u', 'ul',
+  'p', 'pre', 's', 'span', 'strong', 'sub', 'sup', 'u', 'ul',
 ])
+
+export const ALIGNMENTS = ['left', 'center', 'right', 'justify'] as const
+const ALIGNABLE_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'blockquote', 'li'])
 
 /** Browsers write presentational tags; store their semantic equivalents. */
 const TAG_ALIASES: Record<string, string> = { b: 'strong', i: 'em', strike: 's', del: 's' }
@@ -109,6 +112,7 @@ export function sanitizeEditableHtml(source: string): string {
         const keep = (tag === 'span' && name === 'data-color' && COLORS.some((color) => color.value === attribute.value))
           || (tag === 'span' && name === 'data-font-size' && FONT_SIZES.some((size) => size.value === attribute.value))
           || (tag === 'div' && name === 'data-layout' && attribute.value === 'media-text')
+          || (ALIGNABLE_TAGS.has(tag) && name === 'data-align' && (ALIGNMENTS as readonly string[]).includes(attribute.value))
           || ((tag === 'a' || tag === 'img') && ['href', 'src', 'alt', 'title'].includes(name) && (name === 'alt' || name === 'title' || isSafeResource(attribute.value)))
         if (!keep) target.removeAttribute(attribute.name)
       })
@@ -199,10 +203,19 @@ export function markdownToEditableHtml(source: string): string {
   return output.join('')
 }
 
-export function mediaTextHtml(src: string, alt: string, caption: string, text: string): string {
-  return `<div data-layout="media-text"><figure><img src="${escapeAttribute(src)}" alt="${escapeAttribute(alt)}" /><figcaption>${escapeHtml(caption)}</figcaption></figure><div><p>${escapeHtml(text)}</p></div></div><p><br /></p>`
+function figcaptionHtml(caption: string): string {
+  return caption.trim() ? `<figcaption>${escapeHtml(caption.trim())}</figcaption>` : ''
 }
 
-export function figureHtml(src: string, alt: string, caption: string): string {
-  return `<figure><img src="${escapeAttribute(src)}" alt="${escapeAttribute(alt)}" /><figcaption>${escapeHtml(caption)}</figcaption></figure><p><br /></p>`
+function imgHtml(src: string, alt: string, title?: string): string {
+  const titleAttribute = title?.trim() ? ` title="${escapeAttribute(title)}"` : ''
+  return `<img src="${escapeAttribute(src)}" alt="${escapeAttribute(alt)}"${titleAttribute} />`
+}
+
+export function mediaTextHtml(src: string, alt: string, caption: string, text: string, title?: string): string {
+  return `<div data-layout="media-text"><figure>${imgHtml(src, alt, title)}${figcaptionHtml(caption)}</figure><div><p>${escapeHtml(text)}</p></div></div><p><br /></p>`
+}
+
+export function figureHtml(src: string, alt: string, caption: string, title?: string): string {
+  return `<figure>${imgHtml(src, alt, title)}${figcaptionHtml(caption)}</figure><p><br /></p>`
 }

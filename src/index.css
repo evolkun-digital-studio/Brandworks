@@ -1358,6 +1358,11 @@ body {
 .markdown-rich-content h4 { margin: 16px 0 6px; font-size: 18px; line-height: 1.25; letter-spacing: -0.025em; }
 .markdown-rich-content :where(h1, h2, h3, h4):first-child { margin-top: 0; }
 
+.markdown-rich-content [data-align='left'] { text-align: left; }
+.markdown-rich-content [data-align='center'] { text-align: center; }
+.markdown-rich-content [data-align='right'] { text-align: right; }
+.markdown-rich-content [data-align='justify'] { text-align: justify; }
+
 .markdown-rich-content figure { margin: 22px 0; }
 .markdown-rich-content figure img { display: block; max-width: 100%; border-radius: 10px; }
 .markdown-rich-content figcaption { margin-top: 7px; color: var(--rc-muted, #6b6b6b); font-size: 12px; line-height: 1.45; }

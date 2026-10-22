@@ -2,9 +2,11 @@ import rehypeRaw from 'rehype-raw'
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
 import type { PluggableList } from 'unified'
 
+const ALIGN = ['data-align', 'left', 'center', 'right', 'justify']
+
 const markdownSchema = {
   ...defaultSchema,
-  tagNames: [...(defaultSchema.tagNames ?? []), 'mark', 'u', 'span'],
+  tagNames: [...(defaultSchema.tagNames ?? []), 'mark', 'u', 'span', 'sub', 'sup'],
   attributes: {
     ...defaultSchema.attributes,
     span: [
@@ -16,6 +18,14 @@ const markdownSchema = {
       ...(defaultSchema.attributes?.div ?? []),
       ['data-layout', 'media-text'],
     ],
+    // Text alignment set in the editor: a constrained data attribute, never inline style.
+    p: [...(defaultSchema.attributes?.p ?? []), ALIGN],
+    h1: [...(defaultSchema.attributes?.h1 ?? []), ALIGN],
+    h2: [...(defaultSchema.attributes?.h2 ?? []), ALIGN],
+    h3: [...(defaultSchema.attributes?.h3 ?? []), ALIGN],
+    h4: [...(defaultSchema.attributes?.h4 ?? []), ALIGN],
+    blockquote: [...(defaultSchema.attributes?.blockquote ?? []), ALIGN],
+    li: [...(defaultSchema.attributes?.li ?? []), ALIGN],
   },
 }
 

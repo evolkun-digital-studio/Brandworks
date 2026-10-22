@@ -219,6 +219,8 @@ export function ShortcutsSheet({ isApple, onClose }: { isApple: boolean; onClose
         ['Bulleted list', ['-', 'Space']],
         ['Numbered list', ['1.', 'Space']],
         ['Quote', ['>', 'Space']],
+        ['Nest a list item', ['Tab']],
+        ['Link selected text', [mod, 'V', '(paste a URL)']],
       ],
     },
   ]

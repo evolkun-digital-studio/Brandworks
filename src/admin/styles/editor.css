@@ -197,7 +197,7 @@
   }
 
   .admin-rte__toolbar {
-    @apply sticky top-3 z-20 flex flex-nowrap items-center gap-0.5 overflow-x-auto rounded-a-lg bg-a-material p-1 shadow-a-md max-md:-mx-1;
+    @apply sticky top-3 z-20 flex flex-nowrap items-center gap-0.5 overflow-x-auto rounded-a-lg bg-a-material p-1 shadow-a-md max-md:-mx-1 sm:flex-wrap sm:overflow-visible;
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     backdrop-filter: saturate(180%) blur(20px);
     scrollbar-width: none;
@@ -216,12 +216,67 @@
     @apply inline-flex h-8 min-w-8 flex-none cursor-pointer items-center justify-center gap-1 rounded-a-sm border-0 bg-transparent px-1.5 text-a-ink-2 transition-[background-color,color,transform] duration-100 ease-a hover:bg-a-fill hover:text-a-ink active:scale-95 aria-pressed:bg-a-accent-soft aria-pressed:text-a-accent disabled:opacity-35;
   }
 
+  .admin-tool[data-active='true'] {
+    @apply bg-a-accent-soft text-a-accent;
+  }
+
+  /* Floating menus: portalled, so the toolbar's scroll area can never clip them. */
+  .admin-pop {
+    @apply fixed z-95 max-h-[min(70vh,520px)] overflow-y-auto rounded-a-lg bg-a-surface p-1.5 shadow-a-lg;
+    animation: admin-pop 140ms var(--ease-a-spring);
+    transform-origin: top left;
+  }
+
+  .admin-menu__item--tall {
+    @apply h-auto min-h-9 py-1.5;
+  }
+
+  .admin-swatch {
+    @apply size-7 cursor-pointer rounded-full border-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)] transition-transform duration-100 ease-a hover:scale-110 active:scale-95;
+  }
+
+  .admin-swatch--none {
+    @apply bg-a-surface;
+    background-image: linear-gradient(135deg, transparent 46%, var(--a-danger) 46%, var(--a-danger) 54%, transparent 54%);
+  }
+
+  .admin-emoji {
+    @apply grid size-8 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-[18px] transition-colors duration-100 hover:bg-a-fill-2;
+  }
+
+  /* Selection toolbar and image toolbar */
+  .admin-bubble {
+    @apply fixed z-95 flex -translate-x-1/2 items-center gap-0.5 rounded-a-lg bg-a-surface p-1 shadow-a-lg;
+    animation: admin-pop 120ms var(--ease-a-spring);
+    transform-origin: bottom center;
+  }
+
+  .admin-bubble__text {
+    @apply inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-a-sm border-0 bg-transparent px-2.5 text-[13px] font-medium whitespace-nowrap text-a-ink transition-colors duration-100 hover:bg-a-fill;
+  }
+
+  .admin-bubble__text svg {
+    @apply text-a-ink-2;
+  }
+
+  .admin-bubble__text--danger {
+    @apply text-a-danger hover:bg-a-danger-soft;
+  }
+
+  .admin-bubble__text--danger svg {
+    @apply text-a-danger;
+  }
+
+  .admin-image-outline {
+    @apply pointer-events-none fixed z-90 rounded-a-lg outline-2 -outline-offset-2 outline-a-accent;
+  }
+
   .admin-tool--wide {
     @apply gap-1.5 px-2 text-[13px] font-medium text-a-ink;
   }
 
   .admin-tool-sep {
-    @apply mx-1 h-4 w-px flex-none bg-a-line-2;
+    @apply mx-0.5 h-4 w-px flex-none bg-a-line-2;
   }
 
   .admin-menu__panel--left {
@@ -301,9 +356,21 @@
     @apply font-[inherit];
   }
 
-  .admin-rte__surface img.is-selected {
-    @apply outline-2 outline-a-accent;
+  /* Images that fail to load still show a clear, clickable placeholder. */
+  .admin-rte__surface img {
+    @apply min-h-20 cursor-pointer bg-a-fill text-[13px] text-a-ink-3;
   }
+
+  .admin-rte__surface figure {
+    @apply cursor-default;
+  }
+
+  .admin-rte__surface :is(p, h1, h2, h3, h4, blockquote, li)[data-align='center'] { @apply text-center; }
+  .admin-rte__surface :is(p, h1, h2, h3, h4, blockquote, li)[data-align='right'] { @apply text-right; }
+  .admin-rte__surface :is(p, h1, h2, h3, h4, blockquote, li)[data-align='justify'] { @apply text-justify; }
+
+  .admin-rte__surface sub { @apply text-[0.75em]; }
+  .admin-rte__surface sup { @apply text-[0.75em]; }
 
   .admin-slash {
     @apply fixed z-90 flex max-h-80 w-72 flex-col overflow-y-auto rounded-a-lg bg-a-surface p-1.5 shadow-a-lg;
