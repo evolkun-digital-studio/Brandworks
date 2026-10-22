@@ -57,6 +57,26 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   const tone = isDarkHero ? 'is-on-dark' : 'is-on-light'
   const logoSrc = '/BWorksLogo-01.svg'
 
+  // The project planner keeps only the logo so the questionnaire stays focused.
+  if (pathname === '/start-project') {
+    return (
+      // Phones show only the full-screen question card, so the logo bar starts at tablet width.
+      // Same logo, size and position as the main header; it's drawn for dark grounds, like the planner's film.
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 mt-[18px] hidden h-[64px] items-center px-[var(--hero-gutter)] sm:flex lg:mt-[20px]">
+        <Link to="/" aria-label="Brandworks home" className="pointer-events-auto block">
+          <Image
+            src={logoSrc}
+            alt="BrandWorks"
+            width={175}
+            height={30}
+            priority
+            className="site-header__logo block h-auto w-[145px] object-contain lg:w-[175px]"
+          />
+        </Link>
+      </header>
+    )
+  }
+
   return (
     <header className={`site-header ${hidden ? "is-hidden" : ""}`}>
       {/* Desktop Layout */}

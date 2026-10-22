@@ -1,42 +1,35 @@
 'use client'
 
 import { useId, type ReactNode } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
 import type { Option } from './flow'
 import { OptionVisual } from './visuals'
+import { OPTION_EMOJI } from './emoji'
+import AppleEmoji from './AppleEmoji'
 import { useSpeech } from './useSpeech'
 
 export const EASE = [0.22, 1, 0.36, 1] as const
 export const KEYS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
+export const focusRing = 'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--q-ink)'
+
 /* -------------------------------------------------------------------------- */
 /*  Option rows (single + multi)                                              */
 /* -------------------------------------------------------------------------- */
 
-function KeyBadge({ index, active }: { index: number; active: boolean }) {
+/** Radio: a 20px ink circle with a filled dot. Multi: a rounded square with a check. */
+function Indicator({ active, round }: { active: boolean; round: boolean }) {
+  if (round) {
+    return (
+      <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-full border-[1.5px] border-(--q-ink)">
+        {active && <span className="size-2.5 rounded-full bg-(--q-ink)" />}
+      </span>
+    )
+  }
   return (
-    <span
-      aria-hidden="true"
-      className={`relative grid size-7 shrink-0 place-items-center rounded-md border text-[11px] font-semibold transition-colors duration-300 ${
-        active ? 'border-black bg-black text-white' : 'border-black/20 text-black/55 group-hover:border-black/50'
-      }`}
-    >
-      {KEYS[index]}
-    </span>
-  )
-}
-
-function Check({ active, round }: { active: boolean; round: boolean }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`relative ml-auto grid size-5 shrink-0 place-items-center border transition-colors duration-300 ${round ? 'rounded-full' : 'rounded-[5px]'} ${
-        active ? 'border-black bg-black' : 'border-black/25'
-      }`}
-    >
-      <motion.svg viewBox="0 0 16 16" className="size-3" initial={false} animate={{ scale: active ? 1 : 0 }} transition={{ duration: 0.25, ease: EASE }}>
-        <path d="M3.5 8.5 6.5 11.5 12.5 4.5" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </motion.svg>
+    <span aria-hidden="true" className={`grid size-5 shrink-0 place-items-center rounded-[5px] border-[1.5px] border-(--q-ink) ${active ? 'bg-(--q-ink)' : ''}`}>
+      {active && (
+        <svg viewBox="0 0 16 16" className="size-3"><path d="M3.5 8.5 6.5 11.5 12.5 4.5" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      )}
     </span>
   )
 }
@@ -58,12 +51,8 @@ export function OptionRows({
 }) {
   const full = multi && max !== undefined && selected.length >= max
   return (
-    <div
-      role={multi ? 'group' : 'radiogroup'}
-      aria-label={label}
-      className={`grid grid-cols-1 gap-2.5 ${options.length > 6 ? 'md:grid-cols-2' : ''}`}
-    >
-      {options.map((option, index) => {
+    <div role={multi ? 'group' : 'radiogroup'} aria-label={label} className="flex flex-col gap-0.5 max-sm:gap-2">
+      {options.map((option) => {
         const active = selected.includes(option.value)
         const dim = full && !active
         return (
@@ -73,23 +62,20 @@ export function OptionRows({
             role={multi ? 'checkbox' : 'radio'}
             aria-checked={active}
             onClick={() => onToggle(option.value)}
-            className={`group relative flex min-h-[58px] w-full items-center gap-4 overflow-hidden rounded-2xl border px-4 py-3 text-left outline-none transition-[border-color,opacity] duration-300 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
-              active ? 'border-black' : 'border-black/15 hover:border-black/45'
-            } ${dim ? 'opacity-45' : ''}`}
+            className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-[background-color,border-color,opacity] duration-150 hover:bg-(--q-tint) max-sm:min-h-[60px] max-sm:rounded-2xl max-sm:border max-sm:shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${focusRing} ${
+              active ? 'sm:bg-(--q-tint) max-sm:border-(--q-ink) max-sm:bg-[rgba(206,253,16,0.3)]' : 'max-sm:border-(--q-line) max-sm:bg-white'
+            } ${dim ? 'opacity-60' : ''}`}
           >
-            <motion.span
-              aria-hidden="true"
-              className="absolute inset-0 origin-left bg-bw-lime"
-              initial={false}
-              animate={{ scaleX: active ? 1 : 0 }}
-              transition={{ duration: 0.45, ease: EASE }}
-            />
-            <KeyBadge index={index} active={active} />
-            <span className="relative min-w-0 flex-1">
-              <span className="block text-[15px] leading-[1.35] tracking-[-0.01em] text-black sm:text-[16px]">{option.label}</span>
-              {option.hint && <span className="mt-0.5 block text-[13px] leading-[1.4] text-black/50">{option.hint}</span>}
+            {OPTION_EMOJI[option.value] && (
+              <span className="inline-flex shrink-0 max-sm:size-10 max-sm:items-center max-sm:justify-center max-sm:rounded-xl max-sm:bg-(--q-bubble)">
+                <AppleEmoji emoji={OPTION_EMOJI[option.value]} size={22} />
+              </span>
+            )}
+            <span className="min-w-0 flex-1">
+              <span className={`block text-[17px] leading-[1.35] text-(--q-ink) ${active ? 'font-semibold' : 'font-normal'}`}>{option.label}</span>
+              {option.hint && <span className="mt-0.5 block text-[13px] leading-[1.4] text-(--q-muted)">{option.hint}</span>}
             </span>
-            <Check active={active} round={!multi} />
+            <Indicator active={active} round={!multi} />
           </button>
         )
       })}
@@ -113,8 +99,8 @@ export function VisualCards({
   label: string
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="grid grid-cols-2 gap-3 md:grid-cols-3">
-      {options.map((option, index) => {
+    <div role="radiogroup" aria-label={label} className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
+      {options.map((option) => {
         const active = selected.includes(option.value)
         return (
           <button
@@ -123,34 +109,22 @@ export function VisualCards({
             role="radio"
             aria-checked={active}
             onClick={() => onToggle(option.value)}
-            className={`group relative flex flex-col rounded-2xl border p-2.5 text-left outline-none transition-[border-color,box-shadow,transform] duration-300 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 motion-safe:hover:-translate-y-0.5 ${
-              active ? 'border-black shadow-[0_0_0_1px_#111]' : 'border-black/15 hover:border-black/45'
+            className={`relative flex flex-col rounded-2xl border p-2 text-left transition-[border-color,box-shadow] duration-150 ${focusRing} ${
+              active ? 'border-(--q-ink) shadow-[0_0_0_0.5px_var(--q-ink)]' : 'border-(--q-line) hover:border-black/35'
             }`}
           >
-            <span className="block aspect-[16/10] w-full overflow-hidden rounded-xl text-[#111]">
+            <span className="block aspect-[16/10] w-full overflow-hidden rounded-[10px] text-[#111]">
               {option.visual && <OptionVisual visual={option.visual} />}
             </span>
-            <span className="flex items-start gap-2.5 px-1.5 pb-1 pt-3">
-              <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-medium leading-[1.3] tracking-[-0.01em] sm:text-[15px]">{option.label}</span>
-                {option.hint && <span className="mt-0.5 block text-[12px] leading-[1.4] text-black/50 sm:text-[13px]">{option.hint}</span>}
-              </span>
-              <span aria-hidden="true" className="hidden text-[11px] font-semibold text-black/35 sm:block">{KEYS[index]}</span>
+            <span className="block px-1 pb-1 pt-2.5">
+              <span className={`block text-[15px] leading-[1.3] ${active ? 'font-semibold' : 'font-medium'}`}>{option.label}</span>
+              {option.hint && <span className="mt-0.5 block text-[12px] leading-[1.4] text-(--q-muted)">{option.hint}</span>}
             </span>
-            <AnimatePresence>
-              {active && (
-                <motion.span
-                  aria-hidden="true"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  transition={{ type: 'spring', stiffness: 380, damping: 22 }}
-                  className="absolute right-4 top-4 grid size-7 place-items-center rounded-full border border-black bg-bw-lime"
-                >
-                  <svg viewBox="0 0 16 16" className="size-3.5"><path d="M3.5 8.5 6.5 11.5 12.5 4.5" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </motion.span>
-              )}
-            </AnimatePresence>
+            {active && (
+              <span aria-hidden="true" className="absolute right-3.5 top-3.5 grid size-4 place-items-center rounded-full border-[1.5px] border-(--q-ink) bg-white">
+                <span className="size-2 rounded-full bg-(--q-ink)" />
+              </span>
+            )}
           </button>
         )
       })}
@@ -161,6 +135,8 @@ export function VisualCards({
 /* -------------------------------------------------------------------------- */
 /*  Text inputs                                                               */
 /* -------------------------------------------------------------------------- */
+
+const underline = 'block w-full rounded-none border-0 border-b border-(--q-line) bg-transparent text-(--q-ink) outline-none transition-colors duration-150 placeholder:text-black/40 focus:border-(--q-ink)'
 
 export function BigInput({
   id,
@@ -186,28 +162,25 @@ export function BigInput({
   inputMode?: 'url' | 'email' | 'tel' | 'text'
 }) {
   return (
-    <div className="group relative border-b border-black/20 pb-3">
-      <input
-        id={id}
-        aria-label={label}
-        type={type}
-        value={value}
-        autoFocus={autoFocus}
-        maxLength={maxLength}
-        autoComplete={autoComplete ?? 'off'}
-        inputMode={inputMode}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-transparent text-[26px] tracking-[-0.025em] text-black outline-none placeholder:text-black/20 sm:text-[34px]"
-      />
-      <span className="absolute inset-x-0 -bottom-px h-[2px] origin-left scale-x-0 bg-black transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-focus-within:scale-x-100" />
-    </div>
+    <input
+      id={id}
+      aria-label={label}
+      type={type}
+      value={value}
+      autoFocus={autoFocus}
+      maxLength={maxLength}
+      autoComplete={autoComplete ?? 'off'}
+      inputMode={inputMode}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      className={`${underline} h-12 text-[18px]`}
+    />
   )
 }
 
 function MicIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="size-4" fill="none" aria-hidden="true">
       <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.6" />
       <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
@@ -242,42 +215,37 @@ export function LongAnswer({
 
   return (
     <div>
-      <div className={`relative rounded-2xl border bg-white transition-colors duration-300 focus-within:border-black ${speech.listening ? 'border-black' : 'border-black/20'}`}>
+      <div className={`relative rounded-[14px] border bg-white/60 transition-colors duration-150 focus-within:border-(--q-ink) ${speech.listening ? 'border-(--q-ink)' : 'border-(--q-line)'}`}>
         <textarea
           id={id}
           aria-label={label}
-          rows={5}
+          rows={4}
           value={speech.listening && speech.interim ? `${value}${value ? ' ' : ''}${speech.interim}` : value}
           autoFocus={autoFocus}
           maxLength={maxLength}
           placeholder={placeholder}
           readOnly={speech.listening}
           onChange={(e) => onChange(e.target.value)}
-          className="block min-h-[168px] w-full resize-y rounded-2xl bg-transparent px-5 pb-16 pt-4 text-[18px] leading-[1.55] tracking-[-0.015em] text-black outline-none placeholder:text-black/25 sm:text-[19px]"
+          className="block min-h-[120px] w-full resize-y rounded-[14px] bg-transparent px-4 pb-14 pt-3.5 text-[16px] leading-[1.55] text-(--q-ink) outline-none placeholder:text-black/40"
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-4 pb-3">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-3 pb-2.5">
           {showMic ? (
             <button
               type="button"
               onClick={speech.listening ? speech.stop : speech.start}
               aria-pressed={speech.listening}
-              className={`pointer-events-auto inline-flex h-10 items-center gap-2 rounded-full border pl-3 pr-4 text-[13px] transition-colors duration-300 ${
-                speech.listening ? 'border-black bg-black text-white' : 'border-black/20 text-black/70 hover:border-black hover:text-black'
+              className={`pointer-events-auto relative inline-flex h-9 items-center gap-1.5 rounded-full border pl-2.5 pr-3.5 text-[13px] transition-colors duration-150 before:absolute before:-inset-1 before:content-[''] ${focusRing} ${
+                speech.listening ? 'border-(--q-ink) bg-(--q-ink) text-white' : 'border-(--q-line) text-(--q-ink) hover:border-(--q-ink)'
               }`}
             >
-              {speech.listening ? (
-                <span className="relative grid size-[18px] place-items-center">
-                  <span className="absolute size-3 rounded-full bg-bw-lime motion-safe:animate-ping" />
-                  <span className="relative size-2.5 rounded-full bg-bw-lime" />
-                </span>
-              ) : <MicIcon />}
+              {speech.listening ? <span className="mx-1 size-2 rounded-full bg-(--q-accent)" aria-hidden="true" /> : <MicIcon />}
               {speech.listening ? 'Listening… tap to stop' : 'Speak instead'}
             </button>
           ) : <span />}
-          <span className="text-[12px] tabular-nums text-black/35">{value.length > maxLength * 0.7 ? `${value.length} / ${maxLength}` : ''}</span>
+          <span className="text-[12px] tabular-nums text-(--q-muted)">{value.length > maxLength * 0.7 ? `${value.length} / ${maxLength}` : ''}</span>
         </div>
       </div>
-      {speech.error && <p role="alert" className="mt-3 text-[13px] text-[#c4302b]">{speech.error}</p>}
+      {speech.error && <p role="alert" className="mt-3 text-[13px] text-(--q-error)">{speech.error}</p>}
     </div>
   )
 }
@@ -288,6 +256,7 @@ export function LongAnswer({
 
 function SmallField({
   label,
+  emoji,
   value,
   onChange,
   type = 'text',
@@ -297,6 +266,7 @@ function SmallField({
   autoFocus,
 }: {
   label: string
+  emoji?: string
   value: string
   onChange: (v: string) => void
   type?: string
@@ -307,10 +277,10 @@ function SmallField({
 }) {
   const id = useId()
   return (
-    <div className="group relative border-b border-black/15 pb-3 pt-6">
-      <div className="mb-3 flex items-baseline justify-between gap-4">
-        <label htmlFor={id} className="text-[11px] font-medium uppercase tracking-[0.14em] text-black/45">{label}</label>
-        {optional && <span className="text-[12px] text-black/35">Optional</span>}
+    <div className="pt-5">
+      <div className="flex items-baseline justify-between gap-4">
+        <label htmlFor={id} className="text-[14px] font-medium text-(--q-ink)">{emoji && <AppleEmoji emoji={emoji} size={16} className="mr-1.5" />}{label}</label>
+        {optional && <span className="text-[13px] italic text-(--q-muted)">optional</span>}
       </div>
       <input
         id={id}
@@ -321,9 +291,8 @@ function SmallField({
         placeholder={placeholder}
         maxLength={type === 'url' ? 300 : 160}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-transparent text-[18px] tracking-[-0.015em] text-black outline-none placeholder:text-black/25"
+        className={`${underline} h-11 text-[17px]`}
       />
-      <span className="absolute inset-x-0 -bottom-px h-px origin-left scale-x-0 bg-black transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-focus-within:scale-x-100" />
     </div>
   )
 }
@@ -338,17 +307,17 @@ export function ContactFields({
   askWebsite: boolean
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-8">
-      <SmallField label="Your name" value={values.contactName} onChange={(v) => onChange('contactName', v)} placeholder="Your name" autoComplete="name" autoFocus />
-      <SmallField label="Email" type="email" value={values.contactEmail} onChange={(v) => onChange('contactEmail', v)} placeholder="you@brand.com" autoComplete="email" />
-      <SmallField label="Phone / WhatsApp" type="tel" value={values.contactPhone} onChange={(v) => onChange('contactPhone', v)} placeholder="+91 98765 43210" autoComplete="tel" optional />
+    <div className="flex flex-col">
+      <SmallField label="Your name" emoji="🙂" value={values.contactName} onChange={(v) => onChange('contactName', v)} placeholder="Your name" autoComplete="name" autoFocus />
+      <SmallField label="Email" emoji="✉️" type="email" value={values.contactEmail} onChange={(v) => onChange('contactEmail', v)} placeholder="you@brand.com" autoComplete="email" />
+      <SmallField label="Phone / WhatsApp" emoji="📱" type="tel" value={values.contactPhone} onChange={(v) => onChange('contactPhone', v)} placeholder="+91 98765 43210" autoComplete="tel" optional />
       {askWebsite && (
-        <SmallField label="Current website" type="url" value={values.contactWebsite} onChange={(v) => onChange('contactWebsite', v)} placeholder="yourbrand.com" autoComplete="url" optional />
+        <SmallField label="Current website" emoji="🌐" type="url" value={values.contactWebsite} onChange={(v) => onChange('contactWebsite', v)} placeholder="yourbrand.com" autoComplete="url" optional />
       )}
     </div>
   )
 }
 
 export function Helper({ children }: { children: ReactNode }) {
-  return <p className="mt-4 max-w-[52ch] text-[15px] leading-[1.6] text-black/55 sm:text-[16px]">{children}</p>
+  return <p className="m-0 mt-2 text-[15px] leading-[1.55] text-(--q-muted)">{children}</p>
 }

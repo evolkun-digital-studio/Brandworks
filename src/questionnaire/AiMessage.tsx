@@ -1,21 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'motion/react'
-
-const EASE = [0.22, 1, 0.36, 1] as const
-
-/** The assistant's mark: a lime dot that breathes while it's thinking. */
-function Mark({ thinking, compact }: { thinking: boolean; compact: boolean }) {
-  return (
-    <span className={`relative mt-[3px] grid shrink-0 place-items-center rounded-full bg-[#111] ${compact ? 'size-6' : 'size-7'}`}>
-      <span className={`rounded-full bg-bw-lime ${compact ? 'size-2' : 'size-2.5'} ${thinking ? 'motion-safe:animate-pulse' : ''}`} />
-    </span>
-  )
-}
+import { useReducedMotion } from 'motion/react'
 
 type Props = {
   text: string | null
+  /** A small label inside the bubble ("BrandWorks suggests", "From the data"). */
   label?: string
   className?: string
   /**
@@ -24,15 +14,16 @@ type Props = {
    * more is coming. Leave undefined for a finished text, which types in.
    */
   streaming?: boolean
-  /** Smaller type, for the one-line reactions above a question. */
-  compact?: boolean
+  /** 17px text, for the uspReply interstitial where the bubble is the whole screen. */
+  large?: boolean
 }
 
 /**
- * One message from the BrandWorks assistant. Before any text it shows a
- * thinking state. `aria-live` announces only the finished message, once.
+ * One message from the BrandWorks assistant: a soft grey bubble with a tiny
+ * lime dot. Before any text it shows three thinking dots. `aria-live`
+ * announces only the finished message, once.
  */
-export default function AiMessage({ text, label = 'BrandWorks', className = '', streaming, compact = false }: Props) {
+export default function AiMessage({ text, label, className = '', streaming, large = false }: Props) {
   const reduce = useReducedMotion()
   const live = streaming !== undefined
   const [typed, setTyped] = useState(reduce || live ? text ?? '' : '')
@@ -52,33 +43,26 @@ export default function AiMessage({ text, label = 'BrandWorks', className = '', 
   }, [text, reduce, live])
 
   const shown = live ? text ?? '' : typed
-  const writing = Boolean(text) && (live ? Boolean(streaming) : shown.length < (text?.length ?? 0))
   const finished = text && !(live && streaming) ? text : ''
 
   return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: compact ? 6 : 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: EASE }}
-      className={`flex ${compact ? 'gap-3' : 'gap-4'} ${className}`}
-    >
-      <Mark thinking={!text || Boolean(streaming)} compact={compact} />
+    <div className={`flex gap-2.5 rounded-[14px] bg-(--q-bubble) px-3.5 py-3 ${className}`}>
+      <span aria-hidden="true" className="mt-[7px] size-2 shrink-0 rounded-full bg-(--q-accent) ring-1 ring-black/15" />
       <div className="min-w-0 flex-1">
-        <span className={`block font-medium uppercase tracking-[0.14em] text-black/45 ${compact ? 'mb-1 text-[10px]' : 'mb-1.5 text-[11px]'}`}>{label}</span>
+        {label && <span className="mb-0.5 block text-[12px] font-semibold text-(--q-muted)">{label}</span>}
         <p className="sr-only" aria-live="polite">{finished}</p>
         {text ? (
-          <p aria-hidden="true" className={`m-0 max-w-[56ch] tracking-[-0.015em] text-black ${compact ? 'text-[15px] leading-[1.5] sm:text-[16px]' : 'text-[18px] leading-[1.55] sm:text-[20px]'}`}>
+          <p aria-hidden="true" className={`m-0 leading-[1.55] text-(--q-ink) ${large ? 'text-[17px]' : 'text-[15px]'}`}>
             {shown}
-            {writing && <span className="ml-0.5 inline-block h-[1.05em] w-[2px] translate-y-[3px] bg-black/60 motion-safe:animate-pulse" />}
           </p>
         ) : (
-          <span className={`inline-flex items-center gap-1.5 ${compact ? 'h-[24px]' : 'h-[30px]'}`} aria-label="Thinking">
+          <span className="inline-flex h-[22px] items-center gap-1" aria-label="Thinking">
             {[0, 1, 2].map((i) => (
-              <span key={i} className="size-1.5 rounded-full bg-black/40 motion-safe:animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+              <span key={i} className="size-1 rounded-full bg-black/35 motion-safe:animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
             ))}
           </span>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }
