@@ -90,7 +90,7 @@ describe('Dashboard — Scheduled Posts card (Phase 16)', () => {
     expect(el.textContent).toContain('—')
     // The rest of the dashboard still renders — one failed card never
     // takes down the page.
-    expect(el.textContent).toContain('Blogs')
+    expect(el.textContent).toContain('Articles')
     expect(el.textContent).toContain('Settings')
   })
 

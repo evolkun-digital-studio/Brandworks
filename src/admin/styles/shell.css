@@ -1,0 +1,239 @@
+@reference "../../index.css";
+
+@layer components {
+  /* Sidebar: a translucent material; content scrolls under the toolbar. */
+  .admin-sidebar {
+    @apply fixed inset-y-0 left-0 z-60 flex w-(--a-sidebar) flex-col border-r border-a-line bg-a-material px-3 pt-3.5 pb-3 transition-transform duration-360 ease-a-spring;
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    backdrop-filter: saturate(180%) blur(28px);
+  }
+
+  .admin-sidebar--hidden {
+    @apply -translate-x-[104%];
+  }
+
+  .admin-sidebar__brand {
+    @apply mb-3.5 flex h-9 items-center gap-2.5 px-2;
+  }
+
+  .admin-brand-mark {
+    @apply grid size-6 flex-none place-items-center rounded-[7px] bg-a-ink text-[13px] font-bold tracking-tight text-a-bg;
+  }
+
+  .admin-brand-wordmark {
+    @apply text-[15px] font-semibold tracking-[-0.016em];
+  }
+
+  .admin-nav {
+    @apply flex flex-1 flex-col gap-[18px] overflow-y-auto pt-0.5;
+  }
+
+  .admin-nav-group {
+    @apply flex flex-col gap-px;
+  }
+
+  .admin-nav-label {
+    @apply px-2.5 pb-1.5 text-[11px] font-semibold tracking-[0.02em] text-a-ink-3;
+  }
+
+  .admin-nav-link {
+    @apply flex h-8 items-center gap-2.5 rounded-a-sm px-2.5 text-[14px] font-[450] text-a-ink transition-colors duration-120 ease-a hover:bg-a-fill active:bg-a-fill-2 aria-[current=page]:bg-a-fill-2 aria-[current=page]:font-[560];
+  }
+
+  .admin-nav-link svg {
+    @apply flex-none text-a-ink-2 transition-colors duration-120;
+  }
+
+  .admin-nav-link[aria-current='page'] svg {
+    @apply text-a-accent;
+  }
+
+  .admin-sidebar__foot {
+    @apply relative mt-2.5 border-t border-a-line pt-2.5;
+  }
+
+  .admin-account {
+    @apply flex w-full cursor-pointer items-center gap-2.5 rounded-a border-0 bg-transparent p-1.5 text-left transition-colors duration-120 hover:bg-a-fill;
+  }
+
+  .admin-avatar {
+    @apply grid size-7 flex-none place-items-center rounded-full bg-a-fill-2 text-[11px] font-semibold tracking-[0.02em] text-a-ink-2;
+  }
+
+  .admin-account__who {
+    @apply min-w-0 flex-1 leading-tight;
+  }
+
+  .admin-account__who strong {
+    @apply block truncate text-[13px] font-semibold;
+  }
+
+  .admin-account__who span {
+    @apply text-[11.5px] text-a-ink-2;
+  }
+
+  .admin-mobile-scrim {
+    @apply fixed inset-0 z-55 border-0 bg-a-scrim;
+  }
+
+  /* Content column + toolbar */
+  .admin-shell__content {
+    @apply ml-(--a-sidebar) min-h-screen transition-[margin] duration-280 ease-a-spring;
+  }
+
+  .admin-shell__content--wide {
+    @apply ml-0;
+  }
+
+  .admin-topbar {
+    @apply sticky top-0 z-40 flex h-(--a-bar) items-center justify-between gap-3 border-b border-a-line bg-a-material px-5;
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    backdrop-filter: saturate(180%) blur(24px);
+  }
+
+  .admin-topbar__group {
+    @apply flex min-w-0 items-center gap-2;
+  }
+
+  .admin-topbar__title {
+    @apply truncate text-[15px] font-semibold tracking-[-0.014em];
+  }
+
+  .admin-search-trigger {
+    @apply inline-flex h-8 w-[min(320px,38vw)] cursor-pointer items-center gap-2 rounded-a border-0 bg-a-fill pr-2 pl-2.5 text-left text-a-ink-2 transition-colors duration-120 hover:bg-a-fill-2;
+  }
+
+  .admin-search-trigger span {
+    @apply flex-1 truncate;
+  }
+
+  .admin-main {
+    @apply mx-auto w-full max-w-[1120px] px-10 pt-9 pb-24;
+  }
+
+  .admin-topbar .admin-mobile-menu-button {
+    @apply hidden;
+  }
+
+  /* Popover menu (account, theme, row actions) */
+  .admin-menu {
+    @apply relative;
+  }
+
+  .admin-menu__panel {
+    @apply absolute top-[calc(100%+8px)] right-0 z-70 w-58 origin-top-right rounded-a-lg bg-a-surface p-1.5 shadow-a-md;
+    animation: admin-pop 160ms var(--ease-a-spring);
+  }
+
+  .admin-menu__panel--up {
+    @apply top-auto bottom-[calc(100%+8px)] left-0 right-auto origin-bottom-left;
+  }
+
+  .admin-menu__head {
+    @apply px-2.5 pt-2 pb-1.5 leading-tight;
+  }
+
+  .admin-menu__head strong {
+    @apply block text-[13px] font-semibold;
+  }
+
+  .admin-menu__head span {
+    @apply text-xs text-a-ink-2;
+  }
+
+  .admin-menu__sep {
+    @apply mx-1 my-1.5 h-px bg-a-line;
+  }
+
+  .admin-menu__label {
+    @apply px-2.5 py-1 text-[11px] font-semibold text-a-ink-3;
+  }
+
+  .admin-menu__item {
+    @apply flex h-[30px] w-full cursor-pointer items-center gap-2.5 rounded-md border-0 bg-transparent px-2.5 text-left text-[13px] hover:bg-a-accent hover:text-a-on-accent focus-visible:bg-a-accent focus-visible:text-a-on-accent focus-visible:outline-none aria-checked:font-semibold disabled:opacity-40;
+  }
+
+  .admin-menu__item svg {
+    @apply flex-none text-a-ink-2;
+  }
+
+  .admin-menu__item:hover svg,
+  .admin-menu__item:focus-visible svg {
+    color: inherit;
+  }
+
+  .admin-menu__check {
+    @apply ml-auto;
+  }
+
+  .admin-menu__item--danger {
+    @apply text-a-danger;
+  }
+
+  @keyframes admin-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes admin-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes admin-sheet {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Small screens: the sidebar is a sheet that leaves the way it came. */
+  @media (max-width: 880px) {
+    .admin-sidebar {
+      @apply w-[min(300px,86vw)] -translate-x-[104%] bg-a-surface shadow-a-lg;
+    }
+
+    .admin-sidebar--open {
+      @apply translate-x-0;
+    }
+
+    .admin-sidebar--hidden {
+      @apply -translate-x-[104%];
+    }
+
+    .admin-shell__content {
+      @apply ml-0;
+    }
+
+    .admin-topbar .admin-mobile-menu-button {
+      @apply inline-grid;
+    }
+
+    .admin-search-trigger {
+      @apply w-9 justify-center p-0;
+    }
+
+    .admin-search-trigger span,
+    .admin-search-trigger kbd {
+      @apply hidden;
+    }
+
+    .admin-main {
+      @apply px-4 pt-6 pb-20;
+    }
+
+    .admin-topbar {
+      @apply px-3;
+    }
+  }
+}

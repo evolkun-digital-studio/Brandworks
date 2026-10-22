@@ -1,0 +1,427 @@
+@reference "../../index.css";
+
+@layer components {
+  /* Buttons: pressed state responds on pointer-down, not on release. */
+  .admin-button {
+    @apply inline-flex h-8 flex-none cursor-pointer items-center justify-center gap-1.5 rounded-full border-0 bg-a-fill px-3.5 text-[13px] leading-none font-[520] tracking-[-0.006em] whitespace-nowrap text-a-ink transition-[background-color,opacity,transform] duration-120 ease-a hover:bg-a-fill-2 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100;
+  }
+
+  .admin-button svg {
+    @apply flex-none;
+  }
+
+  .admin-button--primary {
+    @apply bg-a-accent text-a-on-accent hover:bg-a-accent-hover;
+  }
+
+  .admin-button--quiet {
+    @apply bg-transparent px-2.5 text-a-accent hover:bg-a-accent-soft;
+  }
+
+  .admin-button--danger {
+    @apply bg-a-danger-soft text-a-danger hover:bg-a-danger-soft hover:brightness-95;
+  }
+
+  .admin-button--lg {
+    @apply h-10 px-5.5 text-[14px];
+  }
+
+  .admin-button--sm {
+    @apply h-[26px] px-2.5 text-xs;
+  }
+
+  .admin-icon-button {
+    @apply inline-grid size-8 flex-none cursor-pointer place-items-center rounded-a border-0 bg-transparent text-a-ink-2 transition-[background-color,color,transform] duration-120 ease-a hover:bg-a-fill hover:text-a-ink active:scale-[0.94] active:bg-a-fill-2 aria-pressed:bg-a-accent-soft aria-pressed:text-a-accent disabled:cursor-not-allowed disabled:opacity-35;
+  }
+
+  .admin-icon-button.is-active {
+    @apply bg-a-accent-soft text-a-accent;
+  }
+
+  /* Fields */
+  .admin-form-label {
+    @apply mb-1.5 block text-[13px] font-[560] text-a-ink;
+  }
+
+  .admin-form-helper {
+    @apply text-xs leading-snug text-a-ink-2;
+  }
+
+  .admin-input,
+  .admin-select,
+  .admin-textarea {
+    @apply block min-h-9 w-full rounded-a border border-a-line-2 bg-a-surface px-3 py-[7px] text-[14px] leading-snug text-a-ink transition-[border-color,box-shadow] duration-120 ease-a placeholder:text-a-ink-3 hover:border-a-ink-3 focus:border-a-accent focus:shadow-[0_0_0_3px_var(--a-accent-soft)] focus:outline-none disabled:cursor-not-allowed disabled:bg-a-fill disabled:text-a-ink-3;
+  }
+
+  .admin-input--error {
+    @apply border-a-danger focus:border-a-danger focus:shadow-[0_0_0_3px_var(--a-danger-soft)];
+  }
+
+  .admin-textarea {
+    @apply min-h-19 resize-y;
+  }
+
+  .admin-select {
+    @apply appearance-none pr-8;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 11px center;
+    background-repeat: no-repeat;
+  }
+
+  .admin-field-error {
+    @apply mt-1.5 text-xs text-a-danger;
+  }
+
+  .admin-app :is(input[type='checkbox'], input[type='radio']) {
+    @apply size-4 flex-none cursor-pointer accent-a-accent;
+  }
+
+  /* iOS-style switch */
+  .admin-switch {
+    @apply relative inline-block h-[22px] w-[38px] flex-none;
+  }
+
+  .admin-switch input {
+    @apply absolute inset-0 z-1 m-0 size-full cursor-pointer opacity-0;
+  }
+
+  .admin-switch span {
+    @apply absolute inset-0 rounded-full bg-a-fill-2 transition-colors duration-200 ease-a;
+  }
+
+  .admin-switch span::after {
+    @apply absolute top-0.5 left-0.5 size-[18px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-transform duration-240 ease-a-spring;
+    content: '';
+  }
+
+  .admin-switch input:checked + span {
+    @apply bg-a-success;
+  }
+
+  .admin-switch input:checked + span::after {
+    @apply translate-x-4;
+  }
+
+  .admin-switch input:focus-visible + span {
+    @apply outline-2 outline-offset-2 outline-a-accent;
+  }
+
+  .admin-form-message {
+    @apply flex items-start gap-2.5 rounded-a px-3.5 py-[11px] text-[13px] leading-snug;
+  }
+
+  .admin-form-message svg {
+    @apply mt-px flex-none;
+  }
+
+  .admin-form-message--error {
+    @apply bg-a-danger-soft text-a-danger;
+  }
+
+  .admin-form-message--success {
+    @apply bg-a-success-soft text-a-success;
+  }
+
+  /* Surfaces */
+  .admin-card,
+  .admin-surface {
+    @apply rounded-a-lg bg-a-surface shadow-a-sm;
+  }
+
+  .admin-card__head {
+    @apply flex items-baseline justify-between gap-3 px-5.5 pt-4.5 pb-3;
+  }
+
+  .admin-card__head h2 {
+    @apply text-[15px] font-semibold tracking-[-0.012em];
+  }
+
+  .admin-link {
+    @apply inline-flex cursor-pointer items-center gap-[3px] border-0 bg-transparent p-0 text-[13px] font-[480] text-a-accent hover:underline hover:underline-offset-[3px];
+  }
+
+  /* Inset list: rows separated by hairlines. */
+  .admin-list {
+    @apply m-0 list-none p-0;
+  }
+
+  .admin-list > * + * {
+    box-shadow: inset 0 1px 0 var(--a-line);
+  }
+
+  .admin-list-row {
+    @apply flex min-h-14 items-center gap-3.5 px-5.5 py-2.5 transition-colors duration-120 ease-a;
+  }
+
+  a.admin-list-row {
+    @apply hover:bg-a-fill;
+  }
+
+  .admin-list-row__main {
+    @apply min-w-0 flex-1;
+  }
+
+  .admin-list-row__title {
+    @apply block truncate text-[14px] font-[540];
+  }
+
+  .admin-list-row__sub {
+    @apply block truncate text-[12.5px] text-a-ink-2;
+  }
+
+  .admin-thumb {
+    @apply grid size-11 flex-none place-items-center overflow-hidden rounded-lg bg-a-fill text-a-ink-3;
+  }
+
+  .admin-thumb img {
+    @apply size-full object-cover;
+  }
+
+  /* Status */
+  .admin-status {
+    @apply inline-flex h-[22px] items-center gap-1.5 rounded-full bg-a-fill pr-[9px] pl-2 text-xs font-[520] tracking-normal whitespace-nowrap text-a-ink-2;
+  }
+
+  .admin-status__dot {
+    @apply size-1.5 rounded-full bg-current;
+  }
+
+  .admin-status--success { @apply bg-a-success-soft text-a-success; }
+  .admin-status--warning { @apply bg-a-warning-soft text-a-warning; }
+  .admin-status--danger { @apply bg-a-danger-soft text-a-danger; }
+  .admin-status--accent { @apply bg-a-accent-soft text-a-accent; }
+
+  /* Segmented control */
+  .admin-segmented-control {
+    @apply inline-flex gap-0.5 rounded-a bg-a-fill p-0.5;
+  }
+
+  .admin-segmented-control button {
+    @apply h-7 cursor-pointer rounded-lg border-0 bg-transparent px-3.5 text-[13px] font-[520] text-a-ink-2 transition-[background-color,color,box-shadow] duration-160 ease-a hover:text-a-ink aria-pressed:bg-a-surface aria-pressed:text-a-ink aria-pressed:shadow-[0_1px_3px_rgba(0,0,0,0.12),0_0_0_0.5px_rgba(0,0,0,0.04)] aria-selected:bg-a-surface aria-selected:text-a-ink aria-selected:shadow-[0_1px_3px_rgba(0,0,0,0.12),0_0_0_0.5px_rgba(0,0,0,0.04)];
+  }
+
+  .admin-app[data-theme='dark'] .admin-segmented-control button:is([aria-pressed='true'], [aria-selected='true']) {
+    @apply bg-a-fill-2 shadow-none;
+  }
+
+  /* Page header, empty states, skeletons */
+  .admin-page-header {
+    @apply mb-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-4;
+  }
+
+  .admin-page-title {
+    @apply text-[28px] leading-[1.12] font-bold tracking-[-0.026em];
+  }
+
+  .admin-page-description {
+    @apply mt-1.5 max-w-[56ch] text-[14.5px] leading-snug text-a-ink-2;
+  }
+
+  .admin-page-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .admin-empty-state {
+    @apply flex flex-col items-center gap-1.5 px-6 py-14 text-center;
+  }
+
+  .admin-empty-state__icon {
+    @apply mb-2 grid size-12 place-items-center rounded-[14px] bg-a-fill text-a-ink-2;
+  }
+
+  .admin-empty-state__title {
+    @apply text-base font-semibold tracking-[-0.012em];
+  }
+
+  .admin-empty-state__description {
+    @apply mb-2.5 max-w-[38ch] text-[13.5px] text-a-ink-2;
+  }
+
+  .admin-skeleton {
+    @apply rounded-md;
+    background: linear-gradient(90deg, var(--a-fill) 25%, var(--a-fill-2) 50%, var(--a-fill) 75%);
+    background-size: 200% 100%;
+    animation: admin-shimmer 1.4s linear infinite;
+  }
+
+  @keyframes admin-shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+
+  .admin-library-notice {
+    @apply mt-3 flex items-center gap-2 rounded-a bg-a-success-soft px-3.5 py-2.5 text-[13px] text-a-success;
+  }
+
+  /* Tables */
+  .admin-table {
+    @apply w-full border-collapse text-[13.5px];
+  }
+
+  .admin-table th {
+    @apply px-3.5 py-2.5 text-left text-xs font-[560] whitespace-nowrap text-a-ink-2;
+    box-shadow: inset 0 -1px 0 var(--a-line);
+  }
+
+  .admin-table td {
+    @apply px-3.5 py-3 align-middle;
+    box-shadow: inset 0 1px 0 var(--a-line);
+  }
+
+  .admin-table tbody tr:first-child td {
+    box-shadow: none;
+  }
+
+  .admin-table tbody tr {
+    @apply transition-colors duration-120 ease-a hover:bg-a-fill;
+  }
+
+  .admin-table tr.is-selected {
+    @apply bg-a-accent-soft;
+  }
+
+  .admin-table :is(th, td):first-child {
+    @apply pl-5.5;
+  }
+
+  .admin-table :is(th, td):last-child {
+    @apply pr-5.5;
+  }
+
+  /* Dialogs: dim to focus; the sheet rises from where attention already is. */
+  .admin-modal-backdrop {
+    @apply fixed inset-0 z-100 grid place-items-center bg-a-scrim p-6;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    animation: admin-fade 180ms var(--ease-a);
+  }
+
+  .admin-modal {
+    @apply flex max-h-[min(86vh,760px)] w-[min(100%,520px)] flex-col gap-4.5 overflow-auto rounded-a-xl bg-a-surface p-6 shadow-a-lg;
+    animation: admin-sheet 260ms var(--ease-a-spring);
+  }
+
+  .admin-modal--wide {
+    @apply w-[min(100%,760px)];
+  }
+
+  .admin-modal__header {
+    @apply flex items-start justify-between gap-4;
+  }
+
+  .admin-modal__header h2 {
+    @apply text-[19px] font-bold tracking-[-0.02em];
+  }
+
+  .admin-modal__header p {
+    @apply mt-0.5 text-[13px] text-a-ink-2;
+  }
+
+  .admin-modal__actions {
+    @apply flex justify-end gap-2;
+  }
+
+  .admin-upload-dropzone {
+    @apply relative flex cursor-pointer flex-col items-center gap-1 rounded-a-lg border-[1.5px] border-dashed border-a-line-2 px-5 py-7 text-center text-[13px] text-a-ink-2 transition-[border-color,background-color] duration-140 ease-a hover:border-a-accent hover:bg-a-accent-soft;
+  }
+
+  .admin-upload-dropzone strong {
+    @apply text-[14px] font-semibold text-a-ink;
+  }
+
+  .admin-upload-dropzone.is-dragging {
+    @apply border-a-accent bg-a-accent-soft;
+  }
+
+  .admin-upload-dropzone.has-file {
+    @apply border-solid;
+  }
+
+  .admin-upload-dropzone input {
+    @apply absolute inset-0 cursor-pointer opacity-0;
+  }
+
+  .admin-upload-dropzone__icon {
+    @apply mb-1.5 grid size-10 place-items-center rounded-xl bg-a-fill text-a-accent;
+  }
+
+  /* Toasts (sonner) */
+  .admin-app [data-sonner-toaster] {
+    --normal-bg: var(--a-surface);
+    --normal-text: var(--a-ink);
+    --normal-border: transparent;
+    font-family: inherit;
+  }
+
+  .admin-toast {
+    @apply rounded-a-lg! border-0! text-[13px]! shadow-a-md!;
+  }
+
+  .admin-toast__title {
+    @apply font-[560];
+  }
+
+  /* Command palette */
+  .admin-palette-backdrop {
+    @apply fixed inset-0 z-120 flex justify-center bg-a-scrim px-4 pt-[12vh] pb-4;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    animation: admin-fade 140ms var(--ease-a);
+  }
+
+  .admin-palette {
+    @apply flex max-h-[64vh] w-[min(100%,600px)] flex-col self-start overflow-hidden rounded-a-xl bg-a-surface shadow-a-lg;
+    animation: admin-sheet 220ms var(--ease-a-spring);
+  }
+
+  .admin-palette__input {
+    @apply flex h-14 items-center gap-3 px-4.5 text-a-ink-2;
+    box-shadow: inset 0 -1px 0 var(--a-line);
+  }
+
+  .admin-palette__input input {
+    @apply min-w-0 flex-1 border-0 bg-transparent text-[17px] tracking-[-0.012em] text-a-ink outline-none placeholder:text-a-ink-3;
+  }
+
+  .admin-palette__list {
+    @apply overflow-y-auto p-1.5;
+  }
+
+  .admin-palette__group {
+    @apply px-3 pt-2.5 pb-1 text-[11px] font-semibold text-a-ink-3;
+  }
+
+  .admin-palette__item {
+    @apply flex h-[38px] w-full cursor-pointer items-center gap-3 rounded-lg border-0 bg-transparent px-3 text-left text-[14px] aria-selected:bg-a-accent aria-selected:text-a-on-accent;
+  }
+
+  .admin-palette__item svg {
+    @apply flex-none text-a-ink-2;
+  }
+
+  .admin-palette__item span {
+    @apply flex-1 truncate;
+  }
+
+  .admin-palette__item small {
+    @apply text-xs text-a-ink-3;
+  }
+
+  .admin-palette__item[aria-selected='true'] :is(svg, small) {
+    color: inherit;
+    opacity: 0.85;
+  }
+
+  .admin-palette__empty {
+    @apply px-4 py-9 text-center text-a-ink-2;
+  }
+
+  .admin-palette__foot {
+    @apply flex gap-4 px-4.5 py-2.5 text-xs text-a-ink-3;
+    box-shadow: inset 0 1px 0 var(--a-line);
+  }
+
+  .admin-palette__foot span {
+    @apply inline-flex items-center gap-1.5;
+  }
+}

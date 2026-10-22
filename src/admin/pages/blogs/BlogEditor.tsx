@@ -1,930 +1,270 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
-import { ArrowLeft, Bold, Bot, CalendarDays, CircleHelp, Code2, Eraser, Eye, Gauge, Heading2, Heading3, Highlighter, History, Italic, Keyboard, Link2, List, ListOrdered, Maximize2, Minimize2, MoreHorizontal, Palette, Quote, RotateCcw, Save, SearchCheck, Settings2, Sparkles, Strikethrough, Tags, Underline, X } from 'lucide-react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+  ArrowLeft,
+  Download,
+  Eye,
+  Keyboard,
+  Link2,
+  LoaderCircle,
+  Maximize2,
+  Minimize2,
+  MoreHorizontal,
+  PanelRight,
+  Pencil,
+  ExternalLink,
+  ImagePlus,
+  Redo2,
+  Rocket,
+  SearchCheck,
+  Sparkles,
+  Trash2,
+  Undo2,
+  X,
+  FileText,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate, useParams } from '../../../routing'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import * as blogApi from '../../api/blogAdminApi'
-import * as operationsApi from '../../api/operationsApi'
 import { ApiError } from '../../api/client'
-import FormField from '../../components/FormField'
-import FormMessage from '../../components/FormMessage'
 import AdminButton from '../../components/AdminButton'
+import AdminIconButton from '../../components/AdminIconButton'
 import AdminStatusBadge from '../../components/AdminStatusBadge'
-import CollapsibleSection from './components/CollapsibleSection'
-import TagInput from './components/TagInput'
-import RepeatingTextField from './components/RepeatingTextField'
-import FaqEditor from './components/FaqEditor'
-import CustomMetaTagsEditor from './components/CustomMetaTagsEditor'
-import RichContentEditor from './components/RichContentEditor'
-import { ContentHealthSummary, AnalysisDetails } from './components/AnalysisPanel'
-import { analyzeBlog } from './lib/blogAnalyzer'
-import { markdownRehypePlugins } from '../../../blog/lib/markdownConfig'
-import type { AnalysisResult, AnalyzerInput } from './lib/blogAnalyzer'
-import type {
-  AdminBlogPost,
-  AiContext,
-  BlogStatus,
-  CustomMetaTag,
-  EntitySeo,
-  ExpertQuote,
-  FaqItem,
-  TwitterCardType,
-} from '../../api/blogTypes'
-import type { AdminBlogRevision } from '../../api/blogAdminApi'
+import FormMessage from '../../components/FormMessage'
+import { useConfirm } from '../../components/ConfirmDialog'
 import { useAdminAuth } from '../../context/useAdminAuth'
+import DocumentPanel from './components/DocumentPanel'
+import EnrichPanel from './components/EnrichPanel'
+import MediaPicker from './components/MediaPicker'
+import RichContentEditor from './components/RichContentEditor'
+import SeoPanel from './components/SeoPanel'
+import { PreviewDialog, PublishSheet, ShortcutsSheet } from './components/EditorDialogs'
+import type { RichEditorHandle } from './components/RichContentEditor'
+import { analyzeBlog } from './lib/blogAnalyzer'
+import type { AnalyzerInput } from './lib/blogAnalyzer'
+import {
+  EMPTY_FORM,
+  EXCERPT_MAX,
+  TITLE_MAX,
+  SLUG_MAX,
+  buildAiContext,
+  buildEntitySeo,
+  buildExpertQuote,
+  fieldError,
+  formFromPost,
+  isLikelyUrl,
+  suggestSlug,
+  toDatetimeLocalValue,
+  validateForm,
+} from './lib/editorForm'
+import type { FormState, InlineField } from './lib/editorForm'
+import type { AdminBlogPost, BlogStatus, ReviewStatus, TwitterCardType } from '../../api/blogTypes'
+import type { AdminBlogRevision } from '../../api/blogAdminApi'
 
 function errorMessage(err: unknown): string {
-  return err instanceof ApiError
-    ? err.message
-    : 'Something went wrong. Please try again.'
+  return err instanceof ApiError ? err.message : 'Something went wrong. Please try again.'
 }
 
-/**
- * Convenience-only, independent of the backend's authoritative
- * slugify() — used purely for a live suggestion as the admin types a
- * title. The backend re-normalizes and validates whatever slug is
- * actually submitted, so this never needs to match it exactly.
- */
-function suggestSlug(title: string): string {
-  return title
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
+type PanelTab = 'document' | 'seo' | 'enrich'
 
-const SLUG_FORMAT_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-
-function isLikelyUrl(value: string): boolean {
-  try {
-    const url = new URL(value)
-    return url.protocol === 'http:' || url.protocol === 'https:'
-  } catch {
-    return false
-  }
-}
-
-// Core fields (Phase 2-4)
-const TITLE_MAX = 200
-const EXCERPT_MAX = 500
-const CONTENT_MAX = 100_000
-const SLUG_MAX = 200
-const EDITOR_NAME_MAX = 100
-const SEO_TITLE_MAX = 200
-const SEO_DESCRIPTION_MAX = 300
-
-// Phase 6 fields — mirror backend/src/lib/blogValidators.ts's limits exactly.
-const COVER_IMAGE_TITLE_MAX = 200
-const COVER_IMAGE_CAPTION_MAX = 500
-const COVER_IMAGE_DESCRIPTION_MAX = 1000
-const CATEGORY_MAX = 200
-const TAG_MAX = 100
-const TAGS_MAX_ITEMS = 20
-const AI_SUMMARY_MAX = 300
-const KEY_TAKEAWAY_MAX = 300
-const KEY_TAKEAWAYS_MAX_ITEMS = 20
-const AI_CONTEXT_FIELD_MAX = 100
-const MAIN_ENTITY_MAX = 200
-const ENTITY_MAX = 200
-const ABOUT_MAX_ITEMS = 20
-const MENTIONED_ENTITIES_MAX_ITEMS = 30
-const EXPERT_QUOTE_MAX = 2000
-const EXPERT_QUOTE_NAME_MAX = 200
-const FOCUS_KEYWORD_MAX = 200
-const SECONDARY_KEYWORD_MAX = 200
-const SECONDARY_KEYWORDS_MAX_ITEMS = 30
-const OG_TITLE_MAX = 200
-const OG_DESCRIPTION_MAX = 500
-
-/**
- * Shown next to the scheduling datetime input (Phase 15, Part 9) so
- * it's explicit — never silently assumed — that the value the admin
- * picks is interpreted in *this device's* local time, not UTC. Safe
- * to compute once at module scope: a browser's own timezone doesn't
- * change over a page's lifetime.
- */
-const localTimeZoneLabel = Intl.DateTimeFormat().resolvedOptions().timeZone
-
-/**
- * UTC ISO timestamp -> the local "YYYY-MM-DDTHH:mm" string a
- * `<input type="datetime-local">` expects, via the Date object's own
- * local getters (getFullYear/getMonth/...) — never string slicing on
- * the ISO text, which would silently treat an already-UTC timestamp
- * as if it were local and shift the displayed hour by the visitor's
- * UTC offset (Phase 15, Part 9's explicit "no fragile string
- * manipulation" requirement).
- */
-function toDatetimeLocalValue(isoUtc: string): string {
-  const d = new Date(isoUtc)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-const CONTENT_TYPES = [
-  'Article',
-  'Guide',
-  'Tutorial',
-  'How-to',
-  'News',
-  'Opinion',
-  'Review',
-  'Case Study',
-  'List',
-  'FAQ',
+const PANEL_TABS: Array<{ id: PanelTab; label: string; icon: typeof FileText }> = [
+  { id: 'document', label: 'Document', icon: FileText },
+  { id: 'seo', label: 'SEO', icon: SearchCheck },
+  { id: 'enrich', label: 'Enrich', icon: Sparkles },
 ]
-const CONTENT_INTENTS = ['Informational', 'Commercial', 'Transactional', 'Navigational']
-const TWITTER_CARD_OPTIONS: TwitterCardType[] = ['summary', 'summary_large_image', 'player']
 
-interface FormState {
-  title: string
-  slug: string
-  excerpt: string
-  authorName: string
-  coverImage: string
-  coverImageAlt: string
-  content: string
-  seoTitle: string
-  seoDescription: string
-
-  coverImageTitle: string
-  coverImageCaption: string
-  coverImageDescription: string
-  category: string
-  tags: string[]
-  /** yyyy-mm-dd for <input type="date"> — create mode only; see the CONTENT section. */
-  publishDate: string
-
-  aiSummary: string
-  keyTakeaways: string[]
-
-  targetCountry: string
-  targetLanguage: string
-  targetAudience: string
-  contentType: string
-  contentIntent: string
-
-  mainEntity: string
-  about: string[]
-  mentionedEntities: string[]
-
-  faq: FaqItem[]
-
-  expertQuoteText: string
-  expertQuotePersonName: string
-  expertQuoteOrganization: string
-  expertQuoteRole: string
-
-  focusKeyword: string
-  secondaryKeywords: string[]
-  canonicalUrl: string
-  robotsIndex: boolean
-  ogTitle: string
-  ogDescription: string
-  ogImage: string
-  twitterCard: string
-  breadcrumbEnabled: boolean
-  customMetaTags: CustomMetaTag[]
+/** First sentences of the article as plain text, cut at a word boundary. */
+function excerptFromContent(html: string): string {
+  const text = (new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '').replace(/\s+/g, ' ').trim()
+  if (text.length <= 170) return text
+  const cut = text.slice(0, 170)
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(' '), 100))}…`
 }
 
-const EMPTY_FORM: FormState = {
-  title: '',
-  slug: '',
-  excerpt: '',
-  authorName: '',
-  coverImage: '',
-  coverImageAlt: '',
-  content: '',
-  seoTitle: '',
-  seoDescription: '',
-
-  coverImageTitle: '',
-  coverImageCaption: '',
-  coverImageDescription: '',
-  category: '',
-  tags: [],
-  publishDate: '',
-
-  aiSummary: '',
-  keyTakeaways: [],
-
-  targetCountry: '',
-  targetLanguage: '',
-  targetAudience: '',
-  contentType: '',
-  contentIntent: '',
-
-  mainEntity: '',
-  about: [],
-  mentionedEntities: [],
-
-  faq: [],
-
-  expertQuoteText: '',
-  expertQuotePersonName: '',
-  expertQuoteOrganization: '',
-  expertQuoteRole: '',
-
-  focusKeyword: '',
-  secondaryKeywords: [],
-  canonicalUrl: '',
-  robotsIndex: true,
-  ogTitle: '',
-  ogDescription: '',
-  ogImage: '',
-  twitterCard: '',
-  breadcrumbEnabled: true,
-  customMetaTags: [],
+function timeLabel(date: Date) {
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
 
-function formFromPost(post: AdminBlogPost): FormState {
-  return {
-    title: post.title,
-    slug: post.slug,
-    excerpt: post.excerpt,
-    authorName: post.authorName,
-    coverImage: post.coverImage,
-    coverImageAlt: post.coverImageAlt,
-    content: post.content,
-    seoTitle: post.seoTitle ?? '',
-    seoDescription: post.seoDescription ?? '',
-
-    coverImageTitle: post.coverImageTitle ?? '',
-    coverImageCaption: post.coverImageCaption ?? '',
-    coverImageDescription: post.coverImageDescription ?? '',
-    category: post.category ?? '',
-    tags: post.tags,
-    publishDate: post.publishedAt ? post.publishedAt.slice(0, 10) : '',
-
-    aiSummary: post.aiSummary ?? '',
-    keyTakeaways: post.keyTakeaways,
-
-    targetCountry: post.aiContext?.targetCountry ?? '',
-    targetLanguage: post.aiContext?.targetLanguage ?? '',
-    targetAudience: post.aiContext?.targetAudience ?? '',
-    contentType: post.aiContext?.contentType ?? '',
-    contentIntent: post.aiContext?.contentIntent ?? '',
-
-    mainEntity: post.entitySeo?.mainEntity ?? '',
-    about: post.entitySeo?.about ?? [],
-    mentionedEntities: post.entitySeo?.mentionedEntities ?? [],
-
-    faq: post.faq,
-
-    expertQuoteText: post.expertQuote?.quote ?? '',
-    expertQuotePersonName: post.expertQuote?.personName ?? '',
-    expertQuoteOrganization: post.expertQuote?.organization ?? '',
-    expertQuoteRole: post.expertQuote?.role ?? '',
-
-    focusKeyword: post.focusKeyword ?? '',
-    secondaryKeywords: post.secondaryKeywords,
-    canonicalUrl: post.canonicalUrl ?? '',
-    robotsIndex: post.robotsIndex,
-    ogTitle: post.ogTitle ?? '',
-    ogDescription: post.ogDescription ?? '',
-    ogImage: post.ogImage ?? '',
-    twitterCard: post.twitterCard ?? '',
-    breadcrumbEnabled: post.breadcrumbEnabled,
-    customMetaTags: post.customMetaTags,
-  }
-}
-
-/** Returns a user-facing message, or null if the form is valid enough to submit. */
-function validateForm(form: FormState): string | null {
-  if (!form.title.trim()) return 'Title is required.'
-  if (form.title.length > TITLE_MAX) return `Title must be at most ${TITLE_MAX} characters.`
-  if (!form.excerpt.trim()) return 'Excerpt is required.'
-  if (form.excerpt.length > EXCERPT_MAX) return `Excerpt must be at most ${EXCERPT_MAX} characters.`
-  if (!form.authorName.trim()) return 'Editor name is required.'
-  if (form.authorName.length > EDITOR_NAME_MAX) return `Editor name must be at most ${EDITOR_NAME_MAX} characters.`
-  if (!form.content.trim()) return 'Content is required.'
-  if (form.content.length > CONTENT_MAX) return `Content must be at most ${CONTENT_MAX} characters.`
-  if (!form.coverImage.trim()) return 'Cover image is required.'
-  if (!isLikelyUrl(form.coverImage)) return 'Cover image must be a valid http(s) URL.'
-  if (!form.coverImageAlt.trim()) return 'Cover image alt text is required.'
-  if (form.slug.trim()) {
-    if (form.slug.length > SLUG_MAX) return `Slug must be at most ${SLUG_MAX} characters.`
-    if (!SLUG_FORMAT_PATTERN.test(form.slug)) {
-      return 'Slug must contain only lowercase letters, numbers, and hyphens.'
-    }
-  }
-  if (form.seoTitle.length > SEO_TITLE_MAX) {
-    return `SEO title must be at most ${SEO_TITLE_MAX} characters.`
-  }
-  if (form.seoDescription.length > SEO_DESCRIPTION_MAX) {
-    return `SEO description must be at most ${SEO_DESCRIPTION_MAX} characters.`
-  }
-
-  if (form.canonicalUrl.trim() && !isLikelyUrl(form.canonicalUrl.trim())) {
-    return 'Canonical URL must be a valid http(s) URL.'
-  }
-  if (form.ogImage.trim() && !isLikelyUrl(form.ogImage.trim())) {
-    return 'Open Graph image must be a valid http(s) URL.'
-  }
-  if (form.expertQuoteText.trim() || form.expertQuotePersonName.trim() || form.expertQuoteOrganization.trim()) {
-    if (!form.expertQuoteText.trim()) return 'Expert quote text is required.'
-    if (!form.expertQuotePersonName.trim()) return 'Expert quote person name is required.'
-    if (!form.expertQuoteOrganization.trim()) return 'Expert quote organization is required.'
-  }
-  for (const item of form.faq) {
-    if (!item.question.trim() || !item.answer.trim()) {
-      return 'Every FAQ item needs both a question and an answer (or remove the empty one).'
-    }
-  }
-
-  return null
-}
-
-type InlineField = 'title' | 'slug' | 'excerpt' | 'authorName' | 'coverImage' | 'coverImageAlt' | 'content'
-
-function fieldError(form: FormState, field: InlineField): string | null {
-  if (field === 'title') {
-    if (!form.title.trim()) return 'Title is required.'
-    if (form.title.length > TITLE_MAX) return `Keep the title under ${TITLE_MAX} characters.`
-  }
-  if (field === 'slug') {
-    if (!form.slug.trim()) return 'Slug is required.'
-    if (form.slug.length > SLUG_MAX) return `Keep the slug under ${SLUG_MAX} characters.`
-    if (!SLUG_FORMAT_PATTERN.test(form.slug)) return 'Use lowercase letters, numbers, and hyphens.'
-  }
-  if (field === 'excerpt') {
-    if (!form.excerpt.trim()) return 'Excerpt is required.'
-    if (form.excerpt.length > EXCERPT_MAX) return `Keep the excerpt under ${EXCERPT_MAX} characters.`
-  }
-  if (field === 'authorName') {
-    if (!form.authorName.trim()) return 'Editor name is required.'
-    if (form.authorName.length > EDITOR_NAME_MAX) return `Keep the editor name under ${EDITOR_NAME_MAX} characters.`
-  }
-  if (field === 'content') {
-    if (!form.content.trim()) return 'Content is required.'
-    if (form.content.length > CONTENT_MAX) return `Keep the content under ${CONTENT_MAX.toLocaleString()} characters.`
-  }
-  if (field === 'coverImage') {
-    if (!form.coverImage.trim()) return 'Cover image is required.'
-    if (!isLikelyUrl(form.coverImage)) return 'Use a valid http(s) image URL.'
-  }
-  if (field === 'coverImageAlt' && !form.coverImageAlt.trim()) return 'Alt text is required for accessibility.'
-  return null
-}
-
-function buildAiContext(form: FormState): AiContext | null {
-  const context: AiContext = {
-    targetCountry: form.targetCountry.trim() || null,
-    targetLanguage: form.targetLanguage.trim() || null,
-    targetAudience: form.targetAudience.trim() || null,
-    contentType: form.contentType.trim() || null,
-    contentIntent: form.contentIntent.trim() || null,
-  }
-  const isEmpty = Object.values(context).every((v) => v === null)
-  return isEmpty ? null : context
-}
-
-function buildEntitySeo(form: FormState): EntitySeo | null {
-  const mainEntity = form.mainEntity.trim() || null
-  if (!mainEntity && form.about.length === 0 && form.mentionedEntities.length === 0) return null
-  return { mainEntity, about: form.about, mentionedEntities: form.mentionedEntities }
-}
-
-function buildExpertQuote(form: FormState): ExpertQuote | null {
-  if (
-    !form.expertQuoteText.trim() &&
-    !form.expertQuotePersonName.trim() &&
-    !form.expertQuoteOrganization.trim()
-  ) {
-    return null
-  }
-  return {
-    quote: form.expertQuoteText.trim(),
-    personName: form.expertQuotePersonName.trim(),
-    organization: form.expertQuoteOrganization.trim(),
-    role: form.expertQuoteRole.trim() || null,
-  }
-}
-
-function CharCount({ value, max }: { value: string; max: number }) {
+/** A borderless textarea that grows with its content. */
+function GrowingTextarea({ value, onChange, className, onEnter, innerRef, ...rest }: Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange'> & { onChange: (next: string) => void; onEnter?: () => void; innerRef?: React.RefObject<HTMLTextAreaElement | null> }) {
+  const ref = useRef<HTMLTextAreaElement | null>(null)
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (!element) return
+    element.style.height = '0px'
+    element.style.height = `${element.scrollHeight}px`
+  }, [value])
   return (
-    <span className="text-[12px] text-neutral-400">
-      {value.length}/{max}
-    </span>
+    <textarea
+      {...rest}
+      ref={(node) => {
+        ref.current = node
+        if (innerRef) innerRef.current = node
+      }}
+      rows={1}
+      value={value}
+      className={className}
+      onChange={(event) => onChange(event.target.value.replace(/\n/g, ' '))}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault()
+          onEnter?.()
+        }
+        rest.onKeyDown?.(event)
+      }}
+    />
   )
 }
 
-function CoverImagePreview({ url, alt }: { url: string; alt: string }) {
-  const [failed, setFailed] = useState(false)
-
-  useEffect(() => setFailed(false), [url])
-
-  if (!isLikelyUrl(url)) return null
-
-  return (
-    <div className="mt-3 overflow-hidden rounded-[8px] border border-neutral-200 bg-neutral-50">
-      {failed ? (
-        <p className="p-4 text-[13px] text-neutral-500">
-          Couldn't load an image from that URL.
-        </p>
-      ) : (
-        // eslint-disable-next-line jsx-a11y/img-redundant-alt
-        <img
-          src={url}
-          alt={alt || 'Cover image preview'}
-          className="aspect-[16/10] w-full object-cover"
-          onError={() => setFailed(true)}
-        />
-      )}
-    </div>
-  )
-}
-
-/** Small preview for the Open Graph image specifically, in the SEO section. */
-function OgImagePreview({ url }: { url: string }) {
-  const [failed, setFailed] = useState(false)
-  useEffect(() => setFailed(false), [url])
-  if (!isLikelyUrl(url)) return null
-  return (
-    <div className="mt-2 w-[220px] overflow-hidden rounded-[8px] border border-neutral-200 bg-neutral-50">
-      {failed ? (
-        <p className="p-3 text-[12px] text-neutral-500">Couldn't load this image.</p>
-      ) : (
-        <img
-          src={url}
-          alt="Open Graph preview"
-          className="aspect-[1200/630] w-full object-cover"
-          onError={() => setFailed(true)}
-        />
-      )}
-    </div>
-  )
-}
-
-/** Non-scoring mockup of how the post might appear in a search result — no SEO score. */
-function SeoPreview({
-  title,
-  slug,
-  description,
+function CoverImage({
+  form,
+  update,
+  touched,
+  onTouch,
 }: {
-  title: string
-  slug: string
-  description: string
+  form: FormState
+  update: <K extends keyof FormState>(key: K, value: FormState[K]) => void
+  touched: Partial<Record<InlineField, boolean>>
+  onTouch: (field: InlineField) => void
 }) {
-  return (
-    <div className="rounded-[8px] border border-neutral-200 bg-white p-4">
-      <p className="mb-2 text-[11px] font-medium tracking-wide text-neutral-400 uppercase">
-        Search result preview
-      </p>
-      <div className="max-w-[560px] truncate text-[18px] text-[#1a0dab]">
-        {title || 'Untitled post'}
-      </div>
-      <div className="text-[13px] text-[#006621]">brandworks.me/blog/{slug || 'your-slug'}</div>
-      <p className="mt-1 line-clamp-2 text-[13px] text-neutral-600">
-        {description || 'A meta description will appear here.'}
-      </p>
-    </div>
-  )
-}
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [linkOpen, setLinkOpen] = useState(false)
+  const [linkDraft, setLinkDraft] = useState('')
+  const [failed, setFailed] = useState(false)
+  const hasImage = isLikelyUrl(form.coverImage)
+  const altError = touched.coverImageAlt ? fieldError(form, 'coverImageAlt') : null
 
-function MarkdownField({
-  value,
-  onChange,
-  onBlur,
-  error,
-}: {
-  value: string
-  onChange: (next: string) => void
-  onBlur?: () => void
-  error?: string | null
-}) {
-  const [tab, setTab] = useState<'write' | 'preview'>('write')
-  const [advancedOpen, setAdvancedOpen] = useState(false)
-  const [colorOpen, setColorOpen] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => setFailed(false), [form.coverImage])
 
-  function insertMarkdown(prefix: string, suffix = '', placeholder = 'text') {
-    const textarea = textareaRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selected = value.slice(start, end) || placeholder
-    const next = `${value.slice(0, start)}${prefix}${selected}${suffix}${value.slice(end)}`
-    onChange(next)
-    window.requestAnimationFrame(() => {
-      textarea.focus()
-      const nextStart = start + prefix.length
-      textarea.setSelectionRange(nextStart, nextStart + selected.length)
-    })
+  function applyLink() {
+    const value = linkDraft.trim()
+    if (!isLikelyUrl(value)) {
+      toast.error('Enter an image address that starts with https://')
+      return
+    }
+    update('coverImage', value)
+    setLinkOpen(false)
+    setLinkDraft('')
   }
-
-  function insertBlock(valueToInsert: string) {
-    const textarea = textareaRef.current
-    if (!textarea) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const before = value.slice(0, start)
-    const after = value.slice(end)
-    const needsLeadingBreak = before.length > 0 && !before.endsWith('\n') ? '\n' : ''
-    const needsTrailingBreak = after.length > 0 && !after.startsWith('\n') ? '\n' : ''
-    const insertion = `${needsLeadingBreak}${valueToInsert}${needsTrailingBreak}`
-    onChange(`${before}${insertion}${after}`)
-    window.requestAnimationFrame(() => {
-      textarea.focus()
-      const cursor = start + insertion.length
-      textarea.setSelectionRange(cursor, cursor)
-    })
-  }
-
-  function clearFormatting() {
-    const textarea = textareaRef.current
-    if (!textarea || textarea.selectionStart === textarea.selectionEnd) return
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selected = value.slice(start, end)
-    const cleaned = selected
-      .replace(/\*\*|__|~~|`|<\/?u>|<\/?mark>/g, '')
-      .replace(/<span data-color="(?:red|orange|green|blue|purple|accent)">|<\/span>/g, '')
-    onChange(`${value.slice(0, start)}${cleaned}${value.slice(end)}`)
-    window.requestAnimationFrame(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start, start + cleaned.length)
-    })
-  }
-
-  const preventToolbarBlur = (event: React.MouseEvent<HTMLButtonElement>) => event.preventDefault()
-  const colors = [
-    { label: 'Red', value: 'red', className: 'bg-[#b42318]' },
-    { label: 'Orange', value: 'orange', className: 'bg-[#c76a16]' },
-    { label: 'Green', value: 'green', className: 'bg-[#34764a]' },
-    { label: 'Blue', value: 'blue', className: 'bg-[#2463a8]' },
-    { label: 'Purple', value: 'purple', className: 'bg-[#7446a8]' },
-    { label: 'Accent', value: 'accent', className: 'bg-[#9bb900]' },
-  ] as const
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <label htmlFor="content" className="text-[14px] font-medium text-neutral-900">
-          Content (Markdown)
-        </label>
-        <div className="flex gap-1 rounded-[6px] bg-neutral-100 p-0.5">
-          <button
-            type="button"
-            onClick={() => setTab('write')}
-            aria-pressed={tab === 'write'}
-            className={`rounded-[4px] px-3 py-1 text-[12px] font-medium transition-colors ${
-              tab === 'write' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'
-            }`}
-          >
-            Write
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('preview')}
-            aria-pressed={tab === 'preview'}
-            className={`rounded-[4px] px-3 py-1 text-[12px] font-medium transition-colors ${
-              tab === 'preview' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'
-            }`}
-          >
-            Preview
-          </button>
-        </div>
-      </div>
-
-      {tab === 'write' ? (
-        <>
-          <div className="admin-editor-toolbar" aria-label="Markdown formatting tools">
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('## ', '', 'Heading')} title="Heading 2" aria-label="Heading 2"><Heading2 size={15} aria-hidden="true" /> <span>Heading</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('### ', '', 'Subheading')} title="Heading 3" aria-label="Heading 3"><Heading3 size={15} aria-hidden="true" /> <span>H3</span></button>
-            <span className="admin-editor-toolbar__divider" aria-hidden="true" />
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('**', '**')} title="Bold" aria-label="Bold"><Bold size={15} aria-hidden="true" /> <span>Bold</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('*', '*')} title="Italic" aria-label="Italic"><Italic size={15} aria-hidden="true" /> <span>Italic</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('<u>', '</u>')} title="Underline" aria-label="Underline"><Underline size={15} aria-hidden="true" /> <span>Underline</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('~~', '~~')} title="Strikethrough" aria-label="Strikethrough"><Strikethrough size={15} aria-hidden="true" /> <span>Strike</span></button>
-            <span className="admin-editor-toolbar__divider" aria-hidden="true" />
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('[', '](https://)', 'link text')} title="Link" aria-label="Link"><Link2 size={15} aria-hidden="true" /> <span>Link</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('- ', '', 'List item')} title="Bullet list" aria-label="Bullet list"><List size={15} aria-hidden="true" /> <span>List</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('1. ', '', 'List item')} title="Numbered list" aria-label="Numbered list"><ListOrdered size={15} aria-hidden="true" /> <span>Numbered</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('`', '`')} title="Inline code" aria-label="Inline code"><Code2 size={15} aria-hidden="true" /> <span>Code</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertBlock('> Quote')} title="Blockquote" aria-label="Blockquote"><Quote size={15} aria-hidden="true" /> <span>Quote</span></button>
-            <button type="button" className="admin-editor-toolbar__more" onMouseDown={preventToolbarBlur} onClick={() => setAdvancedOpen((open) => !open)} aria-expanded={advancedOpen} title="More formatting"><MoreHorizontal size={16} aria-hidden="true" /> <span>More</span></button>
-
-            {advancedOpen && <div className="admin-editor-toolbar__advanced">
-              <div className="admin-editor-toolbar__color-wrap">
-                <button type="button" onMouseDown={preventToolbarBlur} onClick={() => setColorOpen((open) => !open)} aria-expanded={colorOpen} title="Text color" aria-label="Text color"><Palette size={15} aria-hidden="true" /> <span>Color</span></button>
-                {colorOpen && <div className="admin-editor-toolbar__color-menu" role="menu" aria-label="Text colors">
-                  {colors.map((color) => <button key={color.value} type="button" role="menuitem" onMouseDown={preventToolbarBlur} onClick={() => { insertMarkdown(`<span data-color="${color.value}">`, '</span>'); setColorOpen(false) }} title={color.label} aria-label={`Text color ${color.label}`}><span className={`admin-editor-toolbar__swatch ${color.className}`} aria-hidden="true" />{color.label}</button>)}
-                </div>}
-              </div>
-              <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertMarkdown('<mark>', '</mark>')} title="Highlight" aria-label="Highlight"><Highlighter size={15} aria-hidden="true" /> <span>Highlight</span></button>
-              <button type="button" onMouseDown={preventToolbarBlur} onClick={() => insertBlock('---')} title="Horizontal rule" aria-label="Horizontal rule"><span className="text-[15px] font-semibold" aria-hidden="true">—</span> <span>Rule</span></button>
-              <button type="button" onMouseDown={preventToolbarBlur} onClick={clearFormatting} title="Clear formatting" aria-label="Clear formatting"><Eraser size={15} aria-hidden="true" /> <span>Clear</span></button>
-            </div>}
-          </div>
-          <textarea
-            ref={textareaRef}
-            id="content"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onBlur={onBlur}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? 'content-error' : undefined}
-            rows={18}
-            placeholder="Write in Markdown — headings, lists, links, quotes, code, color, underline, and highlights are supported."
-            className="admin-textarea min-h-[380px] resize-y font-mono text-[14px] leading-[1.7] placeholder:text-neutral-400"
-          />
-          <p className="text-[12px] text-neutral-400">Formatting stays portable Markdown with a safe inline layer for underline, highlights, and color.</p>
-        </>
-      ) : (
-        <div className="min-h-[300px] rounded-[10px] border border-neutral-200 bg-neutral-50 px-4 py-3">
-          {value.trim() ? (
-            // No typography plugin is installed, so nested elements are
-            // styled directly via arbitrary-variant utilities — enough
-            // for a lightweight preview without a new dependency.
-            <div
-              className="markdown-rich-content max-w-none text-[14px] leading-[1.7] text-neutral-800
-                [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-[24px] [&_h1]:font-semibold [&_h1]:text-neutral-900 [&_h1]:first:mt-0
-                [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-[20px] [&_h2]:font-semibold [&_h2]:text-neutral-900 [&_h2]:first:mt-0
-                [&_h3]:mt-3 [&_h3]:mb-1.5 [&_h3]:text-[16px] [&_h3]:font-semibold [&_h3]:text-neutral-900
-                [&_p]:my-2.5 [&_strong]:font-semibold [&_strong]:text-neutral-900
-                [&_ul]:my-2.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1
-                [&_a]:text-neutral-900 [&_a]:underline [&_a]:underline-offset-2
-                [&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-neutral-300 [&_blockquote]:pl-3 [&_blockquote]:text-neutral-600
-                [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-[8px] [&_pre]:bg-neutral-900 [&_pre]:p-3 [&_pre]:text-[13px] [&_pre]:text-neutral-100
-                [&_code]:rounded-[4px] [&_code]:bg-neutral-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[13px] [&_pre_code]:bg-transparent [&_pre_code]:p-0
-                [&_hr]:my-4 [&_hr]:border-neutral-200"
-            >
-              {/* The shared rehype pipeline parses only the small sanitized
-                  inline layer used by the toolbar (underline, highlight,
-                  and semantic color). */}
-              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={markdownRehypePlugins}>{value}</ReactMarkdown>
-            </div>
+    <div className="admin-ed-cover">
+      {hasImage ? (
+        <div className="group relative overflow-hidden rounded-a-xl bg-a-fill">
+          {failed ? (
+            <div className="grid aspect-[16/7] place-items-center text-[13px] text-a-ink-2">We couldn’t load that image.</div>
           ) : (
-            <p className="text-[13px] text-neutral-400">Nothing to preview yet.</p>
+            <img src={form.coverImage} alt={form.coverImageAlt || 'Cover image'} className="aspect-[16/7] w-full object-cover" onError={() => setFailed(true)} />
           )}
+          <div className="absolute top-3 right-3 flex gap-2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
+            <button type="button" className="admin-chip-button" onClick={() => setPickerOpen(true)}><ImagePlus size={14} aria-hidden="true" /> Replace</button>
+            <button type="button" className="admin-chip-button" onClick={() => { update('coverImage', ''); update('coverImageAlt', '') }}><X size={14} aria-hidden="true" /> Remove</button>
+          </div>
+        </div>
+      ) : (
+        <div className="admin-ed-cover__empty">
+          <span className="grid size-11 place-items-center rounded-[13px] bg-a-fill text-a-ink-2"><ImagePlus size={20} strokeWidth={1.6} aria-hidden="true" /></span>
+          <p className="text-[15px] font-semibold tracking-[-0.012em]">Add a cover image</p>
+          <p className="max-w-[40ch] text-[13px] text-a-ink-2">It appears at the top of the article and when it’s shared.</p>
+          <div className="mt-1 flex flex-wrap justify-center gap-2">
+            <AdminButton variant="primary" onClick={() => setPickerOpen(true)} icon={<ImagePlus size={14} aria-hidden="true" />}>Choose image</AdminButton>
+            <AdminButton onClick={() => setLinkOpen((open) => !open)} icon={<Link2 size={14} aria-hidden="true" />}>Use a link</AdminButton>
+          </div>
+          {linkOpen && (
+            <div className="mt-2 flex w-full max-w-md gap-2" onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); applyLink() } }}>
+              <label htmlFor="cover-link" className="sr-only">Image address</label>
+              <input id="cover-link" className="admin-input" autoFocus placeholder="https://…" value={linkDraft} onChange={(event) => setLinkDraft(event.target.value)} />
+              <AdminButton variant="primary" onClick={applyLink}>Add</AdminButton>
+            </div>
+          )}
+          {touched.coverImage && fieldError(form, 'coverImage') && <p className="admin-field-error" role="alert">{fieldError(form, 'coverImage')}</p>}
         </div>
       )}
 
-      {error && <p id="content-error" className="admin-field-error" role="alert">{error}</p>}
-
-      <div className="text-right text-[12px] text-neutral-400">
-        {value.length.toLocaleString()} / {CONTENT_MAX.toLocaleString()}
-      </div>
-    </div>
-  )
-}
-
-function DraftPreview({ form, onClose }: { form: FormState; onClose: () => void }) {
-  const surfaceRef = useRef<HTMLElement>(null)
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    const previousOverflow = document.body.style.overflow
-
-    document.body.style.overflow = 'hidden'
-    closeButtonRef.current?.focus()
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        onClose()
-        return
-      }
-
-      if (event.key !== 'Tab') return
-      const focusable = Array.from(
-        surfaceRef.current?.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ) ?? [],
-      )
-      if (!focusable.length) return
-
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener('keydown', handleKeyDown)
-      previouslyFocused?.focus()
-    }
-  }, [onClose])
-
-  return (
-    <div className="admin-draft-preview" role="dialog" aria-modal="true" aria-labelledby="draft-preview-title">
-      <div className="admin-draft-preview__backdrop" onClick={onClose} aria-hidden="true" />
-      <section ref={surfaceRef} className="admin-draft-preview__surface">
-        <header className="admin-draft-preview__header">
-          <div>
-            <p className="admin-eyebrow">Local draft preview</p>
-            <h2 id="draft-preview-title">How this article reads</h2>
-          </div>
-          <button ref={closeButtonRef} type="button" className="admin-icon-button" aria-label="Close draft preview" onClick={onClose}>
-            <X size={18} aria-hidden="true" />
-          </button>
-        </header>
-        <div className="admin-draft-preview__body">
-          {isLikelyUrl(form.coverImage) && <img src={form.coverImage} alt={form.coverImageAlt || form.title || 'Article cover image'} className="admin-draft-preview__image" />}
-          <p className="admin-eyebrow">{form.category || 'Article'}</p>
-          <h3>{form.title || 'Untitled article'}</h3>
-          <p className="admin-draft-preview__excerpt">{form.excerpt || 'Add an excerpt to introduce this article.'}</p>
-          <p className="admin-draft-preview__byline">Edited by <strong>{form.authorName || 'Editorial team'}</strong></p>
-          <div className="admin-draft-preview__markdown">
-            {form.content.trim() ? <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={markdownRehypePlugins}>{form.content}</ReactMarkdown> : <p>Nothing to preview yet.</p>}
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
-
-function RevisionHistory({
-  id,
-  onRestore,
-}: {
-  id?: string
-  onRestore: (revision: AdminBlogRevision) => Promise<void>
-}) {
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [restoring, setRestoring] = useState<string | null>(null)
-  const [revisions, setRevisions] = useState<AdminBlogRevision[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [comparison, setComparison] = useState<string | null>(null)
-
-  async function load() {
-    if (!id) return
-    setOpen(true)
-    if (revisions.length) return
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await blogApi.listBlogRevisions(id)
-      setRevisions(result.revisions)
-    } catch (err) {
-      setError(errorMessage(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function restore(revision: AdminBlogRevision) {
-    if (!id || !window.confirm(`Restore the saved version from ${new Date(revision.createdAt).toLocaleString()}? Your current edits will remain unsaved until you choose Save.`)) return
-    setRestoring(revision.id)
-    setError(null)
-    try {
-      await onRestore(revision)
-    } catch (err) {
-      setError(errorMessage(err))
-    } finally {
-      setRestoring(null)
-    }
-  }
-
-  async function compareLatest() {
-    if (!id || revisions.length < 2) return
-    setError(null)
-    try {
-      const { comparison: result } = await blogApi.compareBlogRevisions(id, revisions[0].id, revisions[1].id)
-      setComparison(result.changedFields.length ? `Changed fields: ${result.changedFields.join(', ')}.` : 'No tracked fields changed between these revisions.')
-    } catch (err) { setError(errorMessage(err)) }
-  }
-
-  return (
-    <section className="admin-editor-section admin-revision-panel">
-      <button type="button" className="admin-editor-section__toggle" aria-expanded={open} onClick={() => open ? setOpen(false) : void load()} disabled={!id}>
-        <span><History size={16} aria-hidden="true" /> Revision history</span>
-        <span className="admin-revision-panel__meta">{id ? (open ? 'Hide' : 'View') : 'Available after first save'}</span>
-      </button>
-      {open && (
-        <div className="admin-revision-panel__body">
-          <p className="admin-editor-section__description">Saved server snapshots. Restoring replaces saved content while leaving publishing status unchanged.</p>
-          {loading && <p className="admin-revision-panel__note">Loading revisions…</p>}
-          {error && <p className="admin-field-error" role="alert">{error}</p>}
-          {!loading && !error && revisions.length === 0 && <p className="admin-revision-panel__note">No earlier saved versions yet.</p>}
-          {!loading && revisions.length > 0 && <div className="admin-revision-list">
-            {revisions.length > 1 && <button type="button" className="admin-button admin-button--quiet mb-2" onClick={() => void compareLatest()}>Compare latest two</button>}
-            {comparison && <p className="mb-3 text-[12px] text-neutral-600" role="status">{comparison}</p>}
-            {revisions.map((revision) => (
-              <div key={revision.id} className="admin-revision-item">
-                <div>
-                  <strong>{revision.title || 'Untitled article'}</strong>
-                  <span>{new Date(revision.createdAt).toLocaleString()} · {revision.authorName}</span>
-                </div>
-                <button type="button" className="admin-button admin-button--secondary" disabled={restoring !== null} onClick={() => void restore(revision)}>
-                  <RotateCcw size={14} aria-hidden="true" /> {restoring === revision.id ? 'Loading…' : 'Restore'}
-                </button>
-              </div>
-            ))}
-          </div>}
+      {hasImage && (
+        <div className="mt-3">
+          <label htmlFor="coverImageAlt" className="sr-only">Cover image description</label>
+          <input
+            id="coverImageAlt"
+            className={`admin-input ${altError ? 'admin-input--error' : ''}`}
+            placeholder="Describe the image for people who can’t see it (required)"
+            value={form.coverImageAlt}
+            maxLength={300}
+            aria-invalid={altError ? true : undefined}
+            onChange={(event) => update('coverImageAlt', event.target.value)}
+            onBlur={() => onTouch('coverImageAlt')}
+          />
+          {altError && <p className="admin-field-error" role="alert">{altError}</p>}
         </div>
       )}
-    </section>
+
+      {pickerOpen && (
+        <MediaPicker
+          title="Choose a cover image"
+          onClose={() => setPickerOpen(false)}
+          onPick={({ asset, url }) => {
+            update('coverImage', url)
+            if (!form.coverImageAlt.trim()) update('coverImageAlt', asset.altText || asset.originalName.replace(/\.[^.]+$/, ''))
+            if (!form.coverImageCaption.trim() && asset.caption) update('coverImageCaption', asset.caption)
+            setPickerOpen(false)
+          }}
+        />
+      )}
+    </div>
   )
 }
-
-function OutlinePanel({ entries }: { entries: AnalysisResult['toc'] }) {
-  return (
-    <section className="admin-editor-section admin-outline-panel">
-      <div className="admin-editor-section__heading mb-0">
-        <div>
-          <h2 className="admin-editor-section__title">Outline</h2>
-          <p className="admin-editor-section__description">Your article structure, based on H2–H4 headings.</p>
-        </div>
-        <Keyboard size={17} className="text-neutral-400" aria-hidden="true" />
-      </div>
-      {entries.length ? <ol className="admin-outline-list">
-        {entries.map((entry) => <li key={entry.id} style={{ paddingLeft: `${(entry.level - 2) * 14}px` }}>{entry.text}</li>)}
-      </ol> : <p className="admin-revision-panel__note">Add headings to build a navigable outline.</p>}
-    </section>
-  )
-}
-
-type InspectorTab = 'overview' | 'editorial' | 'seo' | 'publishing'
-
-const INSPECTOR_TABS: Array<{ id: InspectorTab; label: string; description: string; icon: typeof Gauge }> = [
-  { id: 'overview', label: 'Overview', description: 'Health and structure', icon: Gauge },
-  { id: 'editorial', label: 'Editorial', description: 'AI, FAQ, and quote', icon: Sparkles },
-  { id: 'seo', label: 'SEO', description: 'Search and metadata', icon: SearchCheck },
-  { id: 'publishing', label: 'Publishing', description: 'Schedule and release', icon: CalendarDays },
-]
 
 function BlogEditor() {
   const { id } = useParams<{ id: string }>()
   const isEditing = Boolean(id)
   const navigate = useNavigate()
   const { admin } = useAdminAuth()
+  const isAdmin = admin?.role === 'admin'
+  const { confirm, dialog } = useConfirm()
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [status, setStatus] = useState<BlogStatus | null>(null)
-  const [reviewStatus, setReviewStatus] = useState<import('../../api/blogTypes').ReviewStatus>('draft')
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus>('draft')
   const [reviewNote, setReviewNote] = useState<string | null>(null)
   const [publishedAtDisplay, setPublishedAtDisplay] = useState<string | null>(null)
-  // Phase 14 — a pending future publish date, if any (never set while
-  // status === 'published'; the backend enforces that, this just
-  // reflects it). `scheduleInput` is the separate, uncommitted
-  // <input type="datetime-local"> value — only turned into a real
-  // schedule when "Schedule" is clicked, same pattern as every other
-  // form field here being distinct from what's actually been saved.
   const [scheduledAt, setScheduledAt] = useState<string | null>(null)
   const [scheduleInput, setScheduleInput] = useState('')
-  // Keeps the picker in sync with whatever the server says the
-  // current schedule is — pre-filled (converted UTC -> local) so
-  // rescheduling starts from the existing value instead of empty, and
-  // cleared the moment there's no schedule at all (Phase 15, Part 5/9).
-  // One effect here rather than repeating this in every handler that
-  // can change `scheduledAt` (load, save, publish, schedule, unschedule).
-  useEffect(() => {
-    setScheduleInput(scheduledAt ? toDatetimeLocalValue(scheduledAt) : '')
-  }, [scheduledAt])
   const [slugTouched, setSlugTouched] = useState(false)
+  const [slugEditing, setSlugEditing] = useState(false)
   const [dirty, setDirty] = useState(false)
+  const [savedAt, setSavedAt] = useState<Date | null>(null)
   const [focusMode, setFocusMode] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [publishOpen, setPublishOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [panelOpen, setPanelOpen] = useState(true)
+  const [panelTab, setPanelTab] = useState<PanelTab>('document')
   const [isAppleDevice, setIsAppleDevice] = useState(false)
-  const [inspectorTab, setInspectorTab] = useState<InspectorTab>('overview')
   const [recoverySnapshot, setRecoverySnapshot] = useState<{ form: FormState; savedAt: string } | null>(null)
   const [localDraftSavedAt, setLocalDraftSavedAt] = useState<string | null>(null)
   const [touched, setTouched] = useState<Partial<Record<InlineField, boolean>>>({})
+  const [loading, setLoading] = useState(isEditing)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState<'save' | 'publish' | 'unpublish' | 'schedule' | 'unschedule' | 'review' | null>(null)
   const recoveryKey = `brandworks.editor.recovery.${id ?? 'new'}`
+  const editorRef = useRef<RichEditorHandle>(null)
+  const moreRef = useRef<HTMLDivElement>(null)
+  const excerptRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     setIsAppleDevice(/Mac|iPhone|iPad|iPod/.test(window.navigator.platform))
+    // Phones start with the side panel closed so the page itself is what you see.
+    if (window.matchMedia('(max-width: 1000px)').matches) setPanelOpen(false)
   }, [])
 
   useEffect(() => {
     if (isEditing || !admin?.username) return
-    setForm((current) => current.authorName ? current : { ...current, authorName: admin.username })
+    setForm((current) => (current.authorName ? current : { ...current, authorName: admin.username }))
   }, [admin?.username, isEditing])
 
-  const [loading, setLoading] = useState(isEditing)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [formError, setFormError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState<
-    'save' | 'publish' | 'unpublish' | 'schedule' | 'unschedule' | null
-  >(null)
-
   useEffect(() => {
-    if (loadError) toast.error(loadError)
-  }, [loadError])
-
-  useEffect(() => {
-    if (formError) toast.error(formError)
-  }, [formError])
-
-  useEffect(() => {
-    if (successMessage) toast.success(successMessage)
-  }, [successMessage])
+    setScheduleInput(scheduledAt ? toDatetimeLocalValue(scheduledAt) : '')
+  }, [scheduledAt])
 
   useEffect(() => {
     if (!id) return
@@ -940,7 +280,7 @@ function BlogEditor() {
         setReviewNote(blog.reviewNote ?? null)
         setPublishedAtDisplay(blog.publishedAt)
         setScheduledAt(blog.scheduledAt)
-        setSlugTouched(true) // an existing slug is never auto-derived from title edits
+        setSlugTouched(true)
       })
       .catch((err: unknown) => {
         if (!cancelled) setLoadError(errorMessage(err))
@@ -953,6 +293,7 @@ function BlogEditor() {
     }
   }, [id])
 
+  // A local backup is offered if the tab was closed with unsaved work.
   useEffect(() => {
     if (loading) return
     try {
@@ -961,11 +302,7 @@ function BlogEditor() {
       const parsed = JSON.parse(raw) as { form?: Partial<FormState>; savedAt?: string }
       if (parsed.form && parsed.savedAt) {
         setRecoverySnapshot({
-          form: {
-            ...EMPTY_FORM,
-            ...parsed.form,
-            authorName: parsed.form.authorName || admin?.username || '',
-          },
+          form: { ...EMPTY_FORM, ...parsed.form, authorName: parsed.form.authorName || admin?.username || '' },
           savedAt: parsed.savedAt,
         })
       }
@@ -978,9 +315,9 @@ function BlogEditor() {
     if (!dirty || loading || recoverySnapshot) return
     const timer = window.setTimeout(() => {
       try {
-        const savedAt = new Date().toISOString()
-        window.localStorage.setItem(recoveryKey, JSON.stringify({ version: 1, savedAt, form }))
-        setLocalDraftSavedAt(savedAt)
+        const stamp = new Date().toISOString()
+        window.localStorage.setItem(recoveryKey, JSON.stringify({ version: 1, savedAt: stamp, form }))
+        setLocalDraftSavedAt(stamp)
       } catch {
         // Storage can be disabled or full; explicit saving remains available.
       }
@@ -988,70 +325,59 @@ function BlogEditor() {
     return () => window.clearTimeout(timer)
   }, [dirty, form, loading, recoveryKey, recoverySnapshot])
 
-  // Warns on tab close/refresh/external navigation while there are
-  // unsaved changes. Minimal, standards-compliant beforeunload usage —
-  // does not cover in-app navigation via the top nav (see handleBack
-  // below for the one in-app case this editor itself controls).
   useEffect(() => {
-    function handler(e: BeforeUnloadEvent) {
+    function handler(event: BeforeUnloadEvent) {
       if (!dirty) return
-      e.preventDefault()
-      e.returnValue = ''
+      event.preventDefault()
+      event.returnValue = ''
     }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [dirty])
 
-  // Debounced snapshot of the form, so the analyzer (regex-based over
-  // the full Markdown body) doesn't re-run on every single keystroke —
-  // it recomputes ~400ms after the admin stops typing/changing fields.
+  // The analyzer scans the whole body, so it waits for a pause in typing.
   const [debouncedForm, setDebouncedForm] = useState(form)
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedForm(form), 400)
     return () => clearTimeout(timer)
   }, [form])
 
-  const analyzerInput = useMemo<AnalyzerInput>(
-    () => ({
-      title: debouncedForm.title,
-      slug: debouncedForm.slug,
-      excerpt: debouncedForm.excerpt,
-      content: debouncedForm.content,
-      coverImage: debouncedForm.coverImage,
-      coverImageAlt: debouncedForm.coverImageAlt,
-      category: debouncedForm.category,
-      tags: debouncedForm.tags,
-      aiSummary: debouncedForm.aiSummary,
-      keyTakeaways: debouncedForm.keyTakeaways,
-      aiContext: buildAiContext(debouncedForm),
-      entitySeo: buildEntitySeo(debouncedForm),
-      faq: debouncedForm.faq,
-      expertQuote: buildExpertQuote(debouncedForm),
-      seoTitle: debouncedForm.seoTitle,
-      seoDescription: debouncedForm.seoDescription,
-      focusKeyword: debouncedForm.focusKeyword,
-      secondaryKeywords: debouncedForm.secondaryKeywords,
-      canonicalUrl: debouncedForm.canonicalUrl,
-      robotsIndex: debouncedForm.robotsIndex,
-      ogTitle: debouncedForm.ogTitle,
-      ogDescription: debouncedForm.ogDescription,
-      ogImage: debouncedForm.ogImage,
-      twitterCard: debouncedForm.twitterCard,
-      breadcrumbEnabled: debouncedForm.breadcrumbEnabled,
-      customMetaTags: debouncedForm.customMetaTags,
-      authorName: debouncedForm.authorName,
-    }),
-    [debouncedForm],
-  )
+  const analyzerInput = useMemo<AnalyzerInput>(() => ({
+    title: debouncedForm.title,
+    slug: debouncedForm.slug,
+    excerpt: debouncedForm.excerpt,
+    content: debouncedForm.content,
+    coverImage: debouncedForm.coverImage,
+    coverImageAlt: debouncedForm.coverImageAlt,
+    category: debouncedForm.category,
+    tags: debouncedForm.tags,
+    aiSummary: debouncedForm.aiSummary,
+    keyTakeaways: debouncedForm.keyTakeaways,
+    aiContext: buildAiContext(debouncedForm),
+    entitySeo: buildEntitySeo(debouncedForm),
+    faq: debouncedForm.faq,
+    expertQuote: buildExpertQuote(debouncedForm),
+    seoTitle: debouncedForm.seoTitle,
+    seoDescription: debouncedForm.seoDescription,
+    focusKeyword: debouncedForm.focusKeyword,
+    secondaryKeywords: debouncedForm.secondaryKeywords,
+    canonicalUrl: debouncedForm.canonicalUrl,
+    robotsIndex: debouncedForm.robotsIndex,
+    ogTitle: debouncedForm.ogTitle,
+    ogDescription: debouncedForm.ogDescription,
+    ogImage: debouncedForm.ogImage,
+    twitterCard: debouncedForm.twitterCard,
+    breadcrumbEnabled: debouncedForm.breadcrumbEnabled,
+    customMetaTags: debouncedForm.customMetaTags,
+    authorName: debouncedForm.authorName,
+  }), [debouncedForm])
 
-  // Pure + memoized — only recomputes when the debounced input actually changes.
   const analysis = useMemo(() => analyzeBlog(analyzerInput), [analyzerInput])
 
-  function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }))
+  const update = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
+    setForm((previous) => ({ ...previous, [key]: value }))
     setDirty(true)
-    setSuccessMessage(null)
-  }
+  }, [])
 
   function markTouched(field: InlineField) {
     setTouched((current) => ({ ...current, [field]: true }))
@@ -1072,34 +398,34 @@ function BlogEditor() {
     setForm(recoverySnapshot.form)
     setDirty(true)
     setRecoverySnapshot(null)
-    setSuccessMessage('Local recovery loaded. Save to commit these changes.')
-  }
-
-  function discardLocalRecovery() {
-    clearLocalRecovery()
+    toast.success('Backup restored. Save to keep these changes.')
   }
 
   function handleTitleChange(value: string) {
-    setForm((prev) => ({
-      ...prev,
+    setForm((previous) => ({
+      ...previous,
       title: value,
-      // Only ever auto-derives the slug while creating AND before the
-      // admin has touched the slug field themselves — never overwrites
-      // a manually chosen (or already-existing, in edit mode) slug.
-      slug: !isEditing && !slugTouched ? suggestSlug(value) : prev.slug,
+      // Only derives the slug while creating, before it has been touched.
+      slug: !isEditing && !slugTouched ? suggestSlug(value) : previous.slug,
     }))
     setDirty(true)
-    setSuccessMessage(null)
   }
 
   function handleSlugChange(value: string) {
     setSlugTouched(true)
-    updateField('slug', value)
+    update('slug', value.toLowerCase().replace(/[^a-z0-9-]+/g, '-'))
   }
 
-  function handleBack() {
-    if (dirty && !window.confirm('You have unsaved changes. Leave without saving?')) {
-      return
+  async function handleBack() {
+    if (dirty) {
+      const leave = await confirm({
+        title: 'Leave without saving?',
+        message: 'You have changes that haven’t been saved. A local backup is kept on this device.',
+        confirmLabel: 'Leave',
+        cancelLabel: 'Keep editing',
+        tone: 'danger',
+      })
+      if (!leave) return
     }
     navigate('/admin/blogs')
   }
@@ -1107,13 +433,13 @@ function BlogEditor() {
   async function persist(): Promise<AdminBlogPost | null> {
     const validationError = validateForm(form)
     if (validationError) {
-      setFormError(validationError)
+      toast.error(validationError)
+      setTouched({ title: true, slug: true, excerpt: true, content: true, coverImage: true, coverImageAlt: true })
       return null
     }
-    setFormError(null)
 
-    const seoTitle = form.seoTitle.trim() ? form.seoTitle.trim() : null
-    const seoDescription = form.seoDescription.trim() ? form.seoDescription.trim() : null
+    const seoTitle = form.seoTitle.trim() || null
+    const seoDescription = form.seoDescription.trim() || null
 
     const structuredFields = {
       authorName: form.authorName.trim(),
@@ -1123,10 +449,10 @@ function BlogEditor() {
       category: form.category.trim() || null,
       tags: form.tags,
       aiSummary: form.aiSummary.trim() || null,
-      keyTakeaways: form.keyTakeaways.filter((t) => t.trim().length > 0),
+      keyTakeaways: form.keyTakeaways.filter((item) => item.trim().length > 0),
       aiContext: buildAiContext(form),
       entitySeo: buildEntitySeo(form),
-      faq: form.faq.filter((f) => f.question.trim() && f.answer.trim()),
+      faq: form.faq.filter((item) => item.question.trim() && item.answer.trim()),
       expertQuote: buildExpertQuote(form),
       focusKeyword: form.focusKeyword.trim() || null,
       secondaryKeywords: form.secondaryKeywords,
@@ -1137,7 +463,7 @@ function BlogEditor() {
       ogImage: form.ogImage.trim() || null,
       twitterCard: (form.twitterCard || null) as TwitterCardType | null,
       breadcrumbEnabled: form.breadcrumbEnabled,
-      customMetaTags: form.customMetaTags.filter((t) => t.name.trim() && t.content.trim()),
+      customMetaTags: form.customMetaTags.filter((tag) => tag.name.trim() && tag.content.trim()),
     }
 
     if (isEditing && id) {
@@ -1164,149 +490,111 @@ function BlogEditor() {
       coverImageAlt: form.coverImageAlt,
       seoTitle,
       seoDescription,
-      // Editor-chosen publish date, before first publication only — the
-      // backend accepts this only on create (see
-      // backend/src/services/blog/blog.service.ts's createBlogPost).
       publishedAt: form.publishDate ? new Date(form.publishDate).toISOString() : null,
       ...structuredFields,
     })
     return blog
   }
 
-  async function handleSave(event: FormEvent) {
-    event.preventDefault()
+  function applySaved(saved: AdminBlogPost) {
+    clearLocalRecovery()
+    setDirty(false)
+    setSavedAt(new Date())
+    setStatus(saved.status)
+    setReviewStatus(saved.reviewStatus ?? 'draft')
+    setReviewNote(saved.reviewNote ?? null)
+    setPublishedAtDisplay(saved.publishedAt)
+    setScheduledAt(saved.scheduledAt)
+  }
+
+  async function handleSave(event?: { preventDefault: () => void }) {
+    event?.preventDefault()
+    if (submitting) return
     setTouched({ title: true, slug: true, excerpt: true, content: true, coverImage: true, coverImageAlt: true })
     setSubmitting('save')
     try {
       const saved = await persist()
       if (!saved) return
-      clearLocalRecovery()
-      setDirty(false)
-      setStatus(saved.status)
-      setReviewStatus(saved.reviewStatus ?? 'draft')
-      setReviewNote(saved.reviewNote ?? null)
-      setPublishedAtDisplay(saved.publishedAt)
-      setScheduledAt(saved.scheduledAt)
+      applySaved(saved)
       if (!isEditing) {
-        // Redirect to the edit page, as specified, rather than staying
-        // on the create form or going back to the list.
         toast.success('Draft created.')
         navigate(`/admin/blogs/${saved.id}/edit`, { replace: true })
         return
       }
       setForm(formFromPost(saved))
-      setSuccessMessage('Changes saved.')
+      toast.success('Saved.')
     } catch (err) {
-      setFormError(errorMessage(err))
+      toast.error(errorMessage(err))
     } finally {
       setSubmitting(null)
     }
   }
 
-  async function handlePublishToggle() {
-    const nextStatus: BlogStatus = status === 'published' ? 'unpublished' : 'published'
-
-    // A non-blocking heads-up only — the analyzer is guidance, never a
-    // gate (Phase 7 spec, section 24). Declining the confirm simply
-    // cancels this click; the admin can still publish immediately
-    // after by clicking again, score unchanged.
-    if (nextStatus === 'published') {
-      const concerns = [...analysis.seo.checks, ...analysis.aeo.checks].filter(
-        (c) => c.status === 'warning' || c.status === 'fail',
-      ).length
-      if (concerns >= 5) {
-        const proceed = window.confirm(
-          `This post has ${concerns} SEO/AEO warnings. You can still publish — continue?`,
-        )
-        if (!proceed) return
-      }
+  async function requestPublish() {
+    const validationError = validateForm(form)
+    if (validationError) {
+      setTouched({ title: true, slug: true, excerpt: true, content: true, coverImage: true, coverImageAlt: true })
+      toast.error(validationError)
+      return
     }
+    setPublishOpen(true)
+  }
 
+  async function handlePublishToggle(nextStatus: BlogStatus) {
+    setPublishOpen(false)
     setSubmitting(nextStatus === 'published' ? 'publish' : 'unpublish')
     try {
-      // Save any pending edits first so publishing doesn't discard them.
       const saved = await persist()
       if (!saved) return
-
       const { blog } = await blogApi.setBlogPostStatus(saved.id, nextStatus)
-      clearLocalRecovery()
-      setDirty(false)
-      setStatus(blog.status)
-      setReviewStatus(blog.reviewStatus ?? 'draft')
-      setReviewNote(blog.reviewNote ?? null)
-      setPublishedAtDisplay(blog.publishedAt)
-      // A manual status change always cancels a pending schedule
-      // (Phase 14, Part 8) — the backend already did this; reflect it.
-      setScheduledAt(blog.scheduledAt)
+      applySaved(blog)
       setForm(formFromPost(blog))
-      setSuccessMessage(
-        blog.status === 'published'
-          ? `Published${blog.publishedAt ? ` on ${new Date(blog.publishedAt).toLocaleString()}` : ''}.`
-          : 'Unpublished.',
-      )
-
-      if (!isEditing) {
-        navigate(`/admin/blogs/${blog.id}/edit`, { replace: true })
-      }
+      toast.success(blog.status === 'published' ? 'Published.' : 'Unpublished.')
+      if (!isEditing) navigate(`/admin/blogs/${blog.id}/edit`, { replace: true })
     } catch (err) {
-      setFormError(errorMessage(err))
+      toast.error(errorMessage(err))
     } finally {
       setSubmitting(null)
     }
   }
 
-  /**
-   * The <input type="datetime-local"> value has no timezone
-   * designator at all — per spec it's always interpreted as the
-   * browser's own local time when passed to `new Date(...)`, so
-   * `.toISOString()` on the result is exactly the "explicit ISO-8601
-   * UTC timestamp" the backend requires (Phase 14, Part 2) — this is
-   * the one, unavoidable, correct local-to-UTC conversion a
-   * datetime picker needs, not a silent reinterpretation of an
-   * already-explicit timestamp.
-   */
+  async function handleUnpublish() {
+    setMoreOpen(false)
+    const ok = await confirm({
+      title: 'Unpublish this article?',
+      message: 'It disappears from the website straight away. You can publish it again at any time.',
+      confirmLabel: 'Unpublish',
+      tone: 'danger',
+    })
+    if (ok) await handlePublishToggle('unpublished')
+  }
+
   async function handleSchedule() {
     if (!scheduleInput) {
-      setFormError('Choose a date and time to schedule this post.')
+      toast.error('Choose a date and time first.')
       return
     }
     const parsed = new Date(scheduleInput)
     if (Number.isNaN(parsed.getTime())) {
-      setFormError('That date/time is not valid.')
+      toast.error('That date and time isn’t valid.')
       return
     }
-    // Client-side only, first-line UX (Phase 15, Part 9) — the backend
-    // remains the authoritative check (scheduleBlogPost's
-    // validateScheduledAtInput) and rejects a past/equal-to-now value
-    // regardless of what this catches; this just avoids a round trip
-    // for the obvious case.
     if (parsed.getTime() <= Date.now()) {
-      setFormError('Scheduled time must be in the future.')
+      toast.error('Choose a time in the future.')
       return
     }
-
-    const wasAlreadyScheduled = Boolean(scheduledAt)
+    const rescheduled = Boolean(scheduledAt)
     setSubmitting('schedule')
     try {
       const saved = await persist()
       if (!saved) return
-
       const { blog } = await blogApi.scheduleBlogPost(saved.id, parsed.toISOString())
-      clearLocalRecovery()
-      setDirty(false)
-      setStatus(blog.status)
-      setScheduledAt(blog.scheduledAt)
+      applySaved(blog)
       setForm(formFromPost(blog))
-      const verb = wasAlreadyScheduled ? 'Rescheduled' : 'Scheduled'
-      setSuccessMessage(
-        blog.scheduledAt ? `${verb} to publish on ${new Date(blog.scheduledAt).toLocaleString()}.` : `${verb}.`,
-      )
-
-      if (!isEditing) {
-        navigate(`/admin/blogs/${blog.id}/edit`, { replace: true })
-      }
+      toast.success(`${rescheduled ? 'Rescheduled' : 'Scheduled'} for ${blog.scheduledAt ? new Date(blog.scheduledAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'later'}.`)
+      if (!isEditing) navigate(`/admin/blogs/${blog.id}/edit`, { replace: true })
     } catch (err) {
-      setFormError(errorMessage(err))
+      toast.error(errorMessage(err))
     } finally {
       setSubmitting(null)
     }
@@ -1319,801 +607,409 @@ function BlogEditor() {
       const { blog } = await blogApi.unscheduleBlogPost(id)
       clearLocalRecovery()
       setStatus(blog.status)
-      setScheduledAt(blog.scheduledAt) // triggers the sync effect above, clearing scheduleInput too
-      setSuccessMessage('Schedule canceled.')
+      setScheduledAt(blog.scheduledAt)
+      toast.success('Schedule canceled.')
     } catch (err) {
-      setFormError(errorMessage(err))
+      toast.error(errorMessage(err))
     } finally {
       setSubmitting(null)
     }
   }
 
-  async function handleReview(nextStatus: import('../../api/blogTypes').ReviewStatus, note: string | null = null) {
+  async function handleReview(nextStatus: ReviewStatus, note: string | null = null) {
     if (!id) return
-    setSubmitting('save')
+    setSubmitting('review')
     try {
-      const { blog } = await operationsApi.updateReview(id, nextStatus, note)
+      const { updateReview } = await import('../../api/operationsApi')
+      const { blog } = await updateReview(id, nextStatus, note)
       setReviewStatus(blog.reviewStatus ?? nextStatus)
       setReviewNote(blog.reviewNote ?? note)
-      setSuccessMessage(nextStatus === 'in_review' ? 'Submitted for review.' : nextStatus === 'approved' ? 'Article approved.' : 'Changes requested.')
-    } catch (err) { setFormError(errorMessage(err)) } finally { setSubmitting(null) }
+      toast.success(nextStatus === 'in_review' ? 'Sent for review.' : nextStatus === 'approved' ? 'Approved.' : 'Changes requested.')
+    } catch (err) {
+      toast.error(errorMessage(err))
+    } finally {
+      setSubmitting(null)
+    }
   }
 
   async function handleRestoreRevision(revision: AdminBlogRevision) {
     if (!id) return
     const { blog } = await blogApi.restoreBlogRevision(id, revision.id)
     setForm(formFromPost(blog))
-    setStatus(blog.status)
-    setPublishedAtDisplay(blog.publishedAt)
-    setScheduledAt(blog.scheduledAt)
-    clearLocalRecovery()
-    setDirty(false)
-    setSuccessMessage(`Revision from ${new Date(revision.createdAt).toLocaleString()} restored. Publishing status unchanged.`)
+    applySaved(blog)
+    toast.success('Version restored. Publishing status is unchanged.')
   }
 
+  async function handleDelete() {
+    setMoreOpen(false)
+    if (!id) return
+    const ok = await confirm({
+      title: 'Delete this article?',
+      message: 'It moves to Deleted, where an administrator can restore it later.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (!ok) return
+    try {
+      await blogApi.deleteBlogPost(id)
+      clearLocalRecovery()
+      setDirty(false)
+      toast.success('Article moved to Deleted.')
+      navigate('/admin/blogs')
+    } catch (err) {
+      toast.error(errorMessage(err))
+    }
+  }
+
+  function copyLink() {
+    setMoreOpen(false)
+    const url = `${window.location.origin}/blog/${form.slug}`
+    navigator.clipboard.writeText(url).then(
+      () => toast.success('Link copied.'),
+      () => toast.error('Could not copy the link.'),
+    )
+  }
+
+  function downloadHtml() {
+    setMoreOpen(false)
+    const html = `<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><title>${form.title.replace(/</g, '&lt;')}</title></head><body>\n<h1>${form.title.replace(/</g, '&lt;')}</h1>\n${form.content}\n</body></html>`
+    const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `${form.slug || 'article'}.html`
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // Keyboard shortcuts
   useEffect(() => {
-    function handleShortcut(event: KeyboardEvent) {
+    function onKeyDown(event: KeyboardEvent) {
       const command = event.metaKey || event.ctrlKey
       if (!command) return
-      if (event.key.toLowerCase() === 's') {
+      const key = event.key.toLowerCase()
+      if (key === 's') {
         event.preventDefault()
-        void handleSave(event as unknown as FormEvent)
-      } else if (event.shiftKey && event.key.toLowerCase() === 'p') {
+        void handleSave()
+      } else if (event.shiftKey && key === 'p') {
         event.preventDefault()
         setPreviewOpen(true)
-      } else if (event.shiftKey && event.key.toLowerCase() === 'f') {
+      } else if (event.shiftKey && key === 'f') {
         event.preventDefault()
         setFocusMode((current) => !current)
+      } else if (key === '\\') {
+        event.preventDefault()
+        setPanelOpen((current) => !current)
+      } else if (key === '/') {
+        event.preventDefault()
+        setShortcutsOpen(true)
       }
     }
-    window.addEventListener('keydown', handleShortcut)
-    return () => window.removeEventListener('keydown', handleShortcut)
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   })
 
+  useEffect(() => {
+    if (!moreOpen) return
+    const onPointerDown = (event: PointerEvent) => {
+      if (!moreRef.current?.contains(event.target as Node)) setMoreOpen(false)
+    }
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMoreOpen(false)
+    }
+    window.addEventListener('pointerdown', onPointerDown)
+    window.addEventListener('keydown', onEscape)
+    return () => {
+      window.removeEventListener('pointerdown', onPointerDown)
+      window.removeEventListener('keydown', onEscape)
+    }
+  }, [moreOpen])
+
   const busy = submitting !== null
+  const mod = isAppleDevice ? '⌘' : 'Ctrl'
 
   if (loading) {
-    return <p className="text-[14px] text-neutral-500">Loading…</p>
+    return (
+      <div className="admin-editor" aria-busy="true">
+        <header className="admin-ed-bar"><span className="admin-skeleton h-6 w-40" /></header>
+        <div className="mx-auto w-full max-w-[720px] px-6 pt-20">
+          <span className="admin-skeleton mb-6 block h-12 w-3/4" />
+          <span className="admin-skeleton mb-3 block h-5 w-full" />
+          <span className="admin-skeleton block h-5 w-2/3" />
+        </div>
+      </div>
+    )
   }
 
   if (loadError) {
-    return <FormMessage type="error">{loadError}</FormMessage>
+    return (
+      <div className="mx-auto max-w-md px-6 pt-28">
+        <FormMessage type="error">{loadError}</FormMessage>
+        <AdminButton className="mt-4" onClick={() => navigate('/admin/blogs')} icon={<ArrowLeft size={14} aria-hidden="true" />}>Back to articles</AdminButton>
+      </div>
+    )
   }
 
+  const saveLabel = submitting === 'save'
+    ? 'Saving…'
+    : dirty
+      ? localDraftSavedAt ? 'Unsaved · backed up on this device' : 'Unsaved changes'
+      : savedAt ? `Saved at ${timeLabel(savedAt)}` : isEditing ? 'All changes saved' : 'New article'
+  const saveTone = submitting === 'save' ? 'busy' : dirty ? 'dirty' : 'clean'
+  const statusTone = status === 'published' ? 'success' : scheduledAt ? 'accent' : status === 'unpublished' ? 'warning' : 'neutral'
+  const statusText = status === 'published' ? 'Published' : scheduledAt ? 'Scheduled' : status === 'unpublished' ? 'Unpublished' : 'Draft'
+  const slugError = touched.slug ? fieldError(form, 'slug') : null
+  const host = typeof window === 'undefined' ? 'brandworks.me' : window.location.host
+
+  const primary = (() => {
+    if (status === 'published') {
+      return <AdminButton variant="primary" disabled={busy || !dirty} onClick={() => void handleSave()}>{submitting === 'save' ? 'Updating…' : 'Update'}</AdminButton>
+    }
+    if (isAdmin) {
+      return (
+        <AdminButton variant="primary" disabled={busy} onClick={() => void requestPublish()} icon={<Rocket size={14} aria-hidden="true" />}>
+          {submitting === 'publish' ? 'Publishing…' : 'Publish'}
+        </AdminButton>
+      )
+    }
+    if (isEditing && reviewStatus !== 'in_review' && reviewStatus !== 'approved') {
+      return <AdminButton variant="primary" disabled={busy || dirty} onClick={() => void handleReview('in_review')} title={dirty ? 'Save your changes first' : undefined}>Request review</AdminButton>
+    }
+    return null
+  })()
+
   return (
-    <div className={`admin-editor-shell flex flex-col gap-6 ${focusMode ? 'admin-editor-shell--focus' : ''}`}>
-      <button
-        type="button"
-        onClick={handleBack}
-        className="admin-button admin-button--quiet -ml-2 w-fit"
-      >
-        <ArrowLeft size={16} aria-hidden="true" />
-        <span>Back to articles</span>
-      </button>
-
-      <div className="admin-editor-header flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <p className="admin-eyebrow mb-2">Editorial workspace</p>
-          <h1 className="admin-page-title">
-          {isEditing ? 'Edit Blog' : 'New Blog'}
-          </h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-        {status && (
-          <AdminStatusBadge tone={status === 'published' ? 'success' : status === 'unpublished' ? 'warning' : 'neutral'}>
-            {status === 'published' ? 'Published' : status === 'unpublished' ? 'Unpublished' : 'Draft'}
-          </AdminStatusBadge>
-        )}
-        {isEditing && <AdminStatusBadge tone={reviewStatus === 'approved' ? 'success' : reviewStatus === 'changes_requested' ? 'warning' : reviewStatus === 'in_review' ? 'accent' : 'neutral'}>{reviewStatus === 'in_review' ? 'In review' : reviewStatus === 'changes_requested' ? 'Changes requested' : reviewStatus === 'approved' ? 'Approved' : 'Review draft'}</AdminStatusBadge>}
-        {publishedAtDisplay && (
-          <span className="text-[12px] text-neutral-500">
-            First published {new Date(publishedAtDisplay).toLocaleDateString()}
-          </span>
-        )}
-        {scheduledAt && (
-          <AdminStatusBadge tone="accent">
-            Scheduled for {new Date(scheduledAt).toLocaleString()}
-          </AdminStatusBadge>
-        )}
-        <button type="button" className="admin-button admin-button--secondary" onClick={() => setPreviewOpen(true)}>
-          <Eye size={15} aria-hidden="true" /> Preview <kbd>{isAppleDevice ? '⌘⇧P' : 'Ctrl+Shift+P'}</kbd>
-        </button>
-        <button type="button" className="admin-button admin-button--quiet" onClick={() => setFocusMode((current) => !current)}>
-          {focusMode ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}
-          {focusMode ? 'Exit focus' : 'Focus mode'} <kbd>{isAppleDevice ? '⌘⇧F' : 'Ctrl+Shift+F'}</kbd>
-        </button>
-        </div>
-      </div>
-
-      <form onSubmit={handleSave} className="admin-editor-layout">
-        <div className="col-span-full flex flex-col gap-2">
-          {formError && <FormMessage type="error">{formError}</FormMessage>}
-          {successMessage && <FormMessage type="success">{successMessage}</FormMessage>}
-          {recoverySnapshot && (
-            <div className="admin-recovery-banner" role="status">
-              <div>
-                <strong>Uncommitted local recovery found</strong>
-                <span>Saved on this browser {new Date(recoverySnapshot.savedAt).toLocaleString()}. It has not been sent to the server.</span>
-              </div>
-              <div className="admin-recovery-banner__actions">
-                <button type="button" className="admin-button admin-button--secondary" onClick={restoreLocalRecovery}>Restore</button>
-                <button type="button" className="admin-button admin-button--quiet" onClick={discardLocalRecovery}>Discard</button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="admin-editor-primary">
-
-        {/* CONTENT ------------------------------------------------------ */}
-        <div className="admin-editor-section flex flex-col gap-5">
-          <div className="admin-editor-section__heading mb-0">
-            <div>
-              <h2 className="admin-editor-section__title">Content</h2>
-              <p className="admin-editor-section__description">Shape the article first. Search and publishing details stay in the inspector.</p>
-            </div>
+    <div className={`admin-editor ${focusMode ? 'admin-editor--focus' : ''} ${panelOpen && !focusMode ? 'admin-editor--panel' : ''}`}>
+      <header className="admin-ed-bar">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <AdminIconButton label="Back to articles" onClick={() => void handleBack()}><ArrowLeft size={18} strokeWidth={1.8} /></AdminIconButton>
+          <div className="flex min-w-0 flex-col leading-tight max-sm:hidden">
+            <span className="truncate text-[13.5px] font-semibold tracking-[-0.01em]">{form.title.trim() || 'Untitled article'}</span>
+            <span className={`admin-save-state admin-save-state--${saveTone}`} role="status" aria-live="polite">
+              {saveTone === 'busy' ? <LoaderCircle size={11} className="animate-spin" aria-hidden="true" /> : <span className="admin-save-state__dot" aria-hidden="true" />}
+              {saveLabel}
+            </span>
           </div>
+        </div>
 
-          <FormField
-            id="title"
-            label="Title"
-            type="text"
-            required
-            maxLength={TITLE_MAX}
-            value={form.title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            onBlur={() => markTouched('title')}
-            error={touched.title ? fieldError(form, 'title') ?? undefined : undefined}
-          />
+        <div className="flex items-center gap-1.5">
+          <span className="max-md:hidden"><AdminStatusBadge tone={statusTone}>{statusText}</AdminStatusBadge></span>
+          <AdminIconButton label="Undo" className="max-md:hidden" onClick={() => editorRef.current?.undo()}><Undo2 size={16} strokeWidth={1.8} /></AdminIconButton>
+          <AdminIconButton label="Redo" className="max-md:hidden" onClick={() => editorRef.current?.redo()}><Redo2 size={16} strokeWidth={1.8} /></AdminIconButton>
+          <AdminIconButton label={`Preview (${mod}⇧P)`} onClick={() => setPreviewOpen(true)}><Eye size={17} strokeWidth={1.8} /></AdminIconButton>
+          <AdminIconButton label={`${panelOpen ? 'Hide' : 'Show'} settings (${mod}\\)`} aria-pressed={panelOpen && !focusMode} onClick={() => { setFocusMode(false); setPanelOpen((open) => !open) }}>
+            <PanelRight size={17} strokeWidth={1.8} />
+          </AdminIconButton>
 
-          <div className="flex flex-col gap-2">
-            <FormField
-              id="slug"
-              label="Slug"
-              type="text"
-              required
-              maxLength={SLUG_MAX}
-              value={form.slug}
-              onChange={(e) => handleSlugChange(e.target.value)}
-              onBlur={() => markTouched('slug')}
-              error={touched.slug ? fieldError(form, 'slug') ?? undefined : undefined}
-            />
-            <p className="text-[12px] text-neutral-500">
-              Lowercase letters, numbers, and hyphens only.
-              {isEditing && status === 'published' && (
-                <span className="text-amber-700">
-                  {' '}
-                  This post is published — changing its slug can break existing links.
-                </span>
-              )}
-            </p>
-          </div>
-
-          <FormField
-            id="excerpt"
-            label="Excerpt"
-            type="text"
-            required
-            maxLength={EXCERPT_MAX}
-            value={form.excerpt}
-            onChange={(e) => updateField('excerpt', e.target.value)}
-            onBlur={() => markTouched('excerpt')}
-            error={touched.excerpt ? fieldError(form, 'excerpt') ?? undefined : undefined}
-          />
-
-          <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 ${isEditing ? '' : 'lg:grid-cols-3'}`}>
-            <FormField
-              id="authorName"
-              label="Editor name"
-              helperText="Displayed in the public article byline."
-              type="text"
-              required
-              maxLength={EDITOR_NAME_MAX}
-              value={form.authorName}
-              onChange={(e) => updateField('authorName', e.target.value)}
-              onBlur={() => markTouched('authorName')}
-              error={touched.authorName ? fieldError(form, 'authorName') ?? undefined : undefined}
-            />
-            <FormField
-              id="category"
-              label="Category"
-              type="text"
-              maxLength={CATEGORY_MAX}
-              placeholder="e.g. SEO"
-              value={form.category}
-              onChange={(e) => updateField('category', e.target.value)}
-            />
-            {!isEditing && (
-              <div className="flex flex-col gap-2">
-                <FormField
-                  id="publishDate"
-                  label="Publish date (optional)"
-                  type="date"
-                  value={form.publishDate}
-                  onChange={(e) => updateField('publishDate', e.target.value)}
-                />
-                <p className="text-[12px] text-neutral-500">
-                  Used the first time this post is published. Leave blank to use the moment
-                  you actually click Publish.
-                </p>
+          <div className="admin-menu" ref={moreRef}>
+            <AdminIconButton label="More" aria-haspopup="menu" aria-expanded={moreOpen} onClick={() => setMoreOpen((open) => !open)}><MoreHorizontal size={18} strokeWidth={1.8} /></AdminIconButton>
+            {moreOpen && (
+              <div className="admin-menu__panel" role="menu" aria-label="More actions">
+                <button type="button" role="menuitem" className="admin-menu__item" onClick={() => { setMoreOpen(false); setFocusMode((current) => !current) }}>
+                  {focusMode ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />} {focusMode ? 'Exit focus mode' : 'Focus mode'}
+                </button>
+                <button type="button" role="menuitem" className="admin-menu__item" onClick={() => { setMoreOpen(false); setShortcutsOpen(true) }}>
+                  <Keyboard size={15} aria-hidden="true" /> Keyboard shortcuts
+                </button>
+                <div className="admin-menu__sep" />
+                {status === 'published' && form.slug && (
+                  <>
+                    <a role="menuitem" className="admin-menu__item" href={`/blog/${form.slug}`} target="_blank" rel="noreferrer"><ExternalLink size={15} aria-hidden="true" /> View on website</a>
+                    <button type="button" role="menuitem" className="admin-menu__item" onClick={copyLink}><Link2 size={15} aria-hidden="true" /> Copy link</button>
+                  </>
+                )}
+                <button type="button" role="menuitem" className="admin-menu__item" onClick={downloadHtml}><Download size={15} aria-hidden="true" /> Download as HTML</button>
+                {(status === 'published' && isAdmin) || (isEditing && isAdmin) ? <div className="admin-menu__sep" /> : null}
+                {status === 'published' && isAdmin && (
+                  <button type="button" role="menuitem" className="admin-menu__item admin-menu__item--danger" onClick={() => void handleUnpublish()}>Unpublish…</button>
+                )}
+                {isEditing && isAdmin && (
+                  <button type="button" role="menuitem" className="admin-menu__item admin-menu__item--danger" onClick={() => void handleDelete()}><Trash2 size={15} aria-hidden="true" /> Move to Deleted…</button>
+                )}
               </div>
             )}
           </div>
 
-          <TagInput
-            label="Tags"
-            values={form.tags}
-            onChange={(next) => updateField('tags', next)}
-            placeholder="Add a tag…"
-            maxItems={TAGS_MAX_ITEMS}
-            maxItemLength={TAG_MAX}
-          />
-
-          <div className="border-t border-neutral-100 pt-5">
-            <h3 className="text-[14px] font-medium text-neutral-900">Featured image</h3>
-            <div className="mt-3 flex flex-col gap-5">
-              <FormField
-                id="coverImage"
-                label="Cover Image URL"
-                type="text"
-                required
-                placeholder="https://…"
-                value={form.coverImage}
-                onChange={(e) => updateField('coverImage', e.target.value)}
-                onBlur={() => markTouched('coverImage')}
-                error={touched.coverImage ? fieldError(form, 'coverImage') ?? undefined : undefined}
-              />
-              <CoverImagePreview url={form.coverImage} alt={form.coverImageAlt} />
-
-              <FormField
-                id="coverImageAlt"
-                label="Cover Image Alt Text"
-                type="text"
-                required
-                value={form.coverImageAlt}
-                onChange={(e) => updateField('coverImageAlt', e.target.value)}
-                onBlur={() => markTouched('coverImageAlt')}
-                error={touched.coverImageAlt ? fieldError(form, 'coverImageAlt') ?? undefined : undefined}
-              />
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <FormField
-                  id="coverImageTitle"
-                  label="Image title"
-                  type="text"
-                  maxLength={COVER_IMAGE_TITLE_MAX}
-                  value={form.coverImageTitle}
-                  onChange={(e) => updateField('coverImageTitle', e.target.value)}
-                />
-                <FormField
-                  id="coverImageCaption"
-                  label="Image caption"
-                  type="text"
-                  maxLength={COVER_IMAGE_CAPTION_MAX}
-                  value={form.coverImageCaption}
-                  onChange={(e) => updateField('coverImageCaption', e.target.value)}
-                />
-              </div>
-              <FormField
-                id="coverImageDescription"
-                label="Image description"
-                type="text"
-                maxLength={COVER_IMAGE_DESCRIPTION_MAX}
-                value={form.coverImageDescription}
-                onChange={(e) => updateField('coverImageDescription', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <RichContentEditor
-            value={form.content}
-            onChange={(v) => updateField('content', v)}
-            onBlur={() => markTouched('content')}
-            error={touched.content ? fieldError(form, 'content') : null}
-          />
-        </div>
-
-        <div className="admin-editor-actions">
-          <div className="admin-editor-actions__status" aria-live="polite">
-            {dirty ? localDraftSavedAt ? `Local recovery saved ${new Date(localDraftSavedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Unsaved changes' : successMessage ? 'All changes saved' : 'Ready to edit'}
-          </div>
-          <div className="admin-editor-actions__buttons">
-            {isEditing && reviewStatus !== 'in_review' && reviewStatus !== 'approved' && <AdminButton type="button" variant="quiet" disabled={busy || !admin} onClick={() => void handleReview('in_review')}>Submit for review</AdminButton>}
-            {isEditing && admin?.role === 'admin' && reviewStatus === 'in_review' && <><AdminButton type="button" variant="quiet" disabled={busy} onClick={() => { const note = window.prompt('What needs to change?'); if (note !== null) void handleReview('changes_requested', note) }}>Request changes</AdminButton><AdminButton type="button" variant="secondary" disabled={busy} onClick={() => void handleReview('approved')}>Approve</AdminButton></>}
-            <AdminButton type="submit" variant="secondary" disabled={busy} icon={<Save size={15} aria-hidden="true" />}>
-              {submitting === 'save' ? 'Saving…' : isEditing ? 'Save changes' : 'Save draft'}
+          {status !== 'published' && (
+            <AdminButton variant={primary ? 'secondary' : 'primary'} disabled={busy} onClick={() => void handleSave()}>
+              {submitting === 'save' ? 'Saving…' : 'Save draft'}
             </AdminButton>
-            <AdminButton type="button" variant="primary" disabled={busy || admin?.role !== 'admin'} onClick={() => void handlePublishToggle()}>
-              {admin?.role !== 'admin' ? 'Admin approval required' : submitting === 'publish' ? 'Publishing…' : submitting === 'unpublish' ? 'Unpublishing…' : status === 'published' ? 'Unpublish' : 'Publish'}
-            </AdminButton>
-          </div>
+          )}
+          {primary}
         </div>
-        </div>
+      </header>
 
-        <aside className="admin-editor-inspector" aria-label="Article inspector">
-        <div className="admin-inspector-intro">
-          <div>
-            <p className="admin-eyebrow">Inspector</p>
-            <h2>Editorial signals</h2>
-            <p>Keep the article clear, discoverable, and ready to publish.</p>
-          </div>
-          <span className="admin-inspector-intro__dot" aria-hidden="true" />
-        </div>
-        <div className="admin-inspector-tabs" role="tablist" aria-label="Article tools">
-          {INSPECTOR_TABS.map(({ id: tabId, label, description, icon: Icon }) => (
-            <button
-              key={tabId}
-              type="button"
-              id={`inspector-tab-${tabId}`}
-              role="tab"
-              aria-selected={inspectorTab === tabId}
-              aria-controls={`inspector-panel-${tabId}`}
-              tabIndex={inspectorTab === tabId ? 0 : -1}
-              className="admin-inspector-tab"
-              onClick={() => setInspectorTab(tabId)}
-            >
-              <Icon size={15} aria-hidden="true" />
-              <span><strong>{label}</strong><small>{description}</small></span>
-            </button>
-          ))}
-        </div>
-
-        <div id="inspector-panel-overview" role="tabpanel" aria-labelledby="inspector-tab-overview" className={`admin-inspector-tabpanel ${inspectorTab === 'overview' ? '' : 'is-hidden'}`}>
-          <OutlinePanel entries={analysis.toc} />
-          <ContentHealthSummary analysis={analysis} />
-          <AnalysisDetails analysis={analysis} />
-          <RevisionHistory id={id} onRestore={handleRestoreRevision} />
-        </div>
-
-        {/* AI SUMMARY ---------------------------------------------------- */}
-        <div id="inspector-panel-editorial" role="tabpanel" aria-labelledby="inspector-tab-editorial" className={`admin-inspector-tabpanel ${inspectorTab === 'editorial' ? '' : 'is-hidden'}`}>
-        <CollapsibleSection
-          title="AI Summary"
-          description="Manually written — not generated automatically."
-          icon={Sparkles}
-          meta="Optional"
-        >
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="aiSummary" className="text-[14px] font-medium text-neutral-900">
-                AI Summary
-              </label>
-              <CharCount value={form.aiSummary} max={AI_SUMMARY_MAX} />
-            </div>
-            <textarea
-              id="aiSummary"
-              value={form.aiSummary}
-              onChange={(e) => updateField('aiSummary', e.target.value)}
-              maxLength={AI_SUMMARY_MAX}
-              rows={3}
-              className="w-full resize-y rounded-[10px] border border-neutral-300 px-4 py-2.5 text-[15px] text-neutral-900 focus:border-neutral-500 focus:outline-none"
-            />
-          </div>
-
-          <RepeatingTextField
-            label="Key Takeaways"
-            values={form.keyTakeaways}
-            onChange={(next) => updateField('keyTakeaways', next)}
-            placeholder="A key takeaway…"
-            maxItems={KEY_TAKEAWAYS_MAX_ITEMS}
-            maxItemLength={KEY_TAKEAWAY_MAX}
-          />
-        </CollapsibleSection>
-
-        {/* AI CONTEXT ------------------------------------------------------ */}
-        <CollapsibleSection
-          title="AI Content"
-          description="Structured editorial context for future optimization — not enforced SEO claims."
-          icon={Bot}
-          meta="Context"
-        >
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <FormField
-              id="targetCountry"
-              label="Target Country"
-              type="text"
-              maxLength={AI_CONTEXT_FIELD_MAX}
-              placeholder="e.g. United States"
-              value={form.targetCountry}
-              onChange={(e) => updateField('targetCountry', e.target.value)}
-            />
-            <FormField
-              id="targetLanguage"
-              label="Target Language"
-              type="text"
-              maxLength={AI_CONTEXT_FIELD_MAX}
-              placeholder="e.g. English"
-              value={form.targetLanguage}
-              onChange={(e) => updateField('targetLanguage', e.target.value)}
-            />
-          </div>
-          <FormField
-            id="targetAudience"
-            label="Target Audience"
-            type="text"
-            maxLength={AI_CONTEXT_FIELD_MAX}
-            placeholder="e.g. Marketing managers"
-            value={form.targetAudience}
-            onChange={(e) => updateField('targetAudience', e.target.value)}
-          />
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="contentType" className="text-[14px] font-medium text-neutral-900">
-                Content Type
-              </label>
-              <select
-                id="contentType"
-                value={form.contentType}
-                onChange={(e) => updateField('contentType', e.target.value)}
-                className="w-full rounded-[10px] border border-neutral-300 bg-white px-4 py-2.5 text-[15px] text-neutral-900 focus:border-neutral-500 focus:outline-none"
-              >
-                <option value="">—</option>
-                {CONTENT_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="contentIntent" className="text-[14px] font-medium text-neutral-900">
-                Content Intent
-              </label>
-              <select
-                id="contentIntent"
-                value={form.contentIntent}
-                onChange={(e) => updateField('contentIntent', e.target.value)}
-                className="w-full rounded-[10px] border border-neutral-300 bg-white px-4 py-2.5 text-[15px] text-neutral-900 focus:border-neutral-500 focus:outline-none"
-              >
-                <option value="">—</option>
-                {CONTENT_INTENTS.map((intent) => (
-                  <option key={intent} value={intent}>
-                    {intent}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </CollapsibleSection>
-
-        {/* ENTITY SEO ------------------------------------------------------ */}
-        <CollapsibleSection title="Entity SEO" description="Structured topic/entity context." icon={Tags} meta="Topic">
-          <FormField
-            id="mainEntity"
-            label="Main Entity"
-            type="text"
-            maxLength={MAIN_ENTITY_MAX}
-            placeholder="e.g. ChatGPT"
-            value={form.mainEntity}
-            onChange={(e) => updateField('mainEntity', e.target.value)}
-          />
-          <TagInput
-            label="About"
-            values={form.about}
-            onChange={(next) => updateField('about', next)}
-            placeholder="e.g. AI chatbot"
-            maxItems={ABOUT_MAX_ITEMS}
-            maxItemLength={ENTITY_MAX}
-          />
-          <TagInput
-            label="Mentioned Entities"
-            values={form.mentionedEntities}
-            onChange={(next) => updateField('mentionedEntities', next)}
-            placeholder="e.g. OpenAI"
-            maxItems={MENTIONED_ENTITIES_MAX_ITEMS}
-            maxItemLength={ENTITY_MAX}
-          />
-        </CollapsibleSection>
-
-        {/* FAQ ------------------------------------------------------ */}
-        <CollapsibleSection
-          title="FAQ"
-          description="Structured question/answer pairs — not embedded in the Markdown body."
-          icon={CircleHelp}
-          meta="Optional"
-        >
-          <FaqEditor items={form.faq} onChange={(next) => updateField('faq', next)} />
-        </CollapsibleSection>
-
-        {/* EXPERT QUOTE ------------------------------------------------------ */}
-        <CollapsibleSection title="Expert Quote" icon={Quote} meta="Optional">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="expertQuoteText" className="text-[14px] font-medium text-neutral-900">
-              Quote
-            </label>
-            <textarea
-              id="expertQuoteText"
-              value={form.expertQuoteText}
-              onChange={(e) => updateField('expertQuoteText', e.target.value)}
-              maxLength={EXPERT_QUOTE_MAX}
-              rows={3}
-              className="w-full resize-y rounded-[10px] border border-neutral-300 px-4 py-2.5 text-[15px] text-neutral-900 focus:border-neutral-500 focus:outline-none"
-            />
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <FormField
-              id="expertQuotePersonName"
-              label="Person"
-              type="text"
-              maxLength={EXPERT_QUOTE_NAME_MAX}
-              value={form.expertQuotePersonName}
-              onChange={(e) => updateField('expertQuotePersonName', e.target.value)}
-            />
-            <FormField
-              id="expertQuoteOrganization"
-              label="Organization"
-              type="text"
-              maxLength={EXPERT_QUOTE_NAME_MAX}
-              value={form.expertQuoteOrganization}
-              onChange={(e) => updateField('expertQuoteOrganization', e.target.value)}
-            />
-          </div>
-          <FormField
-            id="expertQuoteRole"
-            label="Role (optional)"
-            type="text"
-            maxLength={EXPERT_QUOTE_NAME_MAX}
-            value={form.expertQuoteRole}
-            onChange={(e) => updateField('expertQuoteRole', e.target.value)}
-          />
-        </CollapsibleSection>
-        </div>
-
-        {/* SEO ------------------------------------------------------ */}
-        <div id="inspector-panel-seo" role="tabpanel" aria-labelledby="inspector-tab-seo" className={`admin-inspector-tabpanel ${inspectorTab === 'seo' ? '' : 'is-hidden'}`}>
-        <CollapsibleSection title="SEO" defaultOpen icon={SearchCheck} meta="Metadata">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="seoTitle" className="text-[14px] font-medium text-neutral-900">
-                SEO Title
-              </label>
-              <CharCount value={form.seoTitle} max={SEO_TITLE_MAX} />
-            </div>
-            <input
-              id="seoTitle"
-              type="text"
-              maxLength={SEO_TITLE_MAX}
-              placeholder={form.title || 'Falls back to the title'}
-              value={form.seoTitle}
-              onChange={(e) => updateField('seoTitle', e.target.value)}
-              className="w-full rounded-[10px] border border-neutral-300 px-4 py-2.5 text-[15px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="seoDescription" className="text-[14px] font-medium text-neutral-900">
-                Meta Description
-              </label>
-              <CharCount value={form.seoDescription} max={SEO_DESCRIPTION_MAX} />
-            </div>
-            <textarea
-              id="seoDescription"
-              maxLength={SEO_DESCRIPTION_MAX}
-              placeholder={form.excerpt || 'Falls back to the excerpt'}
-              value={form.seoDescription}
-              onChange={(e) => updateField('seoDescription', e.target.value)}
-              rows={2}
-              className="w-full resize-y rounded-[10px] border border-neutral-300 px-4 py-2.5 text-[15px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none"
-            />
-          </div>
-
-          <SeoPreview
-            title={form.seoTitle || form.title}
-            slug={form.slug}
-            description={form.seoDescription || form.excerpt}
-          />
-
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="focusKeyword" className="text-[14px] font-medium text-neutral-900">
-                Focus Keyword
-              </label>
-              <CharCount value={form.focusKeyword} max={FOCUS_KEYWORD_MAX} />
-            </div>
-            <input
-              id="focusKeyword"
-              type="text"
-              maxLength={FOCUS_KEYWORD_MAX}
-              value={form.focusKeyword}
-              onChange={(e) => updateField('focusKeyword', e.target.value)}
-              className="w-full rounded-[10px] border border-neutral-300 px-4 py-2.5 text-[15px] text-neutral-900 focus:border-neutral-500 focus:outline-none"
-            />
-          </div>
-
-          <TagInput
-            label="Secondary Keywords"
-            values={form.secondaryKeywords}
-            onChange={(next) => updateField('secondaryKeywords', next)}
-            placeholder="Add a keyword…"
-            maxItems={SECONDARY_KEYWORDS_MAX_ITEMS}
-            maxItemLength={SECONDARY_KEYWORD_MAX}
-            helpText={`Each up to ${SECONDARY_KEYWORD_MAX} characters. Press Enter or comma to add.`}
-          />
-
-          <FormField
-            id="canonicalUrl"
-            label="Canonical URL"
-            type="text"
-            placeholder="https://…"
-            value={form.canonicalUrl}
-            onChange={(e) => updateField('canonicalUrl', e.target.value)}
-          />
-
-          <label className="flex items-center gap-2.5 text-[14px] text-neutral-800">
-            <input
-              type="checkbox"
-              checked={form.robotsIndex}
-              onChange={(e) => updateField('robotsIndex', e.target.checked)}
-              className="h-4 w-4 rounded border-neutral-400"
-            />
-            Allow search engines to index this post
-          </label>
-
-          <label className="flex items-center gap-2.5 text-[14px] text-neutral-800">
-            <input
-              type="checkbox"
-              checked={form.breadcrumbEnabled}
-              onChange={(e) => updateField('breadcrumbEnabled', e.target.checked)}
-              className="h-4 w-4 rounded border-neutral-400"
-            />
-            Show breadcrumb navigation
-          </label>
-
-          <div className="border-t border-neutral-100 pt-5">
-            <h3 className="mb-4 text-[14px] font-medium text-neutral-900">Open Graph &amp; Twitter</h3>
-            <div className="flex flex-col gap-5">
-              <FormField
-                id="ogTitle"
-                label="Open Graph Title"
-                type="text"
-                maxLength={OG_TITLE_MAX}
-                placeholder={form.seoTitle || form.title || 'Falls back to the title'}
-                value={form.ogTitle}
-                onChange={(e) => updateField('ogTitle', e.target.value)}
-              />
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="ogDescription" className="text-[14px] font-medium text-neutral-900">
-                    Open Graph Description
-                  </label>
-                  <CharCount value={form.ogDescription} max={OG_DESCRIPTION_MAX} />
+      <div className="admin-ed-body">
+        <div className="admin-ed-canvas">
+          <form id="article-form" className="admin-ed-page" onSubmit={(event) => void handleSave(event)} noValidate>
+            {recoverySnapshot && (
+              <div className="admin-ed-banner" role="status">
+                <div className="min-w-0">
+                  <strong className="block text-[13px]">Unsaved work found on this device</strong>
+                  <span className="text-xs text-a-ink-2">Backed up {new Date(recoverySnapshot.savedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}. It was never sent to the server.</span>
                 </div>
-                <textarea
-                  id="ogDescription"
-                  maxLength={OG_DESCRIPTION_MAX}
-                  placeholder={form.seoDescription || form.excerpt || 'Falls back to the meta description'}
-                  value={form.ogDescription}
-                  onChange={(e) => updateField('ogDescription', e.target.value)}
-                  rows={2}
-                  className="w-full resize-y rounded-[10px] border border-neutral-300 px-4 py-2.5 text-[15px] text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none"
-                />
+                <div className="flex gap-2">
+                  <AdminButton size="sm" variant="primary" onClick={restoreLocalRecovery}>Restore</AdminButton>
+                  <AdminButton size="sm" onClick={clearLocalRecovery}>Discard</AdminButton>
+                </div>
               </div>
-              <div>
-                <FormField
-                  id="ogImage"
-                  label="Open Graph Image"
-                  type="text"
-                  placeholder={form.coverImage || 'https://…'}
-                  value={form.ogImage}
-                  onChange={(e) => updateField('ogImage', e.target.value)}
-                />
-                <OgImagePreview url={form.ogImage || form.coverImage} />
+            )}
+
+            <CoverImage form={form} update={update} touched={touched} onTouch={markTouched} />
+
+            <div className="mt-8">
+              <label htmlFor="title" className="sr-only">Title</label>
+              <GrowingTextarea
+                id="title"
+                className="admin-ed-title"
+                placeholder="Title"
+                value={form.title}
+                maxLength={TITLE_MAX + 20}
+                aria-invalid={touched.title && fieldError(form, 'title') ? true : undefined}
+                autoFocus={!isEditing}
+                onChange={handleTitleChange}
+                onBlur={() => markTouched('title')}
+                onEnter={() => excerptRef.current?.focus()}
+              />
+              {touched.title && fieldError(form, 'title') && <p className="admin-field-error" role="alert">{fieldError(form, 'title')}</p>}
+
+              <div className="admin-ed-permalink">
+                <span className="text-a-ink-3">{host}/blog/</span>
+                {slugEditing ? (
+                  <>
+                    <label htmlFor="slug" className="sr-only">Slug</label>
+                    <input
+                      id="slug"
+                      className="admin-ed-slug"
+                      value={form.slug}
+                      maxLength={SLUG_MAX}
+                      autoFocus
+                      aria-invalid={slugError ? true : undefined}
+                      onChange={(event) => handleSlugChange(event.target.value)}
+                      onBlur={() => { markTouched('slug'); setSlugEditing(false) }}
+                      onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); event.currentTarget.blur() } }}
+                    />
+                  </>
+                ) : (
+                  <button type="button" className="admin-ed-slug-button" onClick={() => setSlugEditing(true)} aria-label="Edit the link">
+                    <span>{form.slug || 'your-article-link'}</span>
+                    <Pencil size={11} aria-hidden="true" />
+                  </button>
+                )}
               </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="twitterCard" className="text-[14px] font-medium text-neutral-900">
-                  Twitter Card
-                </label>
-                <select
-                  id="twitterCard"
-                  value={form.twitterCard}
-                  onChange={(e) => updateField('twitterCard', e.target.value)}
-                  className="w-full rounded-[10px] border border-neutral-300 bg-white px-4 py-2.5 text-[15px] text-neutral-900 focus:border-neutral-500 focus:outline-none"
-                >
-                  <option value="">—</option>
-                  {TWITTER_CARD_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
+              {slugError && <p className="admin-field-error" role="alert">{slugError}</p>}
+              {isEditing && status === 'published' && slugEditing && <p className="mt-1 text-xs text-a-warning">This article is live — changing its link can break existing links.</p>}
+
+              <div className="mt-6">
+                <label htmlFor="excerpt" className="sr-only">Summary</label>
+                <GrowingTextarea
+                  id="excerpt"
+                  className="admin-ed-excerpt"
+                  placeholder="Add a short summary…"
+                  value={form.excerpt}
+                  maxLength={EXCERPT_MAX + 20}
+                  aria-invalid={touched.excerpt && fieldError(form, 'excerpt') ? true : undefined}
+                  onChange={(next) => update('excerpt', next)}
+                  onBlur={() => markTouched('excerpt')}
+                  onEnter={() => editorRef.current?.focus()}
+                  innerRef={excerptRef}
+                />
+                <div className="mt-1 flex min-h-5 items-center justify-between gap-3 text-xs">
+                  <span>
+                    {touched.excerpt && fieldError(form, 'excerpt')
+                      ? <span className="text-a-danger" role="alert">{fieldError(form, 'excerpt')}</span>
+                      : !form.excerpt.trim() && form.content.replace(/<[^>]*>/g, '').trim().length > 40
+                        ? <button type="button" className="admin-link text-xs" onClick={() => update('excerpt', excerptFromContent(form.content))}><Sparkles size={12} aria-hidden="true" /> Write it from the article</button>
+                        : null}
+                  </span>
+                  <span className={`tabular-nums ${form.excerpt.length > EXCERPT_MAX ? 'text-a-danger' : 'text-a-ink-3'}`}>{form.excerpt.length > 0 ? `${form.excerpt.length}/${EXCERPT_MAX}` : ''}</span>
+                </div>
+              </div>
+            </div>
+
+            <RichContentEditor
+              value={form.content}
+              onChange={(next) => update('content', next)}
+              onBlur={() => markTouched('content')}
+              error={touched.content ? fieldError(form, 'content') : null}
+              handleRef={editorRef}
+            />
+          </form>
+
+          <footer className="admin-ed-footer" aria-label="Article statistics">
+            <span className="tabular-nums">{analysis.metrics.wordCount.toLocaleString()} words</span>
+            <span aria-hidden="true">·</span>
+            <span className="tabular-nums">{analysis.metrics.readingTimeMinutes} min read</span>
+            <span aria-hidden="true" className="max-sm:hidden">·</span>
+            <button type="button" className="admin-ed-footer__score max-sm:hidden" onClick={() => { setFocusMode(false); setPanelOpen(true); setPanelTab('seo') }}>
+              SEO <b className="tabular-nums">{analysis.seo.score}</b>
+            </button>
+            {dirty && <span className="ml-auto flex items-center gap-1.5"><span className="admin-save-state__dot" aria-hidden="true" /> Unsaved</span>}
+          </footer>
+        </div>
+
+        {panelOpen && !focusMode && (
+          <>
+            <button type="button" className="admin-ed-panel-scrim" aria-label="Close settings" onClick={() => setPanelOpen(false)} />
+            <aside className="admin-ed-panel" aria-label="Article settings">
+              <div className="admin-ed-panel__head">
+                <div className="admin-segmented-control w-full" role="tablist" aria-label="Settings">
+                  {PANEL_TABS.map(({ id: tabId, label, icon: Icon }) => (
+                    <button key={tabId} type="button" role="tab" aria-selected={panelTab === tabId} className="flex-1 px-2 whitespace-nowrap" onClick={() => setPanelTab(tabId)}>
+                      <Icon size={13} className="mr-1 inline -translate-y-px" aria-hidden="true" />{label}
+                    </button>
                   ))}
-                </select>
+                </div>
+                <AdminIconButton label="Close settings" className="lg:hidden" onClick={() => setPanelOpen(false)}><X size={17} strokeWidth={1.8} /></AdminIconButton>
               </div>
-            </div>
-          </div>
-        </CollapsibleSection>
-
-        {/* CUSTOM META TAGS ------------------------------------------------------ */}
-        <CollapsibleSection title="Custom Meta Tags" icon={Settings2} meta="Advanced">
-          <CustomMetaTagsEditor
-            items={form.customMetaTags}
-            onChange={(next) => updateField('customMetaTags', next)}
-          />
-        </CollapsibleSection>
-        </div>
-
-        {/* SCHEDULING (Phase 14) — meaningless for an already-published
-           post (the backend rejects it — see blog.service.ts's
-           scheduleBlogPost), so hidden rather than shown-then-erroring. */}
-        <div id="inspector-panel-publishing" role="tabpanel" aria-labelledby="inspector-tab-publishing" className={`admin-inspector-tabpanel ${inspectorTab === 'publishing' ? '' : 'is-hidden'}`}>
-        {status !== 'published' && (
-          <div className="flex flex-col gap-3 rounded-[12px] border border-neutral-200 bg-white p-6">
-            <h2 className="text-[16px] text-neutral-900">Scheduled Publishing</h2>
-
-            {/* State is always shown explicitly — scheduled with its
-               date, or "no schedule set" — rather than only being
-               implied by which controls happen to be visible (Phase
-               15, Part 9). */}
-            <p className="text-[14px] text-neutral-600">
-              {scheduledAt ? (
-                <>
-                  This post will publish automatically on{' '}
-                  <span className="font-medium text-neutral-900">{new Date(scheduledAt).toLocaleString()}</span>.
-                </>
-              ) : (
-                'No schedule is currently set for this post.'
-              )}
-            </p>
-
-            {admin?.role !== 'admin' && <p className="text-[12px] text-amber-700">Only administrators can schedule or cancel publishing.</p>}
-
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="flex flex-col gap-1">
-                <label htmlFor="scheduledAt" className="text-[13px] font-medium text-neutral-700">
-                  Publish at
-                </label>
-                <input
-                  id="scheduledAt"
-                  type="datetime-local"
-                  value={scheduleInput}
-                  onChange={(e) => setScheduleInput(e.target.value)}
-                  className="h-[38px] rounded-[6px] border border-neutral-300 px-3 text-[14px] text-neutral-900 focus:border-neutral-500 focus:outline-none"
-                />
-                {/* Explicit, rather than silently treating the value
-                   as UTC (Phase 15, Part 9) — a datetime-local input
-                   has no timezone of its own; the browser (and
-                   handleSchedule's `new Date(...)` parse) always
-                   interprets it as this device's local time. Pre-filled
-                   from the current schedule via toDatetimeLocalValue
-                   when one exists, so adjusting it starts from the
-                   existing value rather than blank (Part 5:
-                   rescheduling replaces the old value cleanly). */}
-                <p className="text-[12px] text-neutral-400">
-                  Interpreted in your local timezone ({localTimeZoneLabel}).
-                </p>
+              <div className="admin-ed-panel__body" role="tabpanel">
+                {panelTab === 'document' && (
+                  <DocumentPanel
+                    id={id}
+                    form={form}
+                    update={update}
+                    analysis={analysis}
+                    isEditing={isEditing}
+                    isAdmin={isAdmin}
+                    status={status}
+                    reviewStatus={reviewStatus}
+                    reviewNote={reviewNote}
+                    publishedAt={publishedAtDisplay}
+                    scheduledAt={scheduledAt}
+                    scheduleInput={scheduleInput}
+                    onScheduleInput={setScheduleInput}
+                    busy={busy}
+                    scheduling={submitting === 'schedule'}
+                    unscheduling={submitting === 'unschedule'}
+                    onSchedule={() => void handleSchedule()}
+                    onUnschedule={() => void handleUnschedule()}
+                    onReview={(next, note) => void handleReview(next, note)}
+                    onJumpToHeading={(index) => editorRef.current?.scrollToHeading(index)}
+                    onRestoreRevision={handleRestoreRevision}
+                  />
+                )}
+                {panelTab === 'seo' && <SeoPanel form={form} update={update} analysis={analysis} />}
+                {panelTab === 'enrich' && <EnrichPanel form={form} update={update} />}
               </div>
-              <button
-                type="button"
-                disabled={busy || admin?.role !== 'admin'}
-                onClick={() => void handleSchedule()}
-                className="flex h-[38px] items-center justify-center rounded-[6px] border border-neutral-900 px-4 text-[13px] font-medium text-neutral-900 transition-opacity hover:opacity-70 disabled:opacity-50"
-              >
-                {submitting === 'schedule'
-                  ? scheduledAt
-                    ? 'Updating…'
-                    : 'Scheduling…'
-                  : scheduledAt
-                    ? 'Update schedule'
-                    : 'Schedule'}
-              </button>
-              {scheduledAt && (
-                <button
-                  type="button"
-                  disabled={busy || admin?.role !== 'admin'}
-                  onClick={() => void handleUnschedule()}
-                  className="flex h-[38px] items-center justify-center rounded-[6px] border border-neutral-300 px-4 text-[13px] font-medium text-neutral-700 transition-colors hover:border-neutral-900 hover:text-neutral-900 disabled:opacity-50"
-                >
-                  {submitting === 'unschedule' ? 'Canceling…' : 'Cancel schedule'}
-                </button>
-              )}
-            </div>
-          </div>
+            </aside>
+          </>
         )}
-        {status === 'published' && <div className="admin-editor-section admin-publishing-note"><p className="admin-eyebrow">Publishing</p><h2>Already published</h2><p>This article is live. Unpublish it before creating a future publishing schedule.</p></div>}
-        </div>
-        </aside>
-      </form>
-      {previewOpen && <DraftPreview form={form} onClose={() => setPreviewOpen(false)} />}
+      </div>
+
+      {previewOpen && <PreviewDialog form={form} readingMinutes={analysis.metrics.readingTimeMinutes} onClose={() => setPreviewOpen(false)} />}
+      {shortcutsOpen && <ShortcutsSheet isApple={isAppleDevice} onClose={() => setShortcutsOpen(false)} />}
+      {publishOpen && (
+        <PublishSheet
+          analysis={analysis}
+          busy={submitting === 'publish'}
+          onCancel={() => setPublishOpen(false)}
+          onConfirm={() => void handlePublishToggle('published')}
+          onSchedule={() => { setPublishOpen(false); setFocusMode(false); setPanelOpen(true); setPanelTab('document') }}
+        />
+      )}
+      {dialog}
     </div>
   )
 }
 
 export default BlogEditor
+

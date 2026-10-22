@@ -1,0 +1,13 @@
+@reference "../../index.css";
+
+@layer components {
+  /* Sign in */
+  .admin-login {
+    @apply grid min-h-dvh place-items-center bg-a-bg p-6;
+  }
+
+  .admin-login__card {
+    @apply w-full max-w-[400px] rounded-a-xl bg-a-surface px-8 pt-10 pb-8 shadow-a-md max-sm:px-6;
+    animation: admin-sheet 400ms var(--ease-a-spring);
+  }
+}

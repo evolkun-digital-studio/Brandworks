@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import type { MouseEvent } from 'react'
+import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import type { ClipboardEvent, DragEvent, KeyboardEvent, MouseEvent, ReactNode, Ref } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import {
   Bold,
   ChevronDown,
@@ -17,198 +18,174 @@ import {
   Link2,
   List,
   ListOrdered,
-  MoreHorizontal,
+  Minus,
   Palette,
+  Pilcrow,
   Quote,
+  Redo2,
+  SquareCode,
   Strikethrough,
   Type,
   Underline,
+  Undo2,
+  Unlink,
 } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { toast } from 'sonner'
-import { markdownRehypePlugins } from '../../../../blog/lib/markdownConfig'
 import * as mediaApi from '../../../api/mediaAdminApi'
+import MediaPicker from './MediaPicker'
+import type { PickedImage } from './MediaPicker'
+import {
+  COLORS,
+  FONT_SIZES,
+  escapeAttribute,
+  figureHtml,
+  markdownToEditableHtml,
+  mediaTextHtml,
+  sanitizeEditableHtml,
+  textToHtml,
+} from '../lib/richContent'
 
-const COLORS = [
-  { label: 'Red', value: 'red', className: 'bg-[#b42318]' },
-  { label: 'Orange', value: 'orange', className: 'bg-[#c76a16]' },
-  { label: 'Green', value: 'green', className: 'bg-[#34764a]' },
-  { label: 'Blue', value: 'blue', className: 'bg-[#2463a8]' },
-  { label: 'Purple', value: 'purple', className: 'bg-[#7446a8]' },
-  { label: 'Accent', value: 'accent', className: 'bg-[#9bb900]' },
-] as const
-
-const FONT_SIZES = [
-  { label: 'Default', value: '' },
-  { label: '12 px', value: '12px' },
-  { label: '14 px', value: '14px' },
-  { label: '16 px', value: '16px' },
-  { label: '18 px', value: '18px' },
-  { label: '20 px', value: '20px' },
-  { label: '24 px', value: '24px' },
-  { label: '28 px', value: '28px' },
-  { label: '32 px', value: '32px' },
-  { label: '40 px', value: '40px' },
-  { label: '48 px', value: '48px' },
-] as const
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  })[character] ?? character)
+export interface RichEditorHandle {
+  focus: () => void
+  undo: () => void
+  redo: () => void
+  /** Scrolls to the nth H2–H4 heading in the document. */
+  scrollToHeading: (index: number) => void
 }
 
-function escapeAttribute(value: string): string {
-  return escapeHtml(value.trim())
+type Popover = 'block' | 'size' | 'color' | 'image' | 'imageUrl' | 'link' | null
+type BlockName = 'p' | 'h1' | 'h2' | 'h3' | 'h4' | 'blockquote' | 'pre' | 'ul' | 'ol'
+
+const BLOCKS: Array<{ id: BlockName; label: string; icon: LucideIcon }> = [
+  { id: 'p', label: 'Paragraph', icon: Pilcrow },
+  { id: 'h1', label: 'Heading 1', icon: Heading1 },
+  { id: 'h2', label: 'Heading 2', icon: Heading2 },
+  { id: 'h3', label: 'Heading 3', icon: Heading3 },
+  { id: 'h4', label: 'Heading 4', icon: Heading4 },
+  { id: 'blockquote', label: 'Quote', icon: Quote },
+  { id: 'pre', label: 'Code block', icon: SquareCode },
+]
+
+interface SlashItem {
+  id: string
+  label: string
+  hint: string
+  keywords: string
+  icon: LucideIcon
 }
 
-function inlineMarkdownToHtml(value: string): string {
-  const rawTags: string[] = []
-  const withTokens = value.replace(/<\/?(?:u|mark|span|div|figure|figcaption|p|br|img)(?:\s[^>]*)?>/gi, (tag) => {
-    const token = `__BRANDWORKS_HTML_${rawTags.length}__`
-    rawTags.push(tag)
-    return token
-  })
+const SLASH_ITEMS: SlashItem[] = [
+  { id: 'h1', label: 'Heading 1', hint: 'Big section title', keywords: 'h1 title heading', icon: Heading1 },
+  { id: 'h2', label: 'Heading 2', hint: 'Medium section title', keywords: 'h2 heading', icon: Heading2 },
+  { id: 'h3', label: 'Heading 3', hint: 'Small section title', keywords: 'h3 subheading', icon: Heading3 },
+  { id: 'ul', label: 'Bulleted list', hint: 'A simple list', keywords: 'bullet unordered list', icon: List },
+  { id: 'ol', label: 'Numbered list', hint: 'Steps in order', keywords: 'number ordered list', icon: ListOrdered },
+  { id: 'blockquote', label: 'Quote', hint: 'Pull out a line', keywords: 'quote blockquote', icon: Quote },
+  { id: 'pre', label: 'Code', hint: 'Monospaced block', keywords: 'code pre', icon: SquareCode },
+  { id: 'hr', label: 'Divider', hint: 'A horizontal rule', keywords: 'divider rule hr line', icon: Minus },
+  { id: 'image', label: 'Image', hint: 'From the media library', keywords: 'image photo picture media', icon: ImagePlus },
+  { id: 'media-text', label: 'Image and text', hint: 'Side-by-side layout', keywords: 'image text split layout', icon: ImagePlus },
+]
 
-  let html = escapeHtml(withTokens)
-  html = html.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)(?:\s+"([^"]*)")?\)/g, (_match, alt: string, src: string, title?: string) => `<img src="${escapeAttribute(src)}" alt="${escapeAttribute(alt)}"${title ? ` title="${escapeAttribute(title)}"` : ''} />`)
-  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2">$1</a>')
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-  html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>')
-  html = html.replace(/~~([^~]+)~~/g, '<s>$1</s>')
-  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>')
-  html = html.replace(/_([^_]+)_/g, '<em>$1</em>')
-  return html.replace(/__BRANDWORKS_HTML_(\d+)__/g, (_match, index: string) => rawTags[Number(index)] ?? '')
-}
+const SHORTCUTS: Array<[RegExp, BlockName]> = [
+  [/^#$/, 'h1'],
+  [/^##$/, 'h2'],
+  [/^###$/, 'h3'],
+  [/^####$/, 'h4'],
+  [/^[-*+]$/, 'ul'],
+  [/^1[.)]$/, 'ol'],
+  [/^>$/, 'blockquote'],
+]
 
-const EDITABLE_TAGS = new Set([
-  'a', 'blockquote', 'br', 'code', 'div', 'em', 'figcaption', 'figure',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'img', 'li', 'mark', 'ol',
-  'p', 'pre', 's', 'span', 'strong', 'u', 'ul',
-])
+const BLOCK_TAGS = new Set(['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'PRE', 'LI'])
 
-function isSafeResource(value: string): boolean {
-  return /^(?:https?:\/\/|\/)/i.test(value)
-}
-
-function sanitizeEditableHtml(source: string): string {
-  const document = new DOMParser().parseFromString(source, 'text/html')
-  document.body.querySelectorAll('*').forEach((element) => {
-    const tag = element.tagName.toLowerCase()
-    if (!EDITABLE_TAGS.has(tag)) {
-      element.remove()
-      return
-    }
-
-    Array.from(element.attributes).forEach((attribute) => {
-      const name = attribute.name.toLowerCase()
-      const keep = (tag === 'span' && name === 'data-color' && COLORS.some((color) => color.value === attribute.value))
-        || (tag === 'span' && name === 'data-font-size' && FONT_SIZES.some((size) => size.value === attribute.value))
-        || (tag === 'div' && name === 'data-layout' && attribute.value === 'media-text')
-        || ((tag === 'a' || tag === 'img') && ['href', 'src', 'alt', 'title'].includes(name) && (name === 'alt' || name === 'title' || isSafeResource(attribute.value)))
-      if (!keep) element.removeAttribute(attribute.name)
-    })
-  })
-  return document.body.innerHTML
-}
-
-function markdownToEditableHtml(source: string): string {
-  if (!source.trim()) return ''
-
-  // Visual edits are stored as sanitized HTML mixed with Markdown. Keep that
-  // structure intact when switching back to the editor after a save.
-  if (/<(?:p|h[1-6]|ul|ol|blockquote|div|figure|img)\b/i.test(source)) return sanitizeEditableHtml(source)
-
-  const lines = source.replace(/\r\n?/g, '\n').split('\n')
-  const output: string[] = []
-  let index = 0
-
-  while (index < lines.length) {
-    const line = lines[index]
-    if (!line.trim()) {
-      index += 1
-      continue
-    }
-
-    const heading = line.match(/^(#{1,6})\s+(.+)$/)
-    if (heading) {
-      const level = Math.min(6, heading[1].length)
-      output.push(`<h${level}>${inlineMarkdownToHtml(heading[2])}</h${level}>`)
-      index += 1
-      continue
-    }
-
-    if (/^\s*(?:---+|\*\*\*+)\s*$/.test(line)) {
-      output.push('<hr />')
-      index += 1
-      continue
-    }
-
-    if (/^>\s?/.test(line)) {
-      const quote: string[] = []
-      while (index < lines.length && /^>\s?/.test(lines[index])) {
-        quote.push(lines[index].replace(/^>\s?/, ''))
-        index += 1
-      }
-      output.push(`<blockquote><p>${inlineMarkdownToHtml(quote.join(' '))}</p></blockquote>`)
-      continue
-    }
-
-    if (/^\s*[-*+]\s+/.test(line) || /^\s*\d+\.\s+/.test(line)) {
-      const ordered = /^\s*\d+\.\s+/.test(line)
-      const items: string[] = []
-      const pattern = ordered ? /^\s*\d+\.\s+/ : /^\s*[-*+]\s+/
-      while (index < lines.length && pattern.test(lines[index])) {
-        items.push(`<li>${inlineMarkdownToHtml(lines[index].replace(pattern, ''))}</li>`)
-        index += 1
-      }
-      output.push(`<${ordered ? 'ol' : 'ul'}>${items.join('')}</${ordered ? 'ol' : 'ul'}>`)
-      continue
-    }
-
-    const paragraph: string[] = [line]
-    index += 1
-    while (index < lines.length && lines[index].trim() && !/^(#{1,6})\s+|^\s*(?:[-*+]\s+|\d+\.\s+|>\s?)/.test(lines[index])) {
-      paragraph.push(lines[index])
-      index += 1
-    }
-    output.push(`<p>${inlineMarkdownToHtml(paragraph.join(' '))}</p>`)
+function blockOf(node: Node | null, root: HTMLElement): HTMLElement {
+  let current: Node | null = node
+  while (current && current !== root) {
+    if (current.nodeType === 1 && BLOCK_TAGS.has((current as HTMLElement).tagName)) return current as HTMLElement
+    current = current.parentNode
   }
-
-  return output.join('')
+  return root
 }
 
-function escapePromptText(value: string): string {
-  return value.replace(/[<>]/g, '')
+function blockName(node: Node | null, root: HTMLElement): BlockName {
+  let current: Node | null = node
+  while (current && current !== root) {
+    if (current.nodeType === 1) {
+      const tag = (current as HTMLElement).tagName.toLowerCase()
+      if (['h1', 'h2', 'h3', 'h4', 'blockquote', 'pre'].includes(tag)) return tag as BlockName
+      if (tag === 'li') return (current.parentElement?.tagName === 'OL' ? 'ol' : 'ul')
+    }
+    current = current.parentNode
+  }
+  return 'p'
 }
 
-function RichContentEditor({
-  value,
-  onChange,
-  onBlur,
-  error,
+function normalizeUrl(value: string): string | null {
+  const raw = value.trim()
+  if (!raw) return null
+  if (/^(?:https?:\/\/|mailto:|tel:|\/|#)/i.test(raw)) return raw
+  if (/^[^\s]+\.[^\s]{2,}$/.test(raw)) return `https://${raw}`
+  return null
+}
+
+function ToolButton({
+  label,
+  onClick,
+  active,
+  disabled,
+  children,
+  shortcut,
+  className = '',
 }: {
+  label: string
+  onClick: () => void
+  active?: boolean
+  disabled?: boolean
+  children: ReactNode
+  shortcut?: string
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      className={`admin-tool ${className}`}
+      aria-label={label}
+      title={shortcut ? `${label} (${shortcut})` : label}
+      aria-pressed={active}
+      disabled={disabled}
+      onMouseDown={(event: MouseEvent) => event.preventDefault()}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  )
+}
+
+interface RichContentEditorProps {
   value: string
   onChange: (next: string) => void
   onBlur?: () => void
   error?: string | null
-}) {
-  const [mode, setMode] = useState<'visual' | 'preview'>('visual')
-  const [headingOpen, setHeadingOpen] = useState(false)
-  const [fontSizeOpen, setFontSizeOpen] = useState(false)
-  const [advancedOpen, setAdvancedOpen] = useState(false)
-  const [colorOpen, setColorOpen] = useState(false)
-  const [mediaOpen, setMediaOpen] = useState(false)
-  const [mediaLoading, setMediaLoading] = useState(false)
-  const [mediaAssets, setMediaAssets] = useState<mediaApi.MediaAsset[]>([])
+  handleRef?: Ref<RichEditorHandle>
+}
+
+function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichContentEditorProps) {
+  const [mode, setMode] = useState<'visual' | 'code'>('visual')
+  const [popover, setPopover] = useState<Popover>(null)
+  const [mediaTarget, setMediaTarget] = useState<'figure' | 'media-text' | null>(null)
+  const [format, setFormat] = useState({ bold: false, italic: false, underline: false, strike: false, block: 'p' as BlockName })
+  const [linkUrl, setLinkUrl] = useState('')
+  const [linkActive, setLinkActive] = useState(false)
+  const [imageUrl, setImageUrl] = useState('')
+  const [imageAlt, setImageAlt] = useState('')
+  const [uploading, setUploading] = useState(0)
+  const [slash, setSlash] = useState<{ query: string; top?: number; bottom?: number; left: number; index: number } | null>(null)
+
   const visualRef = useRef<HTMLDivElement>(null)
+  const toolbarRef = useRef<HTMLDivElement>(null)
   const savedSelection = useRef<Range | null>(null)
+  const slashRange = useRef<{ node: Text; start: number; end: number } | null>(null)
   const didInitialize = useRef(false)
   const lastSyncedValue = useRef(value)
 
@@ -227,21 +204,28 @@ function RichContentEditor({
     lastSyncedValue.current = value
   }, [mode, value])
 
-  function syncVisualValue() {
+  useEffect(() => {
+    if (mode === 'visual') {
+      // Paragraphs, not <div>s, are what Enter should create.
+      try { document.execCommand('defaultParagraphSeparator', false, 'p') } catch { /* unsupported */ }
+    }
+  }, [mode])
+
+  const sync = useCallback(() => {
     const editor = visualRef.current
     if (!editor) return
-    const next = editor.innerHTML === '<br>' ? '' : editor.innerHTML
-    lastSyncedValue.current = next
-    onChange(next)
-  }
+    if (editor.innerHTML === '<br>') editor.innerHTML = ''
+    lastSyncedValue.current = editor.innerHTML
+    onChange(editor.innerHTML)
+  }, [onChange])
 
-  function rememberSelection() {
+  const rememberSelection = useCallback(() => {
     const editor = visualRef.current
     const selection = window.getSelection()
     if (!editor || !selection || selection.rangeCount === 0) return
     const range = selection.getRangeAt(0)
     if (editor.contains(range.commonAncestorContainer)) savedSelection.current = range.cloneRange()
-  }
+  }, [])
 
   function restoreSelection() {
     const selection = window.getSelection()
@@ -250,26 +234,35 @@ function RichContentEditor({
     selection.addRange(savedSelection.current)
   }
 
-  function runCommand(command: string, argument?: string) {
+  function run(command: string, argument?: string) {
     visualRef.current?.focus()
     restoreSelection()
     document.execCommand(command, false, argument)
-    syncVisualValue()
+    sync()
+    rememberSelection()
   }
 
   function insertHtml(html: string) {
     visualRef.current?.focus()
     restoreSelection()
     document.execCommand('insertHTML', false, html)
-    syncVisualValue()
+    sync()
+    rememberSelection()
+  }
+
+  function setBlock(block: BlockName) {
+    if (block === 'ul') return run('insertUnorderedList')
+    if (block === 'ol') return run('insertOrderedList')
+    run('formatBlock', `<${block}>`)
   }
 
   function wrapSelection(tagName: 'mark' | 'span', color?: string, fontSize?: string) {
     const selection = window.getSelection()
     const editor = visualRef.current
-    if (!selection || !editor || selection.rangeCount === 0 || selection.isCollapsed) return
-    const range = selection.getRangeAt(0)
-    if (!editor.contains(range.commonAncestorContainer)) return
+    if (!selection || !editor || selection.rangeCount === 0) return
+    restoreSelection()
+    const range = selection.rangeCount ? selection.getRangeAt(0) : null
+    if (!range || range.collapsed || !editor.contains(range.commonAncestorContainer)) return
 
     const wrapper = document.createElement(tagName)
     if (color) wrapper.dataset.color = color
@@ -277,203 +270,490 @@ function RichContentEditor({
     try {
       range.surroundContents(wrapper)
     } catch {
-      const fragment = range.extractContents()
-      wrapper.appendChild(fragment)
+      wrapper.appendChild(range.extractContents())
       range.insertNode(wrapper)
     }
     selection.removeAllRanges()
-    const nextRange = document.createRange()
-    nextRange.selectNodeContents(wrapper)
-    selection.addRange(nextRange)
-    syncVisualValue()
+    const next = document.createRange()
+    next.selectNodeContents(wrapper)
+    selection.addRange(next)
+    sync()
+    rememberSelection()
   }
 
-  function clearFontSize() {
-    const selection = window.getSelection()
+  function applyFontSize(size: string) {
     const editor = visualRef.current
-    if (!selection || !editor || selection.rangeCount === 0 || selection.isCollapsed) return
+    const selection = window.getSelection()
+    if (!editor) return
+    restoreSelection()
+    if (size) return wrapSelection('span', undefined, size)
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return
     const range = selection.getRangeAt(0)
-    if (!editor.contains(range.commonAncestorContainer)) return
-
     const holder = document.createElement('span')
     holder.appendChild(range.extractContents())
     holder.querySelectorAll('span[data-font-size]').forEach((span) => span.removeAttribute('data-font-size'))
     range.insertNode(holder)
-    selection.removeAllRanges()
-    const nextRange = document.createRange()
-    nextRange.selectNodeContents(holder)
-    selection.addRange(nextRange)
-    syncVisualValue()
+    sync()
   }
 
-  function applyFontSize(size: string) {
-    if (size) wrapSelection('span', undefined, size)
-    else clearFontSize()
-  }
-
-  function addImage() {
-    const src = window.prompt('Image URL')?.trim()
-    if (!src) return
-    const alt = window.prompt('Describe the image for accessibility')?.trim() || 'Article image'
-    insertHtml(`<figure><img src="${escapeAttribute(src)}" alt="${escapeAttribute(alt)}" /><figcaption>${escapeHtml(alt)}</figcaption></figure><p><br /></p>`)
-  }
-
-  function insertMediaAsset(asset: mediaApi.MediaAsset, withText = false) {
-    if (withText) {
-      const text = escapePromptText(window.prompt('Supporting text')?.trim() || 'Add supporting text here.')
-      insertHtml(`<div data-layout="media-text"><figure><img src="${escapeAttribute(asset.publicUrl)}" alt="${escapeAttribute(asset.altText || asset.originalName)}" /><figcaption>${escapeHtml(asset.caption || asset.altText || asset.originalName)}</figcaption></figure><div><p>${escapeHtml(text)}</p></div></div><p><br /></p>`)
-    } else {
-      insertHtml(`<figure><img src="${escapeAttribute(asset.publicUrl)}" alt="${escapeAttribute(asset.altText || asset.originalName)}" /><figcaption>${escapeHtml(asset.caption || asset.altText || asset.originalName)}</figcaption></figure><p><br /></p>`)
-    }
-    setMediaOpen(false)
-  }
-
-  async function openMediaPicker() {
-    setMediaOpen(true)
-    if (mediaAssets.length > 0) return
-    setMediaLoading(true)
-    try {
-      const result = await mediaApi.listMedia({ type: 'image', limit: 24 })
-      setMediaAssets(result.assets)
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not load the media library.')
-    } finally {
-      setMediaLoading(false)
-    }
+  function insertPicked(picked: PickedImage, layout: 'figure' | 'media-text') {
+    const alt = picked.asset.altText || picked.asset.originalName
+    const caption = picked.asset.caption || ''
+    insertHtml(layout === 'media-text'
+      ? mediaTextHtml(picked.url, alt, caption, 'Add supporting text here.')
+      : figureHtml(picked.url, alt, caption))
+    setMediaTarget(null)
   }
 
   async function uploadAndInsert(file: File) {
-    const altText = window.prompt('Describe the image for accessibility')?.trim()
-    if (!altText) return
-    setMediaLoading(true)
+    if (!file.type.startsWith('image/')) return
+    setUploading((count) => count + 1)
     try {
-      const { asset } = await mediaApi.uploadMedia(file, altText, '')
-      setMediaAssets((current) => [asset, ...current])
-      insertMediaAsset(asset)
-      toast.success('Image uploaded and added.')
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not upload the image.')
+      const alt = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') || 'Article image'
+      const { asset } = await mediaApi.uploadMedia(file, alt, '')
+      insertHtml(figureHtml(new URL(asset.publicUrl, window.location.origin).href, asset.altText || alt, ''))
+      toast.success('Image added. Describe it in the media library when you can.')
+    } catch (uploadError) {
+      toast.error(uploadError instanceof Error ? uploadError.message : 'Could not upload the image.')
     } finally {
-      setMediaLoading(false)
+      setUploading((count) => count - 1)
     }
   }
 
-  function addMediaTextBlock() {
-    const src = window.prompt('Image URL')?.trim()
-    if (!src) return
-    const alt = window.prompt('Describe the image for accessibility')?.trim() || 'Article image'
-    const text = escapePromptText(window.prompt('Supporting text')?.trim() || 'Add supporting text here.')
-    insertHtml(`<div data-layout="media-text"><figure><img src="${escapeAttribute(src)}" alt="${escapeAttribute(alt)}" /><figcaption>${escapeHtml(alt)}</figcaption></figure><div><p>${escapeHtml(text)}</p></div></div><p><br /></p>`)
+  // Keep the toolbar honest about what the caret is inside.
+  useEffect(() => {
+    if (mode !== 'visual') return
+    function update() {
+      const editor = visualRef.current
+      const selection = window.getSelection()
+      if (!editor || !selection || !selection.anchorNode || !editor.contains(selection.anchorNode)) return
+      let inLink = false
+      let node: Node | null = selection.anchorNode
+      while (node && node !== editor) {
+        if (node.nodeType === 1 && (node as HTMLElement).tagName === 'A') inLink = true
+        node = node.parentNode
+      }
+      setLinkActive(inLink)
+      setFormat({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline'),
+        strike: document.queryCommandState('strikeThrough'),
+        block: blockName(selection.anchorNode, editor),
+      })
+    }
+    document.addEventListener('selectionchange', update)
+    return () => document.removeEventListener('selectionchange', update)
+  }, [mode])
+
+  useEffect(() => {
+    if (!popover) return
+    const onPointerDown = (event: PointerEvent) => {
+      if (!toolbarRef.current?.contains(event.target as Node)) setPopover(null)
+    }
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setPopover(null)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [popover])
+
+  useImperativeHandle(handleRef, () => ({
+    focus: () => visualRef.current?.focus(),
+    undo: () => { visualRef.current?.focus(); document.execCommand('undo'); sync() },
+    redo: () => { visualRef.current?.focus(); document.execCommand('redo'); sync() },
+    scrollToHeading: (index: number) => {
+      const heading = visualRef.current?.querySelectorAll('h2, h3, h4')[index]
+      heading?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    },
+  }), [sync])
+
+  function openPopover(next: Exclude<Popover, null>) {
+    rememberSelection()
+    if (next === 'link') {
+      const anchor = window.getSelection()?.anchorNode?.parentElement?.closest('a')
+      setLinkUrl(anchor?.getAttribute('href') ?? '')
+    }
+    if (next === 'imageUrl') {
+      setImageUrl('')
+      setImageAlt('')
+    }
+    setPopover((current) => (current === next ? null : next))
   }
 
-  const preventToolbarBlur = (event: MouseEvent<HTMLButtonElement>) => {
+  function applyLink() {
+    const url = normalizeUrl(linkUrl)
+    if (!url) {
+      toast.error('Enter a web address, like https://example.com')
+      return
+    }
+    const selection = window.getSelection()
+    visualRef.current?.focus()
+    restoreSelection()
+    if (selection && selection.isCollapsed && !linkActive) {
+      document.execCommand('insertHTML', false, `<a href="${escapeAttribute(url)}">${escapeAttribute(url)}</a>`)
+    } else {
+      document.execCommand('createLink', false, url)
+    }
+    sync()
+    setPopover(null)
+  }
+
+  function removeLink() {
+    run('unlink')
+    setPopover(null)
+  }
+
+  function applyImageUrl() {
+    const url = normalizeUrl(imageUrl)
+    if (!url) {
+      toast.error('Enter an image address that starts with https://')
+      return
+    }
+    insertHtml(figureHtml(url, imageAlt.trim() || 'Article image', imageAlt.trim()))
+    setPopover(null)
+  }
+
+  // ---- Slash menu --------------------------------------------------------
+
+  const filteredSlash = slash
+    ? SLASH_ITEMS.filter((item) => `${item.label} ${item.keywords}`.toLowerCase().includes(slash.query.toLowerCase()))
+    : []
+
+  function detectSlash() {
+    const selection = window.getSelection()
+    const editor = visualRef.current
+    if (!editor || !selection || !selection.isCollapsed || !selection.anchorNode || selection.anchorNode.nodeType !== 3 || !editor.contains(selection.anchorNode)) {
+      setSlash(null)
+      return
+    }
+    const node = selection.anchorNode as Text
+    const upToCaret = (node.textContent ?? '').slice(0, selection.anchorOffset)
+    const match = /(?:^|\s)\/([a-z0-9 ]{0,18})$/i.exec(upToCaret)
+    if (!match || (match[1].includes(' ') && !/\S/.test(match[1]))) {
+      setSlash(null)
+      return
+    }
+    const end = selection.anchorOffset
+    const start = end - match[1].length - 1
+    slashRange.current = { node, start, end }
+    const caret = selection.getRangeAt(0).cloneRange()
+    caret.collapse(true)
+    const rect = caret.getClientRects()[0] ?? node.parentElement?.getBoundingClientRect()
+    if (!rect) return
+    // Open below the caret; if there is no room, open above it instead.
+    const below = rect.bottom + 8
+    const roomBelow = window.innerHeight - below > 300
+    setSlash((current) => ({
+      query: match[1],
+      ...(roomBelow ? { top: below } : { bottom: window.innerHeight - rect.top + 8 }),
+      left: Math.max(8, Math.min(rect.left, window.innerWidth - 300)),
+      index: current && current.query === match[1] ? current.index : 0,
+    }))
+  }
+
+  function chooseSlash(item: SlashItem | undefined) {
+    const target = slashRange.current
+    setSlash(null)
+    if (!item || !target) return
+    const range = document.createRange()
+    try {
+      range.setStart(target.node, target.start)
+      range.setEnd(target.node, target.end)
+    } catch {
+      return
+    }
+    range.deleteContents()
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    rememberSelection()
+    if (item.id === 'hr') return insertHtml('<hr /><p><br /></p>')
+    if (item.id === 'image') return setMediaTarget('figure')
+    if (item.id === 'media-text') return setMediaTarget('media-text')
+    setBlock(item.id as BlockName)
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (slash && filteredSlash.length) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault()
+        const step = event.key === 'ArrowDown' ? 1 : -1
+        setSlash({ ...slash, index: (slash.index + step + filteredSlash.length) % filteredSlash.length })
+        return
+      }
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault()
+        chooseSlash(filteredSlash[slash.index])
+        return
+      }
+    }
+    if (slash && event.key === 'Escape') {
+      event.preventDefault()
+      setSlash(null)
+      return
+    }
+
+    // Markdown shortcuts: "## " becomes a heading, "- " a list, "> " a quote.
+    if (event.key === ' ' && !event.metaKey && !event.ctrlKey) {
+      const editor = visualRef.current
+      const selection = window.getSelection()
+      if (!editor || !selection || !selection.isCollapsed || !selection.anchorNode) return
+      const block = blockOf(selection.anchorNode, editor)
+      if (block.tagName === 'LI') return
+      const lead = document.createRange()
+      if (block === editor) {
+        lead.setStart(selection.anchorNode, 0)
+      } else {
+        lead.selectNodeContents(block)
+      }
+      lead.setEnd(selection.anchorNode, selection.anchorOffset)
+      const typed = lead.toString()
+      const hit = SHORTCUTS.find(([pattern]) => pattern.test(typed))
+      if (hit) {
+        event.preventDefault()
+        lead.deleteContents()
+        // Put the caret back explicitly: after the marker is removed the browser's
+        // own selection can land in the previous block, and the format would follow it.
+        const target = document.createRange()
+        if (block === editor) {
+          target.setStart(lead.startContainer, lead.startOffset)
+        } else {
+          // An empty block with no <br> collapses, and the browser then formats the block before it.
+          if (!block.textContent) block.replaceChildren(document.createElement('br'))
+          target.setStart(block, 0)
+        }
+        target.collapse(true)
+        selection.removeAllRanges()
+        selection.addRange(target)
+        savedSelection.current = target.cloneRange()
+        setBlock(hit[1])
+      }
+    }
+  }
+
+  function onPaste(event: ClipboardEvent<HTMLDivElement>) {
+    const images = Array.from(event.clipboardData.files).filter((file) => file.type.startsWith('image/'))
+    if (images.length) {
+      event.preventDefault()
+      rememberSelection()
+      images.forEach((file) => void uploadAndInsert(file))
+      return
+    }
+    const html = event.clipboardData.getData('text/html')
+    const text = event.clipboardData.getData('text/plain')
     event.preventDefault()
     rememberSelection()
+    if (html) insertHtml(sanitizeEditableHtml(html))
+    else if (text) insertHtml(textToHtml(text))
   }
 
+  function onDrop(event: DragEvent<HTMLDivElement>) {
+    const images = Array.from(event.dataTransfer.files).filter((file) => file.type.startsWith('image/'))
+    if (!images.length) return
+    event.preventDefault()
+    const doc = document as Document & { caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null }
+    const range = document.caretRangeFromPoint?.(event.clientX, event.clientY)
+      ?? (() => {
+        const position = doc.caretPositionFromPoint?.(event.clientX, event.clientY)
+        if (!position) return null
+        const r = document.createRange()
+        r.setStart(position.offsetNode, position.offset)
+        return r
+      })()
+    if (range && visualRef.current?.contains(range.commonAncestorContainer)) savedSelection.current = range
+    images.forEach((file) => void uploadAndInsert(file))
+  }
+
+  const currentBlock = BLOCKS.find((block) => block.id === format.block) ?? BLOCKS[0]
+  const CurrentBlockIcon = currentBlock.icon
+
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <label htmlFor="content" className="text-[14px] font-medium text-neutral-900">Content</label>
-          <p className="mt-1 text-[12px] text-neutral-400">Write visually with rich formatting, images, layouts, and a clean preview.</p>
-        </div>
-        <div className="flex shrink-0 gap-1 rounded-[6px] bg-neutral-100 p-0.5">
-          {(['visual', 'preview'] as const).map((item) => (
-            <button key={item} type="button" onClick={() => setMode(item)} aria-pressed={mode === item} className={`rounded-[4px] px-3 py-1 text-[12px] font-medium capitalize transition-colors ${mode === item ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'}`}>
-              {item}
-            </button>
-          ))}
+    <div className="admin-rte">
+      <div className="admin-rte__toolbar" ref={toolbarRef} role="toolbar" aria-label="Formatting">
+        {mode === 'visual' ? (
+          <>
+            <div className="relative">
+              <button
+                type="button"
+                className="admin-tool admin-tool--wide"
+                aria-haspopup="menu"
+                aria-expanded={popover === 'block'}
+                title="Text style"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => openPopover('block')}
+              >
+                <CurrentBlockIcon size={15} strokeWidth={1.8} aria-hidden="true" />
+                <span>{currentBlock.label}</span>
+                <ChevronDown size={12} strokeWidth={2} aria-hidden="true" />
+              </button>
+              {popover === 'block' && (
+                <div className="admin-menu__panel admin-menu__panel--left" role="menu" aria-label="Text style">
+                  {BLOCKS.map(({ id, label, icon: Icon }) => (
+                    <button key={id} type="button" role="menuitemradio" aria-checked={format.block === id} className="admin-menu__item" onMouseDown={(event) => event.preventDefault()} onClick={() => { setBlock(id); setPopover(null) }}>
+                      <Icon size={15} strokeWidth={1.8} aria-hidden="true" /> {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="relative">
+              <ToolButton label="Text size" onClick={() => openPopover('size')} active={popover === 'size'}><Type size={15} strokeWidth={1.8} /><ChevronDown size={11} strokeWidth={2} /></ToolButton>
+              {popover === 'size' && (
+                <div className="admin-menu__panel admin-menu__panel--left w-32" role="menu" aria-label="Text size">
+                  {FONT_SIZES.map(({ label, value: size }) => (
+                    <button key={label} type="button" role="menuitem" className="admin-menu__item" onMouseDown={(event) => event.preventDefault()} onClick={() => { applyFontSize(size); setPopover(null) }}>
+                      {size ? `${label} px` : 'Default size'}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <span className="admin-tool-sep" aria-hidden="true" />
+            <ToolButton label="Bold" shortcut="⌘B" active={format.bold} onClick={() => run('bold')}><Bold size={15} strokeWidth={2} /></ToolButton>
+            <ToolButton label="Italic" shortcut="⌘I" active={format.italic} onClick={() => run('italic')}><Italic size={15} strokeWidth={2} /></ToolButton>
+            <ToolButton label="Underline" shortcut="⌘U" active={format.underline} onClick={() => run('underline')}><Underline size={15} strokeWidth={2} /></ToolButton>
+            <ToolButton label="Strikethrough" active={format.strike} onClick={() => run('strikeThrough')}><Strikethrough size={15} strokeWidth={2} /></ToolButton>
+            <span className="admin-tool-sep" aria-hidden="true" />
+            <div className="relative">
+              <ToolButton label="Link" active={linkActive || popover === 'link'} onClick={() => openPopover('link')}><Link2 size={15} strokeWidth={2} /></ToolButton>
+              {popover === 'link' && (
+                <div
+                  className="admin-menu__panel admin-menu__panel--left admin-popform"
+                  onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); applyLink() } }}
+                >
+                  <label htmlFor="rte-link" className="admin-form-label">Link address</label>
+                  <input id="rte-link" className="admin-input" autoFocus placeholder="https://" value={linkUrl} onChange={(event) => setLinkUrl(event.target.value)} />
+                  <div className="flex items-center justify-between gap-2">
+                    {linkActive ? <button type="button" className="admin-link text-a-danger" onClick={removeLink}><Unlink size={13} aria-hidden="true" /> Remove link</button> : <span />}
+                    <button type="button" className="admin-button admin-button--primary admin-button--sm" onClick={applyLink}>Apply</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <ToolButton label="Highlight" onClick={() => wrapSelection('mark')}><Highlighter size={15} strokeWidth={1.8} /></ToolButton>
+            <div className="relative">
+              <ToolButton label="Text colour" onClick={() => openPopover('color')} active={popover === 'color'}><Palette size={15} strokeWidth={1.8} /></ToolButton>
+              {popover === 'color' && (
+                <div className="admin-menu__panel admin-menu__panel--left w-44" role="menu" aria-label="Text colour">
+                  {COLORS.map((color) => (
+                    <button key={color.value} type="button" role="menuitem" className="admin-menu__item" onMouseDown={(event) => event.preventDefault()} onClick={() => { wrapSelection('span', color.value); setPopover(null) }}>
+                      <span className="size-3.5 rounded-full" style={{ background: color.swatch }} aria-hidden="true" /> {color.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <span className="admin-tool-sep" aria-hidden="true" />
+            <ToolButton label="Bulleted list" active={format.block === 'ul'} onClick={() => run('insertUnorderedList')}><List size={15} strokeWidth={1.8} /></ToolButton>
+            <ToolButton label="Numbered list" active={format.block === 'ol'} onClick={() => run('insertOrderedList')}><ListOrdered size={15} strokeWidth={1.8} /></ToolButton>
+            <ToolButton label="Quote" active={format.block === 'blockquote'} onClick={() => setBlock(format.block === 'blockquote' ? 'p' : 'blockquote')}><Quote size={15} strokeWidth={1.8} /></ToolButton>
+            <div className="relative">
+              <ToolButton label="Insert image" onClick={() => openPopover('image')} active={popover === 'image' || popover === 'imageUrl'}><ImagePlus size={15} strokeWidth={1.8} /><ChevronDown size={11} strokeWidth={2} /></ToolButton>
+              {popover === 'image' && (
+                <div className="admin-menu__panel admin-menu__panel--left w-56" role="menu" aria-label="Insert image">
+                  <button type="button" role="menuitem" className="admin-menu__item" onMouseDown={(event) => event.preventDefault()} onClick={() => { setPopover(null); setMediaTarget('figure') }}>Media library…</button>
+                  <button type="button" role="menuitem" className="admin-menu__item" onMouseDown={(event) => event.preventDefault()} onClick={() => { setPopover(null); setMediaTarget('media-text') }}>Image and text layout…</button>
+                  <button type="button" role="menuitem" className="admin-menu__item" onMouseDown={(event) => event.preventDefault()} onClick={() => setPopover('imageUrl')}>From a web address…</button>
+                </div>
+              )}
+              {popover === 'imageUrl' && (
+                <div className="admin-menu__panel admin-menu__panel--left admin-popform" onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); applyImageUrl() } }}>
+                  <label htmlFor="rte-image-url" className="admin-form-label">Image address</label>
+                  <input id="rte-image-url" className="admin-input" autoFocus placeholder="https://" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} />
+                  <label htmlFor="rte-image-alt" className="admin-form-label">Description</label>
+                  <input id="rte-image-alt" className="admin-input" placeholder="What’s in the image?" value={imageAlt} onChange={(event) => setImageAlt(event.target.value)} />
+                  <button type="button" className="admin-button admin-button--primary admin-button--sm self-end" onClick={applyImageUrl}>Insert</button>
+                </div>
+              )}
+            </div>
+            <ToolButton label="Clear formatting" onClick={() => run('removeFormat')}><Eraser size={15} strokeWidth={1.8} /></ToolButton>
+            <span className="admin-tool-sep" aria-hidden="true" />
+            <ToolButton label="Undo" shortcut="⌘Z" onClick={() => run('undo')}><Undo2 size={15} strokeWidth={1.8} /></ToolButton>
+            <ToolButton label="Redo" shortcut="⇧⌘Z" onClick={() => run('redo')}><Redo2 size={15} strokeWidth={1.8} /></ToolButton>
+          </>
+        ) : (
+          <span className="px-2 text-xs text-a-ink-2">Editing the raw article markup. Switch back to Visual to keep writing.</span>
+        )}
+        <div className="ml-auto flex items-center gap-2 pl-2">
+          {uploading > 0 && <span className="text-xs text-a-ink-2" role="status">Uploading…</span>}
+          <div className="admin-segmented-control" role="group" aria-label="Editor view">
+            <button type="button" aria-pressed={mode === 'visual'} onClick={() => setMode('visual')}>Visual</button>
+            <button type="button" aria-pressed={mode === 'code'} onClick={() => { setPopover(null); setMode('code') }}><Code2 size={13} className="mr-1 inline" aria-hidden="true" />Code</button>
+          </div>
         </div>
       </div>
 
-      {mode === 'visual' && <>
-        <div className="admin-editor-toolbar" aria-label="Visual formatting tools">
-          <div className="admin-editor-toolbar__heading-wrap">
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => setHeadingOpen((open) => !open)} aria-haspopup="menu" aria-expanded={headingOpen} title="Choose heading level" aria-label="Choose heading level"><Heading2 size={15} aria-hidden="true" /><span>Heading</span><ChevronDown size={13} aria-hidden="true" /></button>
-            {headingOpen && <div className="admin-editor-toolbar__heading-menu" role="menu" aria-label="Heading levels">
-              {[
-                { label: 'H1', tag: 'h1', Icon: Heading1 },
-                { label: 'H2', tag: 'h2', Icon: Heading2 },
-                { label: 'H3', tag: 'h3', Icon: Heading3 },
-                { label: 'H4', tag: 'h4', Icon: Heading4 },
-              ].map(({ label, tag, Icon }) => (
-                <button key={tag} type="button" role="menuitem" onMouseDown={preventToolbarBlur} onClick={() => { runCommand('formatBlock', tag); setHeadingOpen(false) }}><Icon size={15} aria-hidden="true" /><span>{label}</span></button>
-              ))}
-            </div>}
-          </div>
-          <div className="admin-editor-toolbar__size-wrap">
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => setFontSizeOpen((open) => !open)} aria-haspopup="menu" aria-expanded={fontSizeOpen} title="Choose text size" aria-label="Choose text size"><Type size={15} aria-hidden="true" /><span>Size</span><ChevronDown size={13} aria-hidden="true" /></button>
-            {fontSizeOpen && <div className="admin-editor-toolbar__size-menu" role="menu" aria-label="Text sizes">
-              {FONT_SIZES.map(({ label, value }) => (
-                <button key={label} type="button" role="menuitem" onMouseDown={preventToolbarBlur} onClick={() => { applyFontSize(value); setFontSizeOpen(false) }}>{label}</button>
-              ))}
-            </div>}
-          </div>
-          <span className="admin-editor-toolbar__divider" aria-hidden="true" />
-          <button type="button" onMouseDown={preventToolbarBlur} onClick={() => runCommand('bold')} title="Bold" aria-label="Bold"><Bold size={15} aria-hidden="true" /><span>Bold</span></button>
-          <button type="button" onMouseDown={preventToolbarBlur} onClick={() => runCommand('italic')} title="Italic" aria-label="Italic"><Italic size={15} aria-hidden="true" /><span>Italic</span></button>
-          <button type="button" onMouseDown={preventToolbarBlur} onClick={() => runCommand('underline')} title="Underline" aria-label="Underline"><Underline size={15} aria-hidden="true" /><span>Underline</span></button>
-          <button type="button" onMouseDown={preventToolbarBlur} onClick={() => runCommand('strikeThrough')} title="Strikethrough" aria-label="Strikethrough"><Strikethrough size={15} aria-hidden="true" /><span>Strike</span></button>
-          <span className="admin-editor-toolbar__divider" aria-hidden="true" />
-          <button type="button" onMouseDown={preventToolbarBlur} onClick={() => { const href = window.prompt('Link URL')?.trim(); if (href) runCommand('createLink', href) }} title="Link" aria-label="Link"><Link2 size={15} aria-hidden="true" /><span>Link</span></button>
-          <button type="button" onMouseDown={preventToolbarBlur} onClick={() => runCommand('insertUnorderedList')} title="Bullet list" aria-label="Bullet list"><List size={15} aria-hidden="true" /><span>List</span></button>
-          <button type="button" onMouseDown={preventToolbarBlur} onClick={() => runCommand('insertOrderedList')} title="Numbered list" aria-label="Numbered list"><ListOrdered size={15} aria-hidden="true" /><span>Numbered</span></button>
-          <button type="button" onMouseDown={preventToolbarBlur} onClick={() => runCommand('formatBlock', 'blockquote')} title="Blockquote" aria-label="Blockquote"><Quote size={15} aria-hidden="true" /><span>Quote</span></button>
-          <button type="button" onMouseDown={preventToolbarBlur} onClick={() => runCommand('formatBlock', 'pre')} title="Code block" aria-label="Code block"><Code2 size={15} aria-hidden="true" /><span>Code</span></button>
-          <button type="button" className="admin-editor-toolbar__more" onMouseDown={preventToolbarBlur} onClick={() => setAdvancedOpen((open) => !open)} aria-expanded={advancedOpen} title="More formatting"><MoreHorizontal size={16} aria-hidden="true" /><span>More</span></button>
-          {advancedOpen && <div className="admin-editor-toolbar__advanced">
-            <div className="admin-editor-toolbar__color-wrap">
-              <button type="button" onMouseDown={preventToolbarBlur} onClick={() => setColorOpen((open) => !open)} aria-expanded={colorOpen} title="Text color" aria-label="Text color"><Palette size={15} aria-hidden="true" /><span>Color</span></button>
-              {colorOpen && <div className="admin-editor-toolbar__color-menu" role="menu" aria-label="Text colors">
-                {COLORS.map((color) => <button key={color.value} type="button" role="menuitem" onMouseDown={preventToolbarBlur} onClick={() => { wrapSelection('span', color.value); setColorOpen(false) }} title={color.label} aria-label={`Text color ${color.label}`}><span className={`admin-editor-toolbar__swatch ${color.className}`} aria-hidden="true" />{color.label}</button>)}
-              </div>}
-            </div>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => wrapSelection('mark')} title="Highlight" aria-label="Highlight"><Highlighter size={15} aria-hidden="true" /><span>Highlight</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => void openMediaPicker()} title="Browse media library" aria-label="Browse media library"><ImagePlus size={15} aria-hidden="true" /><span>Media</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={addImage} title="Add image from URL" aria-label="Add image from URL"><ImagePlus size={15} aria-hidden="true" /><span>Image URL</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={addMediaTextBlock} title="Add image with supporting text" aria-label="Add image with supporting text"><ImagePlus size={15} aria-hidden="true" /><span>Image + text</span></button>
-            <button type="button" onMouseDown={preventToolbarBlur} onClick={() => runCommand('removeFormat')} title="Clear formatting" aria-label="Clear formatting"><Eraser size={15} aria-hidden="true" /><span>Clear</span></button>
-          </div>}
-        </div>
+      {mode === 'visual' ? (
         <div
           ref={visualRef}
           id="content"
           contentEditable
           suppressContentEditableWarning
           role="textbox"
+          aria-label="Article body"
           aria-multiline="true"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? 'content-error' : undefined}
-          onInput={syncVisualValue}
-          onBlur={onBlur}
-          className="admin-rich-editor markdown-rich-content min-h-[380px] rounded-[10px] border border-neutral-300 bg-white px-4 py-3 text-[15px] leading-[1.7] text-neutral-800 outline-none"
-          data-placeholder="Start writing your article…"
+          spellCheck
+          onInput={() => { sync(); detectSlash() }}
+          onKeyDown={onKeyDown}
+          onKeyUp={(event) => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'Backspace') detectSlash() }}
+          onBlur={() => { rememberSelection(); onBlur?.() }}
+          onPaste={onPaste}
+          onDrop={onDrop}
+          className="admin-rte__surface markdown-rich-content"
+          data-placeholder="Start writing… type / for blocks"
         />
-        <p className="text-[12px] text-neutral-400">Add images from a URL, or use Image + text for a responsive editorial split block.</p>
-      </>}
+      ) : (
+        <textarea
+          id="content"
+          className="admin-rte__code"
+          value={value}
+          spellCheck={false}
+          onChange={(event) => onChange(event.target.value)}
+          onBlur={onBlur}
+          aria-label="Article HTML"
+        />
+      )}
 
-      {mode === 'preview' && <div className="markdown-rich-content min-h-[380px] rounded-[10px] border border-neutral-200 bg-neutral-50 px-4 py-3 text-[14px] leading-[1.7] text-neutral-800">
-        {value.trim() ? <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={markdownRehypePlugins}>{value}</ReactMarkdown> : <p className="text-neutral-400">Nothing to preview yet.</p>}
-      </div>}
-
-      {mediaOpen && <div className="admin-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setMediaOpen(false) }}>
-        <section className="admin-modal admin-rich-media-picker" role="dialog" aria-modal="true" aria-labelledby="rich-media-picker-title">
-          <div className="admin-modal__header">
-            <div><p className="admin-eyebrow">Content media</p><h2 id="rich-media-picker-title">Choose an image</h2></div>
-            <button type="button" className="admin-button admin-button--quiet" onClick={() => setMediaOpen(false)}>Close</button>
-          </div>
-          <label className="admin-upload-dropzone">
-            <span className="font-medium text-neutral-900">Upload a new image</span>
-            <span className="text-[12px] text-neutral-500">It will be added to the Media Library and inserted here.</span>
-            <input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" disabled={mediaLoading} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadAndInsert(file) }} />
-          </label>
-          {mediaLoading ? <p className="text-[13px] text-neutral-500">Loading media…</p> : mediaAssets.length === 0 ? <p className="text-[13px] text-neutral-500">No images in the library yet. Upload one above.</p> : <div className="admin-rich-media-grid">{mediaAssets.map((asset) => <article key={asset.id} className="admin-rich-media-card"><img src={asset.publicUrl} alt="" /><div><strong>{asset.originalName}</strong><span>{asset.altText || 'Missing alt text'}</span></div><div className="admin-rich-media-card__actions"><button type="button" className="admin-button admin-button--secondary" onClick={() => insertMediaAsset(asset)}>Image</button><button type="button" className="admin-button admin-button--quiet" onClick={() => insertMediaAsset(asset, true)}>Image + text</button></div></article>)}</div>}
-        </section>
-      </div>}
+      {slash && filteredSlash.length > 0 && (
+        <div className="admin-slash" style={{ top: slash.top, bottom: slash.bottom, left: slash.left }} role="listbox" aria-label="Insert a block">
+          <p className="admin-menu__label">Blocks</p>
+          {filteredSlash.map((item, index) => {
+            const Icon = item.icon
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="option"
+                aria-selected={index === slash.index}
+                className="admin-slash__item"
+                onMouseDown={(event) => event.preventDefault()}
+                onMouseMove={() => setSlash({ ...slash, index })}
+                onClick={() => chooseSlash(item)}
+              >
+                <span className="admin-slash__icon"><Icon size={16} strokeWidth={1.7} aria-hidden="true" /></span>
+                <span><strong>{item.label}</strong><small>{item.hint}</small></span>
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {error && <p id="content-error" className="admin-field-error" role="alert">{error}</p>}
-      <div className="text-right text-[12px] text-neutral-400">{value.length.toLocaleString()} / 100,000</div>
+
+      {mediaTarget && (
+        <MediaPicker
+          title={mediaTarget === 'media-text' ? 'Choose an image for the layout' : 'Insert an image'}
+          onClose={() => setMediaTarget(null)}
+          onPick={(picked) => insertPicked(picked, mediaTarget)}
+        />
+      )}
     </div>
   )
 }

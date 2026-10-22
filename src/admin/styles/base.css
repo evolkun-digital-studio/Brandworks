@@ -1,0 +1,73 @@
+@reference "../../index.css";
+
+@layer components {
+  .admin-app {
+    @apply min-h-screen bg-a-bg text-[14px] leading-normal text-a-ink antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter Variable', 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.006em;
+    text-rendering: optimizeLegibility;
+  }
+
+  .admin-app *,
+  .admin-app *::before,
+  .admin-app *::after {
+    @apply box-border;
+  }
+
+  .admin-app :where(button, input, select, textarea) {
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+  }
+
+  .admin-app :where(a) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .admin-app :where(h1, h2, h3, h4, p) {
+    margin: 0;
+  }
+
+  .admin-app :where(h1, h2, h3, h4, h5, h6) {
+    font-family: inherit;
+  }
+
+  .admin-app ::selection {
+    @apply bg-a-accent-soft;
+  }
+
+  .admin-app :where(button, a, [tabindex]):focus-visible {
+    @apply outline-2 outline-offset-2 outline-a-accent;
+  }
+
+  .admin-app :where(input, select, textarea):focus-visible {
+    @apply outline-none;
+  }
+
+  .admin-app kbd {
+    @apply inline-grid h-5 min-w-5 place-items-center rounded-[5px] bg-a-fill px-[5px] text-[11px] leading-none font-medium tracking-normal text-a-ink-2;
+    font-family: inherit;
+  }
+
+  .admin-skip-link {
+    @apply fixed top-3 left-3 z-200 -translate-y-[160%] rounded-a bg-a-ink px-3.5 py-2 font-medium text-a-bg transition-transform duration-180 ease-a focus:translate-y-0;
+  }
+
+  .admin-app * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--a-line-2) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .admin-app *,
+    .admin-app *::before,
+    .admin-app *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

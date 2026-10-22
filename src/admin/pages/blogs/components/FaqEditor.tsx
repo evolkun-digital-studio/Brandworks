@@ -1,3 +1,4 @@
+import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react'
 import type { FaqItem } from '../../../api/blogTypes'
 
 const MAX_FAQ_ITEMS = 20
@@ -9,22 +10,10 @@ interface FaqEditorProps {
   onChange: (next: FaqItem[]) => void
 }
 
-/**
- * Add/remove/reorder editor for structured FAQ entries — stored as
- * data (question/answer pairs), not embedded in Markdown, so a future
- * phase can render both a visible FAQ section and FAQ structured data
- * from the same source (Phase 6 spec, section 10).
- */
+/** Question/answer pairs, stored as data rather than embedded in the article body. */
 function FaqEditor({ items, onChange }: FaqEditorProps) {
-  function updateAt(index: number, patch: Partial<FaqItem>) {
-    onChange(items.map((item, i) => (i === index ? { ...item, ...patch } : item)))
-  }
-
-  function removeAt(index: number) {
-    onChange(items.filter((_, i) => i !== index))
-  }
-
-  function moveAt(index: number, direction: -1 | 1) {
+  const update = (index: number, patch: Partial<FaqItem>) => onChange(items.map((item, i) => (i === index ? { ...item, ...patch } : item)))
+  function move(index: number, direction: -1 | 1) {
     const target = index + direction
     if (target < 0 || target >= items.length) return
     const next = [...items]
@@ -32,89 +21,30 @@ function FaqEditor({ items, onChange }: FaqEditorProps) {
     onChange(next)
   }
 
-  function addItem() {
-    onChange([...items, { question: '', answer: '' }])
-  }
-
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-[14px] font-medium text-neutral-900">FAQ items</span>
-        <span className="text-[12px] text-neutral-400">
-          {items.length}/{MAX_FAQ_ITEMS}
-        </span>
+    <div>
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <span className="text-[13px] font-semibold">Questions</span>
+        <span className="text-xs tabular-nums text-a-ink-3">{items.length}/{MAX_FAQ_ITEMS}</span>
       </div>
-
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {items.map((item, index) => (
-          <div key={index} className="rounded-[10px] border border-neutral-200 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-medium uppercase tracking-wide text-neutral-500">
-                FAQ {index + 1}
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  disabled={index === 0}
-                  onClick={() => moveAt(index, -1)}
-                  aria-label="Move up"
-                  className="flex h-6 w-6 items-center justify-center text-neutral-400 transition-colors hover:text-neutral-900 disabled:opacity-30"
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  disabled={index === items.length - 1}
-                  onClick={() => moveAt(index, 1)}
-                  aria-label="Move down"
-                  className="flex h-6 w-6 items-center justify-center text-neutral-400 transition-colors hover:text-neutral-900 disabled:opacity-30"
-                >
-                  ↓
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeAt(index)}
-                  aria-label="Remove FAQ item"
-                  className="flex h-6 w-6 items-center justify-center rounded-[4px] text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                >
-                  &times;
-                </button>
+          <div key={index} className="rounded-a-lg bg-a-fill p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-semibold text-a-ink-2">Question {index + 1}</span>
+              <div className="flex items-center">
+                <button type="button" className="admin-icon-button size-6" disabled={index === 0} onClick={() => move(index, -1)} aria-label="Move up"><ArrowUp size={13} aria-hidden="true" /></button>
+                <button type="button" className="admin-icon-button size-6" disabled={index === items.length - 1} onClick={() => move(index, 1)} aria-label="Move down"><ArrowDown size={13} aria-hidden="true" /></button>
+                <button type="button" className="admin-icon-button size-6" onClick={() => onChange(items.filter((_, i) => i !== index))} aria-label="Remove question"><X size={13} aria-hidden="true" /></button>
               </div>
             </div>
-
-            <div className="mt-3 flex flex-col gap-3">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[13px] font-medium text-neutral-700">Question</label>
-                <input
-                  type="text"
-                  value={item.question}
-                  onChange={(e) => updateAt(index, { question: e.target.value })}
-                  maxLength={QUESTION_MAX}
-                  className="w-full rounded-[8px] border border-neutral-300 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-500 focus:outline-none"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[13px] font-medium text-neutral-700">Answer</label>
-                <textarea
-                  value={item.answer}
-                  onChange={(e) => updateAt(index, { answer: e.target.value })}
-                  maxLength={ANSWER_MAX}
-                  rows={3}
-                  className="w-full resize-y rounded-[8px] border border-neutral-300 px-3 py-2 text-[14px] text-neutral-900 focus:border-neutral-500 focus:outline-none"
-                />
-              </div>
-            </div>
+            <input type="text" className="admin-input" value={item.question} onChange={(event) => update(index, { question: event.target.value })} maxLength={QUESTION_MAX} placeholder="Question" aria-label={`Question ${index + 1}`} />
+            <textarea className="admin-textarea mt-2" rows={3} value={item.answer} onChange={(event) => update(index, { answer: event.target.value })} maxLength={ANSWER_MAX} placeholder="Answer" aria-label={`Answer ${index + 1}`} />
           </div>
         ))}
       </div>
-
-      <button
-        type="button"
-        onClick={addItem}
-        disabled={items.length >= MAX_FAQ_ITEMS}
-        className="w-fit rounded-[6px] border border-neutral-300 px-3 py-1.5 text-[13px] font-medium text-neutral-700 transition-colors hover:border-neutral-900 hover:text-neutral-900 disabled:opacity-40"
-      >
-        + Add FAQ
+      <button type="button" className="admin-link mt-2" disabled={items.length >= MAX_FAQ_ITEMS} onClick={() => onChange([...items, { question: '', answer: '' }])}>
+        <Plus size={13} aria-hidden="true" /> Add question
       </button>
     </div>
   )

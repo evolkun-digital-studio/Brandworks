@@ -1,14 +1,18 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react'
 
 type AdminButtonVariant = 'primary' | 'secondary' | 'quiet' | 'danger'
+type AdminButtonSize = 'sm' | 'md' | 'lg'
 
 interface AdminButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: AdminButtonVariant
+  size?: AdminButtonSize
   icon?: ReactNode
+  ref?: Ref<HTMLButtonElement>
 }
 
 function AdminButton({
   variant = 'secondary',
+  size = 'md',
   icon,
   className = '',
   type = 'button',
@@ -19,10 +23,10 @@ function AdminButton({
     <button
       {...props}
       type={type}
-      className={`admin-button admin-button--${variant} ${className}`}
+      className={`admin-button admin-button--${variant}${size === 'md' ? '' : ` admin-button--${size}`} ${className}`.trim()}
     >
       {icon}
-      <span>{children}</span>
+      {children != null && <span>{children}</span>}
     </button>
   )
 }
