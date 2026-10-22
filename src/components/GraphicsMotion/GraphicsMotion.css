@@ -567,7 +567,7 @@
   font-size: clamp(
     24px,
     2.5vw,
-    42px
+    32px
   );
 
   font-weight: 400;

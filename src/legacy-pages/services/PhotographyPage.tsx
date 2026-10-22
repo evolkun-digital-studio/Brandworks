@@ -5,7 +5,7 @@ import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { heroPhotograph, photographySeo } from '../../data/photography.data'
-import { closingGrid, frames, sphereTiles, wall, wallIntro, type FrameKey } from '../../data/photographyArchive'
+import { closingColumns, frames, sphereTiles, wall, wallIntro, type FrameKey } from '../../data/photographyArchive'
 import { PhotographyProjectTransition, type Selection, type ViewerPhoto } from '../../components/PhotographyWall/PhotographyWall'
 import { useArchiveMode } from '../../components/PhotoArchive/useArchiveMode'
 import './PhotographyPage.css'
@@ -247,10 +247,13 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
       </section>
 
       <section className="bwp-closing" aria-label="More frames">
-        {closingGrid.map(({ key, ratio }) => (
-          <Photo key={key} id={key}
-            sizes="(max-width: 767px) 50vw, 33.3vw"
-            style={{ '--ratio': ratio } as CSSProperties} />
+        {closingColumns.map((column, columnIndex) => (
+          <div className="bwp-closing-lane" key={columnIndex}>
+            {column.map((key) => (
+              <Photo key={key} id={key}
+                sizes={`(max-width: 767px) 50vw, (max-width: 1023px) 50vw, ${columnIndex === 0 ? '43vw' : columnIndex === 1 ? '25vw' : '32vw'}`} />
+            ))}
+          </div>
         ))}
       </section>
 

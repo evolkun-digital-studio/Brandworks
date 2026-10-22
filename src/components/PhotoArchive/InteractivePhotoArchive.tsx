@@ -10,6 +10,9 @@ import PhotoPlane from './PhotoPlane'
 
 const { clamp, damp } = MathUtils
 const uniqueKeys = [...new Set(sphereTiles.map((tile) => tile.key))]
+const AUTO_TURN_SECONDS = 65
+const AUTO_YAW_SPEED = (Math.PI * 2) / AUTO_TURN_SECONDS
+const AUTO_RESUME_EASE = 2.4
 
 type View = { yaw: number; pitch: number }
 
@@ -121,6 +124,38 @@ export default function InteractivePhotoArchive({ mode, opened, onOpen, indexRef
   useEffect(() => {
     field.current.opened = opened
   }, [field, opened])
+
+  // Turn through one full revolution every 65 seconds. Rotation is folded
+  // into the existing endless horizontal drag offset, so pointer control,
+  // keyboard focus and the camera's release inertia keep a single source of
+  // truth. The browser pauses requestAnimationFrame in background tabs; the
+  // delta cap prevents a jump when it resumes.
+  useEffect(() => {
+    const element = layer.current
+    if (!active || !element || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    let frame = 0
+    let previous = performance.now()
+    let speed = AUTO_YAW_SPEED
+    const rotate = (now: number) => {
+      const dt = Math.min(Math.max((now - previous) / 1000, 0), 0.1)
+      previous = now
+      const state = field.current
+
+      if (state.drag.active) {
+        speed = 0
+      } else {
+        speed = damp(speed, AUTO_YAW_SPEED, AUTO_RESUME_EASE, dt)
+        const height = element.clientHeight
+        if (height > 0) state.drag.x += (speed * dt) / radiansPerPixel(height)
+      }
+
+      frame = requestAnimationFrame(rotate)
+    }
+
+    frame = requestAnimationFrame(rotate)
+    return () => cancelAnimationFrame(frame)
+  }, [active, field])
 
   // Endless left/right; up/down only as far as the band of photographs allows.
   useEffect(() => {

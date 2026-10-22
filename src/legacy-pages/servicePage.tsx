@@ -1,10 +1,7 @@
+import Image from 'next/image'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { mediaUrl } from '../lib/media'
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
 import { Link } from '../routing'
 import { useNativeMetadata } from '../routing/context'
 const photo1 = mediaUrl("our_stra.jpg")
@@ -77,8 +74,8 @@ const services: Service[] = [
   },
   {
     number: '03',
-    slug: 'content-creation',
-    title: 'Content Creation',
+    slug: 'concept-creation',
+    title: 'Concept Creation',
     group: 'Direction',
     description:
       'Concept-led brand content developed for campaigns, platforms and audiences instead of simply filling a content calendar.',
@@ -252,93 +249,7 @@ const serviceGroups = [
 function usePageSeo() {
   const nativeMetadata = useNativeMetadata()
   useEffect(() => {
-    const title =
-      'Creative, Digital & Marketing Services | BrandWorks'
-
-    const description =
-      'Explore BrandWorks services across brand strategy, graphic design, content creation, photography, videography, social media marketing, PR, founder reputation management, performance marketing, SEO, and web design and development.'
-
-    if (!nativeMetadata) document.title = title
-
-    const setMeta = (
-      name: string,
-      content: string,
-      property = false,
-    ) => {
-      const selector = property
-        ? `meta[property="${name}"]`
-        : `meta[name="${name}"]`
-
-      let element =
-        document.head.querySelector<HTMLMetaElement>(selector)
-
-      if (!element) {
-        element = document.createElement('meta')
-
-        if (property) {
-          element.setAttribute('property', name)
-        } else {
-          element.setAttribute('name', name)
-        }
-
-        document.head.appendChild(element)
-      }
-
-      element.setAttribute('content', content)
-    }
-
-    if (!nativeMetadata) {
-      setMeta('description', description)
-      setMeta('robots', 'index,follow,max-image-preview:large')
-      setMeta('og:title', title, true)
-      setMeta('og:description', description, true)
-      setMeta('og:type', 'website', true)
-      setMeta('og:url', 'https://brandworks.me/services', true)
-      setMeta('twitter:card', 'summary_large_image')
-      setMeta('twitter:title', title)
-      setMeta('twitter:description', description)
-
-      let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
-      if (!canonical) {
-        canonical = document.createElement('link')
-        canonical.rel = 'canonical'
-        document.head.appendChild(canonical)
-      }
-      canonical.href = 'https://brandworks.me/services'
-    }
-
-    const schema = {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: 'https://brandworks.me/',
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: 'Services',
-          item: 'https://brandworks.me/services',
-        },
-      ],
-    }
-
-    let script =
-      document.head.querySelector<HTMLScriptElement>(
-        '#services-breadcrumb-schema',
-      )
-
-    if (!script) {
-      script = document.createElement('script')
-      script.id = 'services-breadcrumb-schema'
-      script.type = 'application/ld+json'
-      document.head.appendChild(script)
-    }
-
-    script.textContent = JSON.stringify(schema)
+    if (!nativeMetadata) document.title = 'Creative, Digital & Marketing Services | BrandWorks'
   }, [nativeMetadata])
 }
 
@@ -450,12 +361,8 @@ export default function ServicesPage() {
                   >
                     <Link
                       to={`/services/${service.slug}`}
-                      className="group grid min-h-[84px] grid-cols-[42px_1fr_auto] items-center gap-4 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-4 sm:min-h-[94px] sm:grid-cols-[52px_minmax(190px,0.72fr)_minmax(240px,1fr)_auto] sm:gap-5"
+                      className="group grid min-h-[84px] grid-cols-[1fr_auto] items-center gap-4 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-4 sm:min-h-[94px] sm:grid-cols-[minmax(190px,0.72fr)_minmax(240px,1fr)_auto] sm:gap-5"
                     >
-                      <span className="text-[11px] tabular-nums text-neutral-400">
-                        {service.number}
-                      </span>
-
                       <span className="text-[20px] font-medium leading-tight tracking-[-0.025em] sm:text-[22px]">
                         {service.shortTitle ??
                           service.title}
@@ -479,33 +386,33 @@ export default function ServicesPage() {
             className="hidden lg:block"
           >
             <div className="sticky top-24">
-              <div className="aspect-[4/5] overflow-hidden bg-neutral-100">
-                <img
-                  key={activeService.image}
-                  src={activeService.image}
-                  alt=""
-                  width={760}
-                  height={950}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover opacity-100 transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none"
-                />
-              </div>
-
-              <div className="mt-5 flex items-start justify-between gap-5">
-                <div>
-                  <p className="text-sm font-medium">
-                    {activeService.title}
-                  </p>
-
-                  <p className="mt-1 text-xs text-neutral-500">
-                    {activeService.group}
-                  </p>
-                </div>
-
-                <span className="text-xs text-neutral-400">
-                  {activeService.number} / 10
-                </span>
+              <div className="relative h-[clamp(620px,72vh,780px)] overflow-hidden rounded-[40px] bg-neutral-100 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:z-10 after:h-[38%] after:bg-gradient-to-t after:from-black/55 after:via-black/15 after:to-transparent after:content-['']">
+                {services.map((service, index) => {
+                  const isActive = service.slug === activeService.slug
+                  return (
+                    <img
+                      key={service.slug}
+                      src={service.image}
+                      alt=""
+                      width={760}
+                      height={950}
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      className={`absolute inset-0 h-full w-full transform-gpu object-cover object-center transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${isActive ? 'opacity-100' : 'opacity-0'}`}
+                    />
+                  )
+                })}
+                {services.map((service) => {
+                  const isActive = service.slug === activeService.slug
+                  return (
+                    <p
+                      key={service.slug}
+                      className={`pointer-events-none absolute bottom-6 left-6 z-20 max-w-[90%] text-[clamp(1.5rem,2vw,1.875rem)] font-medium leading-[1.05] tracking-[-0.03em] text-white transition-opacity duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none ${isActive ? 'opacity-100' : 'opacity-0'}`}
+                    >
+                      {service.title}
+                    </p>
+                  )
+                })}
               </div>
             </div>
           </aside>
