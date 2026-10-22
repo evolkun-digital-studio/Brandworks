@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link } from '../../routing'
 import { useNativeMetadata } from '../../routing/context'
+import { mediaUrl } from '../../lib/media'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
@@ -8,18 +9,18 @@ import { useGSAP } from '@gsap/react'
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 /* -------------------------------------------------------------------------- */
-/*  Photos — replace with your own                                            */
+/*  BrandWorks website media                                                  */
 /* -------------------------------------------------------------------------- */
 
 const PHOTOS = {
-  hero: '/images/concept/workshop-wall.jpg',
-  billboard: '/images/concept/billboard.jpg',
-  film: '/images/concept/film-still.jpg',
-  pack: '/images/concept/pack.jpg',
-  social: '/images/concept/social-post.jpg',
-  window: '/images/concept/shop-window.jpg',
-  event: '/images/concept/launch-event.jpg',
-  routes: ['/images/concept/route-1.jpg', '/images/concept/route-2.jpg', '/images/concept/route-3.jpg'],
+  hero: mediaUrl('our_stra.jpg'),
+  billboard: mediaUrl('ideas.jpg'),
+  film: mediaUrl('campaign-still.webp'),
+  pack: mediaUrl('moisturizer mock up.png'),
+  social: mediaUrl('content-still.webp'),
+  window: mediaUrl('creative.jpg'),
+  event: mediaUrl('campaign-action.jpg'),
+  routes: [mediaUrl('ideas.jpg'), mediaUrl('creative.jpg'), mediaUrl('movment.jpg')],
 }
 
 /* -------------------------------------------------------------------------- */
@@ -197,8 +198,8 @@ function IdeaTravels() {
             {/* the idea */}
             <div data-idea className="absolute left-1/2 top-[42%] w-[min(34vw,520px)] -translate-x-1/2 -translate-y-1/2 bg-[#ccff00] px-[2.4vw] py-[2.2vw] text-[#0d0d0d]">
               <p className="m-0 text-[13px] text-[#0d0d0d]/60">The idea</p>
-              <p className={`${display} m-0 mt-3 text-[clamp(34px,3.4vw,58px)] leading-[0.95]`}>{IDEA}</p>
-              <p className="m-0 mt-5 text-[13px] leading-[1.5] text-[#0d0d0d]/70">An example for a made-up city tea brand whose customers have no time and miss the hills.</p>
+              <p className={`${display} m-0 mt-3 text-[clamp(34px,3.4vw,58px)] leading-[0.95] [font-family:Grimblade,ui-sans-serif,system-ui,-apple-system,sans-serif]`}>{IDEA}</p>
+              {/* <p className="m-0 mt-5 text-[13px] leading-[1.5] text-[#0d0d0d]/70">An example for a made-up city tea brand whose customers have no time and miss the hills.</p> */}
             </div>
           </div>
 
@@ -216,7 +217,7 @@ function IdeaTravels() {
       <div className={`${shell} py-20 lg:hidden`}>
         <div className="bg-[#ccff00] p-7">
           <p className="m-0 text-[13px] text-[#0d0d0d]/60">The idea</p>
-          <p className={`${display} m-0 mt-3 text-[40px] leading-[0.95]`}>{IDEA}</p>
+          <p className={`${display} m-0 mt-3 text-[40px] leading-[0.95] [font-family:Grimblade,ui-sans-serif,system-ui,-apple-system,sans-serif]`}>{IDEA}</p>
           <p className="m-0 mt-4 text-[13px] leading-[1.5] text-[#0d0d0d]/70">For a city tea brand whose customers have no time and miss the hills.</p>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3">
@@ -245,10 +246,10 @@ function WhyItMatters() {
         <p className="m-0">
           Without one, every post, ad and launch is its own small project, and none of them add up. With one, people start to recognise you before they see the logo, and every new piece of work makes the last one stronger.
         </p>
-          {/* <p className="m-0">
+          <p className="m-0">
             The evidence backs this up, with a warning attached. In Peter Field’s analysis of campaigns submitted to the IPA Effectiveness Awards, creatively awarded campaigns were once around twelve times more efficient at growing market share than other campaigns. As more of that work became short, one-off activity, the advantage fell to around four times.{' '}
             <a href={SOURCES[1].url} target="_blank" rel="noopener noreferrer" className="underline decoration-[#0d0d0d]/25 underline-offset-4 hover:decoration-[#0d0d0d]">Source</a>
-          </p> */}
+          </p>
         <p className="m-0 text-[#0d0d0d]">
           Creativity pays when it’s given time to build. That’s why we design concepts to run for years, not weeks.
         </p>
@@ -266,9 +267,9 @@ function Deliverables() {
           Not a mood board and a tagline. A working idea with everything your team needs to use it well, long after the presentation.
         </p>
       </div>
-      <dl className="m-0 mt-16 grid gap-x-20 sm:grid-cols-2 lg:mt-24">
+      <dl className="m-0 mt-16 grid gap-4 sm:grid-cols-2 lg:mt-24 lg:gap-5">
         {DELIVERABLES.map(([title, body]) => (
-          <div key={title} className="border-t border-[#0d0d0d] py-8">
+          <div key={title} className="min-h-[220px] rounded-[24px] border border-[#e6e6e6] bg-[#f7f7f5] p-6 transition-colors duration-300 hover:bg-[#f1f1ed] sm:p-8">
             <dt className="text-[clamp(20px,1.7vw,26px)] tracking-[-0.015em] text-[#0d0d0d]">{title}</dt>
             <dd className="m-0 mt-3 max-w-[46ch] text-[15px] leading-[1.65] text-[#5a5a5a]">{body}</dd>
           </div>
@@ -387,7 +388,7 @@ function Closing() {
   return (
     <section className="bg-[#0d0d0d] text-white">
       <div className={`${shell} grid gap-12 py-24 lg:grid-cols-[1.4fr_1fr] lg:items-end lg:py-36`}>
-        <h2 className={`${display} m-0 max-w-[14ch] text-[clamp(44px,6vw,104px)] leading-[0.92]`}>Got a brief, or just a problem?</h2>
+        <h2 className={`${display} m-0 max-w-[14ch] text-[72px] leading-[0.92]`}>Got a brief, or just a problem?</h2>
         <div>
           <p className="m-0 max-w-[40ch] text-[17px] leading-[1.7] text-white/70">
             Either is a fine place to start. Tell us what you’re launching or what isn’t working, and we’ll tell you how we’d approach it.
@@ -474,7 +475,7 @@ export default function ConceptCreationPage({ siteUrl }: { siteUrl?: string }) {
     <main className="w-full overflow-x-clip bg-white text-[#0d0d0d]">
       <Hero />
       <IdeaTravels />
-      <WhyItMatters />
+      {/* <WhyItMatters /> */}
       <Deliverables />
       <Routes />
       <Process />
