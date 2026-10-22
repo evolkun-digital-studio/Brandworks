@@ -24,44 +24,50 @@
   pointer-events: none;
 }
 
+/* Flat capsules: a thin outline in the page's ink colour, almost no fill.
+   No shadows, blur, gradients or blend modes — the page shows through. */
 .site-header__surface.is-on-dark {
-  --pill-ink: #fff;
-  --pill-bg: rgba(255, 255, 255, 0.08);
-  --pill-bg-hover: rgba(255, 255, 255, 0.18);
-  --pill-border: rgba(255, 255, 255, 0.2);
-  --pill-border-hover: rgba(255, 255, 255, 0.42);
+  --pill-ink: rgba(255, 255, 255, 0.92);
+  /* A barely-there lift (5%), as in the reference; still reads as outline-only. */
+  --pill-bg: rgba(255, 255, 255, 0.05);
+  --pill-bg-hover: rgba(255, 255, 255, 0.08);
+  --pill-border: rgba(255, 255, 255, 0.22);
+  --pill-border-hover: rgba(255, 255, 255, 0.5);
   --cta-ink: #fff;
   --cta-ink-hover: #111;
-  --cta-bg: rgba(255, 255, 255, 0.14);
-  --cta-bg-hover: rgba(255, 255, 255, 0.94);
+  --cta-bg: transparent;
+  --cta-bg-hover: var(--color-bw-lime);
   --cta-border: rgba(255, 255, 255, 0.45);
+  --cta-border-hover: var(--color-bw-lime);
 }
 
 .site-header__surface.is-on-light {
   --pill-ink: #111;
-  --pill-bg: rgba(17, 17, 17, 0.03);
-  --pill-bg-hover: rgba(17, 17, 17, 0.07);
-  --pill-border: rgba(17, 17, 17, 0.1);
-  --pill-border-hover: rgba(17, 17, 17, 0.22);
+  --pill-bg: transparent;
+  --pill-bg-hover: rgba(17, 17, 17, 0.05);
+  --pill-border: rgba(17, 17, 17, 0.18);
+  --pill-border-hover: rgba(17, 17, 17, 0.45);
   --cta-ink: #fff;
-  --cta-ink-hover: #fff;
+  --cta-ink-hover: #111;
   --cta-bg: #111;
-  --cta-bg-hover: #2a2a2a;
+  --cta-bg-hover: var(--color-bw-lime);
   --cta-border: #111;
+  --cta-border-hover: var(--color-bw-lime);
 }
 
 .nav-pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 25px;
-  padding: 0 18px;
+  height: 32px;
+  padding: 0 16px;
   border: 1px solid var(--pill-border);
   border-radius: 999px;
   background: var(--pill-bg);
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
   color: var(--pill-ink);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   font-family: var(--font-secondary);
   font-size: 14px;
   font-weight: 400;
@@ -79,48 +85,19 @@
   background: var(--pill-bg-hover);
 }
 
-/* A neutral smoky tint prevents the glass from disappearing over white while
-   the light inner edge keeps it defined over dark photography and video. */
-.nav-pill:not(.nav-pill--cta) {
-  border-color: rgba(255, 255, 255, 0.34);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.04) 48%),
-    rgba(12, 14, 16, 0.18);
-  color: #fff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.08);
-  -webkit-backdrop-filter: blur(24px) saturate(155%);
-  backdrop-filter: blur(24px) saturate(155%);
-  mix-blend-mode: normal;
-}
-
-.nav-pill:not(.nav-pill--cta):hover {
-  border-color: rgba(255, 255, 255, 0.56);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.06) 48%),
-    rgba(12, 14, 16, 0.52);
-}
-
+/* "Let's Talk": the same flat capsule, a touch larger, coloured by the tone's --cta-* values. */
 .nav-pill--cta {
-  height: 35px;
-  padding: 0 20px;
-  border-color: rgba(255, 255, 255, 0.42);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.04) 48%),
-    rgba(8, 10, 12, 0.35);
-  color: #fff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26);
-  -webkit-backdrop-filter: blur(24px) saturate(155%);
-  backdrop-filter: blur(24px) saturate(155%);
-  mix-blend-mode: normal;
+  height: 36px;
+  padding: 0 18px;
+  border-color: var(--cta-border);
+  background: var(--cta-bg);
+  color: var(--cta-ink);
 }
 
 .nav-pill--cta:hover {
-  border-color: rgba(221, 255, 102, 0.9);
-  background: rgba(204, 255, 0, 0.9);
-  color: #111;
+  border-color: var(--cta-border-hover);
+  background: var(--cta-bg-hover);
+  color: var(--cta-ink-hover);
 }
 
 .nav-pill:focus-visible {
