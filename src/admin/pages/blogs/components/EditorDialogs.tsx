@@ -13,6 +13,9 @@ import type { AnalysisResult } from '../lib/blogAnalyzer'
 /** Closes on Escape, keeps focus inside, and gives focus back afterwards. */
 function useDialogFocus(onClose: () => void, initial?: React.RefObject<HTMLElement | null>) {
   const surface = useRef<HTMLElement>(null)
+  // The caller's onClose changes every render; keep the effect from re-running with it.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -23,7 +26,7 @@ function useDialogFocus(onClose: () => void, initial?: React.RefObject<HTMLEleme
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault()
-        onClose()
+        onCloseRef.current()
         return
       }
       if (event.key !== 'Tab' || !surface.current) return
@@ -45,7 +48,7 @@ function useDialogFocus(onClose: () => void, initial?: React.RefObject<HTMLEleme
       window.removeEventListener('keydown', onKeyDown)
       previous?.focus()
     }
-  }, [onClose, initial])
+  }, [initial])
 
   return surface
 }

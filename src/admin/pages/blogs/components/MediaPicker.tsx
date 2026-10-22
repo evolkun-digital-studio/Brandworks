@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { isOptimizedPreview, previewUrl } from '../../../lib/imageUrl'
 import { ImagePlus, Search, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import * as mediaApi from '../../../api/mediaAdminApi'
@@ -33,6 +34,10 @@ function MediaPicker({ title = 'Choose an image', onClose, onPick }: MediaPicker
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
+  // Callers pass a fresh onClose every render. Keep it in a ref so the focus
+  // setup below runs once, instead of re-focusing (and re-blurring) each render.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -40,7 +45,7 @@ function MediaPicker({ title = 'Choose an image', onClose, onPick }: MediaPicker
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault()
-        onClose()
+        onCloseRef.current()
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -48,7 +53,7 @@ function MediaPicker({ title = 'Choose an image', onClose, onPick }: MediaPicker
       window.removeEventListener('keydown', onKeyDown)
       previous?.focus()
     }
-  }, [onClose])
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -163,7 +168,13 @@ function MediaPicker({ title = 'Choose an image', onClose, onPick }: MediaPicker
                 onClick={() => onPick({ asset, url: absolute(asset.publicUrl) })}
                 title={asset.altText || asset.originalName}
               >
-                <img src={asset.publicUrl} alt="" loading="lazy" className="size-full object-cover" />
+                <img
+                  src={previewUrl(asset.publicUrl, 256)}
+                  alt=""
+                  loading="lazy"
+                  className="size-full object-cover"
+                  onError={(event) => { if (isOptimizedPreview(event.currentTarget.getAttribute('src') ?? '')) event.currentTarget.src = asset.publicUrl }}
+                />
                 <span className="absolute inset-x-0 bottom-0 truncate bg-linear-to-t from-black/60 to-transparent px-2.5 pt-6 pb-2 text-xs font-medium text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
                   {asset.originalName}
                 </span>

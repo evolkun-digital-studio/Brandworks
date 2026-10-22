@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { isOptimizedPreview, previewUrl } from '../../../lib/imageUrl'
 import { ImageOff, Info, Replace, X } from 'lucide-react'
 import AdminButton from '../../../components/AdminButton'
 import AdminIconButton from '../../../components/AdminIconButton'
@@ -43,10 +44,16 @@ function ImageDetailsDialog({ src, mode, initial, onSubmit, onCancel, onReplace 
   const [tried, setTried] = useState(false)
   const altRef = useRef<HTMLTextAreaElement>(null)
   const surface = useRef<HTMLElement>(null)
+  const [useOriginal, setUseOriginal] = useState(false)
+  const onCancelRef = useRef(onCancel)
+  onCancelRef.current = onCancel
   const canBeDecorative = mode !== 'cover'
   const altMissing = !decorative && !alt.trim()
 
-  useEffect(() => setFailed(false), [src])
+  useEffect(() => {
+    setFailed(false)
+    setUseOriginal(false)
+  }, [src])
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -54,7 +61,7 @@ function ImageDetailsDialog({ src, mode, initial, onSubmit, onCancel, onReplace 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault()
-        onCancel()
+        onCancelRef.current()
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -62,7 +69,7 @@ function ImageDetailsDialog({ src, mode, initial, onSubmit, onCancel, onReplace 
       window.removeEventListener('keydown', onKeyDown)
       previous?.focus()
     }
-  }, [onCancel])
+  }, [])
 
   function submit() {
     setTried(true)
@@ -96,7 +103,15 @@ function ImageDetailsDialog({ src, mode, initial, onSubmit, onCancel, onReplace 
                   <p className="text-xs text-a-ink-3">It may have been removed from the media library. You can still add details, or replace it.</p>
                 </div>
               ) : (
-                <img src={src} alt="" className="size-full object-contain" onError={() => setFailed(true)} />
+                <img
+                  src={useOriginal ? src : previewUrl(src, 640)}
+                  alt=""
+                  className="size-full object-contain"
+                  onError={(event) => {
+                    if (!useOriginal && isOptimizedPreview(event.currentTarget.getAttribute('src') ?? '')) setUseOriginal(true)
+                    else setFailed(true)
+                  }}
+                />
               )}
             </div>
             {onReplace && (

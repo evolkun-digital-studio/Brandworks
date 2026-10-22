@@ -2,7 +2,7 @@ import 'server-only'
 
 import { badRequest, notFound } from '../http/errors'
 import type { AdminDocument } from '../admin/types'
-import { countMediaUsage, deleteStoredFile, downloadStoredFile, findMediaAsset, insertMediaAsset, queryMediaAssets, restoreMediaAsset, softDeleteMediaAsset, updateMediaAsset, uploadStoredFile } from './repository'
+import { countMediaUsage, deleteStoredFile, downloadStoredFile, findMediaAssetByPublicId, insertMediaAsset, queryMediaAssets, restoreMediaAsset, softDeleteMediaAsset, updateMediaAsset, uploadStoredFile } from './repository'
 import { toMediaAssetResponse, type MediaKind } from './types'
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024
@@ -122,7 +122,7 @@ export async function restoreMedia(id: string) {
 }
 
 export async function getMediaStream(id: string) {
-  const asset = await findMediaAsset(id)
+  const asset = await findMediaAssetByPublicId(id)
   if (!asset) throw notFound('Media asset not found.')
   return { asset, stream: await downloadStoredFile(asset.fileId) }
 }

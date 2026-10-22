@@ -38,6 +38,7 @@ import { useAdminAuth } from '../../context/useAdminAuth'
 import DocumentPanel from './components/DocumentPanel'
 import EnrichPanel from './components/EnrichPanel'
 import ImageDetailsDialog from './components/ImageDetailsDialog'
+import { isOptimizedPreview, previewUrl } from '../../lib/imageUrl'
 import MediaPicker from './components/MediaPicker'
 import RichContentEditor from './components/RichContentEditor'
 import SeoPanel from './components/SeoPanel'
@@ -136,12 +137,16 @@ function CoverImage({
   const [linkDraft, setLinkDraft] = useState('')
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  const [useOriginal, setUseOriginal] = useState(false)
   const [dialog, setDialog] = useState<{ src: string; initial: Partial<ImageDetails> } | null>(null)
   const hasImage = isLikelyUrl(form.coverImage)
   const altError = touched.coverImageAlt ? fieldError(form, 'coverImageAlt') : null
   const fromLibrary = form.coverImage.includes('/api/media/')
 
-  useEffect(() => setFailed(false), [form.coverImage])
+  useEffect(() => {
+    setFailed(false)
+    setUseOriginal(false)
+  }, [form.coverImage])
 
   function applyLink() {
     const value = linkDraft.trim()
@@ -184,7 +189,17 @@ function CoverImage({
             </div>
           ) : (
             <>
-              <img key={attempt} src={form.coverImage} alt={form.coverImageAlt || 'Cover image'} title={form.coverImageTitle || undefined} className="aspect-[16/7] w-full object-cover" onError={() => setFailed(true)} />
+              <img
+                key={attempt}
+                src={useOriginal ? form.coverImage : previewUrl(form.coverImage, 1200)}
+                alt={form.coverImageAlt || 'Cover image'}
+                title={form.coverImageTitle || undefined}
+                className="aspect-[16/7] w-full object-cover"
+                onError={(event) => {
+                  if (!useOriginal && isOptimizedPreview(event.currentTarget.getAttribute('src') ?? '')) setUseOriginal(true)
+                  else setFailed(true)
+                }}
+              />
               <div className="absolute top-3 right-3 flex gap-2 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
                 <button type="button" className="admin-chip-button" onClick={() => setDialog({ src: form.coverImage, initial: { alt: form.coverImageAlt, title: form.coverImageTitle, caption: form.coverImageCaption } })}><Pencil size={14} aria-hidden="true" /> Details</button>
                 <button type="button" className="admin-chip-button" onClick={() => setPickerOpen(true)}><Replace size={14} aria-hidden="true" /> Replace</button>
@@ -436,7 +451,7 @@ function BlogEditor() {
   }, [])
 
   function markTouched(field: InlineField) {
-    setTouched((current) => ({ ...current, [field]: true }))
+    setTouched((current) => (current[field] ? current : { ...current, [field]: true }))
   }
 
   function clearLocalRecovery() {
