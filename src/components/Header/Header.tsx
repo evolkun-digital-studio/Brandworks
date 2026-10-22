@@ -90,7 +90,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
         </nav>
 
         {/* Right */}
-        <Link to="/contact" className="nav-pill nav-pill--cta justify-self-end">
+        <Link to="/start-project" className="nav-pill nav-pill--cta justify-self-end">
           <RollLabel>Let's Talk</RollLabel>
           <svg
             viewBox="0 0 24 24"

@@ -13,6 +13,10 @@ export const AnalyticsEvents = {
   contactCtaClick: 'contact_cta_click',
   /** A visitor clicks a "View Case Study" / service-related call-to-action. */
   serviceCtaClick: 'service_cta_click',
+  /** A visitor starts the website project questionnaire (/start-project). */
+  questionnaireStart: 'questionnaire_start',
+  /** A visitor submits the questionnaire — the conversion. Params: branch only, never answers. */
+  questionnaireSubmit: 'questionnaire_submit',
 } as const
 
 export type AnalyticsEventName = (typeof AnalyticsEvents)[keyof typeof AnalyticsEvents]

@@ -12,4 +12,8 @@ export async function ensureDatabaseIndexes(db: Db): Promise<void> {
   await db.collection('activity_logs').createIndex({ createdAt: -1 })
   await db.collection('activity_logs').createIndex({ entityType: 1, entityId: 1, createdAt: -1 })
   await db.collection('admin_preferences').createIndex({ adminId: 1 }, { unique: true })
+  await db.collection('project_questionnaires').createIndex({ createdAt: -1 })
+  await db.collection('project_questionnaires').createIndex({ status: 1, createdAt: -1 })
+  await db.collection('site_scans').createIndex({ domain: 1, createdAt: -1 })
+  await db.collection('site_scans').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 }

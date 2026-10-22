@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { mediaUrl } from '../lib/media'
 import { Link } from '../routing'
 import { useNativeMetadata } from '../routing/context'
