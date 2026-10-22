@@ -1,7 +1,7 @@
 .measure {
   position: relative;
   width: 100%;
-  overflow: hidden;
+  overflow-x: clip;
   background: #fff;
   color: #080808;
   text-align: center;
@@ -25,89 +25,79 @@
   width: 100%;
   max-width: 1700px;
   margin-inline: auto;
+  overflow: visible;
+  perspective: 1400px;
   cursor: grab;
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.measure__stage:active {
+.measure__stage.is-dragging,
+.measure__stage.is-dragging .measure__card {
   cursor: grabbing;
 }
 
-.measure__card-anchor {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 0;
-  height: 0;
-  will-change: transform;
+.measure__stage:focus-visible {
+  outline: 3px solid #080808;
+  outline-offset: -3px;
+  border-radius: 18px;
 }
 
-.measure__card-center {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translateX(-50%);
-  will-change: width, height;
-}
-
+/* Centred on the stage by the individual translate property, which the
+   browser applies before (outside) the transform motion writes. */
 .measure__card {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
   display: block;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   padding: 0;
   border: 0;
-  border-radius: clamp(0.75rem, 1vw, 1rem);
-  background: #151515;
+  border-radius: 18px;
+  background: #eee;
   color: #fff;
-  box-shadow: 0 1.25rem 3.5rem rgb(0 0 0 / 12%);
-  cursor: pointer;
+  cursor: inherit;
   transform-origin: 50% 50%;
-  will-change: transform, opacity;
+  will-change: transform;
+  /* Keeps the rounded clip intact under 3D transforms in Safari. */
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 .measure__card:focus-visible {
   outline: 3px solid #080808;
-  outline-offset: 5px;
+  outline-offset: 4px;
 }
 
 .measure__image {
   object-fit: cover;
   pointer-events: none;
-  transform: scale(1.015);
+  -webkit-user-drag: none;
 }
 
 .measure__shade {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgb(0 0 0 / 74%) 0%,
-    rgb(0 0 0 / 25%) 28%,
-    rgb(0 0 0 / 0%) 58%
-  );
+  inset: auto 0 0;
+  height: 40%;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0%), rgb(0 0 0 / 55%));
   pointer-events: none;
 }
 
 .measure__label {
   position: absolute;
-  right: clamp(1.2rem, 2vw, 2rem);
-  bottom: clamp(1.2rem, 2vw, 2rem);
-  left: clamp(1.2rem, 2vw, 2rem);
+  right: 1.25rem;
+  bottom: 1.1rem;
+  left: 1.25rem;
   z-index: 2;
   color: #fff;
   font-family: var(--font-secondary), sans-serif;
-  font-size: clamp(1.25rem, 1.55vw, 1.625rem);
+  font-size: clamp(1.25rem, 1.5vw, 1.5rem);
   font-weight: 500;
   line-height: 1.08;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
   text-align: left;
-  text-shadow: 0 1px 0 rgb(0 0 0 / 18%);
   pointer-events: none;
 }
 
@@ -137,21 +127,15 @@
     font-size: clamp(2.55rem, 12vw, 3.5rem);
   }
 
-  .measure__card {
-    border-radius: 0.75rem;
-    box-shadow: 0 0.9rem 2.5rem rgb(0 0 0 / 14%);
-  }
-
   .measure__label {
-    right: 1.25rem;
-    bottom: 1.25rem;
-    left: 1.25rem;
-    font-size: clamp(1.15rem, 5.2vw, 1.4rem);
+    right: 1rem;
+    bottom: 0.9rem;
+    left: 1rem;
+    font-size: 1.25rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .measure__card-anchor,
   .measure__card,
   .measure__heading {
     transition: none !important;
