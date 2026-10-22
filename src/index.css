@@ -6189,3 +6189,112 @@ select {
   .bw-q-anim rect { animation: bw-q-slide 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
   .bw-q-pulse { animation: bw-q-pulse 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Project planner (/start-project): every colour lives here.                */
+/*  Sage palette from the reference, as a one-line swap:                      */
+/*    --q-bg: #dfe0d2; --q-ink: #2f3d2c; --q-accent: #b9ef7f;                 */
+/* -------------------------------------------------------------------------- */
+@layer components {
+.bw-q {
+  --q-bg: #e6e6dc;
+  --q-guide: rgba(0, 0, 0, 0.05);
+  --q-card: #fff;
+  --q-card-back: #f3f3ee;
+  --q-ink: #111;
+  /* .62 (not .55) keeps muted text at WCAG AA (≈5.3:1 on white, ≈4.8:1 on the bubble). */
+  --q-muted: rgba(17, 17, 17, 0.62);
+  --q-line: rgba(17, 17, 17, 0.14);
+  --q-tint: rgba(17, 17, 17, 0.04);
+  --q-bubble: #f4f4ef;
+  --q-accent: var(--color-bw-lime);
+  --q-accent-border: #a9d000;
+  --q-error: #c4302b;
+  /* Frosted glass card over the background film. */
+  --q-glass: rgba(255, 255, 255, 0.55);
+  --q-glass-back: rgba(255, 255, 255, 0.16);
+  --q-glass-border: rgba(255, 255, 255, 0.55);
+  --q-glass-footer: rgba(255, 255, 255, 0.78);
+  --q-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  background-color: var(--q-bg);
+  background-image: repeating-linear-gradient(to right, var(--q-guide) 0 1px, transparent 1px 160px);
+  color: var(--q-ink);
+  font-family: var(--font-secondary);
+}
+.bw-q-mono {
+  font-family: var(--q-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.bw-q-card {
+  /* Glass lets the film through, so muted text is darker here to stay WCAG AA (≈4.6:1 at worst, over black). */
+  --q-muted: rgba(17, 17, 17, 0.85);
+  --q-line: rgba(17, 17, 17, 0.18);
+  background: var(--q-glass);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--q-glass-border);
+  border-radius: 28px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(0, 0, 0, 0.08), 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+.bw-q-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background: var(--q-glass-back);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  transform: translate(4px, 6px) rotate(3.5deg);
+  pointer-events: none;
+}
+/* Mobile: Next stays reachable on long lists. */
+.bw-q-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  background: var(--q-glass-footer);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-radius: 0 0 28px 28px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+.bw-q-footer::before {
+  content: "";
+  position: absolute;
+  inset: -24px 0 100% 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--q-glass-footer));
+  pointer-events: none;
+}
+/* Phones: the card is the whole screen — solid white, square, no glass. */
+@media (max-width: 639px) {
+  .bw-q-card {
+    --q-muted: rgba(17, 17, 17, 0.62);
+    --q-line: rgba(17, 17, 17, 0.14);
+    /* A soft lime glow over warm off-white keeps the full-screen card from feeling flat. */
+    background:
+      radial-gradient(90% 45% at 100% 0%, rgba(206, 253, 16, 0.28), transparent 70%),
+      radial-gradient(70% 35% at 0% 100%, rgba(206, 253, 16, 0.12), transparent 70%),
+      linear-gradient(180deg, #ffffff 0%, #f6f6f0 100%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .bw-q-footer {
+    background: rgba(246, 246, 240, 0.92);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-radius: 0;
+  }
+  .bw-q-footer::before { background: linear-gradient(to bottom, rgba(246, 246, 240, 0), rgba(246, 246, 240, 0.92)); }
+}
+@media (min-width: 1024px) {
+  .bw-q-footer { position: static; padding-bottom: 0; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .bw-q-footer::before { display: none; }
+}
+}
