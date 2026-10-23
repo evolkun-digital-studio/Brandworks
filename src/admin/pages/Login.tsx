@@ -1,7 +1,9 @@
+import '../styles'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from '../../routing'
 import { useAdminAuth } from '../context/useAdminAuth'
+import { useAdminTheme } from '../hooks/useAdminTheme'
 import { ApiError } from '../api/client'
 import AdminButton from '../components/AdminButton'
 import FormField from '../components/FormField'
@@ -9,6 +11,7 @@ import FormMessage from '../components/FormMessage'
 
 function Login() {
   const { admin, loading, login } = useAdminAuth()
+  const [theme] = useAdminTheme()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -37,20 +40,13 @@ function Login() {
   }
 
   return (
-    <div className="admin-app admin-theme-light admin-login">
+    <div className="admin-app admin-login" data-theme={theme}>
       <section className="admin-login__card" aria-labelledby="login-title">
-        <div className="admin-login__brand">
-          <span className="admin-brand-mark" aria-hidden="true">B</span>
-          <div>
-            <p className="admin-eyebrow mb-0">BRANDWORKS</p>
-            <p className="text-[12px] font-semibold tracking-[0.08em] text-neutral-500">CONTENT STUDIO</p>
-          </div>
-        </div>
+        <span className="admin-brand-mark mx-auto mb-6 size-12 rounded-[14px] text-[22px]" aria-hidden="true">B</span>
+        <h1 id="login-title" className="text-center text-[26px] font-bold tracking-[-0.03em]">Sign in to Studio</h1>
+        <p className="mt-1.5 text-center text-[14px] text-a-ink-2">Use your BRANDWORKS administrator account.</p>
 
-        <h1 id="login-title" className="admin-login__title">Welcome back.</h1>
-        <p className="admin-login__subtitle">Sign in to continue shaping the editorial workspace.</p>
-
-        <form className="mt-8 flex flex-col gap-5" onSubmit={handleSubmit}>
+        <form className="mt-8 flex flex-col gap-4" onSubmit={handleSubmit}>
           {error && <FormMessage type="error">{error}</FormMessage>}
 
           <FormField
@@ -61,7 +57,7 @@ function Login() {
             required
             autoFocus
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(event) => setUsername(event.target.value)}
           />
 
           <FormField
@@ -71,10 +67,10 @@ function Login() {
             autoComplete="current-password"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
           />
 
-          <AdminButton type="submit" variant="primary" disabled={submitting} className="mt-2 w-full">
+          <AdminButton type="submit" variant="primary" size="lg" disabled={submitting} className="mt-2 w-full">
             {submitting ? 'Signing in…' : 'Sign in'}
           </AdminButton>
         </form>

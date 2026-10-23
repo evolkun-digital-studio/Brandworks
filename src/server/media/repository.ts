@@ -14,9 +14,16 @@ export function isMediaId(value: string) {
   return /^[a-f\d]{24}$/i.test(value)
 }
 
-export async function findMediaAsset(id: string, includeDeleted = false) {
+/**
+ * Resolves the id in a public URL (/api/media/<id>). Uploads publish the stored
+ * file's id, not the asset record's own _id, so both are accepted. Soft-deleted
+ * assets are still served: removing one from the library must never break an
+ * article that already uses it.
+ */
+export async function findMediaAssetByPublicId(id: string) {
   if (!isMediaId(id)) return null
-  return (await assets()).findOne({ _id: new ObjectId(id), ...(includeDeleted ? {} : { deletedAt: null }) })
+  const objectId = new ObjectId(id)
+  return (await assets()).findOne({ $or: [{ fileId: objectId }, { _id: objectId }] })
 }
 
 export async function insertMediaAsset(asset: Omit<MediaAssetDocument, '_id'>) {

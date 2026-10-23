@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Power, ShieldCheck, Trash2, UserPlus, UsersRound } from 'lucide-react'
+import { Power, ShieldCheck, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAdminAuth } from '../context/useAdminAuth'
 import * as adminApi from '../api/adminApi'
@@ -10,96 +10,66 @@ import FormMessage from '../components/FormMessage'
 import AdminButton from '../components/AdminButton'
 import AdminPageHeader from '../components/AdminPageHeader'
 import AdminStatusBadge from '../components/AdminStatusBadge'
+import { useConfirm } from '../components/ConfirmDialog'
 import type { AdminAccount } from '../api/types'
 
 function errorMessage(err: unknown): string {
-  return err instanceof ApiError
-    ? err.message
-    : 'Something went wrong. Please try again.'
+  return err instanceof ApiError ? err.message : 'Something went wrong. Please try again.'
 }
 
 function formatDate(value: string | null): string {
   if (!value) return 'Never'
-  return new Date(value).toLocaleString()
+  return new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
 function CreateSubAdminForm({ onCreated }: { onCreated: (admin: AdminAccount) => void }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [status, setStatus] = useState<
-    { type: 'error' | 'success'; message: string } | null
-  >(null)
+  const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    setStatus(null)
+    setError(null)
     setSubmitting(true)
     try {
       const { admin } = await adminApi.createSubAdmin(username, password)
       onCreated(admin)
       setUsername('')
       setPassword('')
-      setStatus({ type: 'success', message: `Sub-admin "${admin.username}" created.` })
-      toast.success(`Sub-admin "${admin.username}" created.`)
+      toast.success(`Sub-admin “${admin.username}” created.`)
     } catch (err) {
-      setStatus({ type: 'error', message: errorMessage(err) })
+      setError(errorMessage(err))
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <form
-      className="admin-surface admin-team-create flex flex-col gap-5 p-6"
-      onSubmit={handleSubmit}
-    >
-      <div className="admin-team-heading"><span className="admin-team-heading__icon"><UserPlus size={17} strokeWidth={1.8} aria-hidden="true" /></span><div><p className="admin-eyebrow">Access provisioning</p><h2>Create sub-admin</h2><p>Invite a teammate with the existing sub-admin permission set.</p></div></div>
-
-      {status && <FormMessage type={status.type}>{status.message}</FormMessage>}
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FormField
-          id="new-admin-username"
-          label="Login ID"
-          type="text"
-          required
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <FormField
-          id="new-admin-password"
-          label="Temporary password"
-          type="password"
-          autoComplete="new-password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+    <form className="admin-card overflow-hidden" onSubmit={handleSubmit}>
+      <div className="px-6 pt-5 pb-1">
+        <h2 className="text-[17px] font-semibold tracking-[-0.016em]">Add a teammate</h2>
+        <p className="mt-0.5 text-[13px] text-a-ink-2">Sub-admins can write and edit articles. Publishing stays with administrators.</p>
       </div>
-
-      <AdminButton
-        type="submit"
-        variant="primary"
-        disabled={submitting}
-      >
-        {submitting ? 'Creating…' : 'Create sub-admin'}
-      </AdminButton>
+      <div className="flex flex-col gap-4 px-6 py-5">
+        {error && <FormMessage type="error">{error}</FormMessage>}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormField id="new-admin-username" label="Login ID" type="text" required value={username} onChange={(event) => setUsername(event.target.value)} />
+          <FormField id="new-admin-password" label="Temporary password" type="password" autoComplete="new-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
+        </div>
+      </div>
+      <div className="border-t border-a-line bg-a-surface-2 px-6 py-3.5">
+        <AdminButton type="submit" variant="primary" disabled={submitting}>{submitting ? 'Adding…' : 'Add sub-admin'}</AdminButton>
+      </div>
     </form>
   )
 }
 
-function AdminRow({
-  account,
-  onChanged,
-}: {
-  account: AdminAccount
-  onChanged: (admin: AdminAccount) => void
-}) {
+function AdminRow({ account, onChanged }: { account: AdminAccount; onChanged: (admin: AdminAccount) => void }) {
   const [busy, setBusy] = useState(false)
   const [rowError, setRowError] = useState<string | null>(null)
   const [deleted, setDeleted] = useState(false)
-
+  const { confirm, dialog } = useConfirm()
   const isManageable = account.role === 'sub_admin' && !account.isPrimary
 
   async function toggleEnabled() {
@@ -117,9 +87,8 @@ function AdminRow({
   }
 
   async function remove() {
-    if (!window.confirm(`Delete sub-admin "${account.username}"? This cannot be undone.`)) {
-      return
-    }
+    const ok = await confirm({ title: `Remove “${account.username}”?`, message: 'They lose access immediately. This can’t be undone.', confirmLabel: 'Remove', tone: 'danger' })
+    if (!ok) return
     setRowError(null)
     setBusy(true)
     try {
@@ -135,48 +104,29 @@ function AdminRow({
   if (deleted) return null
 
   return (
-    <tr className="border-b border-neutral-100 last:border-0">
-      <td data-label="Login ID" className="py-3 pr-4">
-        <div className="text-[14px] font-medium text-neutral-900">
-          {account.username}
-          {account.isPrimary && (
-            <span className="ml-2 rounded-[4px] border border-neutral-300 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-500">
-              Primary
-            </span>
-          )}
+    <tr>
+      <td>
+        <div className="flex items-center gap-3">
+          <span className="admin-avatar" aria-hidden="true">{account.username.slice(0, 2).toUpperCase()}</span>
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-semibold">{account.username}</p>
+            {rowError && <p className="text-xs text-a-danger" role="alert">{rowError}</p>}
+          </div>
         </div>
-        {rowError && <div className="admin-team-row__error" role="alert">{rowError}</div>}
+        {dialog}
       </td>
-      <td data-label="Role" className="py-3 pr-4">
-        <AdminStatusBadge tone={account.role === 'admin' ? 'accent' : 'neutral'}>{account.role === 'admin' ? 'Admin' : 'Sub-admin'}</AdminStatusBadge>
-      </td>
-      <td data-label="Status" className="py-3 pr-4">
-        <AdminStatusBadge tone={account.enabled ? 'success' : 'neutral'}>{account.enabled ? 'Enabled' : 'Disabled'}</AdminStatusBadge>
-      </td>
-      <td data-label="Last login" className="py-3 pr-4 text-[13px] text-neutral-500">
-        {formatDate(account.lastLoginAt)}
-      </td>
-      <td data-label="Actions" className="py-3 text-right">
+      <td><AdminStatusBadge tone={account.role === 'admin' ? 'accent' : 'neutral'}>{account.role === 'admin' ? 'Admin' : 'Sub-admin'}</AdminStatusBadge></td>
+      <td><AdminStatusBadge tone={account.enabled ? 'success' : 'neutral'}>{account.enabled ? 'Active' : 'Disabled'}</AdminStatusBadge></td>
+      <td className="whitespace-nowrap text-a-ink-2 max-md:hidden">{formatDate(account.lastLoginAt)}</td>
+      <td className="text-right">
         {isManageable ? (
           <div className="flex justify-end gap-2">
-            <AdminButton
-              variant="secondary"
-              disabled={busy}
-              onClick={() => void toggleEnabled()}
-              icon={<Power size={14} strokeWidth={1.8} aria-hidden="true" />}
-            >
-              {account.enabled ? 'Disable' : 'Enable'}
-            </AdminButton>
-            <AdminButton
-              variant="danger"
-              disabled={busy}
-              onClick={() => void remove()}
-              icon={<Trash2 size={14} strokeWidth={1.8} aria-hidden="true" />}
-            >
-              Delete
-            </AdminButton>
+            <AdminButton size="sm" disabled={busy} onClick={() => void toggleEnabled()} icon={<Power size={12} aria-hidden="true" />}>{account.enabled ? 'Disable' : 'Enable'}</AdminButton>
+            <AdminButton size="sm" variant="danger" disabled={busy} onClick={() => void remove()} icon={<Trash2 size={12} aria-hidden="true" />}>Remove</AdminButton>
           </div>
-        ) : <span className="admin-team-protected"><ShieldCheck size={14} strokeWidth={1.8} aria-hidden="true" /> Protected</span>}
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-xs text-a-ink-2"><ShieldCheck size={14} aria-hidden="true" /> Protected</span>
+        )}
       </td>
     </tr>
   )
@@ -189,74 +139,41 @@ function Users() {
 
   useEffect(() => {
     if (admin?.role !== 'admin') return
-    adminApi
-      .listAdminUsers()
-      .then(({ admins: list }) => setAdmins(list))
-      .catch((err: unknown) => setLoadError(errorMessage(err)))
+    adminApi.listAdminUsers().then(({ admins: list }) => setAdmins(list)).catch((err: unknown) => setLoadError(errorMessage(err)))
   }, [admin?.role])
 
   if (admin?.role !== 'admin') {
-    return (
-      <FormMessage type="error">
-        Only admins can view and manage admin accounts.
-      </FormMessage>
-    )
+    return <FormMessage type="error">Only administrators can manage the team.</FormMessage>
   }
 
   function upsert(updated: AdminAccount) {
-    setAdmins((prev) =>
-      prev
-        ? prev.map((item) => (item._id === updated._id ? updated : item))
-        : prev,
-    )
+    setAdmins((previous) => previous ? previous.map((item) => (item._id === updated._id ? updated : item)) : previous)
   }
 
-  const enabledCount = admins?.filter((account) => account.enabled).length ?? 0
-  const subAdminCount = admins?.filter((account) => account.role === 'sub_admin').length ?? 0
-  const primaryCount = admins?.filter((account) => account.isPrimary).length ?? 0
-
   return (
-    <div>
-      <AdminPageHeader eyebrow="Access control" title="Team" description="Manage administrator and sub-admin access without changing role permissions." />
+    <div className="mx-auto flex max-w-[860px] flex-col gap-5">
+      <AdminPageHeader title="Team" description="Who can sign in to Studio, and what they can do." />
 
-      {admins && <section className="admin-team-summary" aria-label="Team summary"><div><span>Total accounts</span><strong>{admins.length}</strong></div><div><span>Enabled</span><strong>{enabledCount}</strong></div><div><span>Sub-admins</span><strong>{subAdminCount}</strong></div><div><span>Protected</span><strong>{primaryCount}</strong></div></section>}
+      <CreateSubAdminForm onCreated={(created) => setAdmins((previous) => (previous ? [...previous, created] : [created]))} />
 
-      <CreateSubAdminForm
-        onCreated={(created) => setAdmins((prev) => (prev ? [...prev, created] : [created]))}
-      />
-
-      <div className="admin-surface admin-team-accounts mt-4 p-6">
-        <div className="admin-team-accounts__heading"><div><p className="admin-eyebrow">Workspace access</p><h2>All accounts</h2></div><span>{admins?.length ?? 0} members</span></div>
-
-        {loadError && <FormMessage type="error">{loadError}</FormMessage>}
-
-        {!admins && !loadError && (
-          <p className="text-[14px] text-neutral-500">Loading…</p>
-        )}
-
+      <section className="admin-card overflow-hidden" aria-label="Accounts">
+        <div className="admin-card__head"><h2>Accounts</h2><span className="text-xs text-a-ink-2">{admins?.length ?? 0}</span></div>
+        {loadError && <div className="px-5.5 pb-5"><FormMessage type="error">{loadError}</FormMessage></div>}
+        {!admins && !loadError && <div className="flex flex-col gap-3 px-5.5 pb-5" aria-busy="true"><span className="admin-skeleton h-10" /><span className="admin-skeleton h-10" /></div>}
         {admins && admins.length > 0 && (
           <div className="overflow-x-auto" aria-live="polite">
-              <table className="admin-team-table w-full text-left">
+            <table className="admin-table">
               <thead>
-                <tr className="border-b border-neutral-200 text-[12px] uppercase tracking-wide text-neutral-500">
-                  <th className="py-2 pr-4 font-medium">Login ID</th>
-                  <th className="py-2 pr-4 font-medium">Role</th>
-                  <th className="py-2 pr-4 font-medium">Status</th>
-                  <th className="py-2 pr-4 font-medium">Last login</th>
-                  <th className="py-2 text-right font-medium">Actions</th>
-                </tr>
+                <tr><th>Account</th><th>Role</th><th>Status</th><th className="max-md:hidden">Last sign-in</th><th className="text-right"><span className="sr-only">Actions</span></th></tr>
               </thead>
-              <tbody>
-                {admins.map((account) => (
-                  <AdminRow key={account._id} account={account} onChanged={upsert} />
-                ))}
-              </tbody>
+              <tbody>{admins.map((account) => <AdminRow key={account._id} account={account} onChanged={upsert} />)}</tbody>
             </table>
           </div>
         )}
-
-        {admins && admins.length === 0 && <div className="admin-empty-state"><p className="admin-empty-state__title">No team members yet</p><p className="admin-empty-state__description">Create a sub-admin account to share publishing operations.</p></div>}
-      </div>
+        {admins && admins.length === 0 && (
+          <div className="admin-empty-state"><p className="admin-empty-state__title">No teammates yet</p><p className="admin-empty-state__description">Add a sub-admin above to share the writing.</p></div>
+        )}
+      </section>
     </div>
   )
 }
