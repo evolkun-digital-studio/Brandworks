@@ -934,9 +934,15 @@ export default function QuestionnairePage() {
             ) : <span />}
             <div className="flex items-center gap-1">
               {stepId !== INTRO && stepId !== DONE && (answeredCount > 0 || scanRunning) && (
-                <button type="button" onClick={() => setDrawerOpen(true)} aria-haspopup="dialog" className={`relative inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-lg px-2 text-[14px] text-(--q-ink) hover:underline ${focusRing}`}>
-                  Answers ({answeredCount})
-                  {scanRunning && <span className="size-1.5 rounded-full bg-(--q-ink) motion-safe:animate-pulse" aria-label="Website check running" role="img" />}
+                <button type="button" onClick={() => setDrawerOpen(true)} aria-haspopup="dialog" aria-label={scanRunning ? 'Your answers (website check running)' : 'Your answers'} title="Your answers" className={`relative grid size-11 place-items-center rounded-full text-(--q-ink) hover:bg-(--q-tint) ${focusRing}`}>
+                  {/* Icon only: a small list. The dot shows while the website check runs. */}
+                  <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
+                    <path d="M9 7h10M9 12h10M9 17h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                    <circle cx="5" cy="7" r="1.2" fill="currentColor" />
+                    <circle cx="5" cy="12" r="1.2" fill="currentColor" />
+                    <circle cx="5" cy="17" r="1.2" fill="currentColor" />
+                  </svg>
+                  {scanRunning && <span aria-hidden="true" className="absolute right-2 top-2 size-2 rounded-full bg-(--q-accent) ring-2 ring-white motion-safe:animate-pulse" />}
                 </button>
               )}
               <button
