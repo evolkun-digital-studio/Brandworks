@@ -26,7 +26,6 @@
   max-width: 1700px;
   margin-inline: auto;
   overflow: visible;
-  perspective: 1400px;
   cursor: grab;
   touch-action: pan-y;
   user-select: none;
@@ -99,6 +98,12 @@
   letter-spacing: -0.02em;
   text-align: left;
   pointer-events: none;
+  opacity: 0.72;
+  transition: opacity 0.3s ease;
+}
+
+.measure__card.is-active .measure__label {
+  opacity: 1;
 }
 
 .measure__announcement {
@@ -137,6 +142,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .measure__card,
+  .measure__label,
   .measure__heading {
     transition: none !important;
   }
