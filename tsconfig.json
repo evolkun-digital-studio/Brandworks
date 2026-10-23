@@ -22,7 +22,10 @@
         "name": "next"
       }
     ],
-    "strict": false
+    "strict": false,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": [
     "next-env.d.ts",

@@ -731,22 +731,12 @@ function GraphicsMotionExperience() {
             })
 
             .from(
-              '[data-gm-label]',
-              {
-                autoAlpha: 0,
-                y: 12,
-                duration: 0.6,
-              },
-            )
-
-            .from(
               '[data-gm-heading-line]',
               {
                 yPercent: 105,
                 duration: 0.95,
                 ease: 'power4.out',
               },
-              '-=0.35',
             )
 
             .from(

@@ -8,8 +8,8 @@ const MEDIA = {
   src: mediaUrl("PR.jpg"),
   sizes:
     '(min-width: 1440px) 1050px, (min-width: 1024px) 72vw, (min-width: 768px) 66vw, calc(100vw - 40px)',
-  width: 6154,
-  height: 4216,
+  width: 3500,
+  height: 4000,
   alt:
     'A team working on laptops around a shared table in a sunlit studio',
 }

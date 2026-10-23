@@ -29,6 +29,10 @@ describe('ensureDatabaseIndexes', () => {
       { collection: 'activity_logs', keys: { createdAt: -1 }, options: undefined },
       { collection: 'activity_logs', keys: { entityType: 1, entityId: 1, createdAt: -1 }, options: undefined },
       { collection: 'admin_preferences', keys: { adminId: 1 }, options: { unique: true } },
+      { collection: 'project_questionnaires', keys: { createdAt: -1 }, options: undefined },
+      { collection: 'project_questionnaires', keys: { status: 1, createdAt: -1 }, options: undefined },
+      { collection: 'site_scans', keys: { domain: 1, createdAt: -1 }, options: undefined },
+      { collection: 'site_scans', keys: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },
     ])
   })
 })
