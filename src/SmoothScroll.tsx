@@ -3,6 +3,7 @@ import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import 'lenis/dist/lenis.css'
+import { setSmoothScroll } from './lib/smoothScroll'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -38,6 +39,7 @@ function SmoothScroll() {
         lenis = new Lenis({ autoRaf: false, lerp: 0.1, anchors: true })
         lenis.on('scroll', ScrollTrigger.update)
       }
+      setSmoothScroll(lenis)
     }
 
     gsap.ticker.add(raf)
@@ -49,6 +51,7 @@ function SmoothScroll() {
       gsap.ticker.remove(raf)
       lenis?.destroy()
       lenis = null
+      setSmoothScroll(null)
     }
   }, [])
 

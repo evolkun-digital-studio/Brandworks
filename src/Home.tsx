@@ -12,7 +12,9 @@ import HomeIntroStatement from './components/HomeIntroStatement'
 import BrandStatement from './components/HumanLedBrandIntelligence'
 import About from './components/About'
 import Work from './components/WorkWithImpact'
-import Videography from './components/Videography'
+// old pinned version: src/components/Videography.tsx
+// import Videography from './components/Videography'
+import CinematographyShowcase from './components/CinematographyShowcase/CinematographyShowcase'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
 import PRReputation from './components/PrReputation'
 import SocialMedia from './components/SocialMedia/SocialMedia'
@@ -74,7 +76,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       {/* <BrandIntelligence /> */}
       <div className="home-section"><About /></div>
       <div className="home-section home-section--before-cinematography"><Work /></div>
-      <div className="home-section home-section--after-removed-photography"><Videography /></div>
+      <div className="home-section home-section--after-removed-photography"><CinematographyShowcase /></div>
       <div className="home-section"><GraphicsMotionExperience /></div>
       <div className="home-section"><PRReputation /></div>
       <div className="home-section"><SocialMedia /></div>
