@@ -1,6 +1,6 @@
 .faq-section {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1400px;
   margin-inline: auto;
   padding: clamp(72px, 8vw, 112px) clamp(32px, 5vw, 80px);
   text-align: left;
@@ -64,6 +64,7 @@
 }
 
 .faq-item.is-open {
+  border-color: var(--color-bw-lime);
   box-shadow: 0 1px 2px rgb(23 23 23 / 0.04);
 }
 
@@ -94,7 +95,7 @@
   min-width: 0;
   font-family: var(--font-secondary);
   font-size: clamp(15px, 1.1vw, 17px);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }

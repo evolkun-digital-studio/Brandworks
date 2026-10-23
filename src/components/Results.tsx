@@ -551,7 +551,7 @@ export default function Results() {
       )}
       <motion.h2
         id="measure-heading"
-        className="measure__heading site-display"
+        className="measure__heading site-display capitalize"
         initial={reduceMotion ? false : { opacity: 0, y: 18 }}
         animate={entered ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
         transition={{ duration: reduceMotion ? 0 : 0.7, ease: [0.22, 1, 0.36, 1] }}

@@ -40,7 +40,7 @@ function FAQs() {
   return (
     <section className="faq-section" aria-labelledby="faq-heading">
       <header className="faq-header">
-        <h2 id="faq-heading" className="faq-title">
+        <h2 id="faq-heading" className="faq-title capitalize">
           Questions, answered.
         </h2>
 

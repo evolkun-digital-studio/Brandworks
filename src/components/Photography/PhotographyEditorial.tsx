@@ -90,7 +90,7 @@ export default function PhotographyRow({
           className="mx-auto mb-[var(--media-gap)] max-w-[780px] text-center"
         >
           {/* <p className="section-label mb-5">Photography</p> */}
-          <h2 id="photography-heading" className="section-heading">
+          <h2 id="photography-heading" className="section-heading capitalize" >
             Every frame has a purpose.
           </h2>
           <p className="section-description mx-auto mt-8 max-w-[600px] text-lg leading-7">
