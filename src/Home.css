@@ -2,7 +2,7 @@
   /* Cinematic pacing: one content-to-content beat shared by every chapter.
      Adjacent wrappers each contribute half of the beat. The clamp keeps the
      pause generous on wide screens without letting it balloon with 17vw. */
-  --home-section-gap: clamp(9rem, 11vw, 11rem);
+  --home-section-gap: clamp(9rem, 11vw, 17rem);
   --home-section-edge: calc(var(--home-section-gap) / 2);
   --home-section-space-top: var(--home-section-edge);
   --home-section-space-bottom: var(--home-section-edge);
@@ -21,22 +21,10 @@
   background: black;
 }
 
-/* Photography used to sit between Work and Cinematography. Keep the normal
-   rhythm everywhere else, but remove the now-empty upper beat here. */
-.home-page .home-section--after-removed-photography {
-  padding-top: 0;
-}
-
 /* Work now flows directly into Cinematography. Its normal bottom edge was
    sized for the Photography chapter that used to follow it. */
 .home-page .home-section--before-cinematography {
   padding-bottom: clamp(3.75rem, 5vw, 5rem);
-}
-
-/* The opening statement and Core Philosophy are related, but intentionally
-   separate chapters. Give that one transition an additional 5rem pause. */
-.home-page .home-section--philosophy {
-  margin-top: 5rem;
 }
 
 /* Replace existing outer spacing instead of adding it twice. */
@@ -57,12 +45,6 @@
 
 .home-page .home-section #search-seo > div > :last-child {
   padding-bottom: 0;
-}
-
-/* The intro follows a full-bleed hero, so it owns the complete opening beat.
-   Its lower edge remains half-sized and pairs with the next chapter. */
-.home-page > section[aria-labelledby='brandworks-intro-statement'] {
-  --home-section-space-top: var(--home-section-gap);
 }
 
 /* Tablet pacing: still editorial and spacious, but proportional to the
