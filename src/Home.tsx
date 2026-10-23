@@ -27,7 +27,7 @@ import Testimonials from './components/Testimonial/Testimonials'
 import WebsiteSectionProps from './components/Seo'
 import { onIntroSettled } from './lib/introGate'
 import './Home.css'
-
+import PhotographyEditorial from './components/Photography/PhotographyEditorial'
 // Kept section-for-section from the Vite homepage so both routers render
 // the same page composition and route-specific effects.
 const HOME_DESCRIPTION =
@@ -75,13 +75,16 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       {/* <BrandStatement /> */}
       {/* <BrandIntelligence /> */}
       <div className="home-section"><About /></div>
-      <div className="home-section home-section--before-cinematography"><Work /></div>
+      {/* <div className="home-section home-section--before-cinematography"><Work /></div> */}
       <div className="home-section home-section--after-removed-photography"><CinematographyShowcase /></div>
+      {/* <div className="home-section home-section--before-cinematography"><Work /></div> */}
+      <div className="home-section"> <PhotographyEditorial /> </div>
+      {/* <div className="home-section home-section--after-removed-photography"><Videography /></div> */}
       <div className="home-section"><GraphicsMotionExperience /></div>
       <div className="home-section"><PRReputation /></div>
       <div className="home-section"><SocialMedia /></div>
       {/* <WebDevelopment /> */}
-      <div className="home-section"><WebsiteSectionProps /></div>
+      {/* <div className="home-section"><WebsiteSectionProps /></div> */}
       <div className="home-section"><Capabilities /></div>
       <div className="home-section"><Results /></div>
       <div className="home-section"><Industries /></div>
