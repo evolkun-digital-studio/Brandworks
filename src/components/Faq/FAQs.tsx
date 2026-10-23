@@ -49,7 +49,7 @@ function FAQs() {
           <br className="hidden sm:block" />
           what we handle and how engagements are structured.
         </p>
-      </header>
+      </header>  
 
       <div className="faq-list">
         {faqs.map((faq, index) => {

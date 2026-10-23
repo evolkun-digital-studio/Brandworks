@@ -24,7 +24,6 @@ import {
   type Variants,
 } from 'motion/react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { Link } from '../../routing'
 import { getSmoothScroll } from '../../lib/smoothScroll'
 import { CINEMATOGRAPHY_PROJECTS, type CinematographyProject } from '../../data/cinematography'
 
@@ -80,8 +79,6 @@ function subscribeVisibility(onChange: () => void) {
   document.addEventListener('visibilitychange', onChange)
   return () => document.removeEventListener('visibilitychange', onChange)
 }
-
-const pad = (value: number) => String(value).padStart(2, '0')
 
 /** Without a poster, the media fragment makes the browser paint the first frame instead of a black box. */
 const inlineSource = (project: CinematographyProject) => (project.poster ? project.src : `${project.src}#t=0.1`)
@@ -260,7 +257,7 @@ export default function CinematographyShowcase() {
 
       <div className="mx-auto flex w-fit max-w-full flex-col h-100vw">
         <div
-          className="relative aspect-video h-[min(calc(56.25vw-0.5625rem),calc(115svh-19rem))] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:h-[min(calc(56.25vw-1.40625rem),calc(110svh-19rem))] lg:h-[min(calc(56.25vw-2.25rem),calc(110svh-19rem))]"
+          className="relative aspect-video h-[min(calc(56.25vw-3.65625rem),calc(115svh-19rem))] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:h-[min(calc(56.25vw-5.90625rem),calc(110svh-19rem))] lg:h-[min(calc(56.25vw-8.4375rem),calc(110svh-19rem))]"
           role="region"
           aria-roledescription="carousel"
           aria-label="Cinematography projects"
@@ -315,7 +312,7 @@ export default function CinematographyShowcase() {
                   <PlayGlyph className="ml-[3px] h-4 w-3.5" />
                 </span>
               ) : (
-                <span className="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[13px] font-medium leading-none text-[#0a0a0a]">
+                <span className="absolute right-3 top-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[13px] font-medium leading-none text-[#0a0a0a]">
                   <PlayGlyph className="h-2.5 w-[9px]" />
                   Watch
                 </span>
@@ -335,7 +332,48 @@ export default function CinematographyShowcase() {
               onPointerMove={trackPointer}
               onPointerLeave={hideCursor}
             />
+
+            {/* Bottom scrim keeps the overlaid text readable over moving footage. */}
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] h-3/5 bg-[linear-gradient(to_top,rgb(0_0_0/0.6),rgb(0_0_0/0.25)_45%,transparent)]"
+              aria-hidden="true"
+            />
+
+            <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-[4] sm:bottom-8 sm:left-8 sm:right-1/2 lg:bottom-10 lg:left-10">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div key={current.id} {...textMotion}>
+                  <div className="min-w-0">
+                    <h3 className="mb-1 font-secondary text-sm  leading-5 tracking-normal text-white sm:text-base">
+                      {current.title}
+                    </h3>
+                    <p className="m-0 line-clamp-2 max-w-[46ch] text-xs leading-5 text-white/75 sm:text-[15px] sm:leading-[1.5]">
+                      {current.description}
+                    </p>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
           </motion.div>
+
+          <button
+            type="button"
+            className="absolute right-full top-1/2 mr-1 z-[5] grid size-11 -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 sm:size-12 sm:mr-3 lg:size-16 lg:mr-6"
+            aria-label="Previous film"
+            disabled={active === 0}
+            onClick={() => goTo(active - 1)}
+          >
+            <ChevronLeft className="size-9 sm:size-11 lg:size-14" aria-hidden="true" strokeWidth={2} />
+          </button>
+          <button
+            type="button"
+            className="absolute left-full top-1/2 ml-1 z-[5] grid size-11 -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 sm:size-12 sm:ml-3 lg:size-16 lg:ml-6"
+            aria-label="Next film"
+            disabled={active === count - 1}
+            onClick={() => goTo(active + 1)}
+          >
+            <ChevronRight className="size-9 sm:size-11 lg:size-14" aria-hidden="true" strokeWidth={2} />
+          </button>
         </div>
 
         {neighbours.map((project) =>
@@ -355,57 +393,6 @@ export default function CinematographyShowcase() {
           ),
         )}
 
-        <div className="mt-3 flex w-full items-end justify-between gap-3 sm:mt-4 sm:items-start sm:gap-6">
-          <div className="min-h-24 min-w-0 flex-1 sm:min-h-20">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div key={current.id} {...textMotion}>
-                <h3 className="mb-1 font-secondary text-sm  leading-5 tracking-normal text-[#0a0a0a] sm:text-base">
-                  {current.title}
-                </h3>
-                <p className="mb-2 line-clamp-2 max-w-[46ch] text-xs leading-5 text-[#0a0a0a]/60 sm:text-[15px] sm:leading-[1.5]">
-                  {current.description}
-                </p>
-                <Link
-                  to={current.href}
-                  className="group inline-flex items-center gap-0.5 rounded-sm text-sm font-medium text-[#0a0a0a] no-underline outline-none focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#0a0a0a] sm:text-[15px]"
-                >
-                  View case
-                  <ChevronRight
-                    className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5"
-                    aria-hidden="true"
-                    strokeWidth={1.75}
-                  />
-                </Link>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="flex shrink-0 flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:gap-3.5">
-            <span className="font-mono text-xs tabular-nums text-[#0a0a0a]/45" aria-hidden="true">
-              {pad(active + 1)} / {pad(count)}
-            </span>
-            <div className="flex gap-1 rounded-full bg-[#f1f1f1] p-1">
-              <button
-                type="button"
-                className="grid size-9 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-[#0a0a0a] transition duration-200 hover:not-disabled:bg-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
-                aria-label="Previous film"
-                disabled={active === 0}
-                onClick={() => goTo(active - 1)}
-              >
-                <ChevronLeft className="size-[18px]" aria-hidden="true" strokeWidth={1.5} />
-              </button>
-              <button
-                type="button"
-                className="grid size-9 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-[#0a0a0a] transition duration-200 hover:not-disabled:bg-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
-                aria-label="Next film"
-                disabled={active === count - 1}
-                onClick={() => goTo(active + 1)}
-              >
-                <ChevronRight className="size-[18px]" aria-hidden="true" strokeWidth={1.5} />
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <p className="sr-only" aria-live="polite" aria-atomic="true">

@@ -16,7 +16,7 @@ import Work from './components/WorkWithImpact'
 // import Videography from './components/Videography'
 import CinematographyShowcase from './components/CinematographyShowcase/CinematographyShowcase'
 import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotionExperience'
-import PRReputation from './components/PrReputation'
+// import PRReputation from './components/PrReputation'
 import SocialMedia from './components/SocialMedia/SocialMedia'
 import WebDevelopment from './components/WebDevelopment/WebDevelopment'
 import Capabilities from './components/Capabilities'
@@ -81,7 +81,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       <div className="home-section"> <PhotographyEditorial /> </div>
       {/* <div className="home-section home-section--after-removed-photography"><Videography /></div> */}
       <div className="home-section"><GraphicsMotionExperience /></div>
-      <div className="home-section"><PRReputation /></div>
+      {/* <div className="home-section"><PRReputation /></div> */}
       {/* <div className="home-section"><SocialMedia /></div> */}
       {/* <WebDevelopment /> */}
       {/* <div className="home-section"><WebsiteSectionProps /></div> */}

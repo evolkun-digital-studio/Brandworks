@@ -14,24 +14,6 @@ export const focusRing = 'outline-none focus-visible:outline-2 focus-visible:out
 /*  Option rows (single + multi)                                              */
 /* -------------------------------------------------------------------------- */
 
-/** Radio: a 20px ink circle with a filled dot. Multi: a rounded square with a check. */
-function Indicator({ active, round }: { active: boolean; round: boolean }) {
-  if (round) {
-    return (
-      <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-full border-[1.5px] border-(--q-ink)">
-        {active && <span className="size-2.5 rounded-full bg-(--q-ink)" />}
-      </span>
-    )
-  }
-  return (
-    <span aria-hidden="true" className={`grid size-5 shrink-0 place-items-center rounded-[5px] border-[1.5px] border-(--q-ink) ${active ? 'bg-(--q-ink)' : ''}`}>
-      {active && (
-        <svg viewBox="0 0 16 16" className="size-3"><path d="M3.5 8.5 6.5 11.5 12.5 4.5" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      )}
-    </span>
-  )
-}
-
 export function OptionRows({
   options,
   selected,
@@ -49,7 +31,7 @@ export function OptionRows({
 }) {
   const full = multi && max !== undefined && selected.length >= max
   return (
-    <div role={multi ? 'group' : 'radiogroup'} aria-label={label} className="flex flex-col gap-0.5 max-sm:gap-2">
+    <div role={multi ? 'group' : 'radiogroup'} aria-label={label} className="flex flex-wrap justify-start gap-2.5 sm:gap-3">
       {options.map((option) => {
         const active = selected.includes(option.value)
         const dim = full && !active
@@ -59,16 +41,14 @@ export function OptionRows({
             type="button"
             role={multi ? 'checkbox' : 'radio'}
             aria-checked={active}
+            aria-description={option.hint}
+            title={option.hint}
             onClick={() => onToggle(option.value)}
-            className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-[background-color,border-color,opacity] duration-150 hover:bg-(--q-tint) max-sm:min-h-[60px] max-sm:rounded-2xl max-sm:border max-sm:shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${focusRing} ${
-              active ? 'sm:bg-(--q-tint) max-sm:border-(--q-ink) max-sm:bg-[rgba(206,253,16,0.3)]' : 'max-sm:border-(--q-line) max-sm:bg-white'
+            className={`inline-flex min-h-11 max-w-full items-center justify-center rounded-full border px-3.5 py-2.5 text-center text-[15px] leading-[1.3] text-[#171717] transition-[background-color,border-color,opacity] duration-200 sm:px-4 sm:text-[16px] ${focusRing} ${
+              active ? 'border-(--q-ink) bg-black/[0.07]' : 'border-(--q-line) bg-transparent hover:border-black/35 hover:bg-(--q-tint)'
             } ${dim ? 'opacity-60' : ''}`}
           >
-            <span className="min-w-0 flex-1">
-              <span className={`block text-[17px] leading-[1.35] text-(--q-ink) ${active ? 'font-semibold' : 'font-normal'}`}>{option.label}</span>
-              {option.hint && <span className="mt-0.5 block text-[13px] leading-[1.4] text-(--q-muted)">{option.hint}</span>}
-            </span>
-            <Indicator active={active} round={!multi} />
+            {option.label}
           </button>
         )
       })}

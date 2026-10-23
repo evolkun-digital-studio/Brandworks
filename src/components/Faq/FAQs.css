@@ -64,7 +64,6 @@
 }
 
 .faq-item.is-open {
-  border-color: var(--color-bw-lime);
   box-shadow: 0 1px 2px rgb(23 23 23 / 0.04);
 }
 
@@ -95,7 +94,7 @@
   min-width: 0;
   font-family: var(--font-secondary);
   font-size: clamp(15px, 1.1vw, 17px);
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }

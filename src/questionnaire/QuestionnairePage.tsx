@@ -29,6 +29,7 @@ import {
   type SiteScanView,
 } from './api'
 import AiMessage from './AiMessage'
+import { cheerFor } from './cheers'
 import { SiteScanCard, SiteScanChecklist, type ScanChecks } from './SiteScanCard'
 import { BigInput, ContactFields, EASE, Helper, KEYS, LongAnswer, OptionRows, VisualCards, focusRing } from './fields'
 
@@ -86,7 +87,9 @@ const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? ''
 const INTERLUDE_MS = 2300
 /** Choice questions that move straight on without the greeting pop-up. */
 const NO_GREETING = new Set(['operation', 'projectStage', 'websiteType', 'redesignType'])
-type Interlude = { target: string }
+type Interlude = { target: string; message?: string; pick?: string }
+/** Opening words for the greeting pop-up; picked per answer so it varies. */
+const GREETING_WORDS = ['Great choice', 'Lovely', 'Nice one', 'Wonderful', 'Brilliant'] as const
 
 /** A quiet, emoji-free sparkle animation for the selection greeting. */
 const SPARKLES = [
@@ -98,15 +101,16 @@ const SPARKLES = [
   { top: '78%', left: '43%', size: 11, delay: 0.4, color: '#111' },
 ] as const
 
-function SparkleEffect({ reduce }: { reduce: boolean }) {
+function SparkleEffect({ reduce, cover = false }: { reduce: boolean; cover?: boolean }) {
   return (
-    <div aria-hidden="true" className="relative mx-auto h-36 w-56">
-      {SPARKLES.map((sparkle) => (
+    <div aria-hidden="true" className={cover ? 'pointer-events-none absolute inset-0 opacity-50' : 'relative mx-auto h-36 w-56'}>
+      {/* Behind text, only a few faint ones so they don't compete with the words. */}
+      {(cover ? SPARKLES.filter((_, i) => i % 2 === 0) : SPARKLES).map((sparkle) => (
         <motion.svg
           key={`${sparkle.left}-${sparkle.top}`}
           viewBox="0 0 32 32"
           className="absolute"
-          style={{ top: sparkle.top, left: sparkle.left, width: sparkle.size, height: sparkle.size, color: sparkle.color }}
+          style={{ top: sparkle.top, left: sparkle.left, width: cover ? sparkle.size * 0.7 : sparkle.size, height: cover ? sparkle.size * 0.7 : sparkle.size, color: sparkle.color }}
           initial={reduce ? false : { opacity: 0, scale: 0.35, rotate: -35 }}
           animate={reduce ? { opacity: 0.9, scale: 1, rotate: 0 } : {
             opacity: [0.25, 1, 0.25],
@@ -315,6 +319,8 @@ export default function QuestionnairePage() {
   const reactionRef = useRef<{ forStep: string; controller: AbortController } | null>(null)
   const reactionsUsed = useRef(0)
   const topRef = useRef<HTMLDivElement>(null)
+  // The card body is the only scroller; the page itself never scrolls.
+  const bodyRef = useRef<HTMLDivElement>(null)
   const honeypotRef = useRef<HTMLInputElement>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -351,6 +357,7 @@ export default function QuestionnairePage() {
 
   /* ---- navigation --------------------------------------------------------- */
   const scrollTop = useCallback(() => {
+    bodyRef.current?.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
     const el = topRef.current
     if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
   }, [reduce])
@@ -471,8 +478,8 @@ export default function QuestionnairePage() {
     const target = route[route.indexOf(stepId) + 1]
     if (!target) return
     if (here.aiReact) startReaction(here.id, target, current)
-    const greet = () => {
-      setInterlude({ target })
+    const greet = (message?: string, pick?: string) => {
+      setInterlude({ target, message, pick })
       window.clearTimeout(interludeTimer.current)
       interludeTimer.current = window.setTimeout(() => { setInterlude(null); go(target) }, INTERLUDE_MS)
     }
@@ -486,7 +493,8 @@ export default function QuestionnairePage() {
       const value = here.kind === 'single' ? str(current[here.id]) : list(current[here.id]).at(-1) ?? ''
       const option = here.options.find((o) => o.value === value)
       if (option) {
-        greet()
+        // The business-type pick gets a line written for that answer.
+        greet(here.id === 'workType' ? cheerFor(option.value) : undefined, here.id === 'workType' ? GREETING_WORDS[option.value.length % GREETING_WORDS.length] : undefined)
         return
       }
     }
@@ -898,7 +906,7 @@ export default function QuestionnairePage() {
   const wide = step?.kind === 'single' && step.layout === 'visual'
 
   return (
-    <main className="bw-q relative isolate min-h-dvh overflow-x-clip bg-white bg-none antialiased sm:bg-black sm:px-8 sm:pb-10 sm:pt-20 lg:grid lg:place-items-center lg:pb-16 lg:pt-16">
+    <main className="bw-q relative isolate h-dvh overflow-hidden bg-white bg-none antialiased sm:bg-black sm:px-8 sm:pb-10 sm:pt-20 lg:grid lg:place-items-center lg:pb-16 lg:pt-16">
       {/* Background film: decorative, muted, behind everything. With reduced motion it stays on its first frame. */}
       {film && <video
         key={reduce ? 'still' : 'loop'}
@@ -922,9 +930,9 @@ export default function QuestionnairePage() {
         <label>Leave this empty<input ref={honeypotRef} type="text" name="website_url" tabIndex={-1} autoComplete="off" /></label>
       </div>
 
-      <div ref={topRef} className={`relative mx-auto w-full sm:max-w-[560px] sm:scroll-mt-20 ${wide ? 'lg:max-w-[760px]' : 'lg:max-w-[600px]'}`}>
+      <div ref={topRef} className={`relative mx-auto flex w-full flex-col max-sm:h-dvh sm:max-h-[calc(100dvh-7.5rem)] lg:max-h-[calc(100dvh-8rem)] sm:max-w-[560px] sm:scroll-mt-20 ${wide ? 'lg:max-w-[760px]' : 'lg:max-w-[600px]'}`}>
         <div aria-hidden="true" className="bw-q-back max-sm:hidden" />
-        <div className="bw-q-card relative flex flex-col px-6 pt-[max(24px,env(safe-area-inset-top))] max-sm:min-h-dvh sm:pt-6 lg:px-10 lg:pt-8">
+        <div className="bw-q-card relative flex min-h-0 flex-1 flex-col px-6 pt-[max(24px,env(safe-area-inset-top))] sm:pt-6 lg:px-10 lg:pt-8">
           {/* Header row: section dashes | Answers + close */}
           <div className="flex min-h-11 items-center justify-between gap-3">
             {stepId !== INTRO ? (
@@ -958,7 +966,7 @@ export default function QuestionnairePage() {
           </div>
           <LeaveConfirm open={confirmOpen} onStay={() => setConfirmOpen(false)} />
 
-          <div className="flex-1 pb-2 pt-5 lg:pt-6">
+          <div ref={bodyRef} data-lenis-prevent className="-mx-6 min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-6 pb-2 pt-5 lg:-mx-10 lg:px-10 lg:pt-6">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div key={stepId} initial={card.initial} animate={card.animate} exit={card.exit} transition={card.transition}>
                 {stepId === INTRO && (
@@ -1090,13 +1098,61 @@ export default function QuestionnairePage() {
             <motion.div
               role="status"
               aria-live="polite"
-              className="relative w-full max-w-[360px] overflow-hidden rounded-[28px] border border-black/[0.06] bg-white px-8 pb-9 pt-9 text-center shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
+              className={`relative isolate w-full overflow-hidden rounded-[28px] border border-black/[0.06] bg-white text-center shadow-[0_30px_80px_rgba(0,0,0,0.35)] ${interlude.message ? 'max-w-[420px] px-8 pb-10 pt-10 sm:px-10' : 'max-w-[360px] px-8 pb-9 pt-9'}`}
               initial={reduce ? false : { opacity: 0, y: 20, scale: 0.92 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: reduce ? 0 : 0.32, ease: EASE }}
             >
-              <SparkleEffect reduce={reduce} />
+              {interlude.message ? (
+                <>
+                  {/* Background: two slow lime glows and the sparkles, all behind the words. */}
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+                    <motion.span
+                      className="absolute -left-16 -top-20 size-64 rounded-full bg-[radial-gradient(circle,rgba(206,253,16,0.55),transparent_68%)] blur-2xl"
+                      animate={reduce ? undefined : { x: [0, 24, 0], y: [0, 16, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                    <motion.span
+                      className="absolute -bottom-24 -right-16 size-72 rounded-full bg-[radial-gradient(circle,rgba(206,253,16,0.35),transparent_68%)] blur-2xl"
+                      animate={reduce ? undefined : { x: [0, -20, 0], y: [0, -14, 0] }}
+                      transition={{ duration: 4.6, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                    <SparkleEffect reduce={reduce} cover />
+                    <span className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_50%,rgba(255,255,255,0.85),transparent)]" />
+                  </div>
+
+                  {interlude.pick && (
+                    <motion.span
+                      className="inline-flex items-center rounded-full border border-black/10 bg-white/80 px-3.5 py-1.5 text-[13px] font-normal leading-[1.3] tracking-[0.02em] text-(--q-ink) backdrop-blur-sm"
+                      initial={reduce ? false : { opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: reduce ? 0 : 0.35, delay: reduce ? 0 : 0.1, ease: EASE }}
+                    >
+                      {interlude.pick}
+                    </motion.span>
+                  )}
+                  <motion.p
+                    className="m-0 mt-5 text-[18px] font-normal leading-[1.45] text-(--q-ink) sm:text-[20px]"
+                    initial={reduce ? false : { opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: reduce ? 0 : 0.45, delay: reduce ? 0 : 0.2, ease: EASE }}
+                  >
+                    {interlude.message}
+                  </motion.p>
+                  {/* Time until the next question. */}
+                  <span aria-hidden="true" className="mx-auto mt-8 block h-[3px] w-24 overflow-hidden rounded-full bg-black/10">
+                    <motion.span
+                      className="block h-full origin-left rounded-full bg-(--q-ink)"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: INTERLUDE_MS / 1000, ease: 'linear' }}
+                    />
+                  </span>
+                </>
+              ) : (
+                <SparkleEffect reduce={reduce} />
+              )}
               <span className="sr-only">Your selection is noted. Tap or press Enter to continue.</span>
             </motion.div>
           </motion.div>
