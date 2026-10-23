@@ -15,7 +15,6 @@ import {
   type Answer,
   type Answers,
   type SectionKey,
-  type VisualKey,
   type Step,
 } from './flow'
 import {
@@ -30,10 +29,6 @@ import {
   type SiteScanView,
 } from './api'
 import AiMessage from './AiMessage'
-import AppleEmoji from './AppleEmoji'
-import { cheerFor, headlineFor, nameLineFor } from './cheers'
-import { OPTION_EMOJI } from './emoji'
-import { OptionVisual } from './visuals'
 import { SiteScanCard, SiteScanChecklist, type ScanChecks } from './SiteScanCard'
 import { BigInput, ContactFields, EASE, Helper, KEYS, LongAnswer, OptionRows, VisualCards, focusRing } from './fields'
 
@@ -91,41 +86,44 @@ const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? ''
 const INTERLUDE_MS = 2300
 /** Choice questions that move straight on without the greeting pop-up. */
 const NO_GREETING = new Set(['operation', 'projectStage', 'websiteType', 'redesignType'])
-type Interlude = { value: string; label: string; visual?: VisualKey; target: string; /** Set for the brand-name greeting. */ name?: string }
+type Interlude = { target: string }
 
-/** A one-shot burst of brand-coloured confetti from the centre of its parent. Decorative. */
-const CONFETTI_COLORS = ['var(--color-bw-lime)', '#111', '#ff7ac6', '#6aa8ff', '#ffc94d']
-function Confetti() {
-  const pieces = Array.from({ length: 22 }, (_, i) => {
-    const angle = (i / 22) * Math.PI * 2 + (i % 3) * 0.2
-    const distance = 70 + ((i * 37) % 60)
-    return {
-      x: Math.cos(angle) * distance,
-      y: Math.sin(angle) * distance + 24,
-      rotate: ((i * 53) % 360) - 180,
-      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-      round: i % 3 === 0,
-      delay: (i % 4) * 0.03,
-    }
-  })
+/** A quiet, emoji-free sparkle animation for the selection greeting. */
+const SPARKLES = [
+  { top: '13%', left: '18%', size: 18, delay: 0, color: 'var(--color-bw-lime)' },
+  { top: '26%', left: '50%', size: 34, delay: 0.16, color: '#111' },
+  { top: '16%', left: '79%', size: 13, delay: 0.32, color: 'var(--color-bw-lime)' },
+  { top: '54%', left: '30%', size: 12, delay: 0.24, color: '#111' },
+  { top: '63%', left: '68%', size: 22, delay: 0.08, color: 'var(--color-bw-lime)' },
+  { top: '78%', left: '43%', size: 11, delay: 0.4, color: '#111' },
+] as const
+
+function SparkleEffect({ reduce }: { reduce: boolean }) {
   return (
-    <span aria-hidden="true" className="pointer-events-none absolute inset-0">
-      {pieces.map((p, i) => (
-        <motion.span
-          key={i}
-          className={`absolute left-1/2 top-1/2 -ml-1 -mt-1 ${p.round ? 'size-2 rounded-full' : 'h-2.5 w-1.5 rounded-[2px]'}`}
-          style={{ background: p.color }}
-          initial={{ x: 0, y: 0, opacity: 1, scale: 0.4, rotate: 0 }}
-          animate={{ x: p.x, y: p.y, opacity: [1, 1, 0], scale: 1, rotate: p.rotate }}
-          transition={{ duration: 1.1, ease: [0.2, 0.8, 0.3, 1], delay: 0.12 + p.delay }}
-        />
+    <div aria-hidden="true" className="relative mx-auto h-36 w-56">
+      {SPARKLES.map((sparkle) => (
+        <motion.svg
+          key={`${sparkle.left}-${sparkle.top}`}
+          viewBox="0 0 32 32"
+          className="absolute"
+          style={{ top: sparkle.top, left: sparkle.left, width: sparkle.size, height: sparkle.size, color: sparkle.color }}
+          initial={reduce ? false : { opacity: 0, scale: 0.35, rotate: -35 }}
+          animate={reduce ? { opacity: 0.9, scale: 1, rotate: 0 } : {
+            opacity: [0.25, 1, 0.25],
+            scale: [0.7, 1.15, 0.7],
+            rotate: [-20, 20, -20],
+          }}
+          transition={{ duration: reduce ? 0 : 1.25, delay: reduce ? 0 : sparkle.delay, repeat: reduce ? 0 : Infinity, ease: 'easeInOut' }}
+        >
+          <path d="M16 0c2.7 9.3 6.7 13.3 16 16-9.3 2.7-13.3 6.7-16 16C13.3 22.7 9.3 18.7 0 16 9.3 13.3 13.3 9.3 16 0Z" fill="currentColor" />
+        </motion.svg>
       ))}
-    </span>
+    </div>
   )
 }
 
 /** Phone-only intro chips. */
-const INTRO_CHIPS = [['⏱️', 'About 3 minutes'], ['👆', 'Tap to answer'], ['🎙️', 'Type or talk']] as const
+const INTRO_CHIPS = ['About 3 minutes', 'Tap to answer', 'Type or talk'] as const
 
 const SECTION_ORDER: SectionKey[] = ['basics', 'project', 'style', 'details', 'contact']
 
@@ -473,22 +471,22 @@ export default function QuestionnairePage() {
     const target = route[route.indexOf(stepId) + 1]
     if (!target) return
     if (here.aiReact) startReaction(here.id, target, current)
-    const greet = (pop: Interlude) => {
-      setInterlude(pop)
+    const greet = () => {
+      setInterlude({ target })
       window.clearTimeout(interludeTimer.current)
       interludeTimer.current = window.setTimeout(() => { setInterlude(null); go(target) }, INTERLUDE_MS)
     }
-    // The brand name gets a personal hello with its monogram.
+    // Briefly acknowledge the brand name before continuing.
     if (here.id === 'brandName' && !NO_GREETING.has(here.id)) {
       const name = str(current.brandName).trim()
-      if (name) { greet({ value: '', label: name, name, target }); return }
+      if (name) { greet(); return }
     }
     // A choice question greets the pick in a short pop-up, then moves on.
     if ((here.kind === 'single' || here.kind === 'multi') && !NO_GREETING.has(here.id)) {
       const value = here.kind === 'single' ? str(current[here.id]) : list(current[here.id]).at(-1) ?? ''
       const option = here.options.find((o) => o.value === value)
       if (option) {
-        greet({ value, label: option.label, visual: option.visual, target })
+        greet()
         return
       }
     }
@@ -743,7 +741,7 @@ export default function QuestionnairePage() {
     return null
   }
 
-  /** A fieldset whose legend is the title (with its emoji), then the hint, the helper and the answer. */
+  /** A fieldset whose legend is the title, then the hint, the helper and the answer. */
   const question = (s: Step, body: ReactNode) => {
     const hint = hintLine(s)
     return (
@@ -752,7 +750,7 @@ export default function QuestionnairePage() {
           <legend className="m-0 block w-full p-0 font-(family-name:--font-secondary) text-[24px] font-semibold leading-[1.2] text-(--q-ink) lg:text-[30px]">
             {s.title}
           </legend>
-          {hint && <span className="mt-2 flex items-center gap-1.5 text-[14px] italic text-(--q-muted)" aria-live={s.kind === 'multi' ? 'polite' : undefined}>{swapHint && s.kind === 'multi' && <AppleEmoji emoji="🔁" size={16} />}{hint}</span>}
+          {hint && <span className="mt-2 flex items-center gap-1.5 text-[14px] italic text-(--q-muted)" aria-live={s.kind === 'multi' ? 'polite' : undefined}>{hint}</span>}
           {s.helper && <Helper>{s.helper}</Helper>}
           <div className="mt-6">{body}</div>
         </fieldset>
@@ -792,7 +790,7 @@ export default function QuestionnairePage() {
             />
             {s.aiSuggest && (suggestions[suggestKey]?.length ?? 0) > 0 && (
               <div className="mt-4">
-                <span className="block text-[14px] font-medium text-(--q-ink)"><AppleEmoji emoji="💡" size={16} className="mr-1.5" />Ideas for {workTypeLabel || 'your business'}</span>
+                <span className="block text-[14px] font-medium text-(--q-ink)">Ideas for {workTypeLabel || 'your business'}</span>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {suggestions[suggestKey].map((idea) => (
                     <button
@@ -966,9 +964,6 @@ export default function QuestionnairePage() {
                 {stepId === INTRO && (
                   <div className="pb-6 max-sm:flex max-sm:min-h-[calc(100dvh-110px)] max-sm:flex-col lg:pb-5">
                     {/* {eyebrow('Website project planner')} */}
-                    <span aria-hidden="true" className="mb-6 grid size-16 place-items-center rounded-[20px] border border-(--q-accent-border) bg-(--q-accent) shadow-[0_10px_24px_rgba(160,200,0,0.35)] sm:hidden">
-                      <AppleEmoji emoji="👋" size={34} />
-                    </span>
                     <h1 className="m-0 mt-2 font-(family-name:--font-primary) sm:mt-[-40px] text-[32px] font-normal leading-[1.05] tracking-[-0.02em] lg:text-[40px]">Let’s plan your website.</h1>
                     <p className="m-0 mt-11 text-[16px] leading-[1.6] text-(--q-muted)">
                       A few quick questions about your business and what you need, then we put together a short plan our team picks up from.
@@ -977,9 +972,9 @@ export default function QuestionnairePage() {
                       <li>~3 minutes</li><li aria-hidden="true">·</li><li>Tap to answer</li><li aria-hidden="true">·</li><li>Type or talk</li>
                     </ul> */}
                     <ul className="m-0 mt-6 flex list-none flex-wrap gap-2 p-0 sm:hidden">
-                      {INTRO_CHIPS.map(([e, t]) => (
-                        <li key={t} className="inline-flex items-center gap-1.5 rounded-full border border-(--q-line) bg-white px-3 py-1.5 text-[13px]">
-                          <AppleEmoji emoji={e} size={16} />{t}
+                      {INTRO_CHIPS.map((text) => (
+                        <li key={text} className="inline-flex items-center rounded-full border border-(--q-line) bg-white px-3 py-1.5 text-[13px]">
+                          {text}
                         </li>
                       ))}
                     </ul>
@@ -998,8 +993,7 @@ export default function QuestionnairePage() {
 
                 {stepId === DONE && (
                   <div className="pb-6 lg:pb-10" role="status">
-                    <span aria-hidden="true" className="grid size-12 place-items-center rounded-full border border-(--q-accent-border) bg-(--q-accent)"><AppleEmoji emoji="🎉" size={26} /></span>
-                    <h1 className="m-0 mt-4 font-(family-name:--font-primary) text-[32px] font-normal leading-[1.05] tracking-[-0.02em] lg:text-[40px]">
+                    <h1 className="m-0 font-(family-name:--font-primary) text-[32px] font-normal leading-[1.05] tracking-[-0.02em] lg:text-[40px]">
                       Thanks{name ? `, ${name}` : ''}.
                     </h1>
                     <p className="m-0 mt-3 text-[16px] leading-[1.6] text-(--q-muted)">
@@ -1096,96 +1090,14 @@ export default function QuestionnairePage() {
             <motion.div
               role="status"
               aria-live="polite"
-              className="relative w-full max-w-[320px] rounded-[32px] bg-white px-8 pb-9 pt-10 text-center shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
+              className="relative w-full max-w-[360px] overflow-hidden rounded-[28px] border border-black/[0.06] bg-white px-8 pb-9 pt-9 text-center shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
               initial={reduce ? false : { opacity: 0, y: 20, scale: 0.92 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: reduce ? 0 : 0.32, ease: EASE }}
             >
-              {interlude.name ? (
-                /* The brand-name hello: no icon, just type — a quiet line, their name large, a fine lime rule, a warm sentence. */
-                <div className="py-2">
-                  <motion.p
-                    className="m-0 text-[11px] font-medium uppercase tracking-[0.32em] text-(--q-muted)"
-                    initial={reduce ? false : { opacity: 0, letterSpacing: '0.5em' }}
-                    animate={{ opacity: 1, letterSpacing: '0.32em' }}
-                    transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : 0.1, ease: EASE }}
-                  >
-                    Nice to meet you
-                  </motion.p>
-                  <motion.p
-                    className="m-0 mt-4 break-words font-(family-name:--font-secondary) font-semibold leading-[1.15] tracking-[-0.02em] text-(--q-ink)"
-                    style={{ fontSize: interlude.name.length > 22 ? 28 : 36, fontWeight: 600 }}
-                    initial={reduce ? false : { opacity: 0, y: 10, filter: 'blur(6px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : 0.25, ease: EASE }}
-                  >
-                    {interlude.name.replace(/[.!?,;:]+$/, '')}
-                  </motion.p>
-                  <motion.span
-                    aria-hidden="true"
-                    className="mx-auto mt-5 block h-[2px] w-16 origin-center rounded-full bg-(--q-accent)"
-                    initial={reduce ? false : { scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: reduce ? 0 : 0.7, delay: reduce ? 0 : 0.55, ease: EASE }}
-                  />
-                  <motion.p
-                    className="m-0 mt-5 text-[15px] italic leading-[1.6] text-(--q-muted)"
-                    initial={reduce ? false : { opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : 0.7, ease: EASE }}
-                  >
-                    {nameLineFor(interlude.name)}
-                  </motion.p>
-                </div>
-              ) : (
-                <>
-                <div className="relative mx-auto grid size-24 place-items-center">
-                  {!reduce && <Confetti />}
-                  {!reduce && (
-                    <motion.span
-                      aria-hidden="true"
-                      className="absolute inset-0 rounded-full border-2 border-(--q-accent)"
-                      initial={{ scale: 0.6, opacity: 0.9 }}
-                      animate={{ scale: 1.6, opacity: 0 }}
-                      transition={{ duration: 0.9, ease: 'easeOut', delay: 0.15 }}
-                    />
-                  )}
-                  <motion.span
-                    aria-hidden="true"
-                    className="relative grid size-24 place-items-center"
-                    initial={reduce ? false : { scale: 0.3, rotate: -12 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 13, delay: 0.08 }}
-                  >
-                    {OPTION_EMOJI[interlude.value] ? (
-                      <AppleEmoji emoji={OPTION_EMOJI[interlude.value]} size={64} />
-                    ) : interlude.visual ? (
-                      <span className="block aspect-[16/10] w-24 overflow-hidden rounded-lg text-[#111] shadow-[0_8px_20px_rgba(0,0,0,0.12)]"><OptionVisual visual={interlude.visual} /></span>
-                    ) : (
-                      <AppleEmoji emoji="🎉" size={64} />
-                    )}
-                  </motion.span>
-                </div>
-                <motion.p
-                  className="m-0 mt-6 font-(family-name:--font-secondary) text-[26px] font-semibold leading-[1.2] tracking-[-0.01em] text-(--q-ink)"
-                  initial={reduce ? false : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: reduce ? 0 : 0.3, delay: reduce ? 0 : 0.2, ease: EASE }}
-                >
-                  {headlineFor(interlude.value)}
-                </motion.p>
-                <motion.p
-                  className="m-0 mt-3 text-[15px] leading-[1.5] text-(--q-muted)"
-                  initial={reduce ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: reduce ? 0 : 0.3, delay: reduce ? 0 : 0.32, ease: EASE }}
-                >
-                  {cheerFor(interlude.value)}
-                </motion.p>
-                </>
-              )}
-              <span className="sr-only">Tap to continue</span>
+              <SparkleEffect reduce={reduce} />
+              <span className="sr-only">Your selection is noted. Tap or press Enter to continue.</span>
             </motion.div>
           </motion.div>
         )}
