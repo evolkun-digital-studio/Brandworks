@@ -31,7 +31,7 @@
   width: 100%;
   max-width: 1280px;
   margin-inline: auto;
-  padding: 100px 24px 90px;
+  padding: 0 24px;
 }
 
 .testimonials-header {
@@ -187,7 +187,7 @@
   }
 
   .testimonials-shell {
-    padding: 72px 0 70px;
+    padding: 0;
   }
 
   .testimonials-header {

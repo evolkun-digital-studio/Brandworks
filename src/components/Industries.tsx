@@ -52,7 +52,7 @@ function Industries() {
       {industries.map((industry) => (
         <div
           key={industry.name}
-          className="mt-10 grid w-full grid-cols-1 items-center gap-10 min-[900px]:mt-12 min-[900px]:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] min-[900px]:gap-[clamp(56px,8vw,130px)]"
+          className="mt-5 grid w-full grid-cols-1 items-center gap-10 min-[900px]:mt-5 min-[900px]:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] min-[900px]:gap-[clamp(56px,8vw,130px)]"
         >
           <div className="flex flex-col items-start text-left">
             <FadeUp

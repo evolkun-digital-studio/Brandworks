@@ -87,7 +87,7 @@ export default function PhotographyRow({
       <div className="section-container">
         <header
           data-photo-reveal
-          className="mx-auto mb-[var(--media-gap)] max-w-[780px] text-center mt-5"
+          className="mx-auto mb-[var(--media-gap)] max-w-[780px] text-center"
         >
           {/* <p className="section-label mb-5">Photography</p> */}
           <h2 id="photography-heading" className="section-heading">

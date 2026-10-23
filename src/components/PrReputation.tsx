@@ -89,7 +89,7 @@ export default function PRReputation() {
     >
       <SectionContainer>
         {/* MANIFESTO */}
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 sm:gap-8 md:mt-14 md:grid-cols-12 md:items-end md:gap-6 lg:mt-10 lg:gap-8 xl:mt-10 xl:gap-10">
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-12 md:items-end md:gap-6 lg:gap-8 xl:gap-10">
           <motion.div
             {...reveal}
             variants={rise(28, 0.04)}
