@@ -87,22 +87,27 @@ export default function PhotographyRow({
       <div className="section-container">
         <header
           data-photo-reveal
-          className="mx-auto mb-[var(--media-gap)] max-w-[780px] text-center"
+          className="mx-auto mb-[var(--media-gap)] max-w-[780px] text-center mt-5"
         >
           {/* <p className="section-label mb-5">Photography</p> */}
           <h2 id="photography-heading" className="section-heading">
             Every frame has a purpose.
           </h2>
-          <p className="section-description mx-auto mt-6 max-w-[600px] text-lg leading-7">
+          <p className="section-description mx-auto mt-8 max-w-[600px] text-lg leading-7">
             We create commercial, product, lifestyle, and campaign photography
             built around a clear concept, giving brands visuals that
             communicate more than they show.
           </p>
         </header>
 
-        {/* The container query lets the row size itself to the content box. */}
+      </div>
+
+      {/* The gallery is wider than the text container (small edge margin,
+          tight gap) so the row, and therefore its height, is larger. The
+          container query lets it size itself to its own content box. */}
+      <div className="mx-auto max-w-[1400px] px-[clamp(10px,1.2vw,20px)]">
         <div className="[container-type:inline-size]">
-          <div className="flex w-full flex-nowrap items-start justify-center gap-[var(--photo-gap)] [--photo-gap:clamp(8px,1.4vw,20px)] [--photo-h:calc((100cqw_-_1.34*var(--photo-gap))/3.008)]">
+          <div className="flex w-full flex-nowrap items-start justify-center gap-[var(--photo-gap)] [--photo-gap:clamp(4px,0.5vw,8px)] [--photo-h:calc((100cqw_-_1.34*var(--photo-gap))/3.008)]">
             <figure
               data-photo-reveal
               className={`${frameClass} aspect-[9/16] h-[var(--photo-h)]`}

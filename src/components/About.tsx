@@ -67,7 +67,7 @@ function About({ ctaHref = "#" }: AboutProps) {
         About BRANDWORKS
       </h2>
 
-      <div className="mx-auto w-full max-w-[1600px] px-[clamp(16px,4vw,64px)] py-[clamp(64px,9vw,128px)] min-[1800px]:max-w-[1720px]">
+      <div className="mx-auto w-full max-w-[80rem] px-[clamp(16px,4vw,64px)] py-[clamp(64px,9vw,128px)] min-[1800px]:max-w-[1720px]">
         <div className="grid grid-cols-1 gap-y-10 lg:grid-cols-12 lg:gap-x-8">
           {/* Video column */}
           <figure className="lg:col-span-5">

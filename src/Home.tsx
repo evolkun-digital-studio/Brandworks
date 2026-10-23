@@ -74,7 +74,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       <HomeIntroStatement />
       {/* <BrandStatement /> */}
       {/* <BrandIntelligence /> */}
-      <div className="home-section"><About /></div>
+      {/* <div className="home-section"><About /></div> */}
       {/* <div className="home-section home-section--before-cinematography"><Work /></div> */}
       <div className="home-section home-section--after-removed-photography"><CinematographyShowcase /></div>
       {/* <div className="home-section home-section--before-cinematography"><Work /></div> */}
