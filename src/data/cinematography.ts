@@ -10,6 +10,15 @@ export type CinematographyProject = {
   href: string
   /** Optional still shown before (or instead of) the first frame; preloaded for adjacent films. */
   poster?: string
+  /**
+   * Framing inside the 16:9 slider frame (the lightbox ignores both).
+   * zoom scales the film from objectPosition to crop bars baked into the
+   * file, e.g. 1.12; default 1. objectPosition keeps a subject in frame when
+   * object-fit: cover crops a non-16:9 file, e.g. "50% 35%"; default
+   * "50% 50%". Tune by eye with ?framing=1 in development.
+   */
+  zoom?: number
+  objectPosition?: string
 }
 
 const DEFAULT_HREF = '/services/videography'
@@ -24,6 +33,10 @@ const DEFAULT_HREF = '/services/videography'
  *
  * PLACEHOLDER: every `description` below was written from the film's
  * `line` and should be replaced with real copy.
+ *
+ * None of the files has bars baked in (checked across sampled frames), so
+ * all use the default framing. 03 (1280×536, 2.39:1) and 04 (1080×720, 3:2)
+ * are cropped by object-fit: cover around their centres.
  */
 export const CINEMATOGRAPHY_PROJECTS: CinematographyProject[] = [
   {

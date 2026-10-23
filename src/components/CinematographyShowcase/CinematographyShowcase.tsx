@@ -15,6 +15,7 @@ import { createPortal } from 'react-dom'
 import {
   AnimatePresence,
   motion,
+  useInView,
   useIsPresent,
   useMotionValue,
   useReducedMotion,
@@ -34,6 +35,8 @@ const SWIPE_DISTANCE = 50
 const SWIPE_VELOCITY = 400
 const EASE_OUT = [0.22, 1, 0.36, 1] as const
 const SLIDE_EASE = [0.65, 0, 0.35, 1] as const
+const DEV = process.env.NODE_ENV !== 'production'
+const SIXTEEN_NINE = 16 / 9
 // Releases the navigation lock if a slide's enter animation never reports
 // completion (e.g. the tab was hidden mid-transition).
 const TRANSITION_FALLBACK_MS = 1000
@@ -63,17 +66,21 @@ function useMediaQuery(query: string): boolean {
   return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => false)
 }
 
+const subscribeNothing = () => () => {}
+
+/** `?framing=1` (development only) outlines the frame and shows each film's framing values. */
+function useFramingDebug(): boolean {
+  const requested = useSyncExternalStore(
+    subscribeNothing,
+    () => new URLSearchParams(window.location.search).has('framing'),
+    () => false,
+  )
+  return DEV && requested
+}
+
 function subscribeVisibility(onChange: () => void) {
   document.addEventListener('visibilitychange', onChange)
   return () => document.removeEventListener('visibilitychange', onChange)
-}
-
-/** "Campaign Film" → ["Campaign", "Film"]; one-word titles stay on one line. */
-function splitTitle(title: string): string[] {
-  const words = title.split(' ')
-  if (words.length < 2) return [title]
-  const middle = Math.ceil(words.length / 2)
-  return [words.slice(0, middle).join(' '), words.slice(middle).join(' ')]
 }
 
 const pad = (value: number) => String(value).padStart(2, '0')
@@ -108,8 +115,11 @@ export default function CinematographyShowcase() {
   const reducedMotion = useReducedMotion() ?? false
   const finePointer = useMediaQuery(FINE_POINTER)
   const pageVisible = useSyncExternalStore(subscribeVisibility, () => document.visibilityState === 'visible', () => true)
+  const framingDebug = useFramingDebug()
 
   const sectionRef = useRef<HTMLElement>(null)
+  const headerRef = useRef<HTMLElement>(null)
+  const headerRevealed = useInView(headerRef, { once: true, amount: 0.6 })
   const videos = useRef(new Map<string, HTMLVideoElement>())
   const hitRef = useRef<HTMLButtonElement>(null)
   const draggedRef = useRef(false)
@@ -216,7 +226,11 @@ export default function CinematographyShowcase() {
 
   const current = projects[active]
   // Only the films either side of the active one are fetched ahead of time.
-  const neighbours = nearView ? [projects[active - 1], projects[active + 1]].filter(Boolean) : []
+  // A neighbour sharing the active film's file is skipped: a second element
+  // would download the same (large) file again alongside the playing one.
+  const neighbours = nearView
+    ? [projects[active - 1], projects[active + 1]].filter((project) => project && project.src !== current.src)
+    : []
 
   const textMotion = reducedMotion
     ? {
@@ -232,11 +246,11 @@ export default function CinematographyShowcase() {
 
   return (
     <section ref={sectionRef} className="cine" aria-labelledby={headingId}>
-      <header className="cine-header">
-        <p className="cine-eyebrow">Cinematography</p>
+      <header ref={headerRef} className="cine-header" data-revealed={headerRevealed || undefined}>
         <h2 id={headingId} className="cine-heading">
-          Stories, given movement.
+          Cinematography
         </h2>
+        <p className="cine-subheading">Stories, given movement.</p>
       </header>
 
       <div
@@ -275,6 +289,14 @@ export default function CinematographyShowcase() {
               onEntered={finishTransition}
             />
           </AnimatePresence>
+
+          {framingDebug && (
+            <div className="cine-framing" aria-hidden="true">
+              <span>
+                zoom {current.zoom ?? 1} · objectPosition {current.objectPosition ?? '50% 50%'}
+              </span>
+            </div>
+          )}
 
           <div className="cine-overlay" aria-hidden="true">
             <span className="cine-play" data-hidden={cursorVisible || undefined}>
@@ -426,6 +448,14 @@ function Slide({
     else if (!video.paused) video.pause()
   }, [run, loaded])
 
+  const objectPosition = project.objectPosition ?? '50% 50%'
+  const zoom = project.zoom ?? 1
+  const mediaStyle = {
+    objectPosition,
+    transform: zoom === 1 ? undefined : `scale(${zoom})`,
+    transformOrigin: objectPosition,
+  }
+
   const transition: Transition = reducedMotion
     ? { duration: 0.15, ease: 'linear' }
     : { duration: 0.6, ease: SLIDE_EASE }
@@ -461,6 +491,7 @@ function Slide({
             }
           }}
           className="cine-slide__media"
+          style={mediaStyle}
           src={inlineSource(project)}
           poster={project.poster}
           muted
@@ -468,16 +499,19 @@ function Slide({
           playsInline
           preload={playing ? 'auto' : 'metadata'}
           aria-label={project.title}
+          onLoadedMetadata={(event) => {
+            if (!DEV) return
+            const { videoWidth, videoHeight } = event.currentTarget
+            const ratio = videoWidth / videoHeight
+            // Not 16:9 means cover crops it; it may need a zoom/objectPosition in data.
+            if (Math.abs(ratio / SIXTEEN_NINE - 1) > 0.03) {
+              console.info(`[cinematography] "${project.title}" is ${videoWidth}×${videoHeight} (${ratio.toFixed(3)}:1), not 16:9`)
+            }
+          }}
         />
       ) : project.poster ? (
-        <img className="cine-slide__media" src={project.poster} alt="" loading="lazy" decoding="async" />
+        <img className="cine-slide__media" style={mediaStyle} src={project.poster} alt="" loading="lazy" decoding="async" />
       ) : null}
-      <span className="cine-slide__shade" aria-hidden="true" />
-      <p className="cine-slide__title" aria-hidden="true">
-        {splitTitle(project.title).map((line) => (
-          <span key={line}>{line}</span>
-        ))}
-      </p>
     </motion.div>
   )
 }

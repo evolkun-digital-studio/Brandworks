@@ -1,11 +1,13 @@
 /* Homepage cinematography slider. One fixed, clipped frame shows a single
    film; during a change the outgoing and incoming slides animate inside it.
-   Each breakpoint only changes --card-w and --card-radius. Container units
-   (cqw) are measured from .cine. */
+   The film gets the space: the frame stays 16:9 and only leaves room for
+   the site header above it (the info row may sit below the fold). The info
+   row shares --card-w so its edges line up with the frame. Each breakpoint
+   only changes these. */
 .cine {
   --cine-ink: #0a0a0a;
-  --card-w: min(1080px, 70cqw);
-  --card-radius: 22px;
+  --card-w: min(1760px, 94vw, calc((100svh - 96px) * 16 / 9));
+  --card-radius: 24px;
 
   container-type: inline-size;
   position: relative;
@@ -20,29 +22,50 @@
 /* ---------- Header ---------- */
 
 .cine-header {
-  margin: 0 auto clamp(36px, 4vw, 56px);
+  margin: 0 auto 28px;
   padding-inline: 16px;
   text-align: center;
-}
-
-.cine-eyebrow {
-  margin: 0 0 14px;
-  font-family: var(--font-secondary);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgb(10 10 10 / 0.5);
 }
 
 .cine-heading {
   margin: 0;
   font-family: var(--font-primary);
-  font-size: clamp(32px, 4vw, 56px);
+  font-size: clamp(40px, 5vw, 76px);
   font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--cine-ink);
+  letter-spacing: -0.035em;
+  color: #111;
+}
+
+.cine-subheading {
+  max-width: 40ch;
+  margin: 12px auto 0;
+  font-family: var(--font-secondary);
+  font-size: clamp(16px, 1.4vw, 20px);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: rgb(17 17 17 / 0.6);
+}
+
+/* Fade-up once the header scrolls into view; the subheading follows. */
+.cine-heading,
+.cine-subheading {
+  opacity: 0;
+  translate: 0 12px;
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    translate 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cine-subheading {
+  transition-delay: 0.1s;
+}
+
+.cine-header[data-revealed] .cine-heading,
+.cine-header[data-revealed] .cine-subheading {
+  opacity: 1;
+  translate: none;
 }
 
 /* ---------- Stage ---------- */
@@ -59,23 +82,29 @@
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: var(--card-radius);
+  border: 0;
+  box-shadow: none;
   background: #111;
   touch-action: pan-y;
   /* Safari: keep the rounded clip on the video during transforms. */
   isolation: isolate;
 }
 
-.cine-stage:focus-visible .cine-frame {
-  outline: 2px solid var(--cine-ink);
+/* Keyboard focus only, on the stage or the frame's button; a mouse click
+   never draws a ring. */
+.cine-stage:focus-visible .cine-frame,
+.cine-frame:has(.cine-frame__hit:focus-visible) {
+  outline: 2px solid #111;
   outline-offset: 4px;
 }
 
+/* Same radius and clip as the frame, so no background shows at the
+   corners while slides move. */
 .cine-slide {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  padding-left: 5%;
+  overflow: hidden;
+  border-radius: inherit;
   background: #111;
 }
 
@@ -85,13 +114,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  pointer-events: none;
-}
-
-.cine-slide__shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgb(0 0 0 / 0.35) 0%, transparent 45%);
   pointer-events: none;
 }
 
@@ -105,13 +127,31 @@
   border: 0;
   border-radius: inherit;
   background: transparent;
+  outline: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.cine-frame__hit:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: -6px;
+/* Development-only framing guide (?framing=1). */
+.cine-framing {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  outline: 1px dashed #fff;
+  outline-offset: -1px;
+  pointer-events: none;
+}
+
+.cine-framing span {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.7);
+  color: #fff;
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .cine-preload {
@@ -125,19 +165,6 @@
   inset: 0;
   z-index: 2;
   pointer-events: none;
-}
-
-.cine-slide__title {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  font-family: var(--font-secondary);
-  font-size: clamp(28px, 3vw, 44px);
-  font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: #fff;
 }
 
 .cine-play {
@@ -244,7 +271,7 @@
   justify-content: space-between;
   gap: 24px;
   width: var(--card-w);
-  margin: 24px auto 0;
+  margin: 16px auto 0;
 }
 
 /* Reserves the text's height so the page doesn't jump during the
@@ -448,8 +475,8 @@
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .cine {
-    --card-w: 86cqw;
-    --card-radius: 20px;
+    --card-w: min(96vw, calc((100svh - 96px) * 16 / 9));
+    --card-radius: 18px;
   }
 }
 
@@ -457,12 +484,20 @@
 
 @media (max-width: 767px) {
   .cine {
-    --card-w: calc(100cqw - 32px);
-    --card-radius: 16px;
+    --card-w: calc(100vw - 16px);
+    --card-radius: 14px;
   }
 
-  .cine-slide__title {
-    font-size: clamp(24px, 7vw, 28px);
+  .cine-header {
+    margin-bottom: 20px;
+  }
+
+  .cine-heading {
+    font-size: clamp(34px, 9vw, 44px);
+  }
+
+  .cine-subheading {
+    font-size: 15px;
   }
 
   .cine-info {
@@ -478,6 +513,13 @@
 /* ---------- Reduced motion (the slide fade lives in the component) ---------- */
 
 @media (prefers-reduced-motion: reduce) {
+  .cine-heading,
+  .cine-subheading {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+
   .cine-lightbox[open] {
     animation: none;
   }
