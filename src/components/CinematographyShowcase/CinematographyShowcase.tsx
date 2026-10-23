@@ -243,7 +243,7 @@ export default function CinematographyShowcase() {
   return (
     <section
       ref={sectionRef}
-      className="relative flex w-full flex-col justify-center overflow-x-clip bg-white px-2 pb-4 pt-20 font-secondary text-[#0a0a0a] sm:px-5 sm:pb-5 lg:px-8"
+      className="relative mx-auto flex w-full max-w-[1400px] flex-col justify-center overflow-x-clip bg-white px-2 pb-4 pt-20 font-secondary text-[#0a0a0a] sm:px-5 sm:pb-5 lg:px-8"
       aria-labelledby={headingId}
     >
       <header className="mb-4 px-2 text-center sm:mb-5">
@@ -260,7 +260,7 @@ export default function CinematographyShowcase() {
 
       <div className="mx-auto flex w-fit max-w-full flex-col h-100vw">
         <div
-          className="relative aspect-video h-[min(calc(56.25vw-0.5625rem),calc(115svh-19rem))] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:h-[min(calc(56.25vw-1.40625rem),calc(110svh-19rem))] lg:h-[min(calc(56.25vw-2.25rem),calc(110svh-19rem))]"
+          className="relative aspect-video h-[min(calc(min(56.25vw,787.5px)-0.5625rem),calc(115svh-19rem))] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:h-[min(calc(min(56.25vw,787.5px)-1.40625rem),calc(110svh-19rem))] lg:h-[min(calc(min(56.25vw,787.5px)-2.25rem),calc(110svh-19rem))]"
           role="region"
           aria-roledescription="carousel"
           aria-label="Cinematography projects"

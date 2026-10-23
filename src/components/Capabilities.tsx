@@ -240,7 +240,7 @@ function ServiceScrollIndex() {
            pulling it left; a small optical nudge right finishes the job.
            The roller's masked window then bleeds out to the viewport edge
            (--svc-bleed) for its full visible width. */}
-        <div className="mx-auto grid h-full w-full max-w-[calc(1040px_+_14vw)] grid-cols-[max-content_auto_minmax(0,1fr)] gap-x-[clamp(20px,2vw,36px)] translate-x-[clamp(0px,2.5vw,40px)] px-[7vw] [--svc-bleed:max(7vw,calc((100vw_-_1040px)/2))]">
+        <div className="mx-auto grid h-full w-full max-w-[1400px] grid-cols-[max-content_auto_minmax(0,1fr)] gap-x-[clamp(20px,2vw,36px)] translate-x-[clamp(0px,2.5vw,40px)] px-[7vw] [--svc-bleed:max(7vw,calc((100vw_-_1040px)/2))]">
           {/* Left: title on the focus line, active detail. */}
           <div className="relative flex h-full items-center">
             <div className="relative w-full">

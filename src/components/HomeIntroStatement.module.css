@@ -29,8 +29,8 @@
 }
 
 .inner {
-  width: min(100% - 3rem, 1300px);
-  max-width: 1600px;
+  width: min(100% - 48px, 1400px);
+  max-width: 1400px;
   margin-inline: auto;
 }
 
