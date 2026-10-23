@@ -80,8 +80,8 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       {/* <div className="home-section home-section--before-cinematography"><Work /></div> */}
       <div className="home-section"> <PhotographyEditorial /> </div>
       {/* <div className="home-section home-section--after-removed-photography"><Videography /></div> */}
-      <div className="home-section"><GraphicsMotionExperience /></div>
-      <div className="home-section"><PRReputation /></div>
+      {/* <div className="home-section"><GraphicsMotionExperience /></div> */}
+      {/* <div className="home-section"><PRReputation /></div> */}
       {/* <div className="home-section"><SocialMedia /></div> */}
       {/* <WebDevelopment /> */}
       {/* <div className="home-section"><WebsiteSectionProps /></div> */}

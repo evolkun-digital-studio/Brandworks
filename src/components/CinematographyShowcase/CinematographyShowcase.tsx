@@ -249,7 +249,7 @@ export default function CinematographyShowcase() {
       <header className="mb-4 px-2 text-center sm:mb-5">
         <h2
           id={headingId}
-          className="m-0 font-primary text-[clamp(2.25rem,4.25vw,3.75rem)] font-light leading-none tracking-[-0.035em] text-charcoal-950 sm:text-[clamp(2.5rem,3.75vw,4rem)] sm:leading-[1.05] lg:text-[clamp(3rem,2.5vw,4rem)]"
+          className="m-0 font-primary text-[clamp(2.25rem,3.5vw,4rem)] font-light leading-none tracking-[-0.035em] text-charcoal-950 sm:text-[clamp(2.5rem,3.75vw,4rem)] sm:leading-[1.05] lg:text-[clamp(3rem,2.5vw,4rem)]"
         >
           Cinematography
         </h2>

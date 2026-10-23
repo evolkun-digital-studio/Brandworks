@@ -36,7 +36,7 @@ function Industries() {
   return (
     <section className="mx-auto flex w-full max-w-[1440px] flex-col overflow-hidden bg-white px-[18px] py-20 min-[900px]:px-12 min-[900px]:py-[clamp(72px,9vw,140px)]">
       <div className="flex w-full flex-col items-center text-center">
-        <h2 className="site-display max-w-[900px] text-neutral-900">
+        <h2 className="site-display max-w-[900px] text-black text-2xl sm:text-[clamp(2.25rem,3.5vw,4rem)] md:text-[clamp(2.5rem,3.75vw,4rem)] lg:text-[clamp(3rem,2.5vw,4rem)]">
           Industries
         </h2>
 
@@ -67,7 +67,7 @@ function Industries() {
 
             <FadeUp
               as="h3"
-              className="mt-4 max-w-[520px] text-[26px] leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[28px] md:text-[30px]"
+              className="font-secondary mt-4 max-w-[520px] text-[26px] leading-[1.2] tracking-[-0.02em] text-neutral-900 sm:text-[28px] md:text-[30px]"
               y={32}
               duration={0.75}
               delay={0.05}

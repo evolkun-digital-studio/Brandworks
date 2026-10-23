@@ -111,7 +111,7 @@ export default function Testimonials() {
           variants={headerVariants}
           {...reveal}
         >
-          <h2 id="testimonials-heading" className="site-display testimonials-title">
+          <h2 id="testimonials-heading" className="site-display testimonials-title capitalize">
             What clients say.
           </h2>
           <p className="site-copy testimonials-intro">

@@ -8,6 +8,19 @@
   --home-section-space-bottom: var(--home-section-edge);
 }
 
+/* One title style for every chapter heading below the hero. The opening
+   statement and the hero headline are display copy, not chapter titles. */
+.home-page {
+  --home-section-title-size: clamp(36px, 3.5vw, 48px);
+}
+
+.home-page h2:not(#brandworks-intro-statement, .hero-mask) {
+  font-family: var(--font-primary);
+  font-size: var(--home-section-title-size);
+  font-weight: 300;
+  letter-spacing: -0.015em;
+}
+
 /* Frame each content section without changing its pinned animation stage. */
 .home-page .home-section {
   /* A new formatting context prevents a child's first/last margin from

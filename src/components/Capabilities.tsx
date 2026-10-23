@@ -62,7 +62,7 @@ const GROTESK = "font-['Google_Sans_Flex','Helvetica',sans-serif]";
 const DISPLAY = `${GROTESK} font-thin`;
 
 // The title is SemiBold, from the variable display cut (see .services-display).
-const TITLE_CLASS = `${GROTESK} whitespace-nowrap  text-[clamp(24px,7.2vw,46px)] leading-[0.98] tracking-[-0.035em] text-[#111] sm:text-[clamp(28px,5.5vw,38px)] md:text-[32px] lg:text-[clamp(28px,2.55vw,36px)] xl:text-[46px] 2xl:text-[46px]`;
+const TITLE_CLASS = `${GROTESK} whitespace-nowrap  text-[clamp(24px,4vw,48px)] leading-[0.98] tracking-[-0.035em] text-[#111] sm:text-[clamp(28px,5.5vw,38px)] md:text-[32px] lg:text-[clamp(28px,3.55vw,48px)] xl:text-[48px] 2xl:text-[48px] capitalize`;
 const LABEL_CLASS = `${GROTESK} text-[11px] leading-none font-normal tracking-[0.14em] text-[#777] uppercase`;
 
 // The runway's scroll progress (0 = stage pinned, 1 = released) is
