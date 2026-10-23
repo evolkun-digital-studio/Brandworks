@@ -2,7 +2,7 @@ import { mediaUrl } from "../lib/media";
 import { useEffect, useRef, useState } from "react";
 
 const ABOUT_TEXT =
-  "A creative and digital studio working across brand, media and growth. We bring strategy, production, design, reputation and digital execution into one working system.";
+  "Brandworks is a concept-first creative and digital growth company, transforming bold ideas into compelling brand experiences and measurable impact.";
 
 function formatTime(seconds: number) {
   const s = Number.isFinite(seconds) ? seconds : 0;
@@ -95,8 +95,8 @@ function About({ ctaHref = "#" }: AboutProps) {
           </figure>
 
           {/* Copy column */}
-          <div className="flex flex-col justify-end lg:col-span-7 lg:pl-[clamp(0px,3vw,48px)]">
-            <p className="font-primary text-[clamp(24px,6.2vw,32px)] leading-[1.22] tracking-[-0.02em] text-neutral-950 sm:text-[clamp(28px,4.2vw,32px)] lg:text-[clamp(28px,2.3vw,32px)] lg:leading-[1.16]">
+          <div className="flex flex-col justify-end lg:col-span-7 lg:pb-[clamp(30px,2.5vw,40px)] lg:pl-[clamp(0px,3vw,48px)]">
+            <p className="max-w-[38ch] text-balance font-primary font-light text-[clamp(24px,6.2vw,32px)] leading-[1.22] tracking-[-0.02em] text-neutral-950 sm:text-[clamp(28px,4.2vw,32px)] lg:text-[clamp(28px,2.3vw,32px)] lg:leading-[1.16]">
               {ABOUT_TEXT}
             </p>
 

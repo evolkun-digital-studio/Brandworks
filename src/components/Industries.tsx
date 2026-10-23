@@ -35,22 +35,24 @@ function Industries() {
 
   return (
     <section className="mx-auto flex w-full max-w-[1440px] flex-col overflow-hidden bg-white px-[18px] py-20 min-[900px]:px-12 min-[900px]:py-[clamp(72px,9vw,140px)]">
-      <h2 className="site-display max-w-[900px] text-neutral-900">
-        Industries
-      </h2>
+      <div className="flex w-full flex-col items-center text-center">
+        <h2 className="site-display max-w-[900px] text-neutral-900">
+          Industries
+        </h2>
 
-      <p className="site-copy mt-4 max-w-[620px] text-neutral-600">
-        The context changes. The work adapts with it.
-      </p>
+        <p className="site-copy mt-4 max-w-[620px] text-neutral-600">
+          The context changes. The work adapts with it.
+        </p>
 
-      <p className="mt-5 max-w-[900px] text-[12px] leading-[1.7] tracking-[0.01em] text-neutral-500 sm:text-[13px] md:text-[14px]">
-        {INDUSTRY_LIST.join(' · ')}
-      </p>
+        {/* <p className="mt-5 max-w-[900px] text-[12px] leading-[1.7] tracking-[0.01em] text-neutral-500 sm:text-[13px] md:text-[14px]">
+          {INDUSTRY_LIST.join(' · ')}
+        </p> */}
+      </div>
 
       {industries.map((industry) => (
         <div
           key={industry.name}
-          className="mt-14 grid w-full grid-cols-1 items-center gap-10 min-[900px]:mt-16 min-[900px]:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] min-[900px]:gap-[clamp(56px,8vw,130px)]"
+          className="mt-10 grid w-full grid-cols-1 items-center gap-10 min-[900px]:mt-12 min-[900px]:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] min-[900px]:gap-[clamp(56px,8vw,130px)]"
         >
           <div className="flex flex-col items-start text-left">
             <FadeUp

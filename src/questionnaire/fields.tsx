@@ -3,8 +3,6 @@
 import { useId, type ReactNode } from 'react'
 import type { Option } from './flow'
 import { OptionVisual } from './visuals'
-import { OPTION_EMOJI } from './emoji'
-import AppleEmoji from './AppleEmoji'
 import { useSpeech } from './useSpeech'
 
 export const EASE = [0.22, 1, 0.36, 1] as const
@@ -66,11 +64,6 @@ export function OptionRows({
               active ? 'sm:bg-(--q-tint) max-sm:border-(--q-ink) max-sm:bg-[rgba(206,253,16,0.3)]' : 'max-sm:border-(--q-line) max-sm:bg-white'
             } ${dim ? 'opacity-60' : ''}`}
           >
-            {OPTION_EMOJI[option.value] && (
-              <span className="inline-flex shrink-0 max-sm:size-10 max-sm:items-center max-sm:justify-center max-sm:rounded-xl max-sm:bg-(--q-bubble)">
-                <AppleEmoji emoji={OPTION_EMOJI[option.value]} size={22} />
-              </span>
-            )}
             <span className="min-w-0 flex-1">
               <span className={`block text-[17px] leading-[1.35] text-(--q-ink) ${active ? 'font-semibold' : 'font-normal'}`}>{option.label}</span>
               {option.hint && <span className="mt-0.5 block text-[13px] leading-[1.4] text-(--q-muted)">{option.hint}</span>}
@@ -256,7 +249,6 @@ export function LongAnswer({
 
 function SmallField({
   label,
-  emoji,
   value,
   onChange,
   type = 'text',
@@ -266,7 +258,6 @@ function SmallField({
   autoFocus,
 }: {
   label: string
-  emoji?: string
   value: string
   onChange: (v: string) => void
   type?: string
@@ -279,7 +270,7 @@ function SmallField({
   return (
     <div className="pt-5">
       <div className="flex items-baseline justify-between gap-4">
-        <label htmlFor={id} className="text-[14px] font-medium text-(--q-ink)">{emoji && <AppleEmoji emoji={emoji} size={16} className="mr-1.5" />}{label}</label>
+        <label htmlFor={id} className="text-[14px] font-medium text-(--q-ink)">{label}</label>
         {optional && <span className="text-[13px] italic text-(--q-muted)">optional</span>}
       </div>
       <input
@@ -308,11 +299,11 @@ export function ContactFields({
 }) {
   return (
     <div className="flex flex-col">
-      <SmallField label="Your name" emoji="🙂" value={values.contactName} onChange={(v) => onChange('contactName', v)} placeholder="Your name" autoComplete="name" autoFocus />
-      <SmallField label="Email" emoji="✉️" type="email" value={values.contactEmail} onChange={(v) => onChange('contactEmail', v)} placeholder="you@brand.com" autoComplete="email" />
-      <SmallField label="Phone / WhatsApp" emoji="📱" type="tel" value={values.contactPhone} onChange={(v) => onChange('contactPhone', v)} placeholder="+91 98765 43210" autoComplete="tel" optional />
+      <SmallField label="Your name" value={values.contactName} onChange={(v) => onChange('contactName', v)} placeholder="Your name" autoComplete="name" autoFocus />
+      <SmallField label="Email" type="email" value={values.contactEmail} onChange={(v) => onChange('contactEmail', v)} placeholder="you@brand.com" autoComplete="email" />
+      <SmallField label="Phone / WhatsApp" type="tel" value={values.contactPhone} onChange={(v) => onChange('contactPhone', v)} placeholder="+91 98765 43210" autoComplete="tel" optional />
       {askWebsite && (
-        <SmallField label="Current website" emoji="🌐" type="url" value={values.contactWebsite} onChange={(v) => onChange('contactWebsite', v)} placeholder="yourbrand.com" autoComplete="url" optional />
+        <SmallField label="Current website" type="url" value={values.contactWebsite} onChange={(v) => onChange('contactWebsite', v)} placeholder="yourbrand.com" autoComplete="url" optional />
       )}
     </div>
   )
