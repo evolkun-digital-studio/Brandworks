@@ -27,7 +27,8 @@
 }
 
 .inner {
-  width: min(100% - 3rem, 90rem);
+  width: min(100% - 3rem, 1300px);
+  max-width: 1300px;
   margin-inline: auto;
   padding-bottom: 50px;
   padding-top: 50px;
@@ -45,22 +46,23 @@
 
 .statement {
   position: relative;
-  grid-column: 2 / span 10;
+  grid-column: 1 / span 10;
   max-width: 35ch;
-  margin: 0 auto;
+  margin: 0;
   color: var(--intro-text);
   font-size: clamp(36px, 4vw, 46px);
-  font-weight: 200;
+  /* font-weight: 100; */
+  font: normal;
   letter-spacing: -0.028em;
   line-height: 1.14;
-  text-align: center;
-  text-wrap: balance;
+  text-align: left;
+  text-wrap: pretty;
   word-spacing: normal;
   /* text: #212121; */
 }
 
 .statementText {
-  /* display: block; */
+  display: block;
 }
 
 .wordClip {

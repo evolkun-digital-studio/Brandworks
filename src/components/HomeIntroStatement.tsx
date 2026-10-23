@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -10,7 +9,7 @@ import styles from './HomeIntroStatement.module.css'
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const STATEMENT =
-  'We connect business strategy, technology, design, and customer experience to create complete solutions.'
+  'Brandworks connects business strategy, technology, design, and customer experience to create complete solutions.'
 
 const EMPHASIZED_WORDS = new Set(['strategy', 'technology', 'design'])
 
@@ -40,19 +39,42 @@ export default function HomeIntroStatement() {
         if (caret && firstChar) {
           let activeChar: HTMLElement | undefined = firstChar
 
-          const placeCaret = (char: HTMLElement, before = false) => {
+          const moveCaretX = gsap.quickTo(caret, 'x', {
+            duration: 0.08,
+            ease: 'power2.out',
+          })
+          const moveCaretY = gsap.quickTo(caret, 'y', {
+            duration: 0.14,
+            ease: 'power2.out',
+          })
+          const resizeCaret = gsap.quickTo(caret, 'height', {
+            duration: 0.14,
+            ease: 'power2.out',
+          })
+
+          const placeCaret = (
+            char: HTMLElement,
+            before = false,
+            immediate = false
+          ) => {
             const host = statement.getBoundingClientRect()
             const rect = char.getBoundingClientRect()
+            const x = (before ? rect.left : rect.right) - host.left
+            const y = rect.top - host.top + rect.height * 0.08
+            const height = rect.height * 0.84
 
-            gsap.set(caret, {
-              x: (before ? rect.left : rect.right) - host.left,
-              y: rect.top - host.top + rect.height * 0.08,
-              height: rect.height * 0.84,
-            })
+            if (immediate) {
+              gsap.set(caret, { x, y, height })
+              return
+            }
+
+            moveCaretX(x)
+            moveCaretY(y)
+            resizeCaret(height)
           }
 
-          gsap.set(chars, { autoAlpha: 0 })
-          placeCaret(firstChar, true)
+          gsap.set(chars, { autoAlpha: 0, y: '0.16em' })
+          placeCaret(firstChar, true, true)
 
           resizeObserver = new ResizeObserver(() => {
             if (activeChar) placeCaret(activeChar)
@@ -75,18 +97,20 @@ export default function HomeIntroStatement() {
             .set(caret, { autoAlpha: 1, opacity: 1 })
             .call(() => {
               activeChar = undefined
-              placeCaret(firstChar, true)
+              gsap.set(chars, { y: '0.16em' })
+              placeCaret(firstChar, true, true)
             })
 
-          let cursor = 0.18
+          let cursor = 0.16
 
           chars.forEach((char) => {
             typing.to(
               char,
               {
                 autoAlpha: 1,
-                duration: 0.07,
-                ease: 'power1.out',
+                y: 0,
+                duration: 0.34,
+                ease: 'power3.out',
               },
               cursor
             )
@@ -96,10 +120,18 @@ export default function HomeIntroStatement() {
                 placeCaret(char)
               },
               undefined,
-              cursor
+              cursor + 0.06
             )
 
-            cursor += /[,.]/.test(char.textContent ?? '') ? 0.14 : 0.035
+            const character = char.textContent ?? ''
+            const isLastCharacterInWord =
+              char === char.parentElement?.lastElementChild
+
+            cursor += /[,.]/.test(character)
+              ? 0.13
+              : isLastCharacterInWord
+                ? 0.055
+                : 0.028
           })
 
           typing
@@ -112,32 +144,20 @@ export default function HomeIntroStatement() {
                 yoyo: true,
                 ease: 'power2.inOut',
               },
-              cursor + 1.15
+              cursor + 0.9
             )
-
-          for (let index = chars.length - 1; index >= 0; index -= 1) {
-            const char = chars[index]
-            const previousChar = chars[index - 1]
-
-            if (!char) continue
-
-            typing.set(char, { autoAlpha: 0 }, '+=0.014')
-            typing.call(
-              () => {
-                activeChar = previousChar
-
-                if (previousChar) {
-                  placeCaret(previousChar)
-                } else {
-                  placeCaret(firstChar, true)
-                }
+            .to(
+              chars,
+              {
+                autoAlpha: 0,
+                y: '-0.1em',
+                duration: 0.28,
+                stagger: 0.004,
+                ease: 'power2.in',
               },
-              undefined,
-              '<'
+              '+=0.38'
             )
-          }
-
-          typing.to(caret, { autoAlpha: 0, duration: 0.22 }, '+=0.45')
+            .to(caret, { autoAlpha: 0, duration: 0.18 }, '<0.08')
         }
 
         return () => resizeObserver?.disconnect()

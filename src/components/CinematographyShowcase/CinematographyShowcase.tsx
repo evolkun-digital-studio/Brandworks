@@ -15,7 +15,6 @@ import { createPortal } from 'react-dom'
 import {
   AnimatePresence,
   motion,
-  useInView,
   useIsPresent,
   useMotionValue,
   useReducedMotion,
@@ -28,7 +27,6 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { Link } from '../../routing'
 import { getSmoothScroll } from '../../lib/smoothScroll'
 import { CINEMATOGRAPHY_PROJECTS, type CinematographyProject } from '../../data/cinematography'
-import './CinematographyShowcase.css'
 
 const FINE_POINTER = '(hover: hover) and (pointer: fine)'
 const SWIPE_DISTANCE = 50
@@ -118,8 +116,6 @@ export default function CinematographyShowcase() {
   const framingDebug = useFramingDebug()
 
   const sectionRef = useRef<HTMLElement>(null)
-  const headerRef = useRef<HTMLElement>(null)
-  const headerRevealed = useInView(headerRef, { once: true, amount: 0.6 })
   const videos = useRef(new Map<string, HTMLVideoElement>())
   const hitRef = useRef<HTMLButtonElement>(null)
   const draggedRef = useRef(false)
@@ -245,132 +241,174 @@ export default function CinematographyShowcase() {
       }
 
   return (
-    <section ref={sectionRef} className="cine" aria-labelledby={headingId}>
-      <header ref={headerRef} className="cine-header" data-revealed={headerRevealed || undefined}>
-        <h2 id={headingId} className="cine-heading">
+    <section
+      ref={sectionRef}
+      className="relative flex w-full flex-col justify-center overflow-x-clip bg-white px-2 pb-4 pt-20 font-secondary text-[#0a0a0a] sm:px-5 sm:pb-5 lg:px-8"
+      aria-labelledby={headingId}
+    >
+      <header className="mb-4 px-2 text-center sm:mb-5">
+        <h2
+          id={headingId}
+          className="m-0 font-primary text-[clamp(2.25rem,4.25vw,3.75rem)] font-light leading-none tracking-[-0.035em] text-charcoal-950 sm:text-[clamp(2.5rem,3.75vw,4rem)] sm:leading-[1.05] lg:text-[clamp(3rem,2.5vw,4rem)]"
+        >
           Cinematography
         </h2>
-        <p className="cine-subheading">Stories, given movement.</p>
+        <p className="mx-auto mt-4.5 max-w-[40ch] font-secondary text-sm leading-5 tracking-[-0.01em] text-[#111]/60 sm:text-base sm:leading-6">
+          Stories, given movement.
+        </p>
       </header>
 
-      <div
-        className="cine-stage"
-        role="region"
-        aria-roledescription="carousel"
-        aria-label="Cinematography projects"
-        tabIndex={0}
-        onKeyDown={onStageKeyDown}
-      >
-        <motion.div
-          className="cine-frame"
-          drag={finePointer ? false : 'x'}
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.15}
-          dragSnapToOrigin
-          onPointerDownCapture={() => {
-            draggedRef.current = false
-          }}
-          onDragStart={() => {
-            draggedRef.current = true
-          }}
-          onDragEnd={onDragEnd}
+      <div className="mx-auto flex w-fit max-w-full flex-col h-100vw">
+        <div
+          className="relative aspect-video h-[min(calc(56.25vw-0.5625rem),calc(115svh-19rem))] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:h-[min(calc(56.25vw-1.40625rem),calc(110svh-19rem))] lg:h-[min(calc(56.25vw-2.25rem),calc(110svh-19rem))]"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Cinematography projects"
+          tabIndex={0}
+          onKeyDown={onStageKeyDown}
         >
-          <AnimatePresence initial={false} custom={direction} mode="sync">
-            <Slide
-              key={current.id}
-              project={current}
-              index={active}
-              count={count}
-              direction={direction}
-              loaded={nearView}
-              playing={shouldPlay && settled === active}
-              reducedMotion={reducedMotion}
-              videos={videos}
-              onEntered={finishTransition}
-            />
-          </AnimatePresence>
-
-          {framingDebug && (
-            <div className="cine-framing" aria-hidden="true">
-              <span>
-                zoom {current.zoom ?? 1} · objectPosition {current.objectPosition ?? '50% 50%'}
-              </span>
-            </div>
-          )}
-
-          <div className="cine-overlay" aria-hidden="true">
-            <span className="cine-play" data-hidden={cursorVisible || undefined}>
-              <PlayGlyph />
-            </span>
-            <span className="cine-watch">
-              <PlayGlyph />
-              Watch
-            </span>
-          </div>
-
-          <button
-            ref={hitRef}
-            type="button"
-            className="cine-frame__hit"
-            aria-label={`Watch ${current.title}`}
-            aria-haspopup="dialog"
-            onClick={() => {
-              if (!draggedRef.current) openLightbox()
+          <motion.div
+            className="relative isolate size-full touch-pan-y overflow-hidden rounded-[14px] bg-[#111] sm:rounded-[18px] lg:rounded-3xl"
+            drag={finePointer ? false : 'x'}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.15}
+            dragSnapToOrigin
+            onPointerDownCapture={() => {
+              draggedRef.current = false
             }}
-            onPointerEnter={showCursor}
-            onPointerMove={trackPointer}
-            onPointerLeave={hideCursor}
-          />
-        </motion.div>
-      </div>
+            onDragStart={() => {
+              draggedRef.current = true
+            }}
+            onDragEnd={onDragEnd}
+          >
+            <AnimatePresence initial={false} custom={direction} mode="sync">
+              <Slide
+                key={current.id}
+                project={current}
+                index={active}
+                count={count}
+                direction={direction}
+                loaded={nearView}
+                playing={shouldPlay && settled === active}
+                reducedMotion={reducedMotion}
+                videos={videos}
+                onEntered={finishTransition}
+              />
+            </AnimatePresence>
 
-      {neighbours.map((project) =>
-        project.poster ? (
-          <link key={project.id} rel="preload" as="image" href={project.poster} />
-        ) : (
-          <video
-            key={project.id}
-            className="cine-preload"
-            src={inlineSource(project)}
-            muted
-            playsInline
-            preload="metadata"
-            hidden
-            aria-hidden="true"
-          />
-        ),
-      )}
+            {framingDebug && (
+              <div
+                className="pointer-events-none absolute inset-0 z-[4] rounded-[inherit] outline-dashed outline-1 -outline-offset-1 outline-white"
+                aria-hidden="true"
+              >
+                <span className="absolute left-2 top-2 rounded bg-black/70 px-2 py-1 font-mono text-xs leading-[1.4] text-white">
+                  zoom {current.zoom ?? 1} · objectPosition {current.objectPosition ?? '50% 50%'}
+                </span>
+              </div>
+            )}
 
-      <div className="cine-info">
-        <div className="cine-info__text">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={current.id} {...textMotion}>
-              <h3 className="cine-info__title">{current.title}</h3>
-              <p className="cine-info__desc">{current.description}</p>
-              <Link to={current.href} className="cine-info__link">
-                View case
-                <ChevronRight aria-hidden="true" strokeWidth={1.75} />
-              </Link>
-            </motion.div>
-          </AnimatePresence>
+            <div className="pointer-events-none absolute inset-0 z-[2]" aria-hidden="true">
+              {finePointer ? (
+                <span
+                  className={`absolute left-1/2 top-1/2 grid size-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white backdrop-blur-[10px] transition-opacity duration-200 ${cursorVisible ? 'opacity-0' : 'opacity-100'}`}
+                >
+                  <PlayGlyph className="ml-[3px] h-4 w-3.5" />
+                </span>
+              ) : (
+                <span className="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[13px] font-medium leading-none text-[#0a0a0a]">
+                  <PlayGlyph className="h-2.5 w-[9px]" />
+                  Watch
+                </span>
+              )}
+            </div>
+
+            <button
+              ref={hitRef}
+              type="button"
+              className={`absolute inset-0 z-[3] size-full rounded-[inherit] border-0 bg-transparent p-0 outline-none [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white ${finePointer ? 'cursor-none' : 'cursor-pointer'}`}
+              aria-label={`Watch ${current.title}`}
+              aria-haspopup="dialog"
+              onClick={() => {
+                if (!draggedRef.current) openLightbox()
+              }}
+              onPointerEnter={showCursor}
+              onPointerMove={trackPointer}
+              onPointerLeave={hideCursor}
+            />
+          </motion.div>
         </div>
 
-        <div className="cine-info__controls">
-          <span className="cine-counter" aria-hidden="true">
-            {pad(active + 1)} / {pad(count)}
-          </span>
-          <div className="cine-arrows">
-            <button type="button" aria-label="Previous film" disabled={active === 0} onClick={() => goTo(active - 1)}>
-              <ChevronLeft aria-hidden="true" strokeWidth={1.5} />
-            </button>
-            <button type="button" aria-label="Next film" disabled={active === count - 1} onClick={() => goTo(active + 1)}>
-              <ChevronRight aria-hidden="true" strokeWidth={1.5} />
-            </button>
+        {neighbours.map((project) =>
+          project.poster ? (
+            <link key={project.id} rel="preload" as="image" href={project.poster} />
+          ) : (
+            <video
+              key={project.id}
+              className="hidden"
+              src={inlineSource(project)}
+              muted
+              playsInline
+              preload="metadata"
+              hidden
+              aria-hidden="true"
+            />
+          ),
+        )}
+
+        <div className="mt-3 flex w-full items-end justify-between gap-3 sm:mt-4 sm:items-start sm:gap-6">
+          <div className="min-h-24 min-w-0 flex-1 sm:min-h-20">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div key={current.id} {...textMotion}>
+                <h3 className="mb-1 font-secondary text-sm  leading-5 tracking-normal text-[#0a0a0a] sm:text-base">
+                  {current.title}
+                </h3>
+                <p className="mb-2 line-clamp-2 max-w-[46ch] text-xs leading-5 text-[#0a0a0a]/60 sm:text-[15px] sm:leading-[1.5]">
+                  {current.description}
+                </p>
+                <Link
+                  to={current.href}
+                  className="group inline-flex items-center gap-0.5 rounded-sm text-sm font-medium text-[#0a0a0a] no-underline outline-none focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#0a0a0a] sm:text-[15px]"
+                >
+                  View case
+                  <ChevronRight
+                    className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-focus-visible:translate-x-0.5"
+                    aria-hidden="true"
+                    strokeWidth={1.75}
+                  />
+                </Link>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          <div className="flex shrink-0 flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:gap-3.5">
+            <span className="font-mono text-xs tabular-nums text-[#0a0a0a]/45" aria-hidden="true">
+              {pad(active + 1)} / {pad(count)}
+            </span>
+            <div className="flex gap-1 rounded-full bg-[#f1f1f1] p-1">
+              <button
+                type="button"
+                className="grid size-9 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-[#0a0a0a] transition duration-200 hover:not-disabled:bg-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Previous film"
+                disabled={active === 0}
+                onClick={() => goTo(active - 1)}
+              >
+                <ChevronLeft className="size-[18px]" aria-hidden="true" strokeWidth={1.5} />
+              </button>
+              <button
+                type="button"
+                className="grid size-9 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-[#0a0a0a] transition duration-200 hover:not-disabled:bg-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Next film"
+                disabled={active === count - 1}
+                onClick={() => goTo(active + 1)}
+              >
+                <ChevronRight className="size-[18px]" aria-hidden="true" strokeWidth={1.5} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <p className="cine-sr-only" aria-live="polite" aria-atomic="true">
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}
       </p>
 
@@ -379,18 +417,18 @@ export default function CinematographyShowcase() {
           <AnimatePresence>
             {cursorVisible && lightbox === null && (
               <motion.div
-                className="cine-cursor"
+                className="pointer-events-none fixed left-0 top-0 z-[60]"
                 style={{ x: reducedMotion ? pointerX : springX, y: reducedMotion ? pointerY : springY }}
                 aria-hidden="true"
               >
                 <motion.span
-                  className="cine-cursor__pill"
+                  className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-white px-[18px] py-2.5 font-secondary text-sm font-medium leading-none text-[#0a0a0a] [translate:-50%_-50%]"
                   initial={{ opacity: 0, scale: reducedMotion ? 1 : 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: reducedMotion ? 1 : 0.9 }}
                   transition={{ duration: 0.18, ease: EASE_OUT }}
                 >
-                  <PlayGlyph />
+                  <PlayGlyph className="h-5 w-3" />
                   Watch case
                 </motion.span>
               </motion.div>
@@ -467,7 +505,7 @@ function Slide({
       aria-label={`${index + 1} of ${count}: ${project.title}`}
       aria-hidden={!isPresent || undefined}
       inert={!isPresent}
-      className="cine-slide"
+      className="absolute inset-0 overflow-hidden rounded-[inherit] bg-[#111]"
       style={{ zIndex: isPresent ? 1 : 0 }}
       custom={direction}
       variants={reducedMotion ? FADE_VARIANTS : SLIDE_VARIANTS}
@@ -490,7 +528,7 @@ function Slide({
               if (videos.current.get(project.id) === node) videos.current.delete(project.id)
             }
           }}
-          className="cine-slide__media"
+          className="pointer-events-none absolute inset-0 size-full object-cover"
           style={mediaStyle}
           src={inlineSource(project)}
           poster={project.poster}
@@ -510,7 +548,14 @@ function Slide({
           }}
         />
       ) : project.poster ? (
-        <img className="cine-slide__media" style={mediaStyle} src={project.poster} alt="" loading="lazy" decoding="async" />
+        <img
+          className="pointer-events-none absolute inset-0 size-full object-cover"
+          style={mediaStyle}
+          src={project.poster}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
       ) : null}
     </motion.div>
   )
@@ -559,7 +604,7 @@ function FilmLightbox({
   return (
     <dialog
       ref={dialogRef}
-      className="cine-lightbox"
+      className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none overscroll-contain border-0 bg-black/90 px-4 py-14 text-white backdrop:bg-transparent open:grid open:grid-rows-[minmax(0,1fr)] open:place-items-center sm:px-8 sm:py-16 lg:px-16 lg:py-20"
       aria-label={`${project.title} film`}
       data-lenis-prevent
       onCancel={(event) => {
@@ -570,12 +615,18 @@ function FilmLightbox({
         if (event.target === event.currentTarget) onClose()
       }}
     >
-      <button type="button" className="cine-lightbox__close" aria-label="Close film" onClick={onClose} autoFocus>
-        <X aria-hidden="true" strokeWidth={1.5} />
+      <button
+        type="button"
+        className="absolute right-4 top-4 grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-white/15 p-0 text-white transition-colors duration-200 hover:bg-white/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        aria-label="Close film"
+        onClick={onClose}
+        autoFocus
+      >
+        <X className="size-5" aria-hidden="true" strokeWidth={1.5} />
       </button>
       <video
         ref={videoRef}
-        className="cine-lightbox__video"
+        className="size-full max-h-full max-w-full bg-black object-contain"
         src={project.src}
         poster={project.poster}
         controls
