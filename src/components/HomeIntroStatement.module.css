@@ -12,7 +12,7 @@
   overflow: clip;
   color: var(--intro-text);
   background: var(--intro-bg);
-  margin-top: 5rem;
+  margin-top: 8rem;
   font-family:
     var(--font-geist-sans),
     'Geist',
@@ -51,7 +51,7 @@
   margin: 0;
   color: var(--intro-text);
   font-size: clamp(36px, 4vw, 48px);
-  /* font-weight: 100; */
+  font-weight: 400;
   font: normal;
   letter-spacing: -0.028em;
   line-height: 1.14;

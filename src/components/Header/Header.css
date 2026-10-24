@@ -66,8 +66,8 @@
   background: var(--pill-bg);
   color: var(--pill-ink);
   box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   font-family: var(--font-secondary);
   font-size: 14px;
   font-weight: 400;

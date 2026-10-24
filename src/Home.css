@@ -12,14 +12,31 @@
    statement and the hero headline are display copy, not chapter titles. */
 .home-page {
   --home-section-title-size: clamp(36px, 3.5vw, 48px);
+
+  /* Home headings use Google Sans Flex instead of Grimblade. Everything on
+     this page that reads the display font (Tailwind's font-primary, the
+     component stylesheets) resolves it through these variables. */
+  --home-heading-font:
+    "Google Sans Flex", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-primary: var(--home-heading-font);
+  --font-instrument: var(--home-heading-font);
+}
+
+.home-page .services-display {
+  font-family: var(--home-heading-font);
+}
+
+/* Headings are Regular (400); this overrides the font-light / font-medium
+   utilities on individual headings. */
+.home-page :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--home-heading-font);
+  font-weight: 500;
 }
 
 .home-page h2:not(#brandworks-intro-statement, .hero-mask) {
-  /* Grimblade ships a single face (declared as 300), so any weight up to
-     500 renders that same face. */
   font-family: var(--font-primary);
   font-size: var(--home-section-title-size);
-  font-weight: 300;
+  font-weight: 500;
   letter-spacing: -0.015em;
 }
 

@@ -105,9 +105,9 @@ export default function PhotographyRow({
       {/* The gallery is wider than the text container (small edge margin,
           tight gap) so the row, and therefore its height, is larger. The
           container query lets it size itself to its own content box. */}
-      <div className="mx-auto max-w-[1400px] px-[clamp(10px,1.2vw,20px)]">
+      <div className="mx-auto max-w-[1400px] px-[clamp(10px,1.2vw,20px)] ">
         <div className="[container-type:inline-size]">
-          <div className="flex w-full flex-nowrap items-start justify-center gap-[var(--photo-gap)] [--photo-gap:clamp(4px,0.5vw,8px)] [--photo-h:calc((100cqw_-_1.34*var(--photo-gap))/3.008)]">
+          <div className="flex w-full flex-nowrap items-start justify-center gap-[var(--photo-gap)] [--photo-gap:clamp(4px,0.5vw,8px)] [--photo-h:calc((100cqw_-_1.34*var(--photo-gap))/3.008)]  ">
             <figure
               data-photo-reveal
               className={`${frameClass} aspect-[9/16] h-[var(--photo-h)]`}

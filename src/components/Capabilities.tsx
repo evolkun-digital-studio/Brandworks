@@ -78,6 +78,9 @@ const FOCUS_END = 0.92;
 const OPACITY_BY_DISTANCE = [1, 0.55, 0.28, 0.08] as const;
 const SCALE_BY_DISTANCE = [1.18, 0.94, 0.86, 0.8] as const;
 const BLUR_BY_DISTANCE = [0, 0, 0.3, 1, 1.4] as const;
+// Rows that have scrolled up past the focus line clear out within two rows.
+const OPACITY_ABOVE = [1, 0.4, 0] as const;
+const BLUR_ABOVE = [0, 0.4, 1] as const;
 
 /** Piecewise-linear lookup: distance (in rows) from the focus line → value. */
 function lookup(table: readonly number[], d: number) {
@@ -178,6 +181,7 @@ function Arrow() {
  */
 function ServiceScrollIndex() {
   const runwayRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const windowRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -186,6 +190,7 @@ function ServiceScrollIndex() {
   // from layout. Bumping `layout` makes every derived value recompute.
   const centers = useRef<number[]>([]);
   const windowHeight = useRef(0);
+  const focusLine = useRef(0);
   const layout = useMotionValue(0);
 
   const { scrollYProgress } = useScroll({
@@ -201,7 +206,7 @@ function ServiceScrollIndex() {
   );
   const y = useTransform([focus, layout], ([s]: number[]) =>
     centers.current.length === TOTAL
-      ? windowHeight.current / 2 - centerAt(centers.current, s)
+      ? focusLine.current - centerAt(centers.current, s)
       : 0,
   );
 
@@ -219,6 +224,14 @@ function ServiceScrollIndex() {
         item ? item.offsetTop + item.offsetHeight / 2 : 0,
       );
       windowHeight.current = windowRef.current?.clientHeight ?? 0;
+      if (headingRef.current && windowRef.current) {
+        const headingBounds = headingRef.current.getBoundingClientRect();
+        const windowBounds = windowRef.current.getBoundingClientRect();
+        focusLine.current =
+          headingBounds.top + headingBounds.height / 2 - windowBounds.top;
+      } else {
+        focusLine.current = windowHeight.current / 2;
+      }
       layout.set(layout.get() + 1);
     };
     measure();
@@ -228,6 +241,7 @@ function ServiceScrollIndex() {
         : null;
     if (listRef.current) observer?.observe(listRef.current);
     if (windowRef.current) observer?.observe(windowRef.current);
+    if (headingRef.current) observer?.observe(headingRef.current);
     return () => observer?.disconnect();
   }, [layout]);
 
@@ -240,40 +254,44 @@ function ServiceScrollIndex() {
            pulling it left; a small optical nudge right finishes the job.
            The roller's masked window then bleeds out to the viewport edge
            (--svc-bleed) for its full visible width. */}
-        <div className="mx-auto grid h-full w-full max-w-[1400px] grid-cols-[max-content_auto_minmax(0,1fr)] gap-x-[clamp(20px,2vw,36px)] translate-x-[clamp(0px,2.5vw,40px)] px-[7vw] [--svc-bleed:max(7vw,calc((100vw_-_1040px)/2))]">
-          {/* Left: title on the focus line, active detail. */}
-          <div className="relative flex h-full items-center">
-            <div className="relative w-full">
-              <h2 id="our-services-heading" className={TITLE_CLASS}>
-                The studio works across.
-              </h2>
+        <div className="mx-auto grid h-full w-full max-w-[1400px] grid-cols-[max-content_minmax(0,1fr)] gap-x-[var(--svc-gap)] translate-x-[clamp(0px,2.5vw,40px)] px-[7vw] [--svc-bleed:max(7vw,calc((100vw_-_1040px)/2))] [--svc-gap:clamp(20px,2vw,36px)]">
+          {/* Left: title and arrow share one flex row, so their centres
+              remain aligned at every responsive title size. */}
+          <div className="relative flex h-full items-start pt-[29vh]">
+            <div className="flex items-center gap-x-[var(--svc-gap)]">
+              <div className="relative w-full">
+                <h2
+                  ref={headingRef}
+                  id="our-services-heading"
+                  className={TITLE_CLASS}
+                >
+                  The studio works across.
+                </h2>
 
-              <div
-                aria-hidden="true"
-                className="absolute top-full left-0 mt-[clamp(28px,4.5vh,52px)] w-full max-w-[40  0px]"
-              >
-                 <AnimatePresence mode="wait" initial={false}>
-                  <motion.p
-                    key={active}
-                    className={`${GROTESK} text-[16px] leading-[1.4] font-normal text-[#777]`}
-                    initial={{ opacity: 0, filter: "blur(4px)", y: 6 }}
-                    animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                    exit={{ opacity: 0, filter: "blur(4px)", y: -6 }}
-                    transition={{ duration: 0.36, ease: EASE }}
-                  >
-                    {services[active].description}
-                  </motion.p>
-                </AnimatePresence>
+                <div
+                  aria-hidden="true"
+                  className="absolute top-full left-0 mt-[clamp(28px,4.5vh,52px)] w-full max-w-[400px]"
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.p
+                      key={active}
+                      className={`${GROTESK} text-[16px] leading-[1.4] font-normal text-[#777]`}
+                      initial={{ opacity: 0, filter: "blur(4px)", y: 6 }}
+                      animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                      exit={{ opacity: 0, filter: "blur(4px)", y: -6 }}
+                      transition={{ duration: 0.36, ease: EASE }}
+                    >
+                      {services[active].description}
+                    </motion.p>
+                  </AnimatePresence>
+                </div>
               </div>
+
+              <Arrow />
             </div>
           </div>
 
-          {/* Stationary arrow, sitting close to the index like the reference. */}
-          <div className="flex h-full items-center justify-end">
-            <Arrow />
-          </div>
-
-          {/* Right: masked window; the list inside is scrubbed by scroll. */}
+          {/* Right: the active row is measured onto the title/arrow centre. */}
           <div
             ref={windowRef}
             className="relative -mr-[var(--svc-bleed)] h-full overflow-hidden pr-[var(--svc-bleed)]"
@@ -344,9 +362,12 @@ function ServiceRow({
       ? Math.max(0, Math.abs(index - s) - 0.08)
       : index,
   );
-  const opacity = useTransform(distance, (d) => lookup(OPACITY_BY_DISTANCE, d));
-  const filter = useTransform(distance, (d) => {
-    const blur = lookup(BLUR_BY_DISTANCE, d);
+  const above = useTransform([focus, layout], ([s]: number[]) => (index < s ? 1 : 0));
+  const opacity = useTransform([distance, above], ([d, up]: number[]) =>
+    lookup(up === 1 ? OPACITY_ABOVE : OPACITY_BY_DISTANCE, d),
+  );
+  const filter = useTransform([distance, above], ([d, up]: number[]) => {
+    const blur = lookup(up === 1 ? BLUR_ABOVE : BLUR_BY_DISTANCE, d);
     return blur < 0.05 ? "none" : `blur(${blur.toFixed(2)}px)`;
   });
   const scale = useTransform(distance, (d) => lookup(SCALE_BY_DISTANCE, d));
