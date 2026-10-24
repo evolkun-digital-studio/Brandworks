@@ -42,6 +42,11 @@
   padding-bottom: clamp(3.75rem, 5vw, 5rem);
 }
 
+/* A clearer break between the Photography photos and Social & Content. */
+.home-page .home-section--social-content {
+  padding-top: calc(var(--home-section-edge) + clamp(2rem, 4vw, 4rem));
+}
+
 /* Replace existing outer spacing instead of adding it twice. */
 .home-page .home-section > section {
   padding-top: 0;

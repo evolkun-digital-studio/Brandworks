@@ -486,7 +486,7 @@ export default function QuestionnairePage() {
     // Briefly acknowledge the brand name before continuing.
     if (here.id === 'brandName' && !NO_GREETING.has(here.id)) {
       const name = str(current.brandName).trim()
-      if (name) { greet(); return }
+      if (name) { greet(`Nice to meet you, ${name}. Let’s build something great together.`, 'Welcome'); return }
     }
     // A choice question greets the pick in a short pop-up, then moves on.
     if ((here.kind === 'single' || here.kind === 'multi') && !NO_GREETING.has(here.id)) {
@@ -972,7 +972,7 @@ export default function QuestionnairePage() {
                 {stepId === INTRO && (
                   <div className="pb-6 max-sm:flex max-sm:min-h-[calc(100dvh-110px)] max-sm:flex-col lg:pb-5">
                     {/* {eyebrow('Website project planner')} */}
-                    <h1 className="m-0 mt-2 font-(family-name:--font-primary) sm:mt-[-40px] text-[32px] font-normal leading-[1.05] tracking-[-0.02em] lg:text-[40px]">Let’s plan your website.</h1>
+                    <h1 className="m-0 mt-2 font-(family-name:--font-primary) text-[32px] font-normal leading-[1.05] tracking-[-0.02em] lg:text-[40px]">Let’s plan your website.</h1>
                     <p className="m-0 mt-11 text-[16px] leading-[1.6] text-(--q-muted)">
                       A few quick questions about your business and what you need, then we put together a short plan our team picks up from.
                     </p>
