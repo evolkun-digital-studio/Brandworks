@@ -64,7 +64,6 @@
 }
 
 .faq-item.is-open {
-  border-color: var(--color-bw-lime);
   box-shadow: 0 1px 2px rgb(23 23 23 / 0.04);
 }
 
@@ -87,7 +86,7 @@
 }
 
 .faq-question-row:focus-visible {
-  outline: 2px solid var(--color-bw-lime);
+  outline: 2px solid #171717;
   outline-offset: -3px;
 }
 

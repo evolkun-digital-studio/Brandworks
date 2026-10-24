@@ -28,6 +28,7 @@ import WebsiteSectionProps from './components/Seo'
 import { onIntroSettled } from './lib/introGate'
 import './Home.css'
 import PhotographyEditorial from './components/Photography/PhotographyEditorial'
+import SocialContentSection from './components/SocialContent/SocialContentSection'
 // Kept section-for-section from the Vite homepage so both routers render
 // the same page composition and route-specific effects.
 const HOME_DESCRIPTION =
@@ -79,6 +80,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       <div className="home-section"><CinematographyShowcase /></div>
       {/* <div className="home-section home-section--before-cinematography"><Work /></div> */}
       <div className="home-section"> <PhotographyEditorial /> </div>
+      <div className="home-section home-section--social-content"><SocialContentSection /></div>
       {/* <div className="home-section home-section--after-removed-photography"><Videography /></div> */}
       {/* <div className="home-section"><GraphicsMotionExperience /></div> */}
       {/* <div className="home-section"><PRReputation /></div> */}

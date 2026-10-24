@@ -98,7 +98,6 @@ function unsplashImage(id: string, photo: string, alt: string): HeroGalleryImage
 export const HERO_SERVICE_ORDER: HeroServiceId[] = [
   'videography',
   'photography',
-  'social',
   'graphic-animation',
   'web',
 ]

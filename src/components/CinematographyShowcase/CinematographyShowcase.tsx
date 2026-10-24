@@ -257,7 +257,7 @@ export default function CinematographyShowcase() {
 
       <div className="mx-auto flex w-fit max-w-full flex-col h-100vw">
         <div
-          className="relative aspect-video h-[min(calc(min(56.25vw,787.5px)-0.5625rem),calc(115svh-19rem))] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:h-[min(calc(min(56.25vw,787.5px)-1.40625rem),calc(110svh-19rem))] lg:h-[min(calc(min(56.25vw,787.5px)-2.25rem),calc(110svh-19rem))]"
+          className="relative aspect-video h-[min(calc(min(56.25vw,787.5px)-3.375rem),calc(115svh-19rem))] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:h-[min(calc(min(56.25vw,787.5px)-4.78125rem),calc(110svh-19rem))] lg:h-[min(calc(min(56.25vw,787.5px)-7.03125rem),calc(110svh-19rem))]"
           role="region"
           aria-roledescription="carousel"
           aria-label="Cinematography projects"
@@ -358,21 +358,21 @@ export default function CinematographyShowcase() {
 
           <button
             type="button"
-            className="absolute right-full top-1/2 mr-1 z-[5] grid size-11 -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 sm:size-12 sm:mr-3 lg:size-16 lg:mr-6"
+            className="absolute right-full top-1/2 mr-[clamp(0.25rem,1vw,1rem)] z-[5] grid size-[clamp(2.25rem,3.6vw,3.25rem)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Previous film"
             disabled={active === 0}
             onClick={() => goTo(active - 1)}
           >
-            <ChevronLeft className="size-9 sm:size-11 lg:size-14" aria-hidden="true" strokeWidth={2} />
+            <ChevronLeft className="size-[clamp(1.5rem,2.6vw,2.5rem)]" aria-hidden="true" strokeWidth={2} />
           </button>
           <button
             type="button"
-            className="absolute left-full top-1/2 ml-1 z-[5] grid size-11 -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 sm:size-12 sm:ml-3 lg:size-16 lg:ml-6"
+            className="absolute left-full top-1/2 ml-[clamp(0.25rem,1vw,1rem)] z-[5] grid size-[clamp(2.25rem,3.6vw,3.25rem)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Next film"
             disabled={active === count - 1}
             onClick={() => goTo(active + 1)}
           >
-            <ChevronRight className="size-9 sm:size-11 lg:size-14" aria-hidden="true" strokeWidth={2} />
+            <ChevronRight className="size-[clamp(1.5rem,2.6vw,2.5rem)]" aria-hidden="true" strokeWidth={2} />
           </button>
         </div>
 
