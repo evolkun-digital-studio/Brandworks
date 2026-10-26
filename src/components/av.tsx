@@ -127,10 +127,10 @@ export default function BrandworksPhilosophy() {
             </h2>
           </div>
 
-          <p className={styles.intro}>
+          {/* <p className={styles.intro}>
             Our philosophy is built around four principles that guide everything
             we create, from strategy to execution.
-          </p>
+          </p> */}
         </header>
 
         <div className={styles.grid}>

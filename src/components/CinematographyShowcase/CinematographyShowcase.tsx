@@ -240,10 +240,10 @@ export default function CinematographyShowcase() {
   return (
     <section
       ref={sectionRef}
-      className="relative mx-auto flex w-full max-w-[1400px] flex-col justify-center overflow-x-clip bg-white px-2 pb-4 pt-20 font-secondary text-[#0a0a0a] sm:px-5 sm:pb-5 lg:px-8"
+      className="relative flex w-full flex-col justify-center overflow-x-clip bg-white pb-4 pt-20 font-secondary text-[#0a0a0a] [container-type:inline-size] sm:pb-5"
       aria-labelledby={headingId}
     >
-      <header className="mb-4 px-2 text-center sm:mb-5">
+      <header className="mx-auto mb-4 w-full max-w-[var(--media-max-width)] px-[var(--media-pad)] text-center sm:mb-5">
         <h2
           id={headingId}
           className="m-0 font-primary text-[clamp(2.25rem,3.5vw,4rem)] font-light leading-none tracking-[-0.035em] text-charcoal-950 sm:text-[clamp(2.5rem,3.75vw,4rem)] sm:leading-[1.05] lg:text-[clamp(3rem,2.5vw,4rem)]"
@@ -255,9 +255,9 @@ export default function CinematographyShowcase() {
         </p>
       </header>
 
-      <div className="mx-auto flex w-fit max-w-full flex-col h-100vw">
+      <div className="mx-auto flex w-full max-w-[var(--media-max-width)] flex-col [--arrow:clamp(2.25rem,3.6vw,3.25rem)] [--arrow-gap:clamp(0.25rem,1vw,1rem)] px-[max(var(--media-pad),calc(var(--arrow)_+_2_*_var(--arrow-gap)_-_max(0px,(100cqw_-_var(--media-max-width))_/_2)))]">
         <div
-          className="relative aspect-video h-[min(calc(min(56.25vw,787.5px)-3.375rem),calc(115svh-19rem))] outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:h-[min(calc(min(56.25vw,787.5px)-4.78125rem),calc(110svh-19rem))] lg:h-[min(calc(min(56.25vw,787.5px)-7.03125rem),calc(110svh-19rem))]"
+          className="relative aspect-video w-full outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111]"
           role="region"
           aria-roledescription="carousel"
           aria-label="Cinematography projects"
@@ -358,7 +358,7 @@ export default function CinematographyShowcase() {
 
           <button
             type="button"
-            className="absolute right-full top-1/2 mr-[clamp(0.25rem,1vw,1rem)] z-[5] grid size-[clamp(2.25rem,3.6vw,3.25rem)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
+            className="absolute right-full top-1/2 mr-[var(--arrow-gap)] z-[5] grid size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Previous film"
             disabled={active === 0}
             onClick={() => goTo(active - 1)}
@@ -367,7 +367,7 @@ export default function CinematographyShowcase() {
           </button>
           <button
             type="button"
-            className="absolute left-full top-1/2 ml-[clamp(0.25rem,1vw,1rem)] z-[5] grid size-[clamp(2.25rem,3.6vw,3.25rem)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
+            className="absolute left-full top-1/2 ml-[var(--arrow-gap)] z-[5] grid size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
             aria-label="Next film"
             disabled={active === count - 1}
             onClick={() => goTo(active + 1)}

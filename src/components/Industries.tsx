@@ -34,8 +34,8 @@ function Industries() {
   const reduce = useReducedMotion()
 
   return (
-    <section className="mx-auto flex w-full max-w-[1400px] flex-col overflow-hidden bg-white px-[18px] py-20 min-[900px]:px-12 min-[900px]:py-[clamp(72px,9vw,140px)]">
-      <div className="flex w-full flex-col items-start text-left">
+    <section className="mx-auto flex w-full max-w-[var(--media-max-width)] flex-col overflow-hidden bg-white px-[var(--media-pad)] py-20 min-[900px]:py-[clamp(72px,9vw,140px)]">
+      <div className="flex w-full flex-col items-center text-center">
         <h2 className="site-display max-w-[900px] text-black text-2xl sm:text-[clamp(2.25rem,3.5vw,4rem)] md:text-[clamp(2.5rem,3.75vw,4rem)] lg:text-[clamp(3rem,2.5vw,4rem)]">
           Industries
         </h2>
