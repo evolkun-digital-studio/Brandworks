@@ -31,7 +31,7 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: 32px;
-  margin-bottom: clamp(36px, 4vw, 48px);
+  margin-bottom: var(--heading-gap);
 }
 
 .headerLeft {

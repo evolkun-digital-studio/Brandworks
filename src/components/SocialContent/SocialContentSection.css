@@ -18,9 +18,9 @@
   padding-inline: var(--culture-pad);
 }
 
-/* Heading → grid matches the Photography header → gallery gap. */
+/* Heading → grid uses the shared --heading-gap. */
 .culture-reels__heading {
-  margin-bottom: var(--media-gap);
+  margin-bottom: var(--heading-gap);
 }
 
 .culture-reels__row {
