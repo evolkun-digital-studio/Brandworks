@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // Hide the dev-only route badge; compile and runtime errors still surface.
+  devIndicators: false,
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [

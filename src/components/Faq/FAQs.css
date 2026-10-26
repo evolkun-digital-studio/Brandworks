@@ -45,7 +45,7 @@
   width: 100%;
   min-width: 0;
   gap: clamp(14px, 1.4vw, 20px) clamp(16px, 1.6vw, 24px);
-  margin: var(--heading-gap) 0 0;
+  margin: clamp(40px, 4vw, 56px) 0 0;
 }
 
 .faq-item {
@@ -93,8 +93,8 @@
 .faq-question {
   min-width: 0;
   font-family: var(--font-secondary);
-  font-size: 15px;
-  font-weight: 400;
+  font-size: clamp(15px, 1.1vw, 17px);
+  font-weight: 600;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -165,7 +165,7 @@
   margin: 0;
   padding: 0 24px 22px;
   font-family: var(--font-secondary);
-  font-size: 15px;
+  font-size: clamp(15px, 1.05vw, 16.5px);
   font-weight: 400;
   line-height: 1.62;
   overflow-wrap: anywhere;
@@ -188,6 +188,14 @@
 
   .faq-title {
     font-size: clamp(36px, 4vw, 42px);
+  }
+
+  .faq-question {
+    font-size: clamp(16px, 1.55vw, 18px);
+  }
+
+  .faq-answer__text {
+    font-size: 15px;
   }
 }
 
@@ -212,7 +220,7 @@
   .faq-list {
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
-    margin-top: var(--heading-gap);
+    margin-top: 36px;
   }
 
   .faq-question-row {
@@ -226,8 +234,13 @@
     height: 28px;
   }
 
+  .faq-question {
+    font-size: clamp(16px, 4.4vw, 18px);
+  }
+
   .faq-answer__text {
     padding: 0 16px 20px;
+    font-size: clamp(14px, 3.8vw, 15px);
     line-height: 1.62;
   }
 }

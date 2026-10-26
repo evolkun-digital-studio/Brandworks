@@ -55,6 +55,34 @@
   --cta-border-hover: var(--color-bw-lime);
 }
 
+/* The homepage hero's Web Design & Dev slide is light: while it is up the
+   header takes the light tone (dark ink and borders) and the dark logo. */
+body:has(.hero[data-service='web']) .site-header__surface.is-on-dark {
+  --pill-ink: #0E0E10;
+  --pill-bg: rgba(255, 255, 255, 0.4);
+  --pill-bg-hover: rgba(14, 14, 16, 0.05);
+  --pill-border: rgba(14, 14, 16, 0.18);
+  --pill-border-hover: rgba(14, 14, 16, 0.45);
+  --cta-ink: #fff;
+  --cta-ink-hover: #0E0E10;
+  --cta-bg: #0E0E10;
+  --cta-bg-hover: var(--color-bw-lime);
+  --cta-border: #0E0E10;
+  --cta-border-hover: var(--color-bw-lime);
+}
+
+.site-header__logo--dark {
+  display: none;
+}
+
+body:has(.hero[data-service='web']) .site-header__logo--light {
+  display: none;
+}
+
+body:has(.hero[data-service='web']) .site-header__logo--dark {
+  display: block;
+}
+
 .nav-pill {
   display: inline-flex;
   align-items: center;

@@ -56,6 +56,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   const isDarkHero = pathname === '/' || pathname === '/services/photography'
   const tone = isDarkHero ? 'is-on-dark' : 'is-on-light'
   const logoSrc = '/BWorksLogo-01.svg'
+  const logoDarkSrc = '/BWorksLogo-dark.svg'
 
   // The project planner keeps only the logo so the questionnaire stays focused.
   if (pathname === '/start-project') {
@@ -92,7 +93,16 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               alt="BrandWorks"
               width={175}
               height={30}
-              className="site-header__logo block h-auto w-[175px] object-contain"
+              className="site-header__logo site-header__logo--light block h-auto w-[175px] object-contain"
+            />
+            {/* Shown instead while the hero's light Web Design & Dev slide is up (Header.css). */}
+            <Image
+              src={logoDarkSrc}
+              alt=""
+              aria-hidden="true"
+              width={175}
+              height={30}
+              className="site-header__logo site-header__logo--dark h-auto w-[175px] object-contain"
             />
           </Link>
         </div>
@@ -137,7 +147,16 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               alt="BrandWorks"
               width={145}
               height={25}
-              className="site-header__logo block h-auto w-[145px] object-contain"
+              className="site-header__logo site-header__logo--light block h-auto w-[145px] object-contain"
+            />
+            {/* Shown instead while the hero's light Web Design & Dev slide is up (Header.css). */}
+            <Image
+              src={logoDarkSrc}
+              alt=""
+              aria-hidden="true"
+              width={145}
+              height={25}
+              className="site-header__logo site-header__logo--dark h-auto w-[145px] object-contain"
             />
           </Link>
         </div>

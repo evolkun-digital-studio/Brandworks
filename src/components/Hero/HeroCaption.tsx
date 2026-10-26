@@ -1,108 +1,47 @@
-import { useRef, useState } from 'react'
-import gsap from 'gsap'
-import { useGSAP } from '@gsap/react'
+import { useEffect, useState } from 'react'
 import type { HeroServiceId } from '../../data/heroServices'
-import { heroServices } from '../../data/heroServices'
+import { heroServices, HERO_SERVICE_ORDER } from '../../data/heroServices'
 import { isIntroPending, onIntroDone } from '../../lib/introGate'
 
-gsap.registerPlugin(useGSAP)
-
 /**
- * The headline and description that belong to the active service. On a
- * switch the current lines slip up out of their masks, then the new ones
- * rise in — the only text in the hero that moves.
+ * The headline and description for every service, stacked in one grid cell
+ * and bottom-aligned, so the block is always as tall as the tallest service
+ * and the capsules below it never move. Switching cross-fades: the incoming
+ * pane fades up while the outgoing one fades out, so there is never a blank
+ * frame. Only the active pane carries the page's <h1>.
  */
 function HeroCaption({ activeId, reducedMotion }: { activeId: HeroServiceId; reducedMotion: boolean }) {
-  const rootRef = useRef<HTMLDivElement>(null)
-  const [shownId, setShownId] = useState(activeId)
-  const revealed = useRef(shownId)
-
-  // Out: runs when the selection moves away from what's on screen.
-  useGSAP(
-    () => {
-      const lines = gsap.utils.toArray<HTMLElement>('[data-reveal]', rootRef.current)
-      if (activeId === shownId) {
-        // Switched back before the old copy finished leaving: bring it back.
-        if (lines.some((line) => Number(gsap.getProperty(line, 'opacity')) < 1)) {
-          gsap.killTweensOf(lines)
-          gsap.to(lines, { yPercent: 0, opacity: 1, duration: 0.6, ease: 'power4.out' })
-        }
-        return
-      }
-      if (reducedMotion) {
-        gsap.to(lines, { opacity: 0, duration: 0.15, onComplete: () => setShownId(activeId) })
-        return
-      }
-      gsap.killTweensOf(lines)
-      gsap.to(lines, {
-        yPercent: -105,
-        opacity: 0,
-        duration: 0.32,
-        ease: 'power2.in',
-        stagger: 0.03,
-        onComplete: () => setShownId(activeId),
-      })
-    },
-    { dependencies: [activeId], scope: rootRef },
-  )
-
-  // First load under the opening preloader: hold the copy below its
-  // masks and let it rise as the preloader lifts away, rather than
-  // having it sit there fully set the moment the page is uncovered.
-  useGSAP(
-    (_, contextSafe) => {
-      if (reducedMotion || !isIntroPending()) return
-      const lines = gsap.utils.toArray<HTMLElement>('[data-reveal]', rootRef.current)
-      gsap.set(lines, { yPercent: 105, opacity: 0 })
-      return onIntroDone(
-        contextSafe!(() => {
-          gsap.to(lines, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'power4.out', stagger: 0.07, delay: 0.3 })
-        }),
-      )
-    },
-    { scope: rootRef },
-  )
-
-  // In: runs once the new copy is in the DOM.
-  useGSAP(
-    () => {
-      if (revealed.current === shownId) return
-      revealed.current = shownId
-      const lines = gsap.utils.toArray<HTMLElement>('[data-reveal]', rootRef.current)
-      if (reducedMotion) {
-        gsap.fromTo(lines, { opacity: 0, yPercent: 0 }, { opacity: 1, duration: 0.25 })
-        return
-      }
-      gsap.fromTo(
-        lines,
-        { yPercent: 105, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.8, ease: 'power4.out', stagger: 0.06 },
-      )
-    },
-    { dependencies: [shownId], scope: rootRef },
-  )
-
-  const service = heroServices[shownId]
+  // First load under the opening preloader: the copy waits below and rises
+  // as the preloader lifts away.
+  const [waiting, setWaiting] = useState(false)
+  useEffect(() => {
+    if (reducedMotion || !isIntroPending()) return
+    setWaiting(true)
+    return onIntroDone(() => window.setTimeout(() => setWaiting(false), 300))
+  }, [reducedMotion])
 
   return (
-    <div ref={rootRef} className="hero-caption" aria-live="polite">
-      {service.eyebrow && (
-        <span className="hero-mask">
-          <span data-reveal className="hero-caption__eyebrow">
-            {service.eyebrow}
-          </span>
-        </span>
-      )}
-      <h1 id="hero-heading" className="hero-mask hero-mask--title">
-        <span data-reveal className="hero-title">
-          {service.headline}
-        </span>
-      </h1>
-      <span className="hero-mask">
-        <span data-reveal className="hero-description">
-          {service.text}
-        </span>
-      </span>
+    <div className={`hero-caption ${waiting ? 'is-waiting' : ''}`} aria-live="polite">
+      {HERO_SERVICE_ORDER.map((id) => {
+        const service = heroServices[id]
+        const active = id === activeId
+        const Title = active ? 'h1' : 'p'
+        return (
+          <div key={id} data-id={id} className={`hero-caption__pane ${active ? 'is-active' : ''}`} aria-hidden={!active}>
+            {service.eyebrow && (
+              <span className="hero-mask">
+                <span className="hero-caption__eyebrow">{service.eyebrow}</span>
+              </span>
+            )}
+            <Title id={active ? 'hero-heading' : undefined} className="hero-mask hero-mask--title">
+              <span className="hero-title">{service.headline}</span>
+            </Title>
+            <span className="hero-mask">
+              <span className="hero-description">{service.text}</span>
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }

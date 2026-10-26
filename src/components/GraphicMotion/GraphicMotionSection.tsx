@@ -1,24 +1,35 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import './GraphicMotionSection.css'
 
-// Logo tiles for card 02. The track is rendered twice in JSX (not by script)
-// so the marquee's -50% loop is seamless and the track is doubled once.
-const LOGOS: { style: CSSProperties; content: ReactNode }[] = [
-  { style: { background: '#4FB3A9', color: '#2a1a10', font: '400 26px Pacifico,cursive' }, content: <span>Koko</span> },
-  { style: { background: '#FDE7EF', color: '#E0337A', font: '400 24px Bungee,sans-serif' }, content: 'NOVA' },
-  {
-    style: { background: '#fff', color: '#3B2A8F', font: '700 26px Figtree,sans-serif', letterSpacing: '-.04em' },
-    content: <span>oak<span style={{ color: '#7B2FF7' }}>✦</span>tree</span>,
-  },
-  { style: { background: '#111', color: '#C8F31D', font: '700 28px Figtree,sans-serif', letterSpacing: '-.05em' }, content: 'bolt.' },
-  { style: { background: '#fff', color: '#111', font: "400 30px 'Abril Fatface',serif" }, content: 'Lumen' },
-  { style: { background: '#FFF6DA', color: '#D2611B', font: '400 24px Righteous,sans-serif' }, content: 'halo' },
-  { style: { background: '#2E3BD8', color: '#fff', font: '700 24px Figtree,sans-serif' }, content: <span>orbit<sup>®</sup></span> },
-  { style: { background: '#1d1d1d', color: '#fff', font: "400 22px 'Abril Fatface',serif" }, content: 'Saffron' },
+// Brand tiles for card 02: the real logos (public/images/brands, 400px wide)
+// plus Old Flame as a text tile until its logo is ready. Five tiles are
+// narrower than the card on tablet and mobile, so the set is listed twice
+// (LOGOS); the track then renders LOGOS twice in JSX (not by script), so the
+// marquee's -50% loop is seamless.
+type Brand = {
+  style: CSSProperties
+  /** Intrinsic size of the file, so the logo keeps its proportions. */
+  logo?: { src: string; alt: string; width: number; height: number }
+  /** Per-logo size tweak, so wide wordmarks and the stacked Soko mark read at a similar size. */
+  fit?: CSSProperties
+  content?: ReactNode
+}
+
+const BRANDS: Brand[] = [
+  // The thin chrome wordmark washes out on pale pink; the brand's deep pink lets the silver read.
+  { style: { background: '#E0237F' }, logo: { src: '/images/brands/jellystar-logo.png', alt: 'jellystar Clothing logo', width: 400, height: 109 }, fit: { maxWidth: '92%' } },
+  // The FALK mark is solid black, so its tile is brand lime rather than #111.
+  { style: { background: '#C8F31D' }, logo: { src: '/images/brands/falk-logo.png', alt: 'FALK Gym Wear logo', width: 400, height: 80 }, fit: { maxWidth: '86%' } },
+  { style: { background: '#F6E7D3' }, logo: { src: '/images/brands/soko-logo.png', alt: 'Soko Café & Bakery logo', width: 400, height: 301 }, fit: { maxHeight: '50%' } },
+  // The Softly file is its cream script on brand green, so the tile is that green.
+  { style: { background: '#A8C199' }, logo: { src: '/images/brands/softly-logo.png', alt: 'Softly Skincare logo', width: 400, height: 88 }, fit: { maxWidth: '92%' } },
+  { style: { background: '#2A0E0A', color: '#FF7A3D', font: "400 22px 'Abril Fatface',serif" }, content: <span>Old Flame</span> },
 ]
+const LOGOS = [...BRANDS, ...BRANDS]
 
 const SWATCHES = ['#1E86D6', '#C8F31D', '#EC3D8C', '#2E8B3A']
 
@@ -45,8 +56,9 @@ function Product({ defs = false }: { defs?: boolean }) {
       <rect x="40" y="26" width="40" height="12" rx="3" fill="#c9a24a" />
       <rect x="14" y="36" width="92" height="130" rx="22" fill="#f4efe6" />
       <rect x="14" y="36" width="92" height="130" rx="22" fill="url(#bwgmGlass)" />
-      <rect x="30" y="82" width="60" height="40" rx="6" fill="#111" />
-      <text x="60" y="106" textAnchor="middle" fontSize="12" fontWeight="700" fill="#C8F31D" fontFamily="Figtree,sans-serif">NOIR</text>
+      <rect x="24" y="80" width="72" height="44" rx="6" fill="#111" />
+      <text x="60" y="100" textAnchor="middle" fontSize="12" fontWeight="700" letterSpacing=".5" fill="#C8F31D" fontFamily="Figtree,sans-serif">SOFTLY</text>
+      <text x="60" y="114" textAnchor="middle" fontSize="8" fontWeight="500" letterSpacing="1.2" fill="#ffffff" fontFamily="Figtree,sans-serif">SKINCARE</text>
       {defs && (
         <defs>
           <linearGradient id="bwgmGlass" x1="0" x2="1">
@@ -209,8 +221,10 @@ export default function GraphicMotionSection() {
                 <span className="txt" /><span className="bwgm-go">✦ Design</span>
               </div>
               <div className="bwgm-track" data-bwgm-dup>
-                {[...LOGOS, ...LOGOS].map((logo, i) => (
-                  <div key={i} className="bwgm-logo" style={logo.style}>{logo.content}</div>
+                {[...LOGOS, ...LOGOS].map((brand, i) => (
+                  <div key={i} className={brand.logo ? 'bwgm-logo bwgm-logo--img' : 'bwgm-logo'} style={brand.style}>
+                    {brand.logo ? <Image {...brand.logo} sizes="120px" style={brand.fit} /> : brand.content}
+                  </div>
                 ))}
               </div>
             </div>

@@ -31,12 +31,12 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html lang="en">
       <head>
-        {/* Display faces for the Graphic & Motion logo tiles only. */}
+        {/* Display faces for the Graphic & Motion logo tiles and the hero's mock client sites. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Pacifico&family=Bungee&family=Abril+Fatface&family=Righteous&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Pacifico&family=Bungee&family=Abril+Fatface&family=Righteous&family=Figtree:ital,wght@0,400..800;1,800&family=Fraunces:opsz,wght@9..144,500..600&display=swap"
         />
       </head>
       <body suppressHydrationWarning>

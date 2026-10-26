@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { PointerEvent } from "react";
 import { useReducedMotion } from "motion/react";
 import HeroMedia from "./HeroMedia";
 import HeroCaption from "./HeroCaption";
@@ -10,6 +11,23 @@ import {
 } from "../../data/heroServices";
 import "./Hero.css";
 import { onIntroSettled } from "../../lib/introGate";
+// Autoplay: a random different service every 4s. The timer holds while the
+// pointer is over the visual or the tabs (or a touch was just made there),
+// and picks up again 3s after the pointer leaves.
+const SLIDE_MS = 4000;
+const RESUME_MS = 3000;
+// The parts of the hero that hold the timer while pointed at or used.
+const HOLD_SELECTOR = "[data-hero-hold], .hero-switcher-wrap";
+
+/** A random service other than the current one — and, when there are more
+ *  than two, other than the one shown before it. */
+function pickNext(current: HeroServiceId, previous: HeroServiceId | null): HeroServiceId {
+  const pool = HERO_SERVICE_ORDER.filter(
+    (id) => id !== current && (HERO_SERVICE_ORDER.length <= 2 || id !== previous),
+  );
+  return pool[Math.floor(Math.random() * pool.length)] ?? current;
+}
+
 type IdleWindow = Window & {
   requestIdleCallback?: (
     cb: () => void,
@@ -38,6 +56,13 @@ function Hero() {
 
   const contentRef = useRef<HTMLDivElement>(null);
 
+  const holdRef = useRef({ hover: false, until: 0 });
+
+  const previousRef = useRef<HeroServiceId | null>(null);
+
+  // Bumped on every selection so the autoplay timer restarts from zero.
+  const [slideKey, setSlideKey] = useState(0);
+
   const reducedMotion = useReducedMotion() ?? false;
 
   const [activeId, setActiveId] = useState<HeroServiceId>(DEFAULT_HERO_SERVICE);
@@ -58,7 +83,13 @@ function Hero() {
     (id: HeroServiceId) => {
       warm(id);
 
-      setActiveId(id);
+      setActiveId((current) => {
+        if (current !== id) previousRef.current = current;
+
+        return id;
+      });
+
+      setSlideKey((k) => k + 1);
     },
 
     [warm],
@@ -163,12 +194,72 @@ function Hero() {
     return () => observer.disconnect();
   }, []);
 
+  // Autoplay: show each service for 4s, then move on. Paused
+  // time is simply not counted. Reduced motion never autoplays.
+  const playing = !reducedMotion && introSettled && inView;
+
+  useEffect(() => {
+    if (!playing) return;
+
+    let elapsed = 0;
+
+    let last = performance.now();
+
+    let frame = 0;
+
+    const tick = (now: number) => {
+      const hold = holdRef.current;
+
+      if (!hold.hover && now >= hold.until && !document.hidden) elapsed += Math.min(now - last, 100);
+
+      last = now;
+
+      if (elapsed >= SLIDE_MS) {
+        select(pickNext(activeId, previousRef.current));
+
+        return;
+      }
+
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(frame);
+  }, [playing, activeId, slideKey, select]);
+
+  const inHold = (target: EventTarget | null) =>
+    target instanceof Element && target.closest(HOLD_SELECTOR) !== null;
+
+  const holdHandlers = {
+    onPointerOver: (event: PointerEvent<HTMLElement>) => {
+      if (inHold(event.target)) holdRef.current.hover = true;
+    },
+
+    onPointerOut: (event: PointerEvent<HTMLElement>) => {
+      const hold = holdRef.current;
+
+      if (!hold.hover || inHold(event.relatedTarget)) return;
+
+      hold.hover = false;
+
+      hold.until = performance.now() + RESUME_MS;
+    },
+
+    // Taps, drags, sliders and clicks on the visual count as using it.
+    onPointerDown: (event: PointerEvent<HTMLElement>) => {
+      if (inHold(event.target) || (event.target instanceof Element && event.target.closest(".hero-media")))
+        holdRef.current.until = performance.now() + RESUME_MS;
+    },
+  };
+
   return (
     <section
       ref={sectionRef}
       className="hero"
       data-service={activeId}
       aria-labelledby="hero-heading"
+      {...holdHandlers}
     >
       <HeroMedia
         activeId={activeId}
