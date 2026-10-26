@@ -30,6 +30,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Display faces for the Graphic & Motion logo tiles only. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Pacifico&family=Bungee&family=Abril+Fatface&family=Righteous&display=swap"
+        />
+      </head>
       <body suppressHydrationWarning>
         <NextNavigationProvider>{children}</NextNavigationProvider>
       </body>

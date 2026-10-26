@@ -20,6 +20,7 @@ import GraphicsMotionExperience from './components/GraphicsMotion/GraphicsMotion
 import SocialMedia from './components/SocialMedia/SocialMedia'
 import WebDevelopment from './components/WebDevelopment/WebDevelopment'
 import Capabilities from './components/Capabilities'
+import GraphicMotionSection from './components/GraphicMotion/GraphicMotionSection'
 import FAQs from './components/Faq/FAQs'
 import Industries from './components/Industries'
 import Testimonials from './components/Testimonial/Testimonials'
@@ -80,6 +81,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       {/* <div className="home-section home-section--before-cinematography"><Work /></div> */}
       <div className="home-section"> <PhotographyEditorial /> </div>
       <div className="home-section"><SocialContentSection /></div>
+      <div className="home-section"><GraphicMotionSection /></div>
       {/* <div className="home-section home-section--after-removed-photography"><Videography /></div> */}
       {/* <div className="home-section"><GraphicsMotionExperience /></div> */}
       {/* <div className="home-section"><PRReputation /></div> */}
