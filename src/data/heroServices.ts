@@ -2,8 +2,6 @@ import { mediaUrl } from '../lib/media'
 import { assetUrl } from '../lib/assetUrl'
 import lavenderHijab from '../assets/photography/hero-lavender-hijab-1200.webp'
 import lavenderHijabSmall from '../assets/photography/hero-lavender-hijab-480.webp'
-import handsPortrait from '../assets/photography/hero-hands-portrait-1200.webp'
-import handsPortraitSmall from '../assets/photography/hero-hands-portrait-480.webp'
 import redFashion from '../assets/photography/hero-fashion-study-1200.webp'
 import redFashionSmall from '../assets/photography/hero-fashion-study-480.webp'
 import luxuryDuffle from '../assets/photography/hero-luxury-duffle-full.webp'
@@ -132,11 +130,10 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
         },
         {
           id: 'hands-framed-editorial',
-          src: assetUrl(handsPortrait),
-          srcSet: `${assetUrl(handsPortraitSmall)} 480w, ${assetUrl(handsPortrait)} 1086w`,
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_31_57%20PM.png',
           width: 1086,
           height: 1448,
-          alt: 'Editorial portrait of a woman in glasses framed by her hands',
+          alt: 'Editorial photography composition',
         },
         {
           id: 'red-fashion-editorial',
@@ -202,48 +199,53 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
           height: 1402,
           alt: 'Black Azzaro fragrance bottle on reflective stone with dramatic studio lighting',
         },
-        // Ela De Pure: https://unsplash.com/photos/zuIpmjxrmRk
-        unsplashImage(
-          'serum-product-study',
-          'photo-1777450793530-99a0e7b7fc53',
-          'Red glass serum bottle and suspended dropper against a warm backdrop',
-        ),
+        {
+          id: 'serum-product-study',
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/moisturizer%20mock%20up.png',
+          width: 1200,
+          height: 1600,
+          alt: 'Moisturizer packaging arranged in a product mockup',
+        },
         // Valentina Schick: https://unsplash.com/photos/9AS2t3rgGko
         unsplashImage(
           'fragrance-still-life',
           'photo-1673710672680-944563ff9cce',
           'Perfume bottle and gold jewelry styled on cream fabric in sunlight',
         ),
-        // Laura Chouette: https://unsplash.com/photos/bvT2DWoIEKE
-        unsplashImage(
-          'beauty-campaign-portrait',
-          'photo-1646032048829-5377b5c0feba',
-          'Beauty portrait of a woman holding a perfume bottle',
-        ),
+        {
+          id: 'beauty-campaign-portrait',
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202%403x.png',
+          width: 1200,
+          height: 1600,
+          alt: 'Artboard 2 photography composition',
+        },
         // Becky Sherburn: https://unsplash.com/photos/68fNpR-LMVc
         unsplashImage(
           'newspaper-editorial',
           'photo-1768595408288-22f8215ba8e9',
           'Conceptual editorial portrait of a person in a suit holding a newspaper over their face',
         ),
-        // Dom Hill: https://images.unsplash.com/photo-1515886657613-9f3515b0c78f
-        unsplashImage(
-          'streetwear-editorial',
-          'photo-1515886657613-9f3515b0c78f',
-          'Streetwear fashion editorial in a bright yellow outfit',
-        ),
-        // Tasim Ahmed Safat: https://unsplash.com/photos/W9KxZY02iOQ
-        unsplashImage(
-          'dramatic-skincare-study',
-          'photo-1742281501985-f0708f8cf878',
-          'Skincare bottle in a dramatically lit product composition',
-        ),
-        // Poko Skincare: https://unsplash.com/photos/iexrtpiWLEw
-        unsplashImage(
-          'skincare-texture-study',
-          'photo-1629732047356-30c7e14e712b',
-          'Skincare tube and cream textures on a marble surface',
-        ),
+        {
+          id: 'streetwear-editorial',
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/vcvcvcvcv.jpg',
+          width: 1200,
+          height: 1600,
+          alt: 'Streetwear fashion editorial in a bright yellow outfit',
+        },
+        {
+          id: 'dramatic-skincare-study',
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%2012%403x.png',
+          width: 1200,
+          height: 1600,
+          alt: 'Artboard 12 skincare photography composition',
+        },
+        {
+          id: 'skincare-texture-study',
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Sage%20Glow%20Serum%20Still%20Life.png',
+          width: 1200,
+          height: 1600,
+          alt: 'Sage Glow serum bottle arranged in a still-life composition',
+        },
         // Laura Chouette: https://unsplash.com/photos/OD7DeX9S9W0
         unsplashImage(
           'fragrance-fashion-portrait',

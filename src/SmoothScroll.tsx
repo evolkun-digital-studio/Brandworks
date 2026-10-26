@@ -7,6 +7,12 @@ import { setSmoothScroll } from './lib/smoothScroll'
 
 gsap.registerPlugin(ScrollTrigger)
 
+function isHorizontalScroller(node: EventTarget) {
+  if (!(node instanceof HTMLElement) || node.scrollWidth <= node.clientWidth) return false
+  const { overflowX } = window.getComputedStyle(node)
+  return overflowX === 'auto' || overflowX === 'scroll'
+}
+
 /**
  * Site-wide inertial smooth scrolling for the public pages (mounted in
  * PublicLayout, so /admin/* keeps plain native scrolling). Lenis drives
@@ -17,6 +23,8 @@ gsap.registerPlugin(ScrollTrigger)
  * Lenis is stepped from GSAP's ticker and pushes every scroll to
  * ScrollTrigger, so scrubbed animations update on the same frame as the
  * scroll itself (no 1-frame lag / jitter between the two loops).
+ *
+ * Touch input is smoothed too (syncTouch), so phones get the same glide.
  *
  * Skipped entirely for `prefers-reduced-motion: reduce`, and torn down
  * if that setting is switched on while the page is open. Renders nothing.
@@ -36,7 +44,19 @@ function SmoothScroll() {
         lenis?.destroy()
         lenis = null
       } else if (!lenis) {
-        lenis = new Lenis({ autoRaf: false, lerp: 0.1, anchors: true })
+        lenis = new Lenis({
+          autoRaf: false,
+          lerp: 0.1,
+          anchors: true,
+          // Touch gets the same eased glide as the wheel instead of the
+          // browser's native scroll, so phones scroll like desktop.
+          syncTouch: true,
+          // Sideways swipes on carousels (reel rows, testimonial cards)
+          // stay native so those rows still scroll horizontally.
+          virtualScroll: ({ deltaX, deltaY, event }) =>
+            !(event.type.includes('touch') && Math.abs(deltaX) > Math.abs(deltaY)) ||
+            !event.composedPath().some(isHorizontalScroller),
+        })
         lenis.on('scroll', ScrollTrigger.update)
       }
       setSmoothScroll(lenis)
