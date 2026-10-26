@@ -41,7 +41,7 @@ export default function SocialContentSection() {
       if (!track) return
       const mm = gsap.matchMedia()
 
-      mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
         const cards = gsap.utils.toArray<HTMLElement>('[data-culture-card]', track)
         const videos = gsap.utils.toArray<HTMLVideoElement>('[data-culture-video]', track)
         if (cards.length === 0) return

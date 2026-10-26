@@ -110,3 +110,17 @@
     --home-section-edge: calc(clamp(6rem, 10vw, 8rem) / 2);
   }
 }
+
+/* Capabilities → What clients say: the sticky stage already ends on a
+   mostly empty screen, so this pair gets a tighter gap at every width. */
+.home-page .home-section--capabilities {
+  padding-bottom: 0;
+}
+
+/* The stage's bottom ~17% is the roller's transparent mask fade, so the
+   next section can tuck up into it without covering anything. */
+.home-page .home-section--testimonials {
+  position: relative;
+  margin-top: -15svh;
+  padding-top: 0;
+}

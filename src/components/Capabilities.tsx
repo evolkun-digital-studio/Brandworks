@@ -98,7 +98,6 @@ function centerAt(c: number[], s: number) {
 
 type Mode = "scroll" | "stacked" | "static";
 
-const MIN_SCROLL_WIDTH = "(min-width: 1024px)";
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
 function matches(query: string) {
@@ -109,13 +108,12 @@ function matches(query: string) {
 }
 
 function currentMode(): Mode {
-  if (matches(REDUCED_MOTION)) return "static";
-  return matches(MIN_SCROLL_WIDTH) ? "scroll" : "stacked";
+  return matches(REDUCED_MOTION) ? "static" : "scroll";
 }
 
 /**
- * Phones get stacked rows, tablet/desktop get the sticky index, and
- * reduced motion always gets the static list. Only one variant is ever
+ * Every width gets the sticky scroll index (stacked vertically below
+ * lg); reduced motion gets the static list. Only one variant is ever
  * rendered, so the service list never appears twice in the DOM.
  */
 function useMode() {
@@ -126,7 +124,7 @@ function useMode() {
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
     setMode(currentMode());
-    const queries = [MIN_SCROLL_WIDTH, REDUCED_MOTION].map((q) =>
+    const queries = [REDUCED_MOTION].map((q) =>
       window.matchMedia(q),
     );
     const onChange = () => setMode(currentMode());
@@ -224,13 +222,17 @@ function ServiceScrollIndex() {
         item ? item.offsetTop + item.offsetHeight / 2 : 0,
       );
       windowHeight.current = windowRef.current?.clientHeight ?? 0;
-      if (headingRef.current && windowRef.current) {
-        const headingBounds = headingRef.current.getBoundingClientRect();
-        const windowBounds = windowRef.current.getBoundingClientRect();
+      const headingBounds = headingRef.current?.getBoundingClientRect();
+      const windowBounds = windowRef.current?.getBoundingClientRect();
+      // Side by side (lg+): the active row lines up with the title.
+      // Stacked (below lg): the window sits under the title, so the active
+      // row rests just under the window's top mask fade (17%), close to
+      // the heading instead of mid-screen.
+      if (headingBounds && windowBounds && headingBounds.bottom > windowBounds.top) {
         focusLine.current =
           headingBounds.top + headingBounds.height / 2 - windowBounds.top;
       } else {
-        focusLine.current = windowHeight.current / 2;
+        focusLine.current = windowHeight.current * 0.28;
       }
       layout.set(layout.get() + 1);
     };
@@ -247,30 +249,31 @@ function ServiceScrollIndex() {
 
   return (
     <div ref={runwayRef} className="relative min-h-[240vh] lg:min-h-[320vh]">
-      <div className="sticky top-0 h-screen overflow-hidden bg-white">
+      <div className="sticky top-0 h-[100svh] overflow-hidden bg-white lg:h-screen">
         {/* The grid is sized to what is visibly there — title, arrow, the
            names — and centred on that, so the composition sits on the
            viewport's centre rather than the list's ragged right edge
            pulling it left; a small optical nudge right finishes the job.
            The roller's masked window then bleeds out to the viewport edge
-           (--svc-bleed) for its full visible width. */}
-        <div className="mx-auto grid h-full w-full max-w-[var(--media-max-width)] grid-cols-[max-content_minmax(0,1fr)] gap-x-[var(--svc-gap)] translate-x-[clamp(0px,2.5vw,40px)] px-[var(--media-pad)] [--svc-bleed:calc(var(--media-pad)_+_max(0px,(100vw_-_var(--media-max-width))_/_2))] [--svc-gap:clamp(20px,2vw,36px)]">
+           (--svc-bleed) for its full visible width. Below lg the same
+           stage stacks: title and description on top, the roller under it. */}
+        <div className="mx-auto flex h-full w-full max-w-[var(--media-max-width)] flex-col px-[var(--media-pad)] lg:grid lg:grid-cols-[max-content_minmax(0,1fr)] lg:gap-x-[var(--svc-gap)] lg:translate-x-[clamp(0px,2.5vw,40px)] [--svc-bleed:calc(var(--media-pad)_+_max(0px,(100vw_-_var(--media-max-width))_/_2))] [--svc-gap:clamp(20px,2vw,36px)]">
           {/* Left: title and arrow share one flex row, so their centres
               remain aligned at every responsive title size. */}
-          <div className="relative flex h-full items-start pt-[29vh]">
-            <div className="flex items-center gap-x-[var(--svc-gap)]">
+          <div className="relative flex shrink-0 items-start pt-[14svh] lg:h-full lg:pt-[29vh]">
+            <div className="flex w-full items-center gap-x-[var(--svc-gap)] lg:w-auto">
               <div className="relative w-full">
                 <h2
                   ref={headingRef}
                   id="our-services-heading"
-                  className={TITLE_CLASS}
+                  className={`${TITLE_CLASS} max-lg:whitespace-normal`}
                 >
                   The studio works across.
                 </h2>
 
                 <div
                   aria-hidden="true"
-                  className="absolute top-full left-0 mt-[clamp(28px,4.5vh,52px)] w-full max-w-[400px]"
+                  className="relative mt-4 min-h-[5.6em] w-full max-w-[400px] text-[16px] lg:absolute lg:top-full lg:left-0 lg:mt-[clamp(28px,4.5vh,52px)] lg:min-h-0"
                 >
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.p
@@ -287,14 +290,16 @@ function ServiceScrollIndex() {
                 </div>
               </div>
 
-              <Arrow />
+              <span className="hidden lg:contents">
+                <Arrow />
+              </span>
             </div>
           </div>
 
           {/* Right: the active row is measured onto the title/arrow centre. */}
           <div
             ref={windowRef}
-            className="relative -mr-[var(--svc-bleed)] h-full overflow-hidden pr-[var(--svc-bleed)]"
+            className="relative -mr-[var(--svc-bleed)] mt-2 min-h-0 flex-1 overflow-hidden pr-[var(--svc-bleed)] lg:mt-0 lg:h-full"
             style={{
               WebkitMaskImage:
                 "linear-gradient(to bottom, transparent 0%, black 17%, black 83%, transparent 100%)",
@@ -377,8 +382,8 @@ function ServiceRow({
   return (
     <motion.li
       ref={itemRef}
-      style={{ opacity, filter, scale, transformOrigin: "left center" }}
-      className={`services-display service-row${active ? " is-active" : ""} max-w-[640px] text-[clamp(36px,3.3vw,38px)] leading-[1.08] tracking-[-0.035em]`}
+      style={{ opacity, filter, scale }}
+      className={`services-display service-row${active ? " is-active" : ""} mx-auto max-w-[640px] origin-center text-center text-[clamp(22px,6.4vw,34px)] lg:mx-0 lg:origin-left lg:text-left leading-[1.08] lg:text-[clamp(36px,3.3vw,38px)] tracking-[-0.035em]`}
     >
       {firstLine && (
         <>
@@ -393,7 +398,7 @@ function ServiceRow({
 }
 
 /**
- * Phones (and reduced motion at any width): a plain stacked editorial
+ * Reduced motion (and the server render): a plain stacked editorial
  * list. Every row carries its number, name and description as text;
  * when animated, each row sharpens in once as it enters the viewport.
  */
