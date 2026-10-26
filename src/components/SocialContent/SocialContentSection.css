@@ -1,0 +1,135 @@
+/*
+ * "Culture Moves Through Content": a static grid of 9:16 reels. The heading
+ * uses the shared .section-heading / .section-description classes (the same
+ * set as "Every frame has a purpose."); SocialContentSection.tsx only reveals
+ * the cards with a clip-path, so their boxes never change size.
+ */
+
+.culture-reels {
+  --culture-gap: 16px;
+  --culture-pad: clamp(16px, 6vw, 128px);
+  color: var(--ink);
+}
+
+.culture-reels__container {
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--culture-pad);
+}
+
+/* Heading → grid matches the Photography header → gallery gap. */
+.culture-reels__heading {
+  margin-bottom: var(--media-gap);
+}
+
+.culture-reels__row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--culture-gap);
+  /* Caps the card height so a full reel fits on screen; stays left-aligned. */
+  max-width: min(100%, calc((100vh - 160px) * 9 / 16 * 4 + 48px));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.culture-reels__card {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #111;
+  /* Clips the zoomed video to the radius in Safari. */
+  isolation: isolate;
+}
+
+.culture-reels__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Top gradient so the label reads on light footage. */
+.culture-reels__card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 30%);
+  pointer-events: none;
+}
+
+/* Inset 20px to the cap height, so all four labels share one baseline.
+   No overflow clip: the trimmed box would cut the descenders. */
+.culture-reels__label {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 2;
+  font-family: "Google Sans Flex", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #fff;
+  white-space: nowrap;
+  text-box: trim-both cap alphabetic;
+  pointer-events: none;
+}
+
+/* text-box fallback (Firefox), from Google Sans Flex's metrics. */
+@supports not (text-box: trim-both cap alphabetic) {
+  .culture-reels__label {
+    top: calc(20px - 0.124em);
+  }
+}
+
+/* Tap-to-play control; reduced motion only, the reels autoplay otherwise. */
+.culture-reels__tap {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.culture-reels__tap:focus-visible {
+  outline: 2px solid var(--color-bw-lime);
+  outline-offset: -4px;
+  border-radius: 20px;
+}
+
+/* Mobile: a swipe row, each card 72% wide. */
+@media (max-width: 767px) {
+  .culture-reels__row {
+    display: flex;
+    max-width: none;
+    margin-inline: calc(-1 * var(--culture-pad));
+    padding-inline: var(--culture-pad);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--culture-pad);
+    scrollbar-width: none;
+  }
+
+  .culture-reels__row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .culture-reels__card {
+    flex: 0 0 72%;
+    scroll-snap-align: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .culture-reels__tap {
+    display: block;
+  }
+}
