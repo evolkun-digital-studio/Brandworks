@@ -243,7 +243,7 @@ export default function CinematographyShowcase() {
       className="relative flex w-full flex-col justify-center overflow-x-clip bg-white pb-4 pt-20 font-secondary text-[#0a0a0a] [container-type:inline-size] sm:pb-5"
       aria-labelledby={headingId}
     >
-      <header className="mx-auto mb-4 w-full max-w-[var(--media-max-width)] px-[var(--media-pad)] sm:mb-5">
+      <header className="mx-auto mb-[var(--heading-gap)] w-full max-w-[var(--media-max-width)] px-[var(--media-pad)]">
         <h2
           id={headingId}
           className="m-0 font-primary text-[clamp(2.25rem,3.5vw,4rem)] font-light leading-none tracking-[-0.035em] text-charcoal-950 sm:text-[clamp(2.5rem,3.75vw,4rem)] sm:leading-[1.05] lg:text-[clamp(3rem,2.5vw,4rem)]"

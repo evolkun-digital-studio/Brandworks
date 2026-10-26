@@ -1,8 +1,7 @@
 .home-page {
   /* Cinematic pacing: one content-to-content beat shared by every chapter.
-     Adjacent wrappers each contribute half of the beat. The clamp keeps the
-     pause generous on wide screens without letting it balloon with 17vw. */
-  --home-section-gap: clamp(9rem, 11vw, 17rem);
+     Adjacent wrappers each contribute half of the beat (15rem on desktop). */
+  --home-section-gap: 15rem;
   --home-section-edge: calc(var(--home-section-gap) / 2);
   --home-section-space-top: var(--home-section-edge);
   --home-section-space-bottom: var(--home-section-edge);
@@ -98,10 +97,16 @@
   }
 }
 
-/* Short laptops and landscape tablets should not inherit a gap designed for
-   tall cinematic viewports. Width still controls the upper bound. */
+/* Capabilities keeps the earlier, width-based gap instead of the fixed
+   15rem beat. Tablet and mobile already use their own gap above. */
+@media (min-width: 64rem) {
+  .home-page .home-section--capabilities {
+    --home-section-edge: calc(clamp(9rem, 11vw, 17rem) / 2);
+  }
+}
+
 @media (min-width: 48rem) and (max-height: 43.75rem) {
-  .home-page {
-    --home-section-gap: clamp(6rem, 10vw, 8rem);
+  .home-page .home-section--capabilities {
+    --home-section-edge: calc(clamp(6rem, 10vw, 8rem) / 2);
   }
 }

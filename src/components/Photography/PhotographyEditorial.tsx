@@ -87,7 +87,7 @@ export default function PhotographyRow({
       <div className="mx-auto max-w-[var(--media-max-width)] px-[var(--media-pad)]">
         <header
           data-photo-reveal
-          className="mb-[var(--media-gap)] max-w-[780px]"
+          className="mb-[var(--heading-gap)] max-w-[780px]"
         >
           {/* <p className="section-label mb-5">Photography</p> */}
           <h2 id="photography-heading" className="section-heading capitalize" >

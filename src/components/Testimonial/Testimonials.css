@@ -64,7 +64,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  margin: 60px 0 0;
+  margin: var(--heading-gap) 0 0;
   padding: 0;
   list-style: none;
 }
@@ -207,7 +207,7 @@
     grid-auto-columns: 85vw;
     grid-auto-flow: column;
     grid-template-columns: none;
-    margin-top: 46px;
+    margin-top: var(--heading-gap);
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     padding: 0 var(--media-pad) 10px;
