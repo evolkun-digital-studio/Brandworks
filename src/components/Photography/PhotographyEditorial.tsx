@@ -87,13 +87,13 @@ export default function PhotographyRow({
       <div className="mx-auto max-w-[var(--media-max-width)] px-[var(--media-pad)]">
         <header
           data-photo-reveal
-          className="mx-auto mb-[var(--media-gap)] max-w-[780px] text-center"
+          className="mb-[var(--media-gap)] max-w-[780px]"
         >
           {/* <p className="section-label mb-5">Photography</p> */}
           <h2 id="photography-heading" className="section-heading capitalize" >
             Every frame has a purpose.
           </h2>
-          <p className="section-description mx-auto mt-8 max-w-[600px] text-lg leading-7">
+          <p className="section-description mt-8 max-w-[600px] text-lg leading-7">
             We create commercial, product, lifestyle, and campaign photography
             built around a clear concept, giving brands visuals that
             communicate more than they show.
