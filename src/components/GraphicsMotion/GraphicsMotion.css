@@ -1,899 +1,158 @@
 /*
  * Graphic & Motion
  *
- * Intro stays inside the normal page container.
- *
- * Navigation is positioned directly above the gallery.
- *
- * Gallery bleeds horizontally while keeping its first card aligned
- * with the content grid.
+ * Centered heading over four equal cards. Grid sizing mirrors the
+ * "What clients say" section (Testimonials.css): shell, gap, radius,
+ * card height and breakpoints. Desktop 4, tablet 2, mobile 1. No shadows, hover scale only.
  */
 
 .gm-section {
-  --gm-ease: cubic-bezier(
-    0.22,
-    1,
-    0.36,
-    1
-  );
+  --gm-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Same values as .testimonials-shell / -grid / -card */
+  --gm-max-width: 1400px;
+  --gm-pad-x: 24px;
+  --gm-gap: 10px;
+  --gm-radius: 20px;
+  --gm-card-height: 460px; /* = --testimonial-card-height (full lime card) */
 
-  /*
-   * Align gallery with normal page content.
-   */
-  --gm-inset: max(
-    var(--page-gutter),
-    calc(
-      (100% - var(--page-max-width)) /
-        2 +
-        var(--page-gutter)
-    )
-  );
-
-  /*
-   * Shared card height.
-   */
-  --gm-height: min(
-    46vw,
-    74vh,
-    820px
-  );
-
-  --gm-gap: clamp(
-    10px,
-    1.1vw,
-    18px
-  );
-
-  position: relative;
-
-  padding-block: var(
-    --section-space
-  );
-
-  overflow-x: clip;
-
+  padding-block: var(--section-space);
   background: #fff;
-
   color: var(--ink);
 }
 
-/* =========================================================
-   INTRO
-========================================================= */
+.gm-shell {
+  width: 100%;
+  max-width: var(--gm-max-width);
+  margin-inline: auto;
+  padding: 0 var(--gm-pad-x);
+}
 
 .gm-head {
-  display: block;
-
-  /*
-   * Space between intro and
-   * gallery navigation.
-   */
-  margin-bottom: clamp(
-    34px,
-    4vw,
-    60px
-  );
+  margin: 0 auto 40px;
+  max-width: 760px;
+  text-align: center;
 }
 
-.gm-intro {
-  max-width: 560px;
+.gm-eyebrow {
+  margin: 0 0 12px;
+  color: var(--ink-muted);
+  font-size: 0.95rem;
 }
-
-/* ---------------------------------------------------------
-   LABEL
---------------------------------------------------------- */
-
-.gm-label {
-  display: flex;
-
-  align-items: center;
-
-  gap: 10px;
-}
-
-.gm-dot {
-  width: 7px;
-
-  height: 7px;
-
-  flex: 0 0 auto;
-
-  border-radius: 50%;
-
-  background: var(
-    --color-bw-lime
-  );
-}
-
-/* ---------------------------------------------------------
-   HEADING
---------------------------------------------------------- */
 
 .gm-heading {
-  margin-top: var(
-    --text-gap
-  );
-
-  font-size: clamp(
-    36px,
-    4vw,
-    48px
-  );
+  margin: 0;
 }
 
-.gm-heading__line {
-  display: block;
-}
-
-/* ---------------------------------------------------------
-   DESCRIPTION
---------------------------------------------------------- */
-
-.gm-description {
-  margin-top: var(
-    --text-gap
-  );
-
-  max-width: 560px;
-
-  font-size: clamp(
-    16px,
-    1.2vw,
-    18px
-  );
-}
-
-/* =========================================================
-   GALLERY NAVIGATION
-========================================================= */
-
-/*
- * IMPORTANT:
- *
- * This wrapper follows the same left/right inset as the gallery.
- * Therefore the arrows align directly with the right edge of
- * the gallery.
- */
-
-.gm-gallery-controls {
-  display: flex;
-
-  justify-content: flex-end;
-
-  align-items: center;
-
-  width: 100%;
-
-  padding-inline: var(
-    --gm-inset
-  );
-
-  /*
-   * Keep navigation visually attached
-   * to the images.
-   */
-  margin-bottom: clamp(
-    12px,
-    1.2vw,
-    18px
-  );
-}
-
-.gm-controls {
-  display: flex;
-
-  flex-shrink: 0;
-
-  align-items: center;
-
-  justify-content: flex-end;
-
-  gap: 10px;
-}
-
-/* ---------------------------------------------------------
-   COUNT
---------------------------------------------------------- */
-
-.gm-count {
-  margin-right: 10px;
-
-  font-family: var(
-    --font-secondary
-  );
-
-  font-size: 12px;
-
-  font-variant-numeric:
-    tabular-nums;
-
-  letter-spacing: 0.08em;
-
-  color: var(--ink);
-}
-
-.gm-count__total {
-  color: var(--ink-muted);
-}
-
-/* ---------------------------------------------------------
-   ARROW BUTTON
---------------------------------------------------------- */
-
-.gm-arrow {
+.gm-grid {
   display: grid;
-
-  place-items: center;
-
-  width: 48px;
-
-  height: 48px;
-
-  flex: 0 0 48px;
-
-  padding: 0;
-
-  border: 1px solid
-    rgba(17, 17, 17, 0.16);
-
-  border-radius: 50%;
-
-  background: transparent;
-
-  color: var(--ink);
-
-  cursor: pointer;
-
-  transition:
-    border-color
-      0.4s
-      var(--gm-ease),
-    background-color
-      0.4s
-      var(--gm-ease),
-    color
-      0.4s
-      var(--gm-ease),
-    opacity
-      0.4s
-      var(--gm-ease),
-    transform
-      0.4s
-      var(--gm-ease);
-}
-
-.gm-arrow svg {
-  width: 18px;
-
-  height: 18px;
-}
-
-.gm-arrow:hover:not(
-    :disabled
-  ) {
-  border-color: var(--ink);
-
-  background: var(--ink);
-
-  color: #fff;
-
-  transform: scale(1.04);
-}
-
-.gm-arrow:active:not(
-    :disabled
-  ) {
-  transform: scale(0.97);
-}
-
-.gm-arrow:disabled {
-  opacity: 0.3;
-
-  cursor: default;
-}
-
-.gm-arrow:focus-visible {
-  outline: 2px solid
-    var(--ink);
-
-  outline-offset: 3px;
-}
-
-/* =========================================================
-   TRACK
-========================================================= */
-
-.gm-track {
-  display: flex;
-
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--gm-gap);
-
-  padding-inline: var(
-    --gm-inset
-  );
-
-  scroll-padding-inline: var(
-    --gm-inset
-  );
-
-  overflow-x: auto;
-
-  overflow-y: hidden;
-
-  overscroll-behavior-x:
-    contain;
-
-  scrollbar-width: none;
-
-  user-select: none;
-
-  -webkit-user-select: none;
-
-  cursor: grab;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-
-.gm-track::-webkit-scrollbar {
-  display: none;
-}
-
-.gm-track:focus-visible {
-  outline: 2px solid
-    var(--ink);
-
-  outline-offset: 6px;
-}
-
-.gm-track.is-dragging {
-  cursor: grabbing;
-}
-
-/* =========================================================
-   TOUCH SCROLL SNAP
-========================================================= */
-
-@media (pointer: coarse) {
-  .gm-track {
-    scroll-snap-type:
-      x mandatory;
-  }
-
-  .gm-card {
-    scroll-snap-align:
-      start;
-  }
-}
-
-/* =========================================================
-   CARD
-========================================================= */
 
 .gm-card {
-  position: relative;
-
-  flex: 0 0 auto;
-
-  height: var(--gm-height);
-
-  aspect-ratio:
-    var(--gm-ratio);
-
-  transition:
-    opacity
-      0.5s
-      var(--gm-ease);
+  box-sizing: border-box;
+  height: var(--gm-card-height);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgb(0 0 0 / 0.08);
+  border-radius: var(--gm-radius);
+  background: rgb(0 0 0 / 0.025);
+  transition: border-color 400ms var(--gm-ease);
 }
 
-.gm-card:focus-visible {
-  outline: 2px solid
-    var(--ink);
-
-  outline-offset: 4px;
+.gm-card:hover {
+  border-color: rgb(0 0 0 / 0.16);
 }
-
-.gm-card__inner {
-  position: absolute;
-
-  inset: 0;
-}
-
-/* ---------------------------------------------------------
-   IMAGE
---------------------------------------------------------- */
 
 .gm-card__media {
-  position: absolute;
-
-  inset: 0;
-
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
-
-  background: #f1f1f1;
 }
 
-.gm-card__img {
+.gm-card__media img {
   display: block;
-
   width: 100%;
-
   height: 100%;
-
   object-fit: cover;
-
-  transition:
-    transform
-      0.9s
-      var(--gm-ease);
+  transform: scale(1);
+  transition: transform 450ms var(--gm-ease);
 }
 
-/* ---------------------------------------------------------
-   HOVER SHADE
---------------------------------------------------------- */
-
-.gm-card__shade {
-  position: absolute;
-
-  inset: 0;
-
-  pointer-events: none;
-
-  background:
-    linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.68)
-        0%,
-      rgba(0, 0, 0, 0.25)
-        40%,
-      transparent
-        72%
-    );
-
-  opacity: 0;
-
-  transition:
-    opacity
-      0.55s
-      var(--gm-ease);
+.gm-card:hover .gm-card__media img {
+  transform: scale(1.02);
 }
 
-/* =========================================================
-   CARD INFORMATION
-========================================================= */
+/* Text sits over the image, revealed on hover */
+.gm-card {
+  position: relative;
+}
 
-.gm-card__info {
+.gm-card__body {
   position: absolute;
-
-  inset:
-    auto
-    clamp(
-      20px,
-      2.2vw,
-      36px
-    )
-    clamp(
-      20px,
-      2.2vw,
-      36px
-    );
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: flex-start;
-
-  gap: 12px;
-
+  inset: auto 0 0;
+  padding: clamp(20px, 2vw, 32px);
+  padding-top: clamp(48px, 5vw, 80px);
+  background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0));
   color: #fff;
-
-  pointer-events: none;
-}
-
-/* ---------------------------------------------------------
-   TEXT MASK
---------------------------------------------------------- */
-
-.gm-mask {
-  display: block;
-
-  margin: 0;
-
-  overflow: hidden;
-
-  padding-bottom: 0.08em;
-
-  margin-bottom: -0.08em;
-}
-
-.gm-line {
-  display: block;
-
-  opacity: 0;
-
-  transform:
-    translateY(110%);
-
   transition:
-    transform
-      0.55s
-      var(--gm-ease),
-    opacity
-      0.55s
-      var(--gm-ease);
+    opacity 450ms var(--gm-ease),
+    transform 450ms var(--gm-ease);
 }
-
-/* ---------------------------------------------------------
-   OPTIONAL SMALL CONTENT
---------------------------------------------------------- */
-
-.gm-card__category,
-.gm-card__meta {
-  font-family: var(
-    --font-secondary
-  );
-
-  font-size: 12px;
-
-  font-weight: 500;
-
-  line-height: 1.3;
-
-  letter-spacing: 0.12em;
-
-  text-transform: uppercase;
-}
-
-.gm-card__meta {
-  font-weight: 400;
-
-  letter-spacing: 0.06em;
-
-  color: rgba(
-    255,
-    255,
-    255,
-    0.72
-  );
-}
-
-/* ---------------------------------------------------------
-   TITLE
---------------------------------------------------------- */
 
 .gm-card__title {
-  font-family: var(
-    --font-primary
-  );
-
-  font-size: clamp(
-    24px,
-    2.5vw,
-    32px
-  );
-
-  font-weight: 400;
-
-  line-height: 1;
-
-  letter-spacing: -0.03em;
-
-  text-wrap: balance;
-
-  max-width: 17ch;
-}
-
-/* =========================================================
-   FOCUS REVEAL
-========================================================= */
-
-.gm-card:focus-visible
-  .gm-card__img {
-  transform:
-    scale(1.015);
-}
-
-.gm-card:focus-visible
-  .gm-card__shade {
-  opacity: 1;
-}
-
-.gm-card:focus-visible
-  .gm-line {
-  opacity: 1;
-
-  transform:
-    translateY(0);
-}
-
-.gm-card:focus-visible
-  .gm-card__title {
-  transition-delay: 60ms;
-}
-
-.gm-card:focus-visible
-  .gm-card__meta {
-  transition-delay: 110ms;
-}
-
-/* =========================================================
-   DESKTOP HOVER
-========================================================= */
-
-@media (hover: hover) and (pointer: fine) {
-  .gm-card:hover
-    .gm-card__img {
-    transform:
-      scale(1.015);
-  }
-
-  .gm-card:hover
-    .gm-card__shade {
-    opacity: 1;
-  }
-
-  .gm-card:hover
-    .gm-line {
-    opacity: 1;
-
-    transform:
-      translateY(0);
-  }
-
-  .gm-card:hover
-    .gm-card__title {
-    transition-delay: 60ms;
-  }
-
-  .gm-card:hover
-    .gm-card__meta {
-    transition-delay: 110ms;
-  }
-
-  /*
-   * Non hovered projects step back slightly.
-   */
-  .gm-track:has(
-      .gm-card:hover
-    )
-    .gm-card:not(
-      :hover
-    ) {
-    opacity: 0.86;
-  }
-
-  .gm-section.has-view-cursor
-    .gm-card {
-    cursor: none;
-  }
-}
-
-/* =========================================================
-   TOUCH ACTIVE CARD
-========================================================= */
-
-@media (hover: none) {
-  .gm-card.is-active
-    .gm-card__shade {
-    opacity: 1;
-  }
-
-  .gm-card.is-active
-    .gm-line {
-    opacity: 1;
-
-    transform:
-      translateY(0);
-  }
-
-  .gm-card.is-active
-    .gm-card__title {
-    transition-delay: 60ms;
-  }
-
-  .gm-card.is-active
-    .gm-card__meta {
-    transition-delay: 110ms;
-  }
-}
-
-/* =========================================================
-   CUSTOM CURSOR
-========================================================= */
-
-.gm-cursor {
-  position: fixed;
-
-  top: 0;
-
-  left: 0;
-
-  z-index: 60;
-
-  pointer-events: none;
-}
-
-.gm-cursor__dot {
-  display: grid;
-
-  place-items: center;
-
-  width: 60px;
-
-  height: 60px;
-
-  margin:
-    -30px 0 0 -30px;
-
-  border-radius: 50%;
-
-  background: #fff;
-
-  color: var(--ink);
-
-  font-family: var(
-    --font-secondary
-  );
-
-  font-size: 11px;
-
+  margin: 0 0 8px;
+  font-size: clamp(1.2rem, 1.5vw, 1.5rem);
   font-weight: 500;
-
-  letter-spacing: 0.12em;
-
-  text-transform: uppercase;
-
-  opacity: 0;
-
-  transform:
-    scale(0.4);
-
-  transition:
-    opacity
-      0.3s
-      var(--gm-ease),
-    transform
-      0.45s
-      var(--gm-ease);
+  line-height: 1.2;
 }
 
-.gm-cursor.is-visible
-  .gm-cursor__dot {
-  opacity: 1;
-
-  transform: scale(1);
+.gm-card__text {
+  margin: 0;
+  color: rgb(255 255 255 / 0.82);
+  line-height: 1.5;
 }
 
-/* =========================================================
-   RESPONSIVE — TABLET
-========================================================= */
-
-@media (max-width: 1023px) {
-  .gm-section {
-    --gm-height: min(
-      54vw,
-      64vh
-    );
+/* Only hide the text on devices that can hover; touch keeps it visible */
+@media (hover: hover) {
+  .gm-card__body {
+    opacity: 0;
+    transform: translateY(16px);
   }
 
-  .gm-head {
-    margin-bottom: 36px;
-  }
-
-  .gm-gallery-controls {
-    margin-bottom: 12px;
-  }
-
-  .gm-arrow {
-    width: 44px;
-
-    height: 44px;
-
-    flex-basis: 44px;
-  }
-
-  .gm-arrow svg {
-    width: 17px;
-
-    height: 17px;
-  }
-
-  .gm-count {
-    margin-right: 8px;
-
-    font-size: 11px;
+  .gm-card:hover .gm-card__body,
+  .gm-card:focus-within .gm-card__body {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* =========================================================
-   RESPONSIVE — MOBILE
-========================================================= */
-
-@media (max-width: 767px) {
-  .gm-head {
-    margin-bottom: 28px;
-  }
-
-  /*
-   * Mobile uses swipe navigation.
-   */
-  .gm-gallery-controls {
-    display: none;
+/* Tablet: 2 per row */
+@media (max-width: 1199px) {
+  .gm-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* =========================================================
-   RESPONSIVE — SMALL MOBILE
-========================================================= */
-
+/* Mobile: stacked */
 @media (max-width: 639px) {
-  .gm-section {
-    --gm-gap: 10px;
-  }
-
-  .gm-heading {
-    font-size: clamp(
-      34px,
-      10vw,
-      44px
-    );
-  }
-
-  .gm-description {
-    font-size: 15px;
-
-    /* line-height: 1.5; */
-  }
-
-  /*
-   * Consistent mobile card.
-   * Next image still peeks into view.
-   */
-  .gm-card {
-    width: 84vw;
-
-    height: auto;
-
-    aspect-ratio: 4 / 5;
-  }
-
-  .gm-card__info {
-    inset:
-      auto
-      18px
-      18px;
-  }
-
-  .gm-card__title {
-    font-size: clamp(
-      24px,
-      8vw,
-      34px
-    );
+  .gm-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-/* =========================================================
-   REDUCED MOTION
-========================================================= */
-
-@media (
-  prefers-reduced-motion:
-    reduce
-) {
-  .gm-card__img,
-  .gm-line,
-  .gm-arrow {
-    transition-duration:
-      0.01ms;
+@media (prefers-reduced-motion: reduce) {
+  .gm-card,
+  .gm-card__media img,
+  .gm-card__body {
+    transition: none;
   }
 
-  .gm-card:hover
-    .gm-card__img,
-  .gm-card:focus-visible
-    .gm-card__img {
-    transform: none;
-  }
-
-  .gm-line {
+  .gm-card__body {
     transform: none;
   }
 }
