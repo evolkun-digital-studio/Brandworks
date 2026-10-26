@@ -33,12 +33,6 @@
   text-align: center;
 }
 
-.gm-eyebrow {
-  margin: 0 0 12px;
-  color: var(--ink-muted);
-  font-size: 0.95rem;
-}
-
 .gm-heading {
   margin: 0;
 }

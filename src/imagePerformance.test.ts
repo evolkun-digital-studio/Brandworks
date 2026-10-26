@@ -95,7 +95,6 @@ describe('Services.tsx — near-fold homepage images', () => {
 })
 
 describe.each([
-  ['Results.tsx', 'src={result.image}'],
   ['components/PhotographyWall/PhotographyWall.tsx', 'src={project.image}'],
   // Industries.tsx used to be listed here. Its still-image case study
   // is now a film, so the same "below the fold, must not load eagerly"

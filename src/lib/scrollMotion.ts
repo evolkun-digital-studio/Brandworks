@@ -1,5 +1,5 @@
 // Small helpers shared by the scroll-driven 3D sections (Work.tsx,
-// Results.tsx): easing math, keyframe sampling and cached style writes.
+// BrandIntelligence.tsx): easing math, keyframe sampling and cached style writes.
 
 export const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 export const smoothstep = (t: number) => t * t * (3 - 2 * t)

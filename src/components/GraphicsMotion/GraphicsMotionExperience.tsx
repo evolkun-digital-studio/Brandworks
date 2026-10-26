@@ -15,7 +15,6 @@ export default function GraphicsMotionExperience() {
     >
       <div className="gm-shell">
         <header className="gm-head">
-          <p className="gm-eyebrow">{GRAPHICS_SECTION.eyebrow}</p>
           <h2 id="graphics-motion-heading" className="section-heading gm-heading">
             {GRAPHICS_SECTION.heading}
           </h2>

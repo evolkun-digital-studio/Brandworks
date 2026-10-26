@@ -13,7 +13,6 @@ export type GraphicsCard = {
 }
 
 export const GRAPHICS_SECTION = {
-  eyebrow: 'Graphic & Motion',
   heading: 'Ideas designed to move.',
 }
 
