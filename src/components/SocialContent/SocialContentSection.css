@@ -21,7 +21,6 @@
 /* Heading → grid matches the Photography header → gallery gap. */
 .culture-reels__heading {
   margin-bottom: var(--media-gap);
-  text-align: center;
 }
 
 .culture-reels__row {
