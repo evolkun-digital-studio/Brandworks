@@ -1,711 +1,470 @@
-import { mediaUrl } from '../../lib/media'
-import { useEffect, useRef, useState } from 'react'
-import gsap from 'gsap'
-const backdropPoster = mediaUrl("footer-showreel-poster.webp")
+import { useEffect, useRef } from 'react'
 import './WebDesignHero.css'
 
 /*
- * Web Design & Development: "the website builds itself".
+ * Web Design & Development: a light, interactive studio scene.
  *
- * A small studio site, coded in HTML/CSS so every piece can move, sits in a
- * minimal browser on a near-black technical grid, with three design-system
- * fragments around it. A lime cursor directs the film:
+ * A browser (top-centre) holds a mock client site, built twice from the
+ * same markup — a pale violet blueprint and the finished design — with a
+ * lime sweep revealing one over the other. Around it, live panels:
+ * Responsive (device widths), Interface (the H1's size and typeface),
+ * Development (the component's code) and a Lighthouse card. Every panel
+ * can be dragged by its title bar; positions reset when the slide returns.
  *
- *   hover the artwork → select the headline → the site strips back to its
- *   wireframe → a scan line renders it back into the finished design →
- *   press the CTA → the fragments separate and return → rest, and again.
- *
- * The site is rendered twice from the same markup — once finished, once as
- * wireframe — so the two states line up exactly at every size. Everything is
- * decorative: the whole visual is aria-hidden and holds nothing focusable.
- *
- * The timeline only exists while Web is the active service. It pauses when
- * the hero leaves the viewport, and is reverted once HeroMedia has faded the
- * layer out. Reduced motion never builds it: the CSS alone is the finished,
- * static composition.
+ * Whenever the slide comes up, two cursors run a short (~3.5s) film sized to
+ * the hero's 4s autoplay: BrandWorks clicks the mock CTA, the design sweeps
+ * in, it selects the H1 and the Interface values count up while Dev updates
+ * the code. Any interaction stops it; it replays 3s after the pointer
+ * leaves. Reduced motion shows the finished design, still.
  */
 
-// Matches HeroMedia's outgoing fade (0.25s delay + 0.8s): only reset once
-// the layer can no longer be seen.
-const RESET_DELAY = 1100
-// A resize rebuilds the loop against the new layout, once it has settled.
-const RESIZE_DEBOUNCE = 220
-// Matches the browser's reshape transition in the CSS, plus a beat.
-const DEVICE_SETTLE = 800
-const SCAN_DURATION = 2.8
-// Seen only through frosted glass, so the light encode is plenty.
-const BACKDROP_VIDEO = mediaUrl("footer-showreel-540.mp4")
-
-type Box = { x: number; y: number; w: number; h: number }
-type Point = { x: number; y: number }
-
-/** Layout box of `el` relative to `ancestor`, ignoring transforms — so the
- *  cursor is aimed at where things settle, never at a mid-animation frame
- *  or the layer's cross-fade zoom. */
-function boxIn(el: HTMLElement, ancestor: HTMLElement): Box {
-  let x = 0
-  let y = 0
-  let node: HTMLElement | null = el
-  while (node && node !== ancestor) {
-    x += node.offsetLeft
-    y += node.offsetTop
-    node = node.offsetParent as HTMLElement | null
-  }
-  return { x, y, w: el.offsetWidth, h: el.offsetHeight }
+type Site = {
+  url: string
+  logo: string
+  links: string[]
+  btn: string
+  eye: string
+  h1: string
+  p: string
+  cta: string
+  foot: string[]
+  vars: Record<string, string>
+  code: string
+  title: string
+  aa: string
+  /** Site-switcher dot colour. */
+  dot: string
 }
 
-const pointIn = (b: Box, fx: number, fy: number): Point => ({ x: b.x + b.w * fx, y: b.y + b.h * fy })
-
-/** Normalised time at which a sine.inOut sweep from 1 → 0 reaches `pos`. */
-const sweepTime = (pos: number) => Math.acos(Math.min(1, Math.max(-1, 2 * pos - 1))) / Math.PI
-
-function ArrowGlyph() {
-  return (
-    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4" />
-    </svg>
-  )
-}
-
-/** The studio site inside the browser. `wire` renders the same layout as
- *  its structure: blocks for type, outlines for boxes, a column grid. */
-function Site({ variant }: { variant: 'final' | 'wire' }) {
-  const wire = variant === 'wire'
-  return (
-    <div className={`wd-site wd-site--${variant}`} data-wd-site={variant}>
-      {wire && (
-        <div className="wd-cols">
-          {Array.from({ length: 12 }, (_, i) => (
-            <span key={i} />
-          ))}
-        </div>
-      )}
-
-      <div className="wd-nav" data-wd-in data-wd-lift>
-        <span className="wd-logo">
-          <span className="wd-t">Brand Work</span>
-        </span>
-        <span className="wd-links">
-          <span className="wd-t">Work</span>
-          <span className="wd-t">Studio</span>
-          <span className="wd-t">Journal</span>
-        </span>
-        <span className="wd-contact">
-          <span className="wd-t">Contact</span>
-        </span>
-        <span className="wd-burger">
-          <i />
-          <i />
-        </span>
-        {wire && <span className="wd-tag wd-tag--in">nav</span>}
-      </div>
-
-      <div className="wd-main">
-        <div className="wd-text">
-          <span className="wd-eyebrow" data-wd-in>
-            <span className="wd-t">Digital studio / 2026</span>
-          </span>
-
-          <span className="wd-h1">
-            <span className="wd-mask">
-              <span className="wd-line" data-wd-in>
-                <span className="wd-t">Ideas made</span>
-              </span>
-            </span>
-            <span className="wd-mask">
-              <span className="wd-line" data-wd-in data-wd="headline">
-                <span className="wd-t">interactive.</span>
-              </span>
-            </span>
-            {wire ? (
-              <span className="wd-tag">h1 · 48 / 0.92</span>
-            ) : (
-              <span className="wd-select" data-wd="select">
-                <i />
-                <i />
-                <i />
-                <i />
-                <span className="wd-select__tag">H1 · 48 / −4%</span>
-              </span>
-            )}
-          </span>
-
-          <span className="wd-copy" data-wd-in>
-            <span className="wd-t">Digital experiences built around clarity, interaction and performance.</span>
-          </span>
-
-          <span className="wd-cta" data-wd-in data-wd-lift data-wd="cta">
-            {!wire && <span className="wd-cta__fill" data-wd="cta-fill" />}
-            <span className="wd-cta__label" data-wd="cta-label">
-              <span className="wd-t">Explore work</span>
-            </span>
-            <span className="wd-cta__arrow" data-wd="cta-arrow">
-              <ArrowGlyph />
-            </span>
-            {wire && <span className="wd-tag">button</span>}
-          </span>
-        </div>
-
-        <div className="wd-art" data-wd-in>
-          <span className="wd-art__frame" data-wd-lift data-wd="art">
-            {wire ? (
-              <svg className="wd-art__x" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <line x1="0" y1="0" x2="100" y2="100" vectorEffect="non-scaling-stroke" />
-                <line x1="100" y1="0" x2="0" y2="100" vectorEffect="non-scaling-stroke" />
-              </svg>
-            ) : (
-              <>
-                <span className="wd-art__img" data-wd="art-img">
-                  <span className="wd-art__orb" />
-                  <span className="wd-art__orbit" />
-                  <span className="wd-art__rule" />
-                </span>
-                <span className="wd-view" data-wd="view">
-                  View case <ArrowGlyph />
-                </span>
-              </>
-            )}
-            {wire && <span className="wd-tag wd-tag--in">image · 6:5</span>}
-          </span>
-          <span className="wd-art__cap">
-            <span className="wd-t">Fig. 01 — Motion study</span>
-            <span className="wd-t">(2026)</span>
-          </span>
-        </div>
-      </div>
-
-      <div className="wd-foot" data-wd-in>
-        <span className="wd-t">Selected work</span>
-        <span className="wd-t">01 Aerolink</span>
-        <span className="wd-t">02 Riaaj</span>
-        <span className="wd-t">03 Nexa</span>
-      </div>
-    </div>
-  )
-}
-
-function DevelopmentCard() {
-  return (
-    <div className="wd-card wd-card--code" data-wd-card="code">
-      <div className="wd-card__head">
-        <span>Development</span>
-        <span className="wd-mono">section.tsx</span>
-      </div>
-      <div className="wd-code wd-mono">
-        <span><i>1</i><b>&lt;section&gt;</b></span>
-        <span><i>2</i>  <b>&lt;Experience</b></span>
-        <span className="is-accent"><i>3</i>    motion=<em>"considered"</em></span>
-        <span><i>4</i>  <b>/&gt;</b></span>
-        <span><i>5</i><b>&lt;/section&gt;</b></span>
-      </div>
-    </div>
-  )
-}
-
-function TypeCard() {
-  return (
-    <div className="wd-card wd-card--type" data-wd-card="type">
-      <div className="wd-card__head">
-        <span>Interface</span>
-        <span className="wd-mono">H1</span>
-      </div>
-      <div className="wd-type__specimen">
-        Aa
-        <span className="wd-type__hl" data-wd="type-hl" />
-      </div>
-      <dl className="wd-type__specs wd-mono">
-        <div><dt>Size</dt><dd>48</dd></div>
-        <div><dt>Track</dt><dd>−4%</dd></div>
-        <div><dt>Lead</dt><dd>0.92</dd></div>
-      </dl>
-    </div>
-  )
-}
-
-type Device = 'desktop' | 'tablet' | 'phone'
-
-const DEVICES: { id: Device; width: number }[] = [
-  { id: 'desktop', width: 1440 },
-  { id: 'tablet', width: 834 },
-  { id: 'phone', width: 390 },
+// Client sites shown in the browser. Swap these for real work later.
+const SITES: Site[] = [
+  {
+    url: 'soko-bakery.com', logo: 'Soko', links: ['Menu', 'Story', 'Visit'], btn: 'Order', eye: 'Café & Bakery · Since 2019',
+    h1: 'Fresh bakes,<br>slow mornings.', p: 'Sourdough, pastries and coffee made by hand every morning.', cta: 'Explore the menu', foot: ['Breads', 'Pastries', 'Coffee'],
+    vars: {
+      '--bg': '#F6EBDD', '--fg': '#3B2414', '--acc': '#3B2414', '--accFg': '#F6EBDD',
+      '--img': 'radial-gradient(circle at 35% 40%,#F2C07A 0 18%,transparent 19%),radial-gradient(circle at 65% 62%,#E3A55A 0 22%,transparent 23%),linear-gradient(160deg,#E7B98A,#C8692F)',
+      '--h1F': '600 28px Fraunces,serif', '--logoF': '400 15px Pacifico,cursive',
+    },
+    code: 'Soko Café', title: 'Fresh bakes daily', aa: 'Fraunces,serif', dot: '#C8692F',
+  },
+  {
+    url: 'falkgymwear.com', logo: 'FALK', links: ['Shop', 'Train', 'Drops'], btn: 'Cart (0)', eye: 'Gym wear · Drop 07',
+    h1: 'TRAIN<br>LOUDER.', p: 'Performance gear cut for heavy days and long sessions.', cta: 'Shop the drop', foot: ['Tees', 'Shorts', 'Layers'],
+    vars: {
+      '--bg': '#0F0F0F', '--fg': '#ffffff', '--acc': '#C8F31D', '--accFg': '#0b0b0b',
+      '--img': 'repeating-linear-gradient(-45deg,#1b1b1b 0 14px,#232323 14px 28px),#1b1b1b',
+      '--h1F': 'italic 800 28px Figtree,sans-serif', '--logoF': 'italic 800 15px Figtree,sans-serif',
+    },
+    code: 'FALK', title: 'Train louder', aa: 'Figtree,sans-serif', dot: '#111111',
+  },
+  {
+    url: 'jellystar.store', logo: 'jellystar', links: ['New in', 'Shop', 'About'], btn: 'Bag', eye: 'Clothing · SS26',
+    h1: 'Wear the<br>sparkle.', p: 'Playful everyday pieces in colours that refuse to be quiet.', cta: 'Shop new in', foot: ['Dresses', 'Tops', 'Sets'],
+    vars: {
+      '--bg': '#FFE3F1', '--fg': '#3A0D25', '--acc': '#E0237F', '--accFg': '#ffffff',
+      '--img': 'radial-gradient(circle at 30% 35%,#FF9BCB 0 20%,transparent 21%),radial-gradient(circle at 70% 65%,#FFD84D 0 16%,transparent 17%),linear-gradient(160deg,#FFB8DA,#E0237F)',
+      '--h1F': '400 28px Righteous,sans-serif', '--logoF': '400 15px Righteous,sans-serif',
+    },
+    code: 'jellystar', title: 'Wear the sparkle', aa: 'Righteous,sans-serif', dot: '#E0237F',
+  },
 ]
 
-/** The one control in the visual: pick a screen and the browser becomes
- *  it. Pointer-only, like the rest of this decorative layer. */
-function ResponsiveCard({ device, onDevice }: { device: Device; onDevice: (device: Device) => void }) {
+// Placeholder audit scores until real ones are supplied. Soft hyphens let
+// the long labels break inside their narrow columns.
+const AUDIT = [
+  { label: 'Perfor­mance', score: 98 },
+  { label: 'Accessi­bility', score: 100 },
+  { label: 'Best practices', score: 100 },
+  { label: 'SEO', score: 100 },
+]
+const RING = 2 * Math.PI * 15
+
+// Which page element each code line points at (by line index).
+const LMAP = ['', 'logo', 'h1', 'h1', 'img', '']
+const MOTIONS = ['considered', 'playful', 'still']
+// Heading typefaces "Aa" cycles through (null = the site's own).
+const FONTS: (string | null)[] = [null, '500 28px Figtree,sans-serif', '600 28px Fraunces,serif', '500 28px ui-monospace,monospace', '400 28px Righteous,sans-serif']
+const FONT_FAMILIES: (string | null)[] = [null, 'Figtree,sans-serif', 'Fraunces,serif', 'ui-monospace,monospace', 'Righteous,sans-serif']
+const DEVICES = [
+  { k: '1', bp: '1440', device: 'desktop' },
+  { k: '.62', bp: '834', device: 'tablet' },
+  { k: '.36', bp: '390', device: 'phone' },
+]
+const RESTART_MS = 3000
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+function siteHTML(s: Site) {
   return (
-    <div className="wd-card wd-card--resp" data-wd-card="resp">
-      <div className="wd-card__head">
-        <span>Responsive</span>
-      </div>
-      <div className="wd-devices">
-        {DEVICES.map(({ id, width }) => (
-          <button
-            key={id}
-            type="button"
-            tabIndex={-1}
-            className={`wd-device-btn ${device === id ? 'is-on' : ''}`}
-            onClick={() => onDevice(id)}
-          >
-            <span className="wd-device-btn__icon">
-              <span className={`wd-device wd-device--${id} ${device === id ? 'is-on' : ''}`} />
-            </span>
-            <span className="wd-device-btn__size wd-mono">{width}</span>
-          </button>
-        ))}
-      </div>
-    </div>
+    `<div class="s-nav"><b class="s-logo" data-l="logo">${s.logo}</b><span class="s-links" data-l="nav">${s.links.map((l) => `<i>${l}</i>`).join('')}</span><span class="s-btn">${s.btn}</span></div>` +
+    `<div class="s-hero"><div class="s-copy"><small class="s-eye">${s.eye}</small><span class="s-h1" data-l="h1 · 48 / 0.92">${s.h1}</span><p class="s-p" data-l="body">${s.p}</p><span class="s-cta" data-l="cta">${s.cta} →</span></div><div class="s-img" data-l="image"></div></div>` +
+    `<div class="s-foot">${s.foot.map((f) => `<i>${f}</i>`).join('')}</div>`
   )
 }
 
-/** Once, each time Web becomes the active service. */
-function buildIntro(root: HTMLElement) {
-  const final = root.querySelector<HTMLElement>('[data-wd-site="final"]')!
-  const q = gsap.utils.selector(root)
-  const settle = gsap.utils.toArray<HTMLElement>('[data-wd-in]:not(.wd-line)', final)
-  const lines = gsap.utils.toArray<HTMLElement>('.wd-line', final)
-
-  return gsap
-    .timeline({ delay: 0.15, defaults: { ease: 'expo.out' } })
-    .from(q('.wd-grid'), { opacity: 0, duration: 1.8, ease: 'power2.out' }, 0)
-    .from(q('.wd-browser'), { opacity: 0, y: 34, scale: 0.975, duration: 1.6 }, 0.1)
-    .from(settle, { opacity: 0, y: 12, duration: 1.2, stagger: 0.07, ease: 'power3.out' }, 0.55)
-    .from(lines, { yPercent: 112, duration: 1.2, stagger: 0.09, ease: 'power4.out' }, 0.65)
-    .from(q('[data-wd="art-img"]'), { scale: 1.14, duration: 2 }, 0.5)
-    .from(q('[data-wd-card]'), { opacity: 0, y: 18, duration: 1.3, stagger: 0.15, ease: 'power3.out' }, 1.05)
+function codeLines(s: Site, size: number, motion = 'considered') {
+  return [
+    '<span class="k">&lt;Hero</span>',
+    `  <span class="a">brand</span>=<span class="s">"${s.code}"</span>`,
+    `  <span class="a">title</span>=<span class="s">"${s.title}"</span>`,
+    `  <span class="a">size</span>={<span class="n">${size}</span>}`,
+    `  <span class="a">motion</span>=<span class="s">"${motion}"</span>`,
+    '<span class="k">/&gt;</span>',
+  ]
 }
 
-/**
- * The repeating film. It starts and ends on the same frame — cursor parked
- * and hidden, finished site, fragments home — so the repeat is invisible.
- */
-function buildLoop(root: HTMLElement, stage: HTMLElement) {
-  const $ = <T extends HTMLElement = HTMLElement>(selector: string) => root.querySelector<T>(selector)!
-  const final = $('[data-wd-site="final"]')
-  const inFinal = <T extends HTMLElement = HTMLElement>(selector: string) => final.querySelector<T>(selector)!
-  const wire = $('.wd-wire')
-  const viewport = $('.wd-viewport')
-  const cursor = $('[data-wd="cursor"]')
-  const scan = $('[data-wd="scan"]')
-  const art = inFinal('[data-wd="art"]')
-  const cta = inFinal('[data-wd="cta"]')
-  const headline = inFinal('[data-wd="headline"]')
-  const settleTargets = gsap.utils.toArray<HTMLElement>('[data-wd-in]', final)
-  const tags = gsap.utils.toArray<HTMLElement>('.wd-tag', wire)
-  const card = (name: string) => $(`[data-wd-card="${name}"]`)
+const ARROW = 'M2 2 2 21.6 6.9 17.1 10.1 24.7 13.5 23.3 10.4 15.9 17.2 15.9Z'
 
-  const compact = stage.clientWidth < 600
-  const vp = boxIn(viewport, stage)
-  const rig = boxIn($('.wd-rig'), stage)
-  const stageH = stage.clientHeight
-
-  const rest: Point = {
-    x: Math.max(16, rig.x + rig.w * (compact ? 0.12 : 0.04)),
-    y: Math.min(stageH - 8, rig.y + rig.h + (compact ? 18 : 30)),
-  }
-  const onArt = pointIn(boxIn(art, stage), 0.6, 0.62)
-  const onHeadline = pointIn(boxIn(headline, stage), 0.74, 0.6)
-  const onEdge: Point = { x: vp.x + vp.w - (compact ? 22 : 34), y: vp.y + vp.h * 0.2 }
-  const onCta = pointIn(boxIn(cta, stage), 0.64, 0.62)
-
-  // The wireframe opens as a lens from the point the cursor selects.
-  const lensX = onHeadline.x - vp.x
-  const lensY = onHeadline.y - vp.y
-  const lensR = Math.ceil(Math.hypot(Math.max(lensX, vp.w - lensX), Math.max(lensY, vp.h - lensY))) + 4
-  const lens = (r: number) => `circle(${r}px at ${Math.round(lensX)}px ${Math.round(lensY)}px)`
-
-  const spread = compact ? 0.55 : 1
-  const drift: Record<string, Point> = {
-    code: { x: -16 * spread, y: 12 * spread },
-    type: { x: 18 * spread, y: 5 * spread },
-    resp: { x: 12 * spread, y: -12 * spread },
-  }
-
-  const tl = gsap.timeline({ repeat: -1, defaults: { ease: 'power3.inOut' } })
-
-  /** Cursor travel with slightly different x/y curves, so it arcs. */
-  const travel = (to: Point, duration: number, at: number) => {
-    tl.to(cursor, { x: to.x, duration, ease: 'power3.inOut' }, at)
-    tl.to(cursor, { y: to.y, duration, ease: 'power2.inOut' }, at)
-  }
-  const press = (at: number) => {
-    tl.to(cursor, { scale: 0.86, duration: 0.12, ease: 'power2.out' }, at)
-    tl.to(cursor, { scale: 1, duration: 0.4, ease: 'power3.out' }, at + 0.12)
-  }
-
-  // 0 — home frame.
-  tl.set(cursor, { x: rest.x, y: rest.y, scale: 1, opacity: 0 }, 0)
-  tl.set(wire, { clipPath: lens(0) }, 0)
-  // x is pinned to 0: GSAP reads the CSS translateX(100%) as pixels.
-  tl.set(scan, { x: 0, xPercent: 100, opacity: 0 }, 0)
-
-  // 1 — the cursor enters and finds the artwork.
-  tl.to(cursor, { opacity: 1, duration: 0.6, ease: 'power2.out' }, 0.4)
-  travel(onArt, 1.5, 0.4)
-  tl.to(inFinal('[data-wd="art-img"]'), { scale: 1.05, duration: 1.5, ease: 'power2.out' }, 1.8)
-  tl.fromTo(
-    inFinal('[data-wd="view"]'),
-    { opacity: 0, scale: 0.92 },
-    { opacity: 1, scale: 1, duration: 0.55, ease: 'power3.out', immediateRender: false },
-    1.95,
-  )
-  tl.to(inFinal('[data-wd="view"]'), { opacity: 0, duration: 0.3, ease: 'power1.out' }, 3.15)
-  tl.to(inFinal('[data-wd="art-img"]'), { scale: 1, duration: 1.3, ease: 'power2.inOut' }, 3.2)
-
-  // 2 — it moves to the type and selects the headline.
-  travel(onHeadline, 1.3, 3.15)
-  press(4.5)
-  tl.fromTo(
-    inFinal('[data-wd="select"]'),
-    { opacity: 0, scale: 1.02 },
-    { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out', immediateRender: false },
-    4.58,
-  )
-  tl.fromTo(
-    $('[data-wd="type-hl"]'),
-    { scaleX: 0 },
-    { scaleX: 1, duration: 0.6, ease: 'power3.out', immediateRender: false },
-    4.62,
-  )
-
-  // 3 — the site strips back to its structure, opening from that point.
-  tl.to(inFinal('[data-wd="select"]'), { opacity: 0, duration: 0.3, ease: 'power1.out' }, 5.4)
-  tl.to(wire, { clipPath: lens(lensR), duration: 1.3, ease: 'power3.inOut' }, 5.45)
-  tl.fromTo(
-    tags,
-    { opacity: 0, y: 3 },
-    { opacity: 1, y: 0, duration: 0.5, stagger: 0.07, ease: 'power2.out', immediateRender: false },
-    6.05,
-  )
-  tl.to($('[data-wd="type-hl"]'), { scaleX: 0, transformOrigin: '100% 50%', duration: 0.5, ease: 'power2.inOut' }, 6.2)
-  tl.set($('[data-wd="type-hl"]'), { transformOrigin: '0% 50%' }, 6.75)
-  travel(onEdge, 1.1, 6.45)
-
-  // 4 — a lime scan renders structure back into the finished design. Each
-  // element resolves as the line reaches it, so the pass reads as building,
-  // not as a before/after wipe.
-  const scanAt = 7.7
-  tl.set(wire, { clipPath: 'inset(0% 0% 0% 0%)' }, scanAt - 0.05)
-  tl.set(settleTargets, { opacity: 0.3, y: 8 }, scanAt - 0.05)
-  tl.to(scan, { opacity: 1, duration: 0.35, ease: 'power1.out' }, scanAt - 0.1)
-  tl.to(scan, { xPercent: 0, duration: SCAN_DURATION, ease: 'sine.inOut' }, scanAt)
-  tl.to(wire, { clipPath: 'inset(0% 100% 0% 0%)', duration: SCAN_DURATION, ease: 'sine.inOut' }, scanAt)
-  settleTargets.forEach((el) => {
-    const b = boxIn(el, viewport)
-    const reach = sweepTime(Math.min(1, (b.x + b.w * 0.85) / vp.w))
-    tl.to(el, { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out' }, scanAt + reach * SCAN_DURATION)
-  })
-  tl.to(scan, { opacity: 0, duration: 0.45, ease: 'power1.in' }, scanAt + SCAN_DURATION - 0.2)
-  // The cursor follows the light back across the page to the CTA.
-  travel(onCta, 2.1, scanAt + 0.9)
-
-  // 5 — the CTA answers the cursor.
-  const ctaAt = scanAt + 3.15
-  tl.fromTo(
-    inFinal('[data-wd="cta-fill"]'),
-    { scaleX: 0, transformOrigin: '0% 50%' },
-    { scaleX: 1, duration: 0.6, ease: 'power3.out', immediateRender: false },
-    ctaAt,
-  )
-  tl.to(inFinal('[data-wd="cta-label"]'), { color: '#0b0b0b', duration: 0.4, ease: 'power2.out' }, ctaAt + 0.05)
-  tl.to(inFinal('[data-wd="cta-arrow"]'), { x: 2, y: -2, color: '#0b0b0b', duration: 0.5, ease: 'power3.out' }, ctaAt + 0.05)
-  press(ctaAt + 0.65)
-  tl.to(cta, { scale: 0.965, duration: 0.12, ease: 'power2.out' }, ctaAt + 0.65)
-  tl.to(cta, { scale: 1, duration: 0.45, ease: 'power3.out' }, ctaAt + 0.77)
-
-  // 6 — the pieces of the system separate slightly, then return.
-  const splitAt = ctaAt + 1.35
-  tl.to(inFinal('[data-wd="cta-fill"]'), { scaleX: 0, transformOrigin: '100% 50%', duration: 0.6, ease: 'power2.inOut' }, splitAt)
-  tl.to(inFinal('[data-wd="cta-label"]'), { color: '#fff', duration: 0.45, ease: 'power2.inOut' }, splitAt + 0.1)
-  tl.to(inFinal('[data-wd="cta-arrow"]'), { x: 0, y: 0, color: '#fff', duration: 0.5, ease: 'power2.inOut' }, splitAt + 0.1)
-  travel({ x: onCta.x + 22 * spread, y: onCta.y + 30 * spread }, 1.3, splitAt)
-  Object.entries(drift).forEach(([name, d]) => {
-    tl.to(card(name), { x: d.x, y: d.y, duration: 1.4 }, splitAt)
-    tl.to(card(name), { x: 0, y: 0, duration: 1.4 }, splitAt + 2.1)
-  })
-  tl.to(inFinal('.wd-nav'), { y: -4 * spread, duration: 1.4 }, splitAt + 0.05)
-  tl.to(art, { y: -8 * spread, scale: 1.015, boxShadow: '0 22px 44px -18px rgba(0, 0, 0, 0.5)', duration: 1.4 }, splitAt + 0.1)
-  tl.to(cta, { y: -4 * spread, boxShadow: '0 12px 22px -12px rgba(0, 0, 0, 0.55)', duration: 1.4 }, splitAt + 0.15)
-  tl.to(inFinal('.wd-nav'), { y: 0, duration: 1.4 }, splitAt + 2.1)
-  tl.to(art, { y: 0, scale: 1, boxShadow: '0 0px 0px 0px rgba(0, 0, 0, 0)', duration: 1.4 }, splitAt + 2.1)
-  tl.to(cta, { y: 0, boxShadow: '0 0px 0px 0px rgba(0, 0, 0, 0)', duration: 1.4 }, splitAt + 2.1)
-
-  // 7 — the cursor leaves, the finished site holds, and it begins again.
-  const exitAt = splitAt + 2.9
-  travel(rest, 1.6, exitAt)
-  tl.to(cursor, { opacity: 0, duration: 0.6, ease: 'power2.in' }, exitAt + 1.0)
-  tl.set({}, {}, exitAt + 3.4)
-
-  return tl
-}
-
-type Run = { intro: gsap.core.Timeline; loop: gsap.core.Timeline | null }
-
-function WebDesignHero({
-  active,
-  playing,
-  reducedMotion,
-}: {
-  active: boolean
-  playing: boolean
-  reducedMotion: boolean
-}) {
+function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; playing: boolean; reducedMotion: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null)
-  const stageRef = useRef<HTMLDivElement>(null)
-  const playingRef = useRef(playing)
-  const runRef = useRef<Run | null>(null)
-  const pendingRef = useRef<{ ctx: gsap.Context; timer: number } | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const rebuildRef = useRef<((delay: number) => void) | null>(null)
-  const [device, setDevice] = useState<Device>('desktop')
-  const [videoRequested, setVideoRequested] = useState(false)
-
-  // The backdrop film is fetched on the first visit and only runs while
-  // Web is on screen. Reduced motion keeps the still.
-  const wantsVideo = playing && !reducedMotion
-  if (wantsVideo && !videoRequested) setVideoRequested(true)
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    if (wantsVideo) void video.play().catch(() => undefined)
-    else video.pause()
-  }, [wantsVideo, videoRequested])
-
-  const flushPending = () => {
-    const pending = pendingRef.current
-    if (!pending) return
-    pendingRef.current = null
-    window.clearTimeout(pending.timer)
-    pending.ctx.revert()
-  }
-
-  // Off screen (or on its way out) the film simply holds its frame.
-  useEffect(() => {
-    playingRef.current = playing
-    const run = runRef.current
-    if (!run) return
-    const current = run.loop ?? run.intro
-    if (playing) current.resume()
-    else current.pause()
-  }, [playing])
+  // Read by the running film without re-creating it.
+  const runRef = useRef(false)
+  const activateRef = useRef<() => void>(() => undefined)
 
   useEffect(() => {
     const root = rootRef.current
-    const stage = stageRef.current
-    if (!root || !stage || !active || reducedMotion) return
+    if (!root) return
+    const $ = <T extends Element = HTMLElement>(sel: string, ctx: ParentNode = root) => ctx.querySelector<T>(sel)!
+    const $$ = <T extends Element = HTMLElement>(sel: string, ctx: ParentNode = root) => Array.from(ctx.querySelectorAll<T>(sel))
+    const ac = new AbortController()
+    const on = <K extends keyof HTMLElementEventMap>(el: HTMLElement, type: K, fn: (e: HTMLElementEventMap[K]) => void) =>
+      el.addEventListener(type, fn, { signal: ac.signal })
 
-    // Returning before the last visit was cleared: clear it now, so the
-    // new run starts from the clean, finished composition.
-    flushPending()
+    const stage = $('.web-hero__stage'), rig = $('.wd-rig'), browser = $('.wd-browser'), vp = $('.wd-viewport')
+    const wire = $('.wd-wire'), design = $('.wd-design'), url = $('.wd-url__text'), lines = $('.wd-lines'), aa = $('.wd-aa')
+    const curD = $('[data-cursor="design"]'), curV = $('[data-cursor="dev"]'), dots = $('.wd-sites')
+    const kv: Record<string, HTMLElement> = {}
+    $$('.wd-kv b').forEach((b) => { kv[b.dataset.k!] = b })
+    const range = $<HTMLInputElement>('.wd-range'), devBtns = $$<HTMLButtonElement>('.wd-device-btn'), bpLabel = $('.wd-card--resp .wd-bp')
+    const lhUrl = $('.wd-lh__url'), rings = $$('.wd-ring'), panels = $$('.wd-card')
 
-    const run: Run = { intro: gsap.timeline(), loop: null }
-    const ctx = gsap.context(() => {}, root)
+    let rv = 0, siteIx = 0, size = 48, scrub = false, touched = false, hovering = false, gen = 1, motionIx = 0, fontIx = 0
+    let idleT: number | undefined
+    const timers = new Set<number>()
+    const later = (fn: () => void, ms: number) => { const id = window.setTimeout(() => { timers.delete(id); fn() }, ms); timers.add(id); return id }
+    const compact = () => window.matchMedia('(max-width: 900px)').matches
 
-    const startLoop = () => {
-      ctx.add(() => {
-        run.loop = buildLoop(root, stage)
-        if (!playingRef.current) run.loop.pause()
+    const flash = (el: Element) => { el.classList.remove('is-flash'); void (el as HTMLElement).offsetWidth; el.classList.add('is-flash') }
+    // Any interaction stops the film; its cursors step aside until it replays.
+    const touch = () => {
+      touched = true; window.clearTimeout(idleT); gen++
+      curD.classList.remove('is-on'); curV.classList.remove('is-on')
+    }
+    const tween = (from: number, to: number, ms: number, fn: (v: number) => void) => new Promise<void>((resolve) => {
+      if (reducedMotion) { fn(to); resolve(); return }
+      const t0 = performance.now()
+      const f = (now: number) => {
+        const k = Math.min((now - t0) / ms, 1), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2
+        fn(from + (to - from) * e)
+        if (k < 1 && !ac.signal.aborted) requestAnimationFrame(f); else resolve()
+      }
+      requestAnimationFrame(f)
+    })
+
+    /* ---- state setters ---- */
+    const setDevice = (k: string) => {
+      const d = DEVICES.find((x) => x.k === k) ?? DEVICES[0]
+      browser.dataset.device = d.device
+      devBtns.forEach((b) => b.classList.toggle('is-on', b.dataset.k === k))
+      bpLabel.textContent = d.bp
+    }
+    const setRv = (v: number, line = true) => {
+      rv = v; vp.style.setProperty('--rv', `${v}%`); vp.style.setProperty('--sw', line && v > 0.5 && v < 99.5 ? '1' : '0')
+    }
+    const setCodeLine = (i: number, html: string) => {
+      const ln = lines.children[i] as HTMLElement | undefined
+      if (!ln) return
+      ln.innerHTML = html; flash(ln)
+    }
+    const setSize = (n: number, flashIt = true) => {
+      size = Math.round(n)
+      kv.size.textContent = String(size); range.value = String(size)
+      $$('.s-h1').forEach((h) => h.style.setProperty('--h1', `${size * 28 / 48}px`))
+      $$('.s-h1', wire).forEach((h) => { h.dataset.l = `h1 · ${size} / 0.92` })
+      setCodeLine(3, codeLines(SITES[siteIx], size)[3])
+      if (flashIt) flash(kv.size)
+    }
+    const setTrack = (t: number) => { kv.track.textContent = `${Math.round(t)}%`; flash(kv.track) }
+    const setMotion = (m: string) => { design.dataset.motion = m; setCodeLine(4, codeLines(SITES[siteIx], size, m)[4]) }
+    const fillCode = () => {
+      lines.innerHTML = ''
+      codeLines(SITES[siteIx], size, MOTIONS[motionIx]).forEach((l, i) => {
+        const d = document.createElement('div'); d.innerHTML = l; if (LMAP[i]) d.dataset.t = LMAP[i]; lines.appendChild(d)
       })
     }
 
-    ctx.add(() => {
-      run.intro = buildIntro(root)
-      run.intro.eventCallback('onComplete', startLoop)
-      if (!playingRef.current) run.intro.pause()
+    // Lighthouse: the rings fill and the scores count up.
+    const runAudit = () => {
+      lhUrl.textContent = SITES[siteIx].url
+      rings.forEach((ring, i) => {
+        const arc = ring.querySelector<SVGCircleElement>('.wd-ring__arc')!, num = ring.querySelector('b')!
+        const target = AUDIT[i].score
+        void tween(0, target, 1100 + i * 120, (v) => {
+          arc.style.strokeDashoffset = String(RING * (1 - v / 100)); num.textContent = String(Math.round(v))
+        })
+      })
+    }
+
+    const loadSite = (ix: number) => {
+      siteIx = ix
+      const s = SITES[ix]
+      ;[wire, design].forEach((el) => {
+        el.innerHTML = siteHTML(s)
+        Object.keys(s.vars).forEach((k) => { if (el === design || k.endsWith('F')) el.style.setProperty(k, s.vars[k]) })
+      })
+      url.textContent = s.url; aa.style.fontFamily = s.aa
+      design.style.removeProperty('--h1F'); design.style.setProperty('--h1F', s.vars['--h1F'])
+      fontIx = 0; motionIx = 0; design.dataset.motion = 'considered'
+      kv.track.textContent = '-4%'; kv.lead.textContent = '0.92'
+      setSize(48, false); fillCode()
+      $$('button', dots).forEach((b, k) => b.classList.toggle('is-on', k === ix))
+      runAudit()
+    }
+
+    // Positions relative to the stage (the cursors' parent).
+    const pt = (el: Element, fx = 0.5, fy = 0.5): [number, number] => {
+      const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect()
+      return [r.left - s.left + r.width * fx, r.top - s.top + r.height * fy]
+    }
+    const move = (c: HTMLElement, p: [number, number], ms: number) => { c.style.transitionDuration = `${ms}ms`; c.style.transform = `translate(${p[0]}px,${p[1]}px)` }
+    const ripple = (p: [number, number]) => {
+      const r = document.createElement('span'); r.className = 'wd-ripple'; r.style.left = `${p[0]}px`; r.style.top = `${p[1]}px`
+      stage.appendChild(r); later(() => r.remove(), 700)
+    }
+    const resetPanels = () => panels.forEach((p) => { p.style.removeProperty('--dx'); p.style.removeProperty('--dy') })
+
+    /* ---- interactions ---- */
+    dots.innerHTML = SITES.map((s) => `<button type="button" style="--c:${s.dot}" aria-label="Show ${s.logo}"></button>`).join('')
+    $$('button', dots).forEach((b, k) => on(b, 'click', async () => {
+      touch(); await tween(rv, 0, 280, (v) => setRv(v)); loadSite(k); await tween(0, 100, 650, (v) => setRv(v))
+    }))
+    devBtns.forEach((b) => on(b, 'click', () => { touch(); setDevice(b.dataset.k!) }))
+    on(range, 'input', () => { touch(); setSize(+range.value) })
+    on(aa, 'click', () => {
+      touch(); fontIx = (fontIx + 1) % FONTS.length
+      design.style.setProperty('--h1F', FONTS[fontIx] ?? SITES[siteIx].vars['--h1F'])
+      aa.style.fontFamily = FONT_FAMILIES[fontIx] ?? SITES[siteIx].aa
+      flash(aa)
     })
-    runRef.current = run
+    const clearPeek = () => $$('.is-peek', design).forEach((x) => x.classList.remove('is-peek'))
+    on(lines, 'mouseover', (e) => {
+      const d = (e.target as Element).closest<HTMLElement>('[data-t]'); clearPeek()
+      if (!d) return
+      const sel = ({ logo: '.s-logo', h1: '.s-h1', img: '.s-img' } as Record<string, string>)[d.dataset.t!]
+      design.querySelector(sel)?.classList.add('is-peek')
+      if (rv < 50) setRv(100)
+    })
+    on(lines, 'mouseleave', clearPeek)
+    on(lines, 'click', (e) => {
+      if (!(e.target as Element).closest('[data-t="img"]')) return
+      touch(); motionIx = (motionIx + 1) % MOTIONS.length; setMotion(MOTIONS[motionIx]); if (rv < 50) setRv(100)
+    })
+    on($<HTMLButtonElement>('.wd-lh__run'), 'click', () => { touch(); runAudit() })
 
-    // The cursor's route is measured, so a new layout means a new route.
-    // A new layout — the stage resized, or a different screen picked in
-    // the Responsive card — means a new route: reset to the clean frame,
-    // then rebuild once the layout has settled.
-    let width = stage.clientWidth
-    let height = stage.clientHeight
-    let resizeTimer: number | undefined
-    const rebuild = (delay: number) => {
-      window.clearTimeout(resizeTimer)
-      if (run.loop) {
-        run.loop.totalProgress(0).kill()
-        run.loop = null
+    // Drag any panel by its title bar.
+    $$('.wd-drag').forEach((h) => {
+      const p = h.closest<HTMLElement>('.wd-card')!
+      let sx = 0, sy = 0, ox = 0, oy = 0
+      on(h, 'pointerdown', (e) => {
+        touch(); p.classList.add('is-dragging'); h.setPointerCapture(e.pointerId); sx = e.clientX; sy = e.clientY
+        ox = parseFloat(p.style.getPropertyValue('--dx')) || 0; oy = parseFloat(p.style.getPropertyValue('--dy')) || 0
+      })
+      on(h, 'pointermove', (e) => {
+        if (!p.classList.contains('is-dragging')) return
+        p.style.setProperty('--dx', `${ox + e.clientX - sx}px`); p.style.setProperty('--dy', `${oy + e.clientY - sy}px`)
+      })
+      const end = () => p.classList.remove('is-dragging')
+      on(h, 'pointerup', end); on(h, 'pointercancel', end)
+    })
+
+    // Parallax: panels about ±9px one way, the browser about ±4px the other.
+    on(rig, 'pointerenter', () => { hovering = true })
+    on(stage, 'pointermove', (e) => {
+      if (reducedMotion || e.pointerType !== 'mouse') return
+      const r = rig.getBoundingClientRect(), mx = (e.clientX - r.left) / r.width - 0.5, my = (e.clientY - r.top) / r.height - 0.5
+      const cx = Math.max(-0.5, Math.min(0.5, mx)), cy = Math.max(-0.5, Math.min(0.5, my))
+      browser.style.setProperty('--px', `${-cx * 8}px`); browser.style.setProperty('--py', `${-cy * 8}px`)
+      panels.forEach((p) => { p.style.setProperty('--px', `${cx * 18}px`); p.style.setProperty('--py', `${cy * 18}px`) })
+    })
+    on(rig, 'pointerleave', () => {
+      hovering = false
+      ;[browser, ...panels].forEach((p) => { p.style.setProperty('--px', '0px'); p.style.setProperty('--py', '0px') })
+      if (touched) {
+        window.clearTimeout(idleT)
+        idleT = later(() => { touched = false; if (runRef.current) restart(false) }, RESTART_MS)
       }
-      resizeTimer = window.setTimeout(() => {
-        if (!run.loop && run.intro.progress() === 1) startLoop()
-      }, delay)
+    })
+
+    // The pointer across the browser drags the sweep: compare structure and design.
+    on(vp, 'pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return
+      const r = vp.getBoundingClientRect(); scrub = true; touch()
+      setRv(Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)))
+    })
+    on(vp, 'pointerleave', () => { scrub = false })
+
+    loadSite(0)
+    if (reducedMotion) {
+      setRv(100, false)
+      return () => { ac.abort(); timers.forEach(clearTimeout) }
     }
-    rebuildRef.current = rebuild
-    const observer =
-      typeof ResizeObserver === 'undefined'
-        ? null
-        : new ResizeObserver(() => {
-            if (stage.clientWidth === width && stage.clientHeight === height) return
-            width = stage.clientWidth
-            height = stage.clientHeight
-            if (run.loop) rebuild(RESIZE_DEBOUNCE)
-          })
-    observer?.observe(stage)
+
+    /* ---- the short film (~3.5s) ---- */
+    async function demo(g: number, nextSite: boolean) {
+      const alive = () => { if (g !== gen || ac.signal.aborted) throw 0 }
+      const held = () => hovering || scrub || touched || !runRef.current || document.hidden
+      const wait = async (ms: number) => {
+        let left = ms
+        while (left > 0) {
+          await sleep(50); alive()
+          if (held()) { while (held()) { await sleep(120); alive() } } else left -= 50
+        }
+      }
+      try {
+        setDevice('1')
+        if (nextSite) loadSite((siteIx + 1) % SITES.length)
+        setRv(0); setSize(48, false); kv.track.textContent = '-4%'
+        $$('.is-selected', design).forEach((x) => x.classList.remove('is-selected'))
+        await sleep(60); alive()
+
+        if (compact()) {
+          // Phones and tablets: the sweep, then the browser steps through devices.
+          await wait(250)
+          await tween(0, 100, 1000, (v) => setRv(v)); alive()
+          for (const k of ['.36', '.62', '1']) { await wait(650); setDevice(k) }
+          return
+        }
+
+        const rest = pt(rig, 0.98, 1.04)
+        move(curD, rest, 0); move(curV, pt($('.wd-card--code'), 1.06, 0.2), 0)
+        curD.classList.add('is-on'); curV.classList.add('is-on')
+        await wait(60)
+
+        // 1. BrandWorks glides to the CTA and clicks: the design sweeps in.
+        const cta = pt($('.s-cta', wire), 0.62, 0.62)
+        move(curD, cta, 650); await wait(680)
+        ripple(cta); await wait(90)
+        await tween(0, 100, 950, (v) => setRv(v)); alive()
+
+        // 2. It selects the H1; Interface counts up while Dev updates the code.
+        const h1 = $('.s-h1', design)
+        move(curD, pt(h1, 0.98, 0.95), 420); await wait(440)
+        h1.classList.add('is-selected')
+        move(curV, pt(lines.children[3], 0.62, 0.55), 420)
+        void tween(-4, -2, 650, (v) => { kv.track.textContent = `${Math.round(v)}%` }).then(() => flash(kv.track))
+        await tween(48, 56, 650, (v) => setSize(v, false)); alive()
+        flash(kv.size)
+        await wait(450)
+        h1.classList.remove('is-selected')
+      } catch (e) {
+        if (e !== 0) console.error(e)
+      }
+    }
+
+    function restart(nextSite: boolean) { gen++; void demo(gen, nextSite) }
+    activateRef.current = () => {
+      touched = false; scrub = false; resetPanels(); setRv(0)
+      curD.classList.remove('is-on'); curV.classList.remove('is-on')
+      restart(true)
+    }
 
     return () => {
-      rebuildRef.current = null
-      observer?.disconnect()
-      window.clearTimeout(resizeTimer)
-      run.intro.pause()
-      run.loop?.pause()
-      runRef.current = null
-      pendingRef.current = { ctx, timer: window.setTimeout(flushPending, RESET_DELAY) }
+      gen++
+      ac.abort()
+      window.clearTimeout(idleT)
+      timers.forEach(clearTimeout)
     }
-    // flushPending only touches refs.
-  }, [active, reducedMotion])
+  }, [reducedMotion])
 
-  // Picking a screen: the browser reshapes (CSS), the site blinks through
-  // the change, and the film re-measures its route for the new layout.
-  const pickDevice = (next: Device) => {
-    if (next === device) return
-    setDevice(next)
-    const viewport = rootRef.current?.querySelector<HTMLElement>('.wd-viewport')
-    if (viewport && !reducedMotion) {
-      gsap.fromTo(viewport, { opacity: 0.15 }, { opacity: 1, duration: 0.6, delay: 0.3, ease: 'power2.out' })
-    }
-    rebuildRef.current?.(DEVICE_SETTLE)
-  }
-
-  // Pointer parallax: the composition tilts toward the pointer, the cards
-  // drift further than the browser, and the film and a soft light move
-  // behind it. Mouse and trackpad only; reduced motion keeps it still.
-  // Only the stage, the card layer and the backdrop move — none of them are
-  // touched by the timelines, and the cursor's route is measured without
-  // transforms, so the film stays on its marks.
+  // Each time the slide comes up: panels home, next site, the film from the top.
+  const wasActive = useRef(false)
   useEffect(() => {
-    const root = rootRef.current
-    const stage = stageRef.current
-    const hero = root?.closest<HTMLElement>('.hero')
-    if (!root || !stage || !hero || !active || reducedMotion) return
-    if (!window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) return
-
-    const depth = root.querySelector<HTMLElement>('[data-wd-depth]')
-    const backdrop = root.querySelector<HTMLElement>('.wd-backdrop')
-    const spot = root.querySelector<HTMLElement>('[data-wd-spot]')
-    const targets = [stage, depth, backdrop, spot].filter((el): el is HTMLElement => Boolean(el))
-
-    gsap.set(stage, { transformPerspective: 1400, transformOrigin: '60% 50%' })
-    const ease = { duration: 0.9, ease: 'power3.out' }
-    const tiltX = gsap.quickTo(stage, 'rotationX', ease)
-    const tiltY = gsap.quickTo(stage, 'rotationY', ease)
-    const shiftX = gsap.quickTo(stage, 'x', ease)
-    const shiftY = gsap.quickTo(stage, 'y', ease)
-    const depthX = depth && gsap.quickTo(depth, 'x', ease)
-    const depthY = depth && gsap.quickTo(depth, 'y', ease)
-    const backX = backdrop && gsap.quickTo(backdrop, 'x', { duration: 1.6, ease: 'power3.out' })
-    const backY = backdrop && gsap.quickTo(backdrop, 'y', { duration: 1.6, ease: 'power3.out' })
-    const spotX = spot && gsap.quickTo(spot, 'x', { duration: 0.6, ease: 'power3.out' })
-    const spotY = spot && gsap.quickTo(spot, 'y', { duration: 0.6, ease: 'power3.out' })
-    if (spot) gsap.to(spot, { opacity: 1, duration: 0.8 })
-
-    /** -1…1 from the centre of the hero. */
-    const aim = (nx: number, ny: number) => {
-      tiltY(nx * 5)
-      tiltX(ny * -4)
-      shiftX(nx * 10)
-      shiftY(ny * 8)
-      depthX?.(nx * 18)
-      depthY?.(ny * 14)
-      backX?.(nx * -26)
-      backY?.(ny * -20)
-    }
-
-    const onMove = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') return
-      const rect = hero.getBoundingClientRect()
-      const px = event.clientX - rect.left
-      const py = event.clientY - rect.top
-      aim((px / rect.width) * 2 - 1, (py / rect.height) * 2 - 1)
-      spotX?.(px)
-      spotY?.(py)
-    }
-    const onLeave = () => aim(0, 0)
-
-    hero.addEventListener('pointermove', onMove, { passive: true })
-    hero.addEventListener('pointerleave', onLeave)
-
-    return () => {
-      hero.removeEventListener('pointermove', onMove)
-      hero.removeEventListener('pointerleave', onLeave)
-      gsap.killTweensOf(targets)
-      // Ease home while HeroMedia fades the layer out.
-      gsap.to(targets, { x: 0, y: 0, rotationX: 0, rotationY: 0, duration: 0.8, ease: 'power3.out' })
-      if (spot) gsap.to(spot, { opacity: 0, duration: 0.4 })
-    }
-  }, [active, reducedMotion])
-
-  // Leaving the page: nothing waits on a timer.
-  useEffect(() => () => flushPending(), [])
+    runRef.current = active && playing
+    if (active && !wasActive.current) activateRef.current()
+    wasActive.current = active
+  }, [active, playing])
 
   return (
-    <div ref={rootRef} className="web-hero" aria-hidden="true">
-      <div className="wd-backdrop">
-        <img className="wd-backdrop__media" src={backdropPoster} alt="" decoding="async" />
-        {videoRequested && (
-          <video
-            ref={videoRef}
-            className="wd-backdrop__media"
-            src={BACKDROP_VIDEO}
-            muted
-            loop
-            playsInline
-            autoPlay
-            preload="auto"
-          />
-        )}
+    <div ref={rootRef} className="web-hero">
+      <div className="wd-paper" aria-hidden="true">
+        <div className="wd-paper__dots" />
+        <div className="wd-glow wd-glow--lime" />
+        <div className="wd-glow wd-glow--lav" />
       </div>
-      <div className="wd-spot" data-wd-spot />
-      <div className="wd-grid" />
 
-      <div ref={stageRef} className="web-hero__stage">
-        <div className="wd-rig">
-          <div className="wd-halo" />
+      <div className="web-hero__stage">
+        <div className="wd-rig" data-hero-hold>
 
-          <div className="wd-browser" data-device={device}>
+          <div className="wd-browser" data-device="desktop">
             <div className="wd-chrome">
-              <span className="wd-dots">
-                <i />
-                <i />
-                <i />
-              </span>
-              <span className="wd-url">
-                <span className="wd-url__lock" />
-                brandworks.studio
-              </span>
-              <span className="wd-chrome__end" />
+              <span className="wd-dots"><i /><i /><i /></span>
+              <span className="wd-url"><span className="wd-url__lock" aria-hidden="true" /><span className="wd-url__text">soko-bakery.com</span></span>
+              <span className="wd-sites" />
             </div>
-
             <div className="wd-viewport">
-              <Site variant="final" />
-              <div className="wd-wire">
-                <Site variant="wire" />
-              </div>
-              <div className="wd-scan" data-wd="scan">
-                <span className="wd-scan__glow" />
-                <span className="wd-scan__line" />
-                <span className="wd-scan__label wd-scan__label--before wd-mono">Structure</span>
-                <span className="wd-scan__label wd-scan__label--after wd-mono">Design</span>
-              </div>
+              <div className="wd-site wd-wire" aria-hidden="true" />
+              <div className="wd-site wd-design" />
+              <span className="wd-sweep" aria-hidden="true" />
+              <span className="wd-sweep-tag wd-sweep-tag--s" aria-hidden="true">Structure</span>
+              <span className="wd-sweep-tag wd-sweep-tag--d" aria-hidden="true">Design</span>
             </div>
           </div>
 
-          {/* The cards float nearer than the browser: they travel further
-              with the pointer. */}
-          <div className="wd-depth" data-wd-depth>
-            <DevelopmentCard />
-            <TypeCard />
-            <ResponsiveCard device={device} onDevice={pickDevice} />
+          {/* The panels float nearer than the browser: they travel further with the pointer. */}
+          <div className="wd-depth">
+            <div className="wd-card wd-card--code">
+              <div className="wd-card__head wd-drag"><span>Development</span><span className="wd-mono">hero.tsx</span></div>
+              <div className="wd-lines wd-mono" />
+            </div>
+
+            <div className="wd-card wd-card--type">
+              <div className="wd-card__head wd-drag"><span>Interface</span><span className="wd-mono">H1</span></div>
+              <button type="button" className="wd-aa" title="Click to try another typeface">Aa</button>
+              <div className="wd-kv wd-mono">Size <b data-k="size">48</b></div>
+              <input className="wd-range" type="range" min="40" max="64" step="1" defaultValue="48" aria-label="Heading size" />
+              <div className="wd-kv wd-mono">Track <b data-k="track">-4%</b></div>
+              <div className="wd-kv wd-mono">Lead <b data-k="lead">0.92</b></div>
+            </div>
+
+            <div className="wd-card wd-card--resp">
+              <div className="wd-card__head wd-drag"><span>Responsive</span><span className="wd-mono wd-bp">1440</span></div>
+              <div className="wd-devices">
+                {DEVICES.map((d) => (
+                  <button key={d.k} type="button" data-k={d.k} className={`wd-device-btn ${d.k === '1' ? 'is-on' : ''}`} aria-label={`Preview at ${d.bp}px`}>
+                    <span className={`wd-device wd-device--${d.device}`} />
+                    <span className="wd-mono">{d.bp}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="wd-card wd-card--lh">
+              <div className="wd-card__head wd-drag"><span>Lighthouse</span><span className="wd-mono wd-lh__url">soko-bakery.com</span></div>
+              <div className="wd-lh__rings">
+                {AUDIT.map((a) => (
+                  <div key={a.label} className="wd-ring">
+                    <svg viewBox="0 0 36 36" aria-hidden="true">
+                      <circle className="wd-ring__track" cx="18" cy="18" r="15" />
+                      <circle className="wd-ring__arc" cx="18" cy="18" r="15" strokeDasharray={RING} strokeDashoffset={RING} />
+                    </svg>
+                    <b className="wd-mono">0</b>
+                    <span>{a.label}</span>
+                  </div>
+                ))}
+              </div>
+              <button type="button" className="wd-lh__run">↻ Run audit</button>
+            </div>
           </div>
         </div>
 
-        <div className="wd-cursor" data-wd="cursor">
-          <svg className="wd-cursor__arrow" viewBox="0 0 24 28">
-            <path d="M2 2 2 21.6 6.9 17.1 10.1 24.7 13.5 23.3 10.4 15.9 17.2 15.9Z" />
-          </svg>
+        <div className="wd-cursor" data-cursor="design" aria-hidden="true">
+          <svg className="wd-cursor__arrow" viewBox="0 0 24 28"><path d={ARROW} /></svg>
           <span className="wd-cursor__tag">BrandWorks</span>
+        </div>
+        <div className="wd-cursor wd-cursor--dev" data-cursor="dev" aria-hidden="true">
+          <svg className="wd-cursor__arrow" viewBox="0 0 24 28"><path d={ARROW} /></svg>
+          <span className="wd-cursor__tag">Dev</span>
         </div>
       </div>
     </div>

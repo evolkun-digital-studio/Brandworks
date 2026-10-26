@@ -13,7 +13,8 @@ gsap.registerPlugin(useGSAP)
 
 // easeOutQuint — the same curve as cubic-bezier(0.22, 1, 0.36, 1) used in Hero.css.
 const EASE = 'power4.out'
-const DURATION = 1.05
+// Matches the caption's cross-fade in Hero.css.
+const DURATION = 0.5
 
 /**
  * The cinematic film. The poster sits underneath and the video fades in
@@ -136,14 +137,12 @@ function HeroMedia({
 
       // Only restart the zoom if the layer is fully out; a layer caught
       // mid-fade continues from where it is rather than jumping.
-      if (Number(gsap.getProperty(next, 'opacity')) < 0.02) gsap.set(next, { scale: 1.035 })
+      if (Number(gsap.getProperty(next, 'opacity')) < 0.02) gsap.set(next, { scale: 1.02 })
       gsap.to(next, { autoAlpha: 1, scale: 1, duration: DURATION, ease: EASE })
 
-      if (previous) {
-        gsap.to(previous, { scale: 1.025, duration: DURATION, ease: EASE })
-        // Fading out a beat later keeps the frame from dipping through black.
-        gsap.to(previous, { autoAlpha: 0, duration: 0.8, delay: 0.25, ease: 'power2.out' })
-      }
+      // The outgoing layer stays fully lit beneath the incoming one until it
+      // has nearly arrived, so the cross-fade never dips through to nothing.
+      if (previous) gsap.to(previous, { autoAlpha: 0, duration: 0.25, delay: DURATION - 0.1, ease: 'power1.out' })
     },
     { dependencies: [activeId], scope: rootRef },
   )

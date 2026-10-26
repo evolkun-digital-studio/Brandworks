@@ -1,109 +1,89 @@
 /*
- * Web Design & Development hero visual (WebDesignHero.tsx).
+ * Web Design & Development hero visual (WebDesignHero.tsx), light theme.
  *
- * Everything here is the finished, static composition — the state reduced
- * motion shows, and the frame the GSAP loop starts and ends on. The loop
- * only ever animates transform, opacity, clip-path and a couple of colours.
- *
- *   .web-hero          the layer: near-black, with a faint technical grid
+ *   .web-hero          the layer: warm off-white, a masked dot grid, two
+ *                      soft drifting glows (lime behind the browser,
+ *                      lavender bottom-left)
  *   .web-hero__stage   the space between the header and the hero copy
- *   .wd-rig            browser-sized box; the cards are placed against it
- *   .wd-browser        chrome + viewport; a size container for the site
- *   .wd-viewport       finished site, wireframe (clipped) and the scan line
+ *   .wd-rig            browser-sized box; the panels are placed against it
+ *   .wd-browser        chrome + viewport (a size container for the site)
+ *   .wd-viewport       blueprint (below) and design (clipped to --rv)
+ *
+ * Accents: lime for highlights (cursor, active dot, the sweep), violet for
+ * thin lines, outlines and labels, which lime is too faint for on white.
+ * Positions are unchanged from the dark version; only the skin and the
+ * interactions are new.
  */
 
 .web-hero {
-  --wd-accent: #c7f703;
-  --wd-ink: #0b0b0b;
-  --wd-paper: #f3f2ee;
-  --wd-hair: rgba(255, 255, 255, 0.09);
+  --wd-lime: #C8F31D;
+  --wd-violet: #6B3BF0;
+  --wd-ink: #0E0E10;
   --wd-radius: 14px;
-  --wd-card-radius: 12px;
+  --wd-card-radius: 14px;
   --wd-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, monospace;
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #0a0a0a;
+  background: #F6F6F2;
+  color: var(--wd-ink);
+}
+
+.web-hero *,
+.web-hero *::before,
+.web-hero *::after {
+  box-sizing: border-box;
 }
 
 .web-hero .wd-mono {
   font-family: var(--wd-mono);
 }
 
-/* A film behind frosted glass: heavily blurred and tinted so it reads as
-   moving light, never as footage competing with the composition. Scaled
-   past the edges so the blur never shows a soft border. */
-/* Oversized so the pointer parallax never uncovers an edge. */
-.wd-backdrop {
-  position: absolute;
-  inset: -48px;
-  overflow: hidden;
-}
+/* ----------------------------------------------------------- background */
 
-.wd-backdrop__media {
+.wd-paper {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(36px) saturate(160%) brightness(0.85);
-  transform: scale(1.18);
+  pointer-events: none;
 }
 
-/* A soft light that follows the pointer across the frosted film
-   (positioned by WebDesignHero; hidden until the pointer moves). */
-.wd-spot {
+.wd-paper__dots {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 620px;
-  height: 620px;
-  margin: -310px 0 0 -310px;
+  inset: 0;
+  background-image: radial-gradient(rgba(14, 14, 16, 0.14) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse 72% 66% at 58% 42%, #000 22%, transparent 78%);
+  mask-image: radial-gradient(ellipse 72% 66% at 58% 42%, #000 22%, transparent 78%);
+}
+
+.wd-glow {
+  position: absolute;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(199, 247, 3, 0.11), rgba(199, 247, 3, 0.04) 55%, transparent);
-  mix-blend-mode: screen;
-  opacity: 0;
-  pointer-events: none;
+  filter: blur(48px);
+  animation: wd-drift 16s ease-in-out infinite alternate;
 }
 
-/* The cards' own layer, the same box as the rig, so the pointer can move
-   them further than the browser behind them. */
-.wd-depth {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
+/* Behind the browser. */
+.wd-glow--lime {
+  top: 10%;
+  left: 38%;
+  width: 46vw;
+  height: 46vh;
+  background: radial-gradient(closest-side, rgba(200, 243, 29, 0.35), transparent);
 }
 
-.wd-backdrop::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(70% 80% at 60% 42%, rgba(10, 10, 10, 0.25), rgba(10, 10, 10, 0.72) 100%),
-    rgba(10, 10, 10, 0.3);
+.wd-glow--lav {
+  bottom: -8%;
+  left: -6%;
+  width: 40vw;
+  height: 44vh;
+  background: radial-gradient(closest-side, rgba(155, 123, 255, 0.18), transparent);
+  animation-duration: 20s;
+  animation-direction: alternate-reverse;
 }
 
-/* An almost-invisible construction grid, a touch clearer around the
-   browser and gone at the edges. */
-.wd-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.16) 0.9px, transparent 1.4px),
-    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-  background-size:
-    288px 288px,
-    72px 72px,
-    72px 72px;
-  background-position:
-    -144px -144px,
-    0 0,
-    0 0;
-  -webkit-mask-image: radial-gradient(62% 68% at 60% 40%, #000 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
-  mask-image: radial-gradient(62% 68% at 60% 40%, #000 0%, rgba(0, 0, 0, 0.45) 55%, transparent 100%);
-  pointer-events: none;
+@keyframes wd-drift {
+  to { transform: translate(-4vw, 3vh) scale(1.08); }
 }
 
 /* --------------------------------------------------------------- stage */
@@ -129,636 +109,355 @@
   aspect-ratio: 16 / 10;
 }
 
-.wd-halo {
-  position: absolute;
-  inset: -18% -14%;
-  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.055), transparent 70%);
-  pointer-events: none;
-}
-
 /* -------------------------------------------------------------- browser */
 
 .wd-browser {
   position: absolute;
   inset: 0;
-  container: wd / inline-size;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid rgba(14, 14, 16, 0.08);
   border-radius: var(--wd-radius);
-  background: rgba(22, 22, 22, 0.42);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  backdrop-filter: blur(22px) saturate(160%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 0 0 1px rgba(255, 255, 255, 0.14),
-    0 50px 90px -40px rgba(0, 0, 0, 0.9),
-    0 24px 40px -24px rgba(0, 0, 0, 0.6);
-  transform-origin: 50% 60%;
+  background: #fff;
+  box-shadow: 0 40px 90px rgba(30, 25, 70, 0.16);
+  transform: translate(var(--px, 0px), var(--py, 0px));
+  pointer-events: auto;
+  transition:
+    left 0.7s cubic-bezier(0.65, 0, 0.35, 1),
+    right 0.7s cubic-bezier(0.65, 0, 0.35, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The Responsive panel: 100% / 62% / 36% of the rig, centred. */
+.wd-browser[data-device='tablet'] {
+  left: 19%;
+  right: 19%;
+}
+
+.wd-browser[data-device='phone'] {
+  left: 32%;
+  right: 32%;
 }
 
 .wd-chrome {
-  position: relative;
   display: flex;
   flex: none;
   align-items: center;
-  justify-content: space-between;
-  height: clamp(22px, 3.9cqw, 36px);
-  padding: 0 clamp(9px, 1.6cqw, 16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  gap: 10px;
+  height: 32px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(14, 14, 16, 0.06);
+  background: #F3F3F0;
 }
 
 .wd-dots {
   display: flex;
-  gap: clamp(4px, 0.7cqw, 7px);
+  flex: none;
+  gap: 5px;
 }
 
 .wd-dots i {
-  width: clamp(5px, 0.8cqw, 8px);
-  aspect-ratio: 1;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(14, 14, 16, 0.14);
 }
 
 .wd-url {
-  position: absolute;
-  left: 50%;
-  top: 50%;
   display: flex;
   align-items: center;
-  gap: 0.6em;
-  translate: -50% -50%;
-  min-width: 34%;
-  justify-content: center;
-  padding: 0.42em 1.2em;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.52);
-  font-family: var(--font-secondary);
-  font-size: clamp(8px, 1.15cqw, 11.5px);
-  line-height: 1;
-  letter-spacing: 0.01em;
+  gap: 6px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 4px 12px;
+  border-radius: 7px;
+  background: #fff;
+  color: #6E716A;
+  font-family: var(--wd-mono);
+  font-size: 10.5px;
   white-space: nowrap;
+  overflow: hidden;
+}
+
+.wd-url__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wd-url__lock {
   position: relative;
-  width: 0.72em;
-  height: 0.58em;
-  margin-top: 0.3em;
+  flex: none;
+  width: 7px;
+  height: 6px;
+  margin-top: 3px;
   border-radius: 1.5px;
-  background: rgba(255, 255, 255, 0.4);
+  background: currentColor;
 }
 
 .wd-url__lock::before {
   content: '';
   position: absolute;
-  left: 50%;
-  bottom: 88%;
-  width: 0.5em;
-  height: 0.46em;
-  translate: -50% 0;
-  border: 1.2px solid rgba(255, 255, 255, 0.4);
+  left: 1px;
+  bottom: 4px;
+  width: 5px;
+  height: 5px;
+  border: 1.3px solid currentColor;
   border-bottom: 0;
-  border-radius: 0.3em 0.3em 0 0;
+  border-radius: 3px 3px 0 0;
 }
 
-.wd-chrome__end {
-  width: clamp(16px, 2.6cqw, 26px);
-  height: 1px;
-  background: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 -4px 0 rgba(255, 255, 255, 0.14), 0 4px 0 rgba(255, 255, 255, 0.14);
+/* Site switcher: three small coloured dots. */
+.wd-sites {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+
+.wd-sites button {
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 1px rgba(14, 14, 16, 0.12);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.wd-sites button:hover {
+  transform: scale(1.2);
+}
+
+.wd-sites button.is-on {
+  box-shadow: 0 0 0 1.5px var(--wd-violet);
 }
 
 .wd-viewport {
+  --rv: 0%;
   position: relative;
   flex: 1;
-  min-height: 0;
   overflow: hidden;
-  background: var(--wd-paper);
+  container-type: inline-size;
+  cursor: ew-resize;
 }
 
-/* ----------------------------------------------------------------- site */
+/* ------------------------------------------------------------ mock site */
 
+/* The same markup twice — blueprint and design — so the two line up. */
 .wd-site {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  padding: 2.4cqw 3.6cqw 2.2cqw;
-  background: var(--wd-paper);
-  color: var(--wd-ink);
-  font-family: var(--font-secondary);
-}
-
-.wd-nav {
-  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: max(7.5px, 1.1cqw);
-  line-height: 1;
+  flex-direction: column;
+  padding: 16px 22px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Figtree', var(--font-secondary), sans-serif;
+  font-size: 10px;
 }
 
-.wd-logo {
-  font-family: var(--font-primary);
-  font-size: 1.35em;
+.wd-site .s-nav { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.wd-site .s-logo { font: var(--logoF); font-size: 15px; }
+.wd-site .s-links { display: flex; gap: 12px; margin-left: auto; opacity: 0.75; }
+.wd-site .s-links i { font-style: normal; }
+.wd-site .s-btn { padding: 4px 10px; border: 1px solid currentColor; border-radius: 999px; }
+.wd-site .s-hero { display: grid; flex: 1; grid-template-columns: 1.05fr 1fr; gap: 18px; min-height: 0; }
+.wd-site .s-copy { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+.wd-site .s-eye { margin-bottom: 8px; font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.6; }
+.wd-site .s-h1 {
+  position: relative;
+  display: block;
+  margin: 0 0 10px;
+  font: var(--h1F);
+  font-size: var(--h1, 28px);
+  line-height: 0.95;
   letter-spacing: -0.02em;
+  outline: 1.5px solid transparent;
+  outline-offset: 4px;
+  transition: font-size 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), outline-color 0.3s;
+}
+.wd-site .s-p { max-width: 220px; margin: 0 0 14px; font-size: 10.5px; line-height: 1.5; opacity: 0.72; }
+.wd-site .s-cta { padding: 8px 14px; border-radius: 999px; background: var(--acc); color: var(--accFg); font-size: 10.5px; font-weight: 600; }
+.wd-site .s-img { position: relative; overflow: hidden; border-radius: 12px; background: var(--img); }
+.wd-site .s-foot { display: flex; gap: 10px; margin-top: 16px; font-size: 9px; opacity: 0.7; }
+.wd-site .s-foot i { flex: 1; padding-top: 6px; border-top: 1px solid currentColor; font-style: normal; opacity: 0.7; }
+
+/* Tablet width: stacked. Phone width: simplified. */
+@container (max-width: 440px) {
+  .wd-site .s-hero { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 12px; }
+  .wd-site .s-links, .wd-site .s-foot { display: none; }
+  .wd-site .s-copy { justify-content: flex-start; }
+  .wd-site .s-img { min-height: 60px; }
 }
 
-.wd-links {
-  display: flex;
-  gap: 2.6cqw;
-  color: rgba(11, 11, 11, 0.62);
+@container (max-width: 250px) {
+  .wd-site { padding: 12px; }
+  .wd-site .s-eye, .wd-site .s-btn, .wd-site .s-p { display: none; }
+  .wd-site .s-h1 { font-size: calc(var(--h1, 28px) * 0.8); }
+  .wd-site .s-nav { margin-bottom: 14px; }
 }
 
-.wd-contact {
-  padding: 0.6em 1.1em;
-  border: 1px solid rgba(11, 11, 11, 0.2);
-  border-radius: 999px;
+/* Blueprint: pale violet, dashed outlines and mono labels. */
+.wd-wire {
+  --bg: #F7F5FF;
+  --fg: transparent;
+  background-image:
+    linear-gradient(rgba(107, 59, 240, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107, 59, 240, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
-.wd-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 3.6cqw;
-  min-height: 0;
+.wd-wire .s-btn,
+.wd-wire .s-foot i {
+  border-color: rgba(107, 59, 240, 0.25);
 }
 
-.wd-text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.wd-eyebrow {
-  display: block;
-  font-size: max(6.5px, 0.9cqw);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(11, 11, 11, 0.5);
-}
-
-.wd-h1 {
+.wd-wire [data-l] {
   position: relative;
-  display: block;
-  margin-top: 1.6cqw;
-  font-family: var(--font-primary);
-  font-size: 6.3cqw;
-  font-weight: 400;
-  line-height: 0.92;
-  letter-spacing: -0.04em;
+  border-color: transparent !important;
+  border-radius: 4px;
+  background: none !important;
+  color: transparent !important;
+  outline: 1px dashed rgba(107, 59, 240, 0.45);
 }
 
-.wd-mask {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.08em;
-  margin-bottom: -0.08em;
-}
-
-.wd-line {
-  display: inline-block;
-}
-
-.wd-copy {
-  display: block;
-  max-width: 30ch;
-  margin-top: 2cqw;
-  font-size: max(7.5px, 1.22cqw);
-  line-height: 1.5;
-  color: rgba(11, 11, 11, 0.62);
-}
-
-.wd-cta {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7em;
-  margin-top: 2.6cqw;
-  padding: 0.95em 1.25em 0.95em 1.45em;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--wd-ink);
-  color: #fff;
-  font-size: max(7.5px, 1.12cqw);
-  font-weight: 600;
-  line-height: 1;
-  isolation: isolate;
-}
-
-.wd-cta__fill {
+.wd-wire [data-l]::after {
+  content: attr(data-l);
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--wd-accent);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-}
-
-.wd-cta__arrow {
-  display: inline-flex;
-  width: 1.05em;
-  height: 1.05em;
-}
-
-.wd-cta__arrow svg,
-.wd-view svg {
-  width: 100%;
-  height: 100%;
-}
-
-.wd-art {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9cqw;
-  min-height: 0;
-  margin: 0;
-}
-
-.wd-art__frame {
-  position: relative;
-  display: block;
-  width: 100%;
-  aspect-ratio: 6 / 5;
-  max-height: 100%;
-  overflow: hidden;
-  border-radius: 0.9cqw;
-  background: #15161c;
-  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-}
-
-/* The artwork: a lit sphere and one orbit in a cool, deep field, with the
-   studio lime kept to a low glow. Pure CSS, nothing to download. */
-.wd-art__img {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(44% 38% at 14% 96%, rgba(199, 247, 3, 0.3), rgba(199, 247, 3, 0) 70%),
-    radial-gradient(60% 55% at 84% 8%, rgba(184, 192, 255, 0.55), rgba(184, 192, 255, 0) 70%),
-    linear-gradient(160deg, #2c3048 0%, #16171f 58%, #0e0f13 100%);
-  transform-origin: 60% 55%;
-}
-
-.wd-art__orb {
-  position: absolute;
-  left: 50%;
-  top: 48%;
-  width: 54%;
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 34% 28%, #fbfbf8 0%, #d4d7e6 16%, #7f86a8 44%, #2a2d40 74%, #15161e 100%);
-  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
-}
-
-.wd-art__orbit {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 92%;
-  height: 26%;
-  translate: -50% -50%;
-  rotate: -14deg;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  border-radius: 50%;
-}
-
-.wd-art__rule {
-  position: absolute;
-  left: 7%;
-  right: 7%;
-  bottom: 8%;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.wd-art__cap {
-  display: flex;
-  justify-content: space-between;
-  font-size: max(6.5px, 0.88cqw);
-  line-height: 1.2;
-  color: rgba(11, 11, 11, 0.5);
-}
-
-.wd-view {
-  position: absolute;
-  inset: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-  width: max-content;
-  height: max-content;
-  margin: auto;
-  padding: 0.85em 1.2em;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
-  color: var(--wd-ink);
-  font-size: max(7.5px, 1.05cqw);
-  font-weight: 600;
-  line-height: 1;
+  top: -6px;
+  left: 6px;
+  padding: 0 3px;
+  background: #F7F5FF;
+  color: var(--wd-violet);
+  font: 500 7.5px var(--wd-mono);
+  letter-spacing: 0.04em;
   white-space: nowrap;
-  opacity: 0;
 }
 
-.wd-view svg {
-  width: 1em;
-  height: 1em;
+.wd-wire .s-img {
+  background:
+    linear-gradient(to top right, transparent calc(50% - 0.5px), rgba(107, 59, 240, 0.22) 50%, transparent calc(50% + 0.5px)),
+    linear-gradient(to top left, transparent calc(50% - 0.5px), rgba(107, 59, 240, 0.22) 50%, transparent calc(50% + 0.5px)) !important;
 }
 
-.wd-foot {
-  display: flex;
-  gap: 3cqw;
-  padding-top: 1.3cqw;
-  border-top: 1px solid rgba(11, 11, 11, 0.12);
-  font-size: max(6.5px, 0.88cqw);
-  line-height: 1.2;
-  color: rgba(11, 11, 11, 0.55);
+.wd-wire .s-h1 {
+  background: repeating-linear-gradient(transparent 0 6px, rgba(107, 59, 240, 0.1) 6px 14px) !important;
 }
 
-.wd-foot > :first-child {
-  margin-right: auto;
-  color: var(--wd-ink);
+/* Design: revealed from the left up to --rv. */
+.wd-design {
+  clip-path: inset(0 calc(100% - var(--rv)) 0 0);
 }
 
-/* The headline selection: a design tool's bounding box, not a highlight. */
-.wd-select {
+.wd-design .is-peek {
+  outline: 1.5px dashed var(--wd-violet) !important;
+  outline-offset: 3px;
+}
+
+/* The H1 selection: a violet bounding box with handles. */
+.wd-design .s-h1.is-selected {
+  outline-color: var(--wd-violet);
+}
+
+.wd-design .s-h1.is-selected::before,
+.wd-design .s-h1.is-selected::after {
+  content: '';
   position: absolute;
-  inset: -0.5cqw -0.9cqw -0.3cqw -0.9cqw;
-  border: 1px solid var(--wd-ink);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.wd-select i {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border: 1px solid var(--wd-ink);
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--wd-violet);
   background: #fff;
 }
 
-.wd-select i:nth-child(1) { left: -3px; top: -3px; }
-.wd-select i:nth-child(2) { right: -3px; top: -3px; }
-.wd-select i:nth-child(3) { left: -3px; bottom: -3px; }
-.wd-select i:nth-child(4) { right: -3px; bottom: -3px; }
+.wd-design .s-h1.is-selected::before { top: -8px; left: -8px; }
+.wd-design .s-h1.is-selected::after { right: -8px; bottom: -8px; }
 
-.wd-select__tag {
+.wd-design[data-motion='considered'] .s-img { animation: wd-bob 3.5s ease-in-out infinite alternate; }
+.wd-design[data-motion='playful'] .s-img { animation: wd-wobble 1.1s ease-in-out infinite alternate; }
+@keyframes wd-bob { to { transform: translateY(-6px); } }
+@keyframes wd-wobble { 0% { transform: rotate(-2deg) scale(1); } 100% { transform: rotate(2deg) scale(1.04) translateY(-8px); } }
+
+/* The sweep: a glowing lime line, STRUCTURE / DESIGN either side. */
+.wd-sweep {
   position: absolute;
-  right: -1px;
-  bottom: calc(100% + 5px);
-  padding: 0.45em 0.7em;
-  border-radius: 4px;
-  background: var(--wd-ink);
-  color: var(--wd-accent);
-  font-family: var(--wd-mono);
-  font-size: max(7px, 0.85cqw);
-  letter-spacing: 0;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-/* ------------------------------------------------------------ wireframe */
-
-.wd-wire {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  clip-path: inset(0 100% 0 0);
-}
-
-.wd-site--wire {
-  background: #121212;
-  color: transparent;
-}
-
-/* Type becomes blocks the exact length of each line it set. */
-.wd-site--wire .wd-t {
-  color: transparent;
-  background: linear-gradient(transparent 28%, rgba(255, 255, 255, 0.15) 28% 72%, transparent 72%);
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-  border-radius: 2px;
-}
-
-.wd-site--wire .wd-h1 .wd-t {
-  background: linear-gradient(transparent 20%, rgba(255, 255, 255, 0.11) 20% 84%, transparent 84%);
-}
-
-.wd-h1 > .wd-tag {
-  left: auto;
-  right: 0;
-}
-
-.wd-site--wire .wd-links,
-.wd-site--wire .wd-copy,
-.wd-site--wire .wd-eyebrow,
-.wd-site--wire .wd-art__cap,
-.wd-site--wire .wd-foot {
-  color: transparent;
-}
-
-.wd-site--wire .wd-nav,
-.wd-site--wire .wd-text,
-.wd-site--wire .wd-h1 {
-  outline: 1px dashed rgba(255, 255, 255, 0.16);
-  outline-offset: 0.7cqw;
-}
-
-.wd-site--wire .wd-contact {
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.wd-site--wire .wd-contact .wd-t {
-  background: none;
-}
-
-.wd-site--wire .wd-cta {
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  color: transparent;
-  overflow: visible;
-}
-
-.wd-site--wire .wd-cta .wd-t {
-  background: linear-gradient(transparent 34%, rgba(255, 255, 255, 0.2) 34% 66%, transparent 66%);
-}
-
-.wd-site--wire .wd-art__frame {
-  overflow: visible;
-  background: rgba(255, 255, 255, 0.02);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
-}
-
-.wd-art__x {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.wd-art__x line {
-  stroke: rgba(255, 255, 255, 0.13);
-  stroke-width: 1;
-}
-
-.wd-site--wire .wd-foot {
-  border-top-color: rgba(255, 255, 255, 0.14);
-}
-
-/* 12-column layout grid under the structure. */
-.wd-cols {
-  position: absolute;
-  inset: 0 3.6cqw;
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 1.2cqw;
+  top: 0;
+  bottom: 0;
+  left: var(--rv);
+  z-index: 4;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--wd-lime);
+  box-shadow: 0 0 18px 3px rgba(200, 243, 29, 0.7);
+  opacity: var(--sw, 0);
+  transition: opacity 0.3s;
   pointer-events: none;
 }
 
-.wd-cols span {
-  background: rgba(255, 255, 255, 0.025);
-  box-shadow:
-    inset 1px 0 0 rgba(255, 255, 255, 0.035),
-    inset -1px 0 0 rgba(255, 255, 255, 0.035);
-}
-
-.wd-tag {
+.wd-sweep-tag {
   position: absolute;
-  left: 0;
-  bottom: calc(100% + 0.9cqw);
-  padding: 0.3em 0.5em;
+  top: 8px;
+  z-index: 5;
+  padding: 2px 6px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.6);
-  font-family: var(--wd-mono);
-  font-size: max(6.5px, 0.78cqw);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  text-transform: none;
-  white-space: nowrap;
+  font: 500 9px var(--wd-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: var(--sw, 0);
+  transition: opacity 0.3s;
+  pointer-events: none;
 }
 
-.wd-tag--in {
-  bottom: auto;
-  top: 0.8cqw;
-  left: 0.8cqw;
+.wd-sweep-tag--s {
+  right: calc(100% - var(--rv) + 8px);
+  background: #fff;
+  color: var(--wd-violet);
+  box-shadow: 0 0 0 1px rgba(107, 59, 240, 0.25);
 }
 
-.wd-nav .wd-tag--in {
-  top: 50%;
-  left: 34%;
-  margin-top: -0.8em;
+.wd-sweep-tag--d {
+  left: calc(var(--rv) + 8px);
+  background: var(--wd-lime);
+  color: var(--wd-ink);
 }
 
-.wd-cta .wd-tag {
-  left: calc(100% + 0.8cqw);
-  top: 50%;
-  bottom: auto;
-  margin-top: -0.8em;
-}
+/* --------------------------------------------------------------- panels */
 
-/* ---------------------------------------------------------------- scan */
-
-/* A full-width box whose left edge is the line: sliding the box moves the
-   line, and the viewport's overflow keeps the rest out of sight. */
-.wd-scan {
+/* The panels' own layer, the same box as the rig. */
+.wd-depth {
   position: absolute;
   inset: 0;
   z-index: 2;
-  opacity: 0;
-  transform: translateX(100%);
   pointer-events: none;
 }
 
-.wd-scan__line {
-  position: absolute;
-  left: -1px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--wd-accent);
-  box-shadow: 0 0 12px rgba(199, 247, 3, 0.55), 0 0 2px rgba(199, 247, 3, 0.9);
-}
-
-.wd-scan__glow {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 14cqw;
-  background: linear-gradient(90deg, rgba(199, 247, 3, 0.16), rgba(199, 247, 3, 0));
-}
-
-.wd-scan__label {
-  position: absolute;
-  top: 1.2cqw;
-  font-size: max(6.5px, 0.78cqw);
-  letter-spacing: 0.12em;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.wd-scan__label--before {
-  right: calc(100% + 1cqw);
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.wd-scan__label--after {
-  left: 1cqw;
-  color: rgba(11, 11, 11, 0.55);
-}
-
-/* --------------------------------------------------------------- cards */
-
+/* White glass by default (Responsive, Interface, Lighthouse). */
 .wd-card {
   position: absolute;
   z-index: 2;
   padding: 12px 14px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(14, 14, 16, 0.08);
   border-radius: var(--wd-card-radius);
-  /* Glass: the blurred film shows through, lit along the top edge. */
-  /* A dark base keeps the type legible where a card crosses the white site. */
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
-    rgba(16, 16, 16, 0.62);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  backdrop-filter: blur(18px) saturate(160%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 24px 48px -24px rgba(0, 0, 0, 0.85);
-  color: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 20px 44px rgba(30, 25, 70, 0.12);
+  color: var(--wd-ink);
   font-family: var(--font-secondary);
   font-size: 11px;
   line-height: 1.3;
+  transform: translate(calc(var(--dx, 0px) + var(--px, 0px)), calc(var(--dy, 0px) + var(--py, 0px)));
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s;
+  pointer-events: auto;
+  touch-action: none;
 }
 
-/* Cards lift under the pointer. `translate` composes with the transforms
-   the timeline sets, so the two never fight. */
-@media (hover: hover) and (pointer: fine) {
-  .wd-card {
-    pointer-events: auto;
-    transition:
-      translate 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .wd-card:hover {
-    translate: 0 -8px;
-    border-color: rgba(255, 255, 255, 0.34);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wd-card {
-    transition: none;
-  }
+.wd-card.is-dragging {
+  z-index: 10;
+  box-shadow: 0 28px 60px rgba(30, 25, 70, 0.2), 0 0 0 1.5px var(--wd-violet);
+  transition: box-shadow 0.3s;
 }
 
 .wd-card__head {
@@ -768,429 +467,343 @@
   gap: 12px;
   padding-bottom: 9px;
   margin-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(14, 14, 16, 0.07);
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.78);
 }
 
 .wd-card__head .wd-mono {
+  overflow: hidden;
+  color: #85897F;
   font-size: 9.5px;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.4);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+.wd-drag {
+  cursor: grab;
+  user-select: none;
+}
+
+.wd-card.is-dragging .wd-drag {
+  cursor: grabbing;
+}
+
+/* Values that change flash violet. */
+.is-flash {
+  animation: wd-flash 0.9s ease-out;
+}
+
+@keyframes wd-flash {
+  0%, 30% { color: var(--wd-violet); }
+}
+
+/* Development: a dark code editor. */
 .wd-card--code {
   left: -8%;
   bottom: -11%;
   width: clamp(208px, 30%, 250px);
+  padding: 12px 0 12px;
+  border-color: rgba(255, 255, 255, 0.08);
+  background: #101112;
+  box-shadow: 0 24px 50px rgba(20, 16, 50, 0.3);
+  color: #e9e9e9;
 }
 
-.wd-code {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: 10.5px;
-  line-height: 1.5;
-  white-space: pre;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.wd-code i {
-  display: inline-block;
-  width: 18px;
-  font-style: normal;
-  color: rgba(255, 255, 255, 0.2);
-}
-
-.wd-code b {
-  font-weight: 400;
+.wd-card--code .wd-card__head {
+  padding: 0 14px 9px;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.86);
 }
 
-.wd-code em {
-  font-style: normal;
-  color: var(--wd-accent);
+.wd-card--code .wd-card__head .wd-mono {
+  color: rgba(255, 255, 255, 0.4);
 }
 
+.wd-lines {
+  min-height: 104px;
+  font-size: 10.5px;
+  line-height: 1.7;
+  counter-reset: ln;
+}
+
+.wd-lines div {
+  position: relative;
+  padding: 0 12px 0 32px;
+  white-space: pre;
+  transition: background 0.3s;
+}
+
+.wd-lines div::before {
+  content: counter(ln);
+  counter-increment: ln;
+  position: absolute;
+  left: 12px;
+  color: #5c5f5a;
+}
+
+.wd-lines div[data-t] { cursor: default; }
+.wd-lines div[data-t]:hover { background: rgba(200, 243, 29, 0.12); }
+.wd-lines div[data-t='img'] { cursor: pointer; }
+.wd-lines div.is-flash { animation: wd-line-flash 0.9s ease-out; }
+@keyframes wd-line-flash { 0%, 30% { background: rgba(107, 59, 240, 0.35); } }
+.wd-lines .k { color: #9a9d97; }
+.wd-lines .a { color: #C9B8FF; }
+.wd-lines .s { color: var(--wd-lime); }
+.wd-lines .n { color: #FF9A62; }
+
+/* Interface. */
 .wd-card--type {
   right: -9%;
   top: 54%;
-  width: clamp(124px, 16%, 150px);
+  width: clamp(132px, 17%, 160px);
 }
 
-.wd-type__specimen {
-  position: relative;
-  display: inline-block;
-  font-family: var(--font-primary);
-  font-size: 40px;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  color: #fff;
+.wd-aa {
+  display: block;
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  cursor: pointer;
 }
 
-.wd-type__hl {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -5px;
-  height: 2px;
-  background: var(--wd-accent);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
+.wd-aa:hover {
+  color: var(--wd-violet);
 }
 
-.wd-type__specs {
-  display: grid;
-  gap: 4px;
-  margin: 12px 0 0;
-  font-size: 10px;
-}
-
-.wd-type__specs div {
+.wd-kv {
   display: flex;
   justify-content: space-between;
+  color: #85897F;
+  font-size: 10px;
+  line-height: 1.9;
 }
 
-.wd-type__specs dt {
-  color: rgba(255, 255, 255, 0.42);
+.wd-kv b {
+  color: var(--wd-ink);
+  font-weight: 500;
 }
 
-.wd-type__specs dd {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.86);
+.wd-range {
+  width: 100%;
+  margin: 2px 0 4px;
+  accent-color: var(--wd-violet);
+  cursor: pointer;
 }
 
-/* Floats free of the browser, in the open space above the headline. */
+/* Responsive: floats free of the browser, top-left of it. */
 .wd-card--resp {
   right: calc(100% + 30px);
   top: 9%;
   width: clamp(150px, 21%, 184px);
 }
 
-/* Always clickable, touch included: it's the card's whole point. */
-.wd-card--resp {
-  pointer-events: auto;
-}
-
 .wd-devices {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin: 0 -6px -6px;
 }
 
 .wd-device-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 6px;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 4px;
   border: 0;
   border-radius: 8px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.42);
+  background: none;
+  color: #85897F;
+  font-size: 10px;
   cursor: pointer;
-  transition:
-    background-color 0.35s var(--hero-ease, ease),
-    color 0.35s var(--hero-ease, ease);
+  transition: background 0.2s, color 0.2s;
 }
 
 .wd-device-btn:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.78);
+  background: rgba(14, 14, 16, 0.05);
 }
 
 .wd-device-btn.is-on {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.wd-device-btn__icon {
-  display: flex;
-  align-items: flex-end;
-  height: 30px;
-}
-
-.wd-device-btn:hover .wd-device:not(.is-on) {
-  border-color: rgba(255, 255, 255, 0.6);
-}
-
-.wd-device-btn__size {
-  font-size: 9.5px;
-  line-height: 1;
+  color: var(--wd-ink);
 }
 
 .wd-device {
   position: relative;
-  border: 1.3px solid rgba(255, 255, 255, 0.34);
-  border-radius: 3px;
-}
-
-.wd-device--desktop {
-  width: 44px;
-  height: 26px;
-  margin-bottom: 4px;
-}
-
-.wd-device--desktop::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  width: 14px;
-  height: 4px;
-  translate: -50% 0;
-  border-bottom: 1.3px solid rgba(255, 255, 255, 0.34);
-}
-
-.wd-device--tablet {
-  width: 21px;
-  height: 28px;
-}
-
-.wd-device--phone {
-  width: 13px;
-  height: 24px;
-  border-radius: 3.5px;
-}
-
-.wd-device {
-  transition: border-color 0.35s ease;
-}
-
-.wd-device.is-on {
-  border-color: rgba(255, 255, 255, 0.86);
-}
-
-.wd-device.is-on::before {
-  content: '';
-  position: absolute;
-  right: -4px;
-  top: -4px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--wd-accent);
-}
-
-
-/* ------------------------------------------------------------- devices */
-
-/* Picking a screen in the Responsive card reshapes the browser within the
-   rig (a portrait tablet, then a tall phone, both centred) and the site
-   inside it reflows to that screen's layout. The site is sized in cqw of
-   the browser, so each screen sets its own, larger scale. */
-.wd-browser {
-  transition:
-    left 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    right 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    border-radius 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.wd-browser[data-device='tablet'] {
-  left: 26.5%;
-  right: 26.5%;
-}
-
-.wd-browser[data-device='phone'] {
-  --wd-radius: 22px;
-  left: 35.5%;
-  right: 35.5%;
-}
-
-.wd-burger {
-  display: none;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.wd-burger i {
   display: block;
-  width: 12px;
-  height: 1.3px;
-  background: currentColor;
+  border: 1.5px solid #B4B7AE;
+  border-radius: 4px;
+  transition: border-color 0.2s;
 }
 
-/* Tablet and phone: one column, image below the copy, nav collapsed. */
-.wd-browser:not([data-device='desktop']) .wd-links {
-  display: none;
+.wd-device--desktop { width: 38px; height: 24px; }
+.wd-device--tablet { width: 20px; height: 27px; }
+.wd-device--phone { width: 12px; height: 22px; border-radius: 3px; }
+
+.wd-device-btn.is-on .wd-device {
+  border-color: var(--wd-ink);
 }
 
-.wd-browser:not([data-device='desktop']) .wd-main {
-  grid-template-columns: minmax(0, 1fr);
-  align-content: start;
-  align-items: start;
-  overflow: hidden;
+/* The active device gets a lime dot. */
+.wd-device-btn.is-on .wd-device::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--wd-ink);
+  border-radius: 50%;
+  background: var(--wd-lime);
 }
 
-.wd-browser:not([data-device='desktop']) .wd-art__frame {
-  aspect-ratio: 16 / 10;
+/* Lighthouse: below the Development panel, in the open space left of the
+   headline, on the same left edge. */
+.wd-card--lh {
+  left: -8%;
+  top: calc(111% + 18px);
+  width: clamp(208px, 30%, 250px);
 }
 
-.wd-browser[data-device='tablet'] .wd-site {
-  padding: 5cqw 6cqw 4cqw;
+.wd-lh__rings {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 10px;
 }
 
-.wd-browser[data-device='tablet'] .wd-nav {
-  font-size: max(7.5px, 2.6cqw);
+.wd-ring {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
 }
 
-.wd-browser[data-device='tablet'] .wd-main {
-  gap: 6cqw;
-  padding-top: 7cqw;
+.wd-ring svg {
+  width: 38px;
+  height: 38px;
+  transform: rotate(-90deg);
 }
 
-.wd-browser[data-device='tablet'] .wd-eyebrow {
-  font-size: max(6.5px, 2cqw);
+.wd-ring__track,
+.wd-ring__arc {
+  fill: none;
+  stroke-width: 3;
 }
 
-.wd-browser[data-device='tablet'] .wd-h1 {
-  margin-top: 3cqw;
-  font-size: 11cqw;
+.wd-ring__track {
+  stroke: rgba(12, 159, 74, 0.14);
 }
 
-.wd-browser[data-device='tablet'] .wd-copy {
-  margin-top: 4cqw;
-  font-size: max(7.5px, 2.8cqw);
+.wd-ring__arc {
+  stroke: #0C9F4A;
+  stroke-linecap: round;
 }
 
-.wd-browser[data-device='tablet'] .wd-cta {
-  margin-top: 5cqw;
-  font-size: max(7.5px, 2.6cqw);
+.wd-ring b {
+  position: absolute;
+  top: 0;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: #0B7A3A;
+  font-size: 10.5px;
+  font-weight: 600;
 }
 
-.wd-browser[data-device='tablet'] .wd-art__frame {
-  border-radius: 2cqw;
+/* Long labels ("Performance", "Accessibility") break at their soft
+   hyphens onto two lines rather than running into their neighbours. */
+.wd-ring span {
+  max-width: 100%;
+  color: #6E716A;
+  font-size: 8px;
+  line-height: 1.2;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
-.wd-browser[data-device='tablet'] .wd-art__cap,
-.wd-browser[data-device='tablet'] .wd-foot {
-  font-size: max(6.5px, 2cqw);
+.wd-lh__run {
+  padding: 5px 10px;
+  border: 1px solid rgba(107, 59, 240, 0.3);
+  border-radius: 999px;
+  background: none;
+  color: var(--wd-violet);
+  font-family: var(--font-secondary);
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.wd-browser[data-device='tablet'] .wd-view {
-  font-size: max(7.5px, 2.4cqw);
+.wd-lh__run:hover {
+  background: rgba(107, 59, 240, 0.08);
 }
 
-.wd-browser[data-device='tablet'] .wd-foot {
-  gap: 5cqw;
-  padding-top: 3cqw;
-}
-
-.wd-browser[data-device='phone'] .wd-dots,
-.wd-browser[data-device='phone'] .wd-chrome__end,
-.wd-browser[data-device='phone'] .wd-contact,
-.wd-browser[data-device='phone'] .wd-foot > :nth-child(n + 3) {
-  display: none;
-}
-
-.wd-browser[data-device='phone'] .wd-url {
-  min-width: 70%;
-}
-
-.wd-browser[data-device='phone'] .wd-burger {
-  display: flex;
-}
-
-.wd-browser[data-device='phone'] .wd-site {
-  padding: 7cqw 7cqw 6cqw;
-}
-
-.wd-browser[data-device='phone'] .wd-nav {
-  font-size: max(7.5px, 4cqw);
-}
-
-.wd-browser[data-device='phone'] .wd-main {
-  gap: 8cqw;
-  padding-top: 10cqw;
-}
-
-.wd-browser[data-device='phone'] .wd-eyebrow {
-  font-size: max(6.5px, 3.2cqw);
-}
-
-.wd-browser[data-device='phone'] .wd-h1 {
-  margin-top: 4cqw;
-  font-size: 15cqw;
-}
-
-.wd-browser[data-device='phone'] .wd-copy {
-  margin-top: 5cqw;
-  font-size: max(7.5px, 4.2cqw);
-}
-
-.wd-browser[data-device='phone'] .wd-cta {
-  margin-top: 7cqw;
-  font-size: max(7.5px, 4cqw);
-}
-
-.wd-browser[data-device='phone'] .wd-art__frame {
-  aspect-ratio: 4 / 3;
-  border-radius: 3cqw;
-}
-
-.wd-browser[data-device='phone'] .wd-art__cap,
-.wd-browser[data-device='phone'] .wd-foot {
-  font-size: max(6.5px, 3.2cqw);
-}
-
-.wd-browser[data-device='phone'] .wd-view {
-  font-size: max(7.5px, 3.6cqw);
-}
-
-.wd-browser[data-device='phone'] .wd-foot {
-  padding-top: 4cqw;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wd-browser,
-  .wd-device-btn,
-  .wd-device {
-    transition: none;
-  }
-}
-
-/* -------------------------------------------------------------- cursor */
+/* -------------------------------------------------------------- cursors */
 
 .wd-cursor {
-  --cursor: 30px;
+  --cursor: 26px;
+  --c: var(--wd-lime);
+  --c-ink: var(--wd-ink);
   position: absolute;
-  left: 0;
   top: 0;
+  left: 0;
   z-index: 5;
   width: 0;
   height: 0;
   opacity: 0;
-  transform-origin: 0 0;
-  will-change: transform, opacity;
+  transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.wd-cursor.is-on {
+  opacity: 1;
+}
+
+.wd-cursor--dev {
+  --c: var(--wd-violet);
+  --c-ink: #fff;
 }
 
 .wd-cursor__arrow {
   position: absolute;
-  left: calc(var(--cursor) * -0.0833);
-  top: calc(var(--cursor) * -0.0714);
+  top: calc(var(--cursor) * -0.07);
+  left: calc(var(--cursor) * -0.08);
   width: var(--cursor);
   height: auto;
   overflow: visible;
-  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 6px 10px rgba(30, 25, 70, 0.3));
 }
 
 .wd-cursor__arrow path {
-  fill: var(--wd-accent);
+  fill: var(--c);
   stroke: var(--wd-ink);
   stroke-width: 1.1;
   stroke-linejoin: round;
 }
 
+.wd-cursor--dev .wd-cursor__arrow path {
+  stroke: #fff;
+}
+
 .wd-cursor__tag {
   position: absolute;
-  left: calc(var(--cursor) * 0.62);
   top: calc(var(--cursor) * 0.9);
+  left: calc(var(--cursor) * 0.62);
   padding: 5px 9px;
   border-radius: 3px 10px 10px 10px;
-  background: var(--wd-accent);
-  color: var(--wd-ink);
+  background: var(--c);
+  color: var(--c-ink);
   font-family: var(--font-secondary);
   font-size: 11px;
   font-weight: 600;
@@ -1198,10 +811,28 @@
   white-space: nowrap;
 }
 
+.wd-ripple {
+  position: absolute;
+  z-index: 4;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 2px solid var(--wd-violet);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: wd-rip 0.6s ease-out forwards;
+}
+
+@keyframes wd-rip {
+  from { transform: scale(0.3); opacity: 1; }
+  to { transform: scale(1.6); opacity: 0; }
+}
+
 /* --------------------------------------------------------------- tablet */
 
 @media (max-width: 1199px) {
-  .wd-card--code {
+  .wd-card--code,
+  .wd-card--lh {
     left: -5%;
     width: clamp(196px, 32%, 232px);
   }
@@ -1211,8 +842,16 @@
   }
 }
 
-/* A short stage (small laptops, where the copy runs to four lines): the
-   browser is too small to wear cards over it, so they step outside it. */
+/* Below ~1360px the headline starts further left and fills the space the
+   Lighthouse card would take, so the card only appears where it fits. */
+@media (max-width: 1359px) {
+  .wd-card--lh {
+    display: none;
+  }
+}
+
+/* A short stage (small laptops): the browser is too small to wear panels
+   over it, so they step outside it. */
 @container (max-height: 380px) {
   .wd-card--code {
     left: auto;
@@ -1220,7 +859,8 @@
     bottom: 2%;
   }
 
-  .wd-card--resp {
+  .wd-card--resp,
+  .wd-card--lh {
     display: none;
   }
 
@@ -1231,7 +871,7 @@
 }
 
 /* Single-column copy below: the browser takes the centre of the stage and
-   the cards pull in close to it. */
+   the panels pull in close to it. The copy now sits where Lighthouse was. */
 @media (max-width: 1023px) {
   .web-hero__stage {
     top: clamp(96px, 11vh, 132px);
@@ -1243,11 +883,6 @@
     --rig-w: min(84cqw, 80cqh * 1.6);
     left: calc(50cqw - var(--rig-w) / 2);
     top: calc(48cqh - var(--rig-w) * 0.3125);
-  }
-
-  .wd-grid {
-    -webkit-mask-image: radial-gradient(80% 60% at 50% 34%, #000 0%, rgba(0, 0, 0, 0.4) 55%, transparent 100%);
-    mask-image: radial-gradient(80% 60% at 50% 34%, #000 0%, rgba(0, 0, 0, 0.4) 55%, transparent 100%);
   }
 
   .wd-card--code {
@@ -1264,12 +899,26 @@
     right: -3%;
     top: -13%;
   }
+
+  .wd-card--lh {
+    display: none;
+  }
+}
+
+/* Phones and small tablets: just the browser, with the sweep and the
+   automatic device resize inside it. */
+@media (max-width: 900px) {
+  .wd-card,
+  .wd-cursor,
+  .wd-ripple {
+    display: none;
+  }
 }
 
 /* --------------------------------------------------------------- mobile */
 
 /* The browser becomes the upper visual at full width, taller than a
-   desktop window so the site stays legible, with one card beside it. */
+   desktop window so the site stays legible. */
 @media (max-width: 639px) {
   .web-hero__stage {
     top: 96px;
@@ -1288,58 +937,30 @@
   }
 
   .wd-site {
-    padding: 3.6cqw 4.4cqw 3.4cqw;
+    padding: 12px 14px;
   }
 
-  .wd-main {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: 4cqw;
+  .wd-site .s-hero {
+    grid-template-columns: 1fr 0.8fr;
+    gap: 10px;
   }
 
-  .wd-h1 {
-    font-size: 7.4cqw;
-  }
-
-  .wd-copy,
-  .wd-links,
-  .wd-foot > :nth-child(n + 3) {
+  .wd-site .s-links,
+  .wd-site .s-foot,
+  .wd-site .s-eye {
     display: none;
   }
+}
 
-  .wd-art__frame {
-    aspect-ratio: 4 / 5;
-  }
-
-  .wd-card--code,
-  .wd-card--resp {
-    display: none;
-  }
-
-  .wd-card--type {
-    right: -2px;
-    top: auto;
-    bottom: -9%;
-    width: 112px;
-    padding: 9px 11px 10px;
-  }
-
-  .wd-type__specimen {
-    font-size: 30px;
-  }
-
-  .wd-type__specs {
-    margin-top: 8px;
-  }
-
-  .wd-type__specs div:nth-child(3) {
-    display: none;
+@media (prefers-reduced-motion: reduce) {
+  .web-hero *,
+  .web-hero *::before,
+  .web-hero *::after {
+    animation: none !important;
+    transition: none !important;
   }
 
   .wd-cursor {
-    --cursor: 22px;
-  }
-
-  .wd-cursor__tag {
     display: none;
   }
 }

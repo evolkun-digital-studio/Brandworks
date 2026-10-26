@@ -457,7 +457,7 @@
   font-size: 1em;
   font-style: normal;
   font-weight: 400;
-  line-height: 0.92;
+  line-height: 1.08;
   letter-spacing: -0.010em;
 }
 
@@ -492,14 +492,55 @@
   max-width: 560px;
 }
 
-/* Headline and description — the only text that animates. Each line
-   reveals through its own mask. Held to ~560px so the description stays
-   around two lines. */
+/* Headline and description for every service, stacked in one cell and
+   bottom-aligned (HeroCaption.tsx): the block is as tall as the tallest
+   service, so the capsules below never move. The incoming pane fades up
+   while the outgoing one fades out, at the same time. Held to ~560px so
+   the description stays around two lines. */
 .hero-caption {
+  display: grid;
+  max-width: 560px;
+}
+
+.hero-caption__pane {
+  grid-area: 1 / 1;
+  align-self: end;
   display: flex;
   flex-direction: column;
   gap: clamp(14px, 2vh, 20px);
-  max-width: 560px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s var(--hero-ease),
+    visibility 0s linear 0.6s;
+}
+
+.hero-caption__pane.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s var(--hero-ease),
+    visibility 0s;
+}
+
+/* Under the opening preloader the copy waits below, then rises. */
+.hero-caption.is-waiting .hero-caption__pane.is-active {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+/* Web Design & Dev sits on warm off-white: dark ink, larger subtext. */
+.hero-caption__pane[data-id='web'] .hero-title {
+  color: #0E0E10;
+}
+
+.hero-caption__pane[data-id='web'] .hero-description {
+  color: #4F534B;
+  font-size: 17px;
 }
 
 .hero-mask {
@@ -510,7 +551,7 @@
   margin-bottom: -0.1em;
 }
 
-/* The headline's tight leading needs room above and below the glyphs. */
+/* Keep room above and below the headline glyphs inside the mask. */
 .hero-mask--title {
   margin-block: -0.14em;
   padding-block: 0.14em;
@@ -674,15 +715,44 @@
 }
 
 .hero-capsule.is-active {
-  border-color: rgba(255, 255, 255, 0.92);
-  background: rgba(255, 255, 255, 0.92);
-  color: #111;
+  border-color: #0E0E10;
+  background: #0E0E10;
+  color: #fff;
   cursor: default;
 }
 
 .hero-capsule:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 3px;
+}
+
+/* Web Design & Dev: dark capsules on the off-white ground. */
+.hero[data-service='web'] .hero-capsule {
+  border-color: rgba(14, 14, 16, 0.15);
+  background: rgba(255, 255, 255, 0.55);
+  color: #0E0E10;
+}
+
+.hero[data-service='web'] .hero-capsule:hover {
+  border-color: rgba(14, 14, 16, 0.35);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.hero[data-service='web'] .hero-capsule.is-active {
+  border-color: #0E0E10;
+  background: #0E0E10;
+  color: #fff;
+}
+
+.hero[data-service='web'] .hero-capsule:focus-visible {
+  outline-color: #0E0E10;
+}
+
+.hero[data-service='web'] .hero-switcher-next {
+  border-color: rgba(14, 14, 16, 0.15);
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(30, 25, 70, 0.1);
+  color: #0E0E10;
 }
 
 /* --------------------------------------------------------------- tablet */
@@ -908,7 +978,8 @@
   .featured-image .hero-img,
   .social-contact-sheet__cell .hero-img,
   .hero-overlay,
-  .hero-switcher-next svg {
+  .hero-switcher-next svg,
+  .hero-caption__pane {
     transition: none;
   }
 
