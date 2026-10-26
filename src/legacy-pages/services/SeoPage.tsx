@@ -206,7 +206,7 @@ function SourceLink({ id, children }: { id: keyof typeof SOURCES; children: Reac
 }
 
 const shell = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12'
-const h2 = 'site-heading text-balance text-[clamp(2rem,4.2vw,3.4rem)] font-normal leading-[1.02] tracking-[-0.035em]'
+const h2 = 'section-heading'
 
 /* -------------------------------------------------------------------------- */
 /*  Sections                                                                  */
@@ -885,7 +885,7 @@ function FinalCta() {
     <section className="bg-neutral-950 text-white">
       <div className={`${shell} flex flex-col gap-10 py-20 lg:flex-row lg:items-end lg:justify-between lg:py-28`}>
         <FadeIn>
-          <h2 className="site-display max-w-[18ch] text-balance text-[clamp(2.25rem,4.8vw,4rem)] font-normal leading-[1] tracking-[-0.04em]">
+          <h2 className="section-heading max-w-[18ch]">
             Want to know what’s <Mark dark>holding your site back?</Mark>
           </h2>
           <p className="mt-6 max-w-[48ch] text-[15px] leading-[1.75] text-white/65">

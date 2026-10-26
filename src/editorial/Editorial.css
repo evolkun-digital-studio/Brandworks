@@ -146,8 +146,11 @@
 
 .ed-section-title {
   margin: 0;
-  font: 400 clamp(24px, 2.2vw, 30px)/1.1 var(--font-primary);
-  letter-spacing: -0.02em;
+  
+  letter-spacing: var(--section-title-tracking);
+  font-family: var(--section-title-font);
+  font-size: var(--section-title-size);
+  font-weight: var(--section-title-weight);
 }
 
 /* ---------------------------------------------------------------- */

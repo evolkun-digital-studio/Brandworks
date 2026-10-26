@@ -95,22 +95,22 @@ body:has(.about-page) .site-header__logo {
 
 .about-statement {
   margin: 0;
-  font-family: var(--font-primary);
-  font-size: var(--about-statement-size);
-  font-weight: 500;
+  font-family: var(--section-title-font);
+  font-size: var(--section-title-size);
+  font-weight: var(--section-title-weight);
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: var(--section-title-tracking);
   text-wrap: balance;
   color: var(--about-ink);
 }
 
 .about-heading {
   margin: 0;
-  font-family: var(--font-primary);
-  font-size: var(--about-heading-size);
-  font-weight: 500;
+  font-family: var(--section-title-font);
+  font-size: var(--section-title-size);
+  font-weight: var(--section-title-weight);
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: var(--section-title-tracking);
   text-wrap: balance;
   color: var(--about-ink);
 }

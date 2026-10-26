@@ -575,7 +575,7 @@ export default function GraphicDesignPage() {
           <div className="md:col-span-8 md:col-start-5">
             <h2
               data-intro-child
-              className="m-0 max-w-[880px] font-[400] text-[clamp(34px,4.3vw,52px)] leading-[0.95] tracking-[-0.05em] [font-family:Grimblade,serif]"
+              className="m-0 max-w-[880px] section-heading"
             >
               Attention is easy to get.
               <br />
@@ -625,7 +625,7 @@ export default function GraphicDesignPage() {
                 What we make
               </p> */}
 
-              <h2 className="mb-0 mt-5 max-w-[400px] font-[400] text-[clamp(34px,4vw,48px)] leading-[0.94] tracking-[-0.05em] [font-family:Grimblade,serif]">
+              <h2 className="mb-0 mt-5 max-w-[400px] section-heading">
                 One idea.
                 <br />
                 Many forms.
@@ -681,7 +681,7 @@ export default function GraphicDesignPage() {
             <div className="md:col-span-7 md:col-start-6">
               <h2
                 data-intro-child
-                className="m-0 font-[400] text-[clamp(36px,4.5vw,54px)] leading-[0.94] tracking-[-0.05em] [font-family:Grimblade,serif]"
+                className="m-0 section-heading"
               >
                 Design should know
                 <br />
@@ -797,7 +797,7 @@ export default function GraphicDesignPage() {
 
             <h2
               data-intro-child
-              className="m-0 md:col-span-7 md:col-start-6 font-[400] text-[clamp(36px,4.5vw,54px)] leading-[0.94] tracking-[-0.05em] [font-family:Grimblade,serif]"
+              className="m-0 md:col-span-7 md:col-start-6 section-heading"
             >
               From first thought
               <br />
@@ -839,7 +839,7 @@ export default function GraphicDesignPage() {
             </div>
 
             <div className="md:col-span-8 md:col-start-5">
-              <h2 className="m-0 max-w-[850px] font-[400] text-[clamp(40px,5.5vw,68px)] leading-[0.92] tracking-[-0.055em] [font-family:Grimblade,serif]">
+              <h2 className="m-0 max-w-[850px] section-heading">
                 What should your brand
                 <br />
                 look like next?

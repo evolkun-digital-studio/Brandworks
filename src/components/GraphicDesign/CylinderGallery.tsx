@@ -204,7 +204,7 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
           <div>
             <h2
               data-intro-child
-              className="m-0 max-w-[720px] font-[400] text-[clamp(36px,4.5vw,54px)] leading-[0.93] tracking-[-0.055em] [font-family:Grimblade,serif]"
+              className="m-0 max-w-[720px] section-heading"
             >
               Client work. Studio work.
               <br />

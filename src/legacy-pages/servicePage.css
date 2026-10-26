@@ -70,9 +70,11 @@
 
 .bw-services__section-heading h2 {
   margin: 15px 0 0;
-  font-size: clamp(40px, 3vw, 44px);
+  font-size: var(--section-title-size);
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: var(--section-title-tracking);
+  font-family: var(--section-title-font);
+  font-weight: var(--section-title-weight);
 }
 
 .bw-services__list {
@@ -252,9 +254,6 @@
     padding-bottom: 24px;
   }
 
-  .bw-services__section-heading h2 {
-    font-size: 36px;
-  }
 
   .bw-services__link {
     grid-template-columns: 38px minmax(0, 1fr) 18px;

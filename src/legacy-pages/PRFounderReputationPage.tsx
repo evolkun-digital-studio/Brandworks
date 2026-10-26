@@ -256,7 +256,7 @@ function RevealPhoto({ src, alt, className = '', delay = 0, eager = false }: { s
 }
 
 const shell = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12'
-const h2 = 'site-heading text-balance text-[clamp(2rem,4.2vw,3.4rem)] font-normal leading-[1.02] tracking-[-0.035em]'
+const h2 = 'section-heading'
 
 /* -------------------------------------------------------------------------- */
 /*  Hero                                                                      */
@@ -833,7 +833,7 @@ function FinalCta() {
     <section className="bg-neutral-950 text-white">
       <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[1fr_auto] lg:items-end lg:py-28`}>
         <FadeIn>
-          <h2 className="site-display max-w-[16ch] text-balance text-[clamp(2.25rem,4.8vw,4rem)] font-normal leading-[1] tracking-[-0.04em]">
+          <h2 className="section-heading max-w-[16ch]">
             Have a story worth <Mark dark>telling?</Mark>
           </h2>
           <p className="mt-6 max-w-[50ch] text-[15px] leading-[1.75] text-white/65">

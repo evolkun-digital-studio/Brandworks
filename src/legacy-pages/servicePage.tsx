@@ -334,7 +334,7 @@ export default function ServicesPage() {
 
                 <h2
                   id="services-index-title"
-                  className="mt-3 text-[clamp(1.8rem,2.6vw,2.4rem)] font-medium tracking-[-0.035em]"
+                  className="section-heading mt-3"
                 >
                   Capabilities
                 </h2>
@@ -438,7 +438,7 @@ export default function ServicesPage() {
 
                 <h2
                   id="selected-work-title"
-                  className="mt-3 text-[clamp(1.8rem,3vw,2.5rem)] font-medium tracking-[-0.04em]"
+                  className="section-heading mt-3"
                 >
                   Work across the studio.
                 </h2>
@@ -520,7 +520,7 @@ export default function ServicesPage() {
           <div className="max-w-[900px]"> 
             <h2
               id="capability-groups-title"
-              className="mt-3 text-[clamp(1.8rem,3vw,2.5rem)] font-medium leading-[1.05] tracking-[-0.04em]"
+              className="section-heading mt-3"
             >
               Different disciplines. One clear direction.
             </h2>
@@ -606,7 +606,7 @@ export default function ServicesPage() {
           </SectionLabel>
 
           <div className="max-w-[720px]">
-            <h2 className="text-[clamp(1.9rem,3.4vw,2.8rem)] font-medium leading-[1.04] tracking-[-0.04em]">
+            <h2 className="section-heading">
               The work rarely belongs to one discipline.
             </h2>
 

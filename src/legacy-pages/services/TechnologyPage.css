@@ -88,9 +88,11 @@
 }
 
 .bwt-page h2:not(.bwt-label) {
-  font-size: clamp(36px, 4.5vw, 66px);
+  font-size: var(--section-title-size);
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: var(--section-title-tracking);
+  font-family: var(--section-title-font);
+  font-weight: var(--section-title-weight);
 }
 
 .bwt-page h3 {
@@ -486,8 +488,11 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 
 .bwt-page .bwt-intro__statement {
   max-width: 18em;
-  font-size: clamp(32px, 3.7vw, 54px);
+  font-size: var(--section-title-size);
   line-height: 1.06;
+  font-family: var(--section-title-font);
+  font-weight: var(--section-title-weight);
+  letter-spacing: var(--section-title-tracking);
 }
 
 .bwt-intro__copy {
@@ -639,9 +644,11 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 .bwt-page .bwt-story__title {
   display: grid;
   margin-top: 22px;
-  font-size: clamp(48px, 5.8vw, 84px);
+  font-size: var(--section-title-size);
   line-height: 1;
-  letter-spacing: -0.045em;
+  letter-spacing: var(--section-title-tracking);
+  font-family: var(--section-title-font);
+  font-weight: var(--section-title-weight);
 }
 
 .bwt-story__word {
@@ -715,6 +722,10 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 
 .bwt-flow__head h2 {
   margin-top: 22px;
+  font-family: var(--section-title-font);
+  font-size: var(--section-title-size);
+  font-weight: var(--section-title-weight);
+  letter-spacing: var(--section-title-tracking);
 }
 
 .bwt-flow__track {
@@ -820,7 +831,10 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 
 .bwt-page .bwt-data__head h2 {
   margin-top: 22px;
-  font-size: clamp(36px, 3.8vw, 56px);
+  font-size: var(--section-title-size);
+  font-family: var(--section-title-font);
+  font-weight: var(--section-title-weight);
+  letter-spacing: var(--section-title-tracking);
 }
 
 .bwt-data__copy {
@@ -951,6 +965,10 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 .bwt-erp__text h2 {
   max-width: 11em;
   margin-top: 22px;
+  font-family: var(--section-title-font);
+  font-size: var(--section-title-size);
+  font-weight: var(--section-title-weight);
+  letter-spacing: var(--section-title-tracking);
 }
 
 .bwt-erp__copy {
@@ -1009,9 +1027,11 @@ a.bwt-text-link[target='_blank']:focus-visible .bwt-arrow {
 .bwt-page .bwt-partner__title {
   max-width: 14em;
   margin-top: 20px;
-  font-size: clamp(44px, 6vw, 92px);
+  font-size: var(--section-title-size);
   line-height: 1;
-  letter-spacing: -0.045em;
+  letter-spacing: var(--section-title-tracking);
+  font-family: var(--section-title-font);
+  font-weight: var(--section-title-weight);
 }
 
 .bwt-partner__foot {
