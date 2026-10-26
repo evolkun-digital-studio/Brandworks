@@ -29,9 +29,9 @@
 .testimonials-shell {
   position: relative;
   width: 100%;
-  max-width: 1400px;
+  max-width: var(--media-max-width);
   margin-inline: auto;
-  padding: 0 24px;
+  padding: 0 var(--media-pad); /* shared with the media sections */
 }
 
 .testimonials-header {
@@ -191,7 +191,7 @@
   }
 
   .testimonials-header {
-    padding-inline: 24px;
+    padding-inline: var(--media-pad);
   }
 
   .testimonials-title {
@@ -211,8 +211,8 @@
     margin-top: 46px;
     overflow-x: auto;
     overscroll-behavior-inline: contain;
-    padding: 0 24px 10px;
-    scroll-padding-inline: 24px;
+    padding: 0 var(--media-pad) 10px;
+    scroll-padding-inline: var(--media-pad);
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;

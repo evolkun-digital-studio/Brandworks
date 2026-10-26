@@ -128,7 +128,7 @@ export default function SocialContentSection() {
           <h2 id="culture-heading" className="section-heading capitalize">
             {SOCIAL.headline}
           </h2>
-          <p className="section-description mt-8 max-w-[600px] text-lg leading-7">
+          <p className="section-description mx-auto mt-8 max-w-[600px] text-lg leading-7">
             {SOCIAL.text}
           </p>
         </header>

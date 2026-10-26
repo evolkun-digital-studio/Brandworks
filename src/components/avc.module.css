@@ -19,14 +19,17 @@
 }
 
 .inner {
-  width: min(100% - 48px, 1400px);
-  max-width: 1400px;
+  /* Same bounds as the media sections */
+  width: 100%;
+  max-width: var(--media-max-width);
   margin-inline: auto;
+  padding-inline: var(--media-pad);
 }
 
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
   align-items: flex-end;
   gap: 32px;
   margin-bottom: clamp(36px, 4vw, 48px);
@@ -143,7 +146,7 @@
 @media (max-width: 1024px) {
   .header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 16px;
   }
 
@@ -158,10 +161,6 @@
 }
 
 @media (max-width: 640px) {
-  .inner {
-    width: min(100% - 32px, 1400px);
-  }
-
   .section {
     padding-block: 40px;
   }

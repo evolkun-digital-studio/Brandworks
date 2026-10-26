@@ -84,7 +84,7 @@ export default function PhotographyRow({
       aria-labelledby="photography-heading"
       className={`w-full bg-white text-[#111] ${className}`}
     >
-      <div className="section-container">
+      <div className="mx-auto max-w-[var(--media-max-width)] px-[var(--media-pad)]">
         <header
           data-photo-reveal
           className="mx-auto mb-[var(--media-gap)] max-w-[780px] text-center"
@@ -105,7 +105,7 @@ export default function PhotographyRow({
       {/* The gallery is wider than the text container (small edge margin,
           tight gap) so the row, and therefore its height, is larger. The
           container query lets it size itself to its own content box. */}
-      <div className="mx-auto max-w-[1400px] px-[clamp(10px,1.2vw,20px)] ">
+      <div className="mx-auto max-w-[var(--media-max-width)] px-[var(--media-pad)]">
         <div className="[container-type:inline-size]">
           <div className="flex w-full flex-nowrap items-start justify-center gap-[var(--photo-gap)] [--photo-gap:clamp(4px,0.5vw,8px)] [--photo-h:calc((100cqw_-_1.34*var(--photo-gap))/3.008)]  ">
             <figure
