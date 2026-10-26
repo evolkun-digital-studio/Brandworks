@@ -71,6 +71,11 @@
   /* Media-row bounds shared by Photography, Cinematography and Culture */
   --media-max-width: 1400px;
   --media-pad: clamp(10px, 1.2vw, 20px);
+  /* Section title type, matching the homepage chapter titles (Home.css) */
+  --section-title-font: "Google Sans Flex", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --section-title-size: clamp(36px, 3.5vw, 48px);
+  --section-title-weight: 500;
+  --section-title-tracking: -0.015em;
   /* Side margin shared by the Header and the homepage hero, so the logo,
      headline and capsules all sit on the same edges. */
   --hero-gutter: clamp(20px, 7vw, 140px);
@@ -299,12 +304,14 @@ body {
      sections already use, at their tracking too: this face is drawn
      tight, and at -0.045em its letters visibly fuse. No measure of its
      own: a heading takes the width of the grid columns it is given. */
+  /* Matches the homepage chapter titles (Home.css .home-page h2), so
+     section titles on every page share one family and size. */
   .section-heading {
-    font-family: var(--font-primary);
-    font-size: clamp(28px, 3.5vw, 48px);
-    font-weight: 500;
+    font-family: var(--section-title-font);
+    font-size: var(--section-title-size);
+    font-weight: var(--section-title-weight);
     line-height: 0.95;
-    letter-spacing: -0.03em;
+    letter-spacing: var(--section-title-tracking);
     text-wrap: balance;
     color: var(--ink);
   }
@@ -1518,4 +1525,11 @@ body {
   .bw-q-footer { position: static; padding-bottom: 0; background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .bw-q-footer::before { display: none; }
 }
+}
+
+/* Every heading on the public site uses the homepage heading face.
+   !important because page stylesheets and Tailwind utilities set their own
+   display fonts (Grimblade, Anton) on individual headings. Admin keeps its UI font. */
+:is(h1, h2, h3, h4, h5, h6):not(.admin-app *) {
+  font-family: var(--section-title-font) !important;
 }

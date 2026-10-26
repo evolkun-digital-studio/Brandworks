@@ -45,7 +45,7 @@ function KeyTakeaways({ items }: { items: string[] }) {
 function FaqSection({ items }: { items: { question: string; answer: string }[] }) {
   const valid = items.filter((item) => item.question.trim() && item.answer.trim())
   if (!valid.length) return null
-  return <section aria-labelledby="faq-heading" className="my-14 w-full border-t border-neutral-200 pt-10"><h2 id="faq-heading" className="text-[22px] font-bold tracking-tight text-neutral-900 uppercase">Frequently Asked Questions</h2><div className="mt-6 flex flex-col divide-y divide-neutral-100">{valid.map((item, index) => <details key={index} className="group py-4"><summary className="cursor-pointer list-none pr-8 text-[16px] font-semibold text-neutral-900 marker:hidden">{item.question}<span aria-hidden="true" className="float-right text-neutral-400 transition-transform group-open:rotate-45">+</span></summary><p className="mt-2 max-w-[680px] text-[15px] leading-[1.6] text-neutral-700">{item.answer}</p></details>)}</div></section>
+  return <section aria-labelledby="faq-heading" className="my-14 w-full border-t border-neutral-200 pt-10"><h2 id="faq-heading" className="section-heading">Frequently Asked Questions</h2><div className="mt-6 flex flex-col divide-y divide-neutral-100">{valid.map((item, index) => <details key={index} className="group py-4"><summary className="cursor-pointer list-none pr-8 text-[16px] font-semibold text-neutral-900 marker:hidden">{item.question}<span aria-hidden="true" className="float-right text-neutral-400 transition-transform group-open:rotate-45">+</span></summary><p className="mt-2 max-w-[680px] text-[15px] leading-[1.6] text-neutral-700">{item.answer}</p></details>)}</div></section>
 }
 
 function ExpertQuoteSection({ quote }: { quote: ExpertQuote | null }) {
@@ -76,7 +76,7 @@ export default function PublicBlogArticle({ post, related }: { post: PublicBlogD
         <ExpertQuoteSection quote={post.expertQuote} />
         <div className="mt-14 border-t border-neutral-200 pt-8"><Link href="/blog" className="flex w-fit items-center gap-1.5 text-[13px] font-medium text-neutral-600 transition-colors hover:text-neutral-900"><span aria-hidden="true">←</span> Back to Blog</Link></div>
       </article>
-      {related.length > 0 && <section aria-labelledby="more-from-blog" className="mt-20 w-full max-w-[1280px] border-t border-neutral-200 pt-14"><h2 id="more-from-blog" className="text-[22px] font-bold tracking-tight text-neutral-900 uppercase">More from the blog</h2><div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">{related.map((item) => <BlogCard key={item.id} post={item} />)}</div></section>}
+      {related.length > 0 && <section aria-labelledby="more-from-blog" className="mt-20 w-full max-w-[1280px] border-t border-neutral-200 pt-14"><h2 id="more-from-blog" className="section-heading">More from the blog</h2><div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">{related.map((item) => <BlogCard key={item.id} post={item} />)}</div></section>}
     </main>
   )
 }

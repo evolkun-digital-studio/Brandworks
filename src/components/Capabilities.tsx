@@ -254,7 +254,7 @@ function ServiceScrollIndex() {
            pulling it left; a small optical nudge right finishes the job.
            The roller's masked window then bleeds out to the viewport edge
            (--svc-bleed) for its full visible width. */}
-        <div className="mx-auto grid h-full w-full max-w-[1400px] grid-cols-[max-content_minmax(0,1fr)] gap-x-[var(--svc-gap)] translate-x-[clamp(0px,2.5vw,40px)] px-[7vw] [--svc-bleed:max(7vw,calc((100vw_-_1040px)/2))] [--svc-gap:clamp(20px,2vw,36px)]">
+        <div className="mx-auto grid h-full w-full max-w-[var(--media-max-width)] grid-cols-[max-content_minmax(0,1fr)] gap-x-[var(--svc-gap)] translate-x-[clamp(0px,2.5vw,40px)] px-[var(--media-pad)] [--svc-bleed:calc(var(--media-pad)_+_max(0px,(100vw_-_var(--media-max-width))_/_2))] [--svc-gap:clamp(20px,2vw,36px)]">
           {/* Left: title and arrow share one flex row, so their centres
               remain aligned at every responsive title size. */}
           <div className="relative flex h-full items-start pt-[29vh]">
@@ -399,7 +399,7 @@ function ServiceRow({
  */
 function ServiceStack({ animated }: { animated: boolean }) {
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-4 pb-24 sm:px-8 md:px-[7vw] md:pb-32 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:pb-36">
+    <div className="mx-auto w-full max-w-[var(--media-max-width)] px-[var(--media-pad)] pb-24 md:pb-32 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:pb-36">
       <div className="lg:sticky lg:top-[30vh] lg:col-span-5 lg:self-start">
         <span className={LABEL_CLASS}>What we do</span>
         <h2 id="our-services-heading" className={`mt-3 ${TITLE_CLASS}`}>

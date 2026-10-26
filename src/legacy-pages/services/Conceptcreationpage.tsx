@@ -241,7 +241,7 @@ function IdeaTravels() {
 function WhyItMatters() {
   return (
     <Section className="grid gap-10 border-t border-[#e6e6e6] py-24 lg:grid-cols-[1fr_1fr] lg:gap-20 lg:py-36">
-      <h2 className={`${display} m-0 max-w-[14ch] text-[clamp(38px,4.4vw,72px)] leading-[0.95]`}>A concept is the reason the work hangs together.</h2>
+      <h2 className="section-heading m-0 max-w-[14ch]">A concept is the reason the work hangs together.</h2>
       <div className="flex max-w-[58ch] flex-col gap-6 text-[17px] leading-[1.7] text-[#3d3d3d] lg:pt-3">
         <p className="m-0">
           Without one, every post, ad and launch is its own small project, and none of them add up. With one, people start to recognise you before they see the logo, and every new piece of work makes the last one stronger.
@@ -262,7 +262,7 @@ function Deliverables() {
   return (
     <Section className="border-t border-[#e6e6e6] py-24 lg:py-36">
       <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-20">
-        <h2 className={`${display} m-0 text-[clamp(38px,4.4vw,72px)] leading-[0.95]`}>What you leave with</h2>
+        <h2 className="section-heading m-0">What you leave with</h2>
         <p className="m-0 max-w-[50ch] text-[17px] leading-[1.7] text-[#3d3d3d] lg:pt-3">
           Not a mood board and a tagline. A working idea with everything your team needs to use it well, long after the presentation.
         </p>
@@ -289,7 +289,7 @@ function Routes() {
   return (
     <Section className="border-t border-[#e6e6e6] py-24 lg:py-36">
       <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-20">
-        <h2 className={`${display} m-0 max-w-[13ch] text-[clamp(38px,4.4vw,72px)] leading-[0.95]`}>Three routes, side by side</h2>
+        <h2 className="section-heading m-0 max-w-[13ch]">Three routes, side by side</h2>
         <p className="m-0 max-w-[50ch] text-[17px] leading-[1.7] text-[#3d3d3d] lg:pt-3">
           Before anything is polished, we show you three genuinely different answers to the same brief. Choosing between real options is faster and more honest than reacting to one.
         </p>
@@ -329,7 +329,7 @@ function Process() {
     <Section className="border-t border-[#e6e6e6] py-24 lg:py-36">
       <div className="grid gap-14 lg:grid-cols-[1fr_1fr] lg:gap-20">
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <h2 className={`${display} m-0 max-w-[12ch] text-[clamp(38px,4.4vw,72px)] leading-[0.95]`}>How we get to the idea</h2>
+          <h2 className="section-heading m-0 max-w-[12ch]">How we get to the idea</h2>
           <p className="mt-6 max-w-[42ch] text-[17px] leading-[1.7] text-[#3d3d3d]">
             Six steps, in this order. The early ones take the longest, because the idea is only as good as the insight under it.
           </p>
@@ -357,7 +357,7 @@ function Process() {
 function Faq() {
   return (
     <Section className="grid gap-12 border-t border-[#e6e6e6] py-24 lg:grid-cols-[1fr_1fr] lg:gap-20 lg:py-36">
-      <h2 className={`${display} m-0 text-[clamp(38px,4.4vw,72px)] leading-[0.95]`}>Questions</h2>
+      <h2 className="section-heading m-0">Questions</h2>
       <div>
         {FAQS.map(([q, a]) => (
           <details key={q} className="group border-t border-[#e6e6e6] last:border-b">
@@ -388,7 +388,7 @@ function Closing() {
   return (
     <section className="bg-[#0d0d0d] text-white">
       <div className={`${shell} grid gap-12 py-24 lg:grid-cols-[1.4fr_1fr] lg:items-end lg:py-36`}>
-        <h2 className={`${display} m-0 max-w-[14ch] text-[72px] leading-[0.92]`}>Got a brief, or just a problem?</h2>
+        <h2 className="section-heading m-0 max-w-[14ch]">Got a brief, or just a problem?</h2>
         <div>
           <p className="m-0 max-w-[40ch] text-[17px] leading-[1.7] text-white/70">
             Either is a fine place to start. Tell us what you’re launching or what isn’t working, and we’ll tell you how we’d approach it.

@@ -289,11 +289,11 @@
   border-top: 1px solid var(--bwp-line);
 }
 .bwp-cta h2 {
-  font-family: var(--font-primary);
-  font-size: clamp(24px, 2.4vw, 36px);
-  font-weight: 400;
+  font-family: var(--section-title-font);
+  font-size: var(--section-title-size);
+  font-weight: var(--section-title-weight);
   line-height: 1.1;
-  letter-spacing: -0.03em;
+  letter-spacing: var(--section-title-tracking);
 }
 .bwp-cta-link {
   display: inline-flex;

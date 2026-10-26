@@ -31,11 +31,11 @@
   color: #c8c8c8;
 }
 .bww-heading :is(h1, h2) {
-  font-family: var(--font-primary);
-  font-size: clamp(32px, 3.6vw, 52px);
-  font-weight: 400;
+  font-family: var(--section-title-font);
+  font-size: var(--section-title-size);
+  font-weight: var(--section-title-weight);
   line-height: 1.05;
-  letter-spacing: -0.035em;
+  letter-spacing: var(--section-title-tracking);
   margin: 0;
 }
 .bww-stage::after {
