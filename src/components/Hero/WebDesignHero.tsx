@@ -9,7 +9,7 @@ import './WebDesignHero.css'
  * same markup — a pale violet blueprint and the finished design — with a
  * lime sweep revealing one over the other. Around it, live panels:
  * Responsive (device widths), Interface (the H1's size and typeface),
- * Development (the component's code) and a Lighthouse card. Every panel
+ * Development (the component's code). Every panel
  * can be dragged by its title bar; positions reset when the slide returns.
  *
  * Whenever the slide comes up, two cursors run a short (~3.5s) film sized to
@@ -71,16 +71,6 @@ const SITES: Site[] = [
   },
 ]
 
-// Placeholder audit scores until real ones are supplied. Soft hyphens let
-// the long labels break inside their narrow columns.
-const AUDIT = [
-  { label: 'Perfor­mance', score: 98 },
-  { label: 'Accessi­bility', score: 100 },
-  { label: 'Best practices', score: 100 },
-  { label: 'SEO', score: 100 },
-]
-const RING = 2 * Math.PI * 15
-
 // Which page element each code line points at (by line index).
 const LMAP = ['', 'logo', 'h1', 'h1', 'img', '']
 const MOTIONS = ['considered', 'playful', 'still']
@@ -138,7 +128,7 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
     const kv: Record<string, HTMLElement> = {}
     $$('.wd-kv b').forEach((b) => { kv[b.dataset.k!] = b })
     const range = $<HTMLInputElement>('.wd-range'), devBtns = $$<HTMLButtonElement>('.wd-device-btn'), bpLabel = $('.wd-card--resp .wd-bp')
-    const lhUrl = $('.wd-lh__url'), rings = $$('.wd-ring'), panels = $$('.wd-card')
+    const panels = $$('.wd-card')
 
     let rv = 0, siteIx = 0, size = 48, scrub = false, touched = false, hovering = false, gen = 1, motionIx = 0, fontIx = 0
     let idleT: number | undefined
@@ -195,18 +185,6 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       })
     }
 
-    // Lighthouse: the rings fill and the scores count up.
-    const runAudit = () => {
-      lhUrl.textContent = SITES[siteIx].url
-      rings.forEach((ring, i) => {
-        const arc = ring.querySelector<SVGCircleElement>('.wd-ring__arc')!, num = ring.querySelector('b')!
-        const target = AUDIT[i].score
-        void tween(0, target, 1100 + i * 120, (v) => {
-          arc.style.strokeDashoffset = String(RING * (1 - v / 100)); num.textContent = String(Math.round(v))
-        })
-      })
-    }
-
     const loadSite = (ix: number) => {
       siteIx = ix
       const s = SITES[ix]
@@ -220,7 +198,6 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       kv.track.textContent = '-4%'; kv.lead.textContent = '0.92'
       setSize(48, false); fillCode()
       $$('button', dots).forEach((b, k) => b.classList.toggle('is-on', k === ix))
-      runAudit()
     }
 
     // Positions relative to the stage (the cursors' parent).
@@ -261,7 +238,6 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       if (!(e.target as Element).closest('[data-t="img"]')) return
       touch(); motionIx = (motionIx + 1) % MOTIONS.length; setMotion(MOTIONS[motionIx]); if (rv < 50) setRv(100)
     })
-    on($<HTMLButtonElement>('.wd-lh__run'), 'click', () => { touch(); runAudit() })
 
     // Drag any panel by its title bar.
     $$('.wd-drag').forEach((h) => {
@@ -443,22 +419,6 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
               </div>
             </div>
 
-            <div className="wd-card wd-card--lh">
-              <div className="wd-card__head wd-drag"><span>Lighthouse</span><span className="wd-mono wd-lh__url">soko-bakery.com</span></div>
-              <div className="wd-lh__rings">
-                {AUDIT.map((a) => (
-                  <div key={a.label} className="wd-ring">
-                    <svg viewBox="0 0 36 36" aria-hidden="true">
-                      <circle className="wd-ring__track" cx="18" cy="18" r="15" />
-                      <circle className="wd-ring__arc" cx="18" cy="18" r="15" strokeDasharray={RING} strokeDashoffset={RING} />
-                    </svg>
-                    <b className="wd-mono">0</b>
-                    <span>{a.label}</span>
-                  </div>
-                ))}
-              </div>
-              <button type="button" className="wd-lh__run">↻ Run audit</button>
-            </div>
           </div>
         </div>
 

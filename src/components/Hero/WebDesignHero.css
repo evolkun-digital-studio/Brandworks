@@ -441,7 +441,7 @@
   pointer-events: none;
 }
 
-/* White glass by default (Responsive, Interface, Lighthouse). */
+/* White glass by default (Responsive, Interface). */
 .wd-card {
   position: absolute;
   z-index: 2;
@@ -671,91 +671,6 @@
   background: var(--wd-lime);
 }
 
-/* Lighthouse: below the Development panel, in the open space left of the
-   headline, on the same left edge. */
-.wd-card--lh {
-  left: -8%;
-  top: calc(111% + 18px);
-  width: clamp(208px, 30%, 250px);
-}
-
-.wd-lh__rings {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
-  margin-bottom: 10px;
-}
-
-.wd-ring {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  text-align: center;
-}
-
-.wd-ring svg {
-  width: 38px;
-  height: 38px;
-  transform: rotate(-90deg);
-}
-
-.wd-ring__track,
-.wd-ring__arc {
-  fill: none;
-  stroke-width: 3;
-}
-
-.wd-ring__track {
-  stroke: rgba(12, 159, 74, 0.14);
-}
-
-.wd-ring__arc {
-  stroke: #0C9F4A;
-  stroke-linecap: round;
-}
-
-.wd-ring b {
-  position: absolute;
-  top: 0;
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  color: #0B7A3A;
-  font-size: 10.5px;
-  font-weight: 600;
-}
-
-/* Long labels ("Performance", "Accessibility") break at their soft
-   hyphens onto two lines rather than running into their neighbours. */
-.wd-ring span {
-  max-width: 100%;
-  color: #6E716A;
-  font-size: 8px;
-  line-height: 1.2;
-  -webkit-hyphens: auto;
-  hyphens: auto;
-  overflow-wrap: break-word;
-}
-
-.wd-lh__run {
-  padding: 5px 10px;
-  border: 1px solid rgba(107, 59, 240, 0.3);
-  border-radius: 999px;
-  background: none;
-  color: var(--wd-violet);
-  font-family: var(--font-secondary);
-  font-size: 10.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.wd-lh__run:hover {
-  background: rgba(107, 59, 240, 0.08);
-}
-
 /* -------------------------------------------------------------- cursors */
 
 .wd-cursor {
@@ -839,22 +754,13 @@
 /* --------------------------------------------------------------- tablet */
 
 @media (max-width: 1199px) {
-  .wd-card--code,
-  .wd-card--lh {
+  .wd-card--code {
     left: -5%;
     width: clamp(196px, 32%, 232px);
   }
 
   .wd-card--type {
     right: -5%;
-  }
-}
-
-/* Below ~1360px the headline starts further left and fills the space the
-   Lighthouse card would take, so the card only appears where it fits. */
-@media (max-width: 1359px) {
-  .wd-card--lh {
-    display: none;
   }
 }
 
@@ -867,8 +773,7 @@
     bottom: 2%;
   }
 
-  .wd-card--resp,
-  .wd-card--lh {
+  .wd-card--resp {
     display: none;
   }
 
@@ -879,7 +784,7 @@
 }
 
 /* Single-column copy below: the browser takes the centre of the stage and
-   the panels pull in close to it. The copy now sits where Lighthouse was. */
+   the panels pull in close to it. */
 @media (max-width: 1023px) {
   .web-hero__stage {
     top: clamp(96px, 11vh, 132px);
@@ -906,10 +811,6 @@
   .wd-card--resp {
     right: -3%;
     top: -13%;
-  }
-
-  .wd-card--lh {
-    display: none;
   }
 }
 
