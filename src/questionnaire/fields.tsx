@@ -45,7 +45,7 @@ export function OptionRows({
             title={option.hint}
             onClick={() => onToggle(option.value)}
             className={`inline-flex min-h-11 max-w-full items-center justify-center rounded-full border px-3.5 py-2.5 text-center text-[15px] leading-[1.3] text-[#171717] transition-[background-color,border-color,opacity] duration-200 sm:px-4 sm:text-[16px] ${focusRing} ${
-              active ? 'border-(--q-ink) bg-black/[0.07]' : 'border-(--q-line) bg-transparent hover:border-black/35 hover:bg-(--q-tint)'
+              active ? 'border-(--color-bw-lime) bg-(--color-bw-lime)/25 shadow-[0_0_0_1px_var(--color-bw-lime)]' : 'border-(--q-line) bg-transparent hover:border-black/35 hover:bg-(--q-tint)'
             } ${dim ? 'opacity-60' : ''}`}
           >
             {option.label}
@@ -83,7 +83,7 @@ export function VisualCards({
             aria-checked={active}
             onClick={() => onToggle(option.value)}
             className={`relative flex flex-col rounded-2xl border p-2 text-left transition-[border-color,box-shadow] duration-150 ${focusRing} ${
-              active ? 'border-(--q-ink) shadow-[0_0_0_0.5px_var(--q-ink)]' : 'border-(--q-line) hover:border-black/35'
+              active ? 'border-(--color-bw-lime) shadow-[0_0_0_2px_var(--color-bw-lime)]' : 'border-(--q-line) hover:border-black/35'
             }`}
           >
             <span className="block aspect-[16/10] w-full overflow-hidden rounded-[10px] text-[#111]">

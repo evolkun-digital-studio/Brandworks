@@ -45,6 +45,12 @@ const CONFETTI = [
   { x: 50, y: -50, rotate: -120, color: '#E8B4B8', shape: 'bit' },
   { x: 82, y: -36, rotate: 60, color: '#D4AF37', shape: 'spark' },
   { x: 112, y: -14, rotate: -150, color: '#A3B18A', shape: 'bit' },
+  { x: -132, y: 8, rotate: 90, color: '#B8C4E0', shape: 'bit' },
+  { x: -96, y: -66, rotate: -20, color: '#D4AF37', shape: 'spark' },
+  { x: -30, y: -84, rotate: 140, color: '#E8B4B8', shape: 'bit' },
+  { x: 34, y: -82, rotate: -60, color: '#A3B18A', shape: 'bit' },
+  { x: 96, y: -68, rotate: 20, color: '#D4AF37', shape: 'spark' },
+  { x: 134, y: 6, rotate: -100, color: '#E8B4B8', shape: 'bit' },
 ] as const
 const DONE = 'done'
 const URL_STEPS = new Set(['currentUrl', 'redesignUrl'])
@@ -951,9 +957,9 @@ export default function QuestionnairePage() {
                       transition={{ duration: 1.4, delay: 0.15 + i * 0.03, ease: [0.16, 1, 0.3, 1] }}
                     >
                       {c.shape === 'spark' ? (
-                        <svg viewBox="0 0 10 10" className="size-2.5" fill="currentColor"><path d="M5 0l1.2 3.8L10 5 6.2 6.2 5 10 3.8 6.2 0 5l3.8-1.2z" /></svg>
+                        <svg viewBox="0 0 10 10" className="size-3" fill="currentColor"><path d="M5 0l1.2 3.8L10 5 6.2 6.2 5 10 3.8 6.2 0 5l3.8-1.2z" /></svg>
                       ) : (
-                        <span className="block h-1.5 w-[3px] rounded-full bg-current" />
+                        <span className="block h-2 w-[3px] rounded-full bg-current" />
                       )}
                     </motion.span>
                   ))}
