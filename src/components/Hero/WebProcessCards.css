@@ -1,0 +1,389 @@
+/*
+ * Web Design & Dev process cards (WebProcessCards.tsx). A palette of their
+ * own, deliberately apart from the site's lime / ink / violet: each card
+ * carries its gradient in --c1 → --c2 and its shadow tint in --rgb.
+ *
+ *   .wps-slot    position + entrance (fade, rise, settle into --tilt)
+ *   .wps-float   the idle bob
+ *   .wps-card    hover lean / lift, the walking-dot step, open state
+ */
+
+.wps {
+  --wps-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: auto;
+  font-family: var(--font-secondary);
+}
+
+.wps-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ------------------------------------------------------------- cluster */
+
+.wps--cluster {
+  --wps-max: 1;
+  position: absolute;
+  top: 50%;
+  left: var(--hero-gutter);
+  z-index: 3;
+  width: 348px;
+  height: 438px;
+  transform: translateY(-50%) scale(var(--wps-scale, var(--wps-max)));
+  transform-origin: 0 50%;
+}
+
+@media (max-width: 1439px) {
+  .wps--cluster { --wps-max: 0.9; }
+}
+
+@media (max-width: 1279px) {
+  .wps--cluster { --wps-max: 0.85; }
+}
+
+/* Single-column copy below 1024px: the row under the subtext takes over. */
+@media (max-width: 1023px) {
+  .wps--cluster { display: none; }
+}
+
+.wps--cluster .wps-slot {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  z-index: 1;
+  width: 244px;
+}
+
+.wps--cluster .wps-slot.is-hover { z-index: 2; }
+.wps--cluster .wps-slot.is-open { z-index: 3; }
+
+/* Entrance: fade, rise and settle into the tilt, one after another. */
+.wps-slot {
+  opacity: 0;
+  transform: translateY(22px) rotate(0deg);
+  transition:
+    opacity 0.2s ease,
+    transform 0.25s ease;
+}
+
+.wps.is-shown .wps-slot {
+  opacity: 1;
+  transform: translateY(0) rotate(var(--tilt));
+  transition:
+    opacity 0.45s ease calc(var(--i) * 120ms + 120ms),
+    transform 0.75s var(--wps-ease) calc(var(--i) * 120ms + 120ms);
+}
+
+.wps.is-shown .wps-float {
+  animation: wps-bob var(--bob) ease-in-out var(--bob-delay) infinite alternate;
+}
+
+@keyframes wps-bob {
+  from { transform: translateY(-4px); }
+  to { transform: translateY(4px); }
+}
+
+/* The connector draws itself in 0.8s. */
+.wps-line {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.wps-line__path {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.85;
+  transition: stroke-dashoffset 0.2s ease;
+}
+
+.wps.is-shown .wps-line__path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.65, 0, 0.35, 1) 0.1s;
+}
+
+.wps-node {
+  stroke: #fff;
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 0.2s ease;
+}
+
+.wps.is-shown .wps-node {
+  opacity: 1;
+  transition: opacity 0.3s ease calc(var(--i) * 200ms + 200ms);
+}
+
+.wps-node.is-pulse {
+  animation: wps-pulse 1s ease-in-out infinite;
+}
+
+@keyframes wps-pulse {
+  50% { transform: scale(1.7); }
+}
+
+.wps-walker {
+  fill: #fff;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px var(--wps-glow, #fff)) drop-shadow(0 0 9px var(--wps-glow, #fff));
+  transition: opacity 0.3s ease;
+}
+
+.wps-patch {
+  position: absolute;
+  background-image: radial-gradient(rgba(14, 14, 16, 0.22) 1.1px, transparent 1.5px);
+  background-size: 11px 11px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.wps.is-shown .wps-patch {
+  opacity: 0.8;
+  transition: opacity 0.6s ease 0.3s;
+}
+
+/* ---------------------------------------------------------------- card */
+
+.wps-card {
+  --rot: 0deg;
+  --lift: 0px;
+  --sc: 1;
+  position: relative;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  box-shadow: 0 18px 40px rgba(var(--rgb), 0.28);
+  color: #fff;
+  cursor: pointer;
+  transform:
+    perspective(800px) translateY(var(--lift)) rotate(var(--rot))
+    rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--sc));
+  transition:
+    transform 0.5s var(--wps-ease),
+    box-shadow 0.4s ease;
+}
+
+/* The walking dot has reached this card. */
+.wps-card.is-step {
+  --lift: -4px;
+  --sc: 1.03;
+  box-shadow: 0 26px 56px rgba(var(--rgb), 0.45);
+}
+
+/* Hover / open: straighten (undo the slot's tilt), lift, lean. */
+.wps-card.is-open {
+  --rot: calc(var(--tilt) * -1);
+}
+
+@media (hover: hover) {
+  .wps-card:hover {
+    --rot: calc(var(--tilt) * -1);
+    --lift: -6px;
+    box-shadow: 0 28px 60px rgba(var(--rgb), 0.42);
+    transition:
+      transform 0.25s ease-out,
+      box-shadow 0.3s ease;
+  }
+}
+
+.wps-card:has(.wps-card__head:focus-visible) {
+  outline: 2px solid var(--c2);
+  outline-offset: 3px;
+}
+
+.wps-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 96px;
+  margin: 0;
+  padding: 16px 18px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: inherit;
+}
+
+.wps-card__head:focus-visible {
+  outline: none;
+}
+
+.wps-badge {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.wps-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  /* Keeps white type legible on the lighter ends of the gradients. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.wps-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.wps-text {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+
+/* The card grows smoothly (0fr → 1fr) and the bullets fade in. No clipping:
+   inside the card's 3D transform Chrome leaves clipped content unpainted,
+   so while closed the list just sits, invisible, in a zero-height row. */
+.wps-more {
+  display: grid;
+  grid-template-rows: 0fr;
+}
+
+.wps-card.is-open .wps-more {
+  grid-template-rows: 1fr;
+}
+
+.wps-more,
+.wps-card.is-open .wps-more {
+  transition: grid-template-rows 0.45s var(--wps-ease);
+}
+
+.wps-more__list {
+  min-height: 0;
+  margin: 0;
+  padding: 0 18px;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.35;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.15s ease,
+    visibility 0s linear 0.15s;
+}
+
+.wps-card.is-open .wps-more__list {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.3s ease 0.15s,
+    visibility 0s;
+}
+
+.wps-more__list li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.wps-more__list li + li {
+  margin-top: 6px;
+}
+
+.wps-more__list li:last-child {
+  margin-bottom: 16px;
+}
+
+.wps-more__list li:first-child {
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.wps-more__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: calc(0.68em - 3px);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.wps-more__list li:first-child::before {
+  top: calc(12px + 0.68em - 3px);
+}
+
+/* ---------------------------------------------------------------- row */
+
+.wps--row {
+  display: none;
+  width: 100%;
+  margin-top: 6px;
+  /* The scroller's full width must not widen the caption column. */
+  contain: inline-size;
+}
+
+.wps--row.is-shown .wps-float {
+  animation: none;
+}
+
+@media (max-width: 1023px) {
+  .wps--row { display: block; }
+}
+
+/* Wide screens whose panels leave the cluster too little room
+   (data-web-steps, set by the cluster's fit): the row instead. */
+.hero[data-web-steps='row'] .wps--row { display: block; }
+.hero[data-web-steps='row'] .wps--cluster { display: none; }
+
+.wps--row .wps-list {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  /* Room for the cards' shadows and hover lift inside the scroller. */
+  margin: -14px calc(var(--hero-gutter) * -1) -26px;
+  padding: 14px var(--hero-gutter) 26px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--hero-gutter);
+  scrollbar-width: none;
+  /* Where the copy column ends short of the screen edge, fade, don't cut. */
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+}
+
+.wps--row .wps-list::-webkit-scrollbar {
+  display: none;
+}
+
+.wps--row .wps-slot {
+  flex: 0 0 min(244px, 74%);
+  scroll-snap-align: start;
+}
+
+.wps--row .wps-card {
+  box-shadow: 0 12px 26px rgba(var(--rgb), 0.24);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wps *,
+  .wps *::before,
+  .wps *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

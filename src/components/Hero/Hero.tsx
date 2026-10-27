@@ -28,6 +28,29 @@ function pickNext(current: HeroServiceId, previous: HeroServiceId | null): HeroS
   return pool[Math.floor(Math.random() * pool.length)] ?? current;
 }
 
+/** How much taller the caption block is because of Web's process-card row
+ *  ([data-hero-steps]): 0 when the row is hidden or another service's copy
+ *  is the tallest anyway. */
+function stepsShare(content: HTMLElement): number {
+  const row = content.querySelector<HTMLElement>("[data-hero-steps]");
+  const pane = row?.closest<HTMLElement>(".hero-caption__pane");
+  const above = row?.previousElementSibling;
+
+  if (!row || !pane || !above || !row.offsetParent) return 0;
+
+  let others = 0;
+
+  pane.parentElement?.querySelectorAll<HTMLElement>(".hero-caption__pane").forEach((p) => {
+    if (p !== pane) others = Math.max(others, p.offsetHeight);
+  });
+
+  const own = pane.offsetHeight;
+
+  const rowShare = pane.getBoundingClientRect().bottom - above.getBoundingClientRect().bottom;
+
+  return Math.max(0, own - others) - Math.max(0, own - rowShare - others);
+}
+
 type IdleWindow = Window & {
   requestIdleCallback?: (
     cb: () => void,
@@ -176,15 +199,24 @@ function Hero() {
     const observer = new ResizeObserver(() => {
       const rect = content.getBoundingClientRect();
 
+      // On narrow screens Web's process cards sit under its subtext. Their
+      // share of the copy's height is published on its own, so only the Web
+      // visual makes room for them and the other services keep their gap.
+      const steps = stepsShare(content);
+
+      section.style.setProperty("--hero-steps-h", `${Math.ceil(steps)}px`);
+
+      const height = rect.height - steps;
+
       if (rect.width !== width) {
         width = rect.width;
 
         reserve = 0;
       }
 
-      if (rect.height <= reserve) return;
+      if (height <= reserve) return;
 
-      reserve = rect.height;
+      reserve = height;
 
       section.style.setProperty("--hero-content-h", `${Math.ceil(reserve)}px`);
     });
@@ -210,7 +242,10 @@ function Hero() {
     const tick = (now: number) => {
       const hold = holdRef.current;
 
-      if (!hold.hover && now >= hold.until && !document.hidden) elapsed += Math.min(now - last, 100);
+      // An open process card (data-hero-lock) also holds the slide.
+      const locked = sectionRef.current?.querySelector("[data-hero-lock]") != null;
+
+      if (!hold.hover && !locked && now >= hold.until && !document.hidden) elapsed += Math.min(now - last, 100);
 
       last = now;
 

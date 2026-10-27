@@ -98,6 +98,14 @@
   pointer-events: none;
 }
 
+/* Process cards shown as a row under the copy on a wide screen
+   (WebProcessCards.tsx): the stage ends above them. */
+@media (min-width: 1024px) {
+  .hero[data-web-steps='row'] .web-hero__stage {
+    bottom: calc(var(--hero-content-h, 280px) + var(--hero-steps-h, 0px) + clamp(40px, 7vh, 72px));
+  }
+}
+
 /* Right of centre and a little oversized: the browser leans out of the
    column the copy sits in rather than sitting in a box of its own. */
 .wd-rig {
@@ -876,7 +884,7 @@
   .web-hero__stage {
     top: clamp(96px, 11vh, 132px);
     right: var(--hero-gutter);
-    bottom: calc(var(--hero-content-h, 420px) + 40px);
+    bottom: calc(var(--hero-content-h, 420px) + var(--hero-steps-h, 0px) + 40px);
   }
 
   .wd-rig {
@@ -922,7 +930,7 @@
 @media (max-width: 639px) {
   .web-hero__stage {
     top: 96px;
-    bottom: calc(var(--hero-content-h, 460px) + 28px);
+    bottom: calc(var(--hero-content-h, 460px) + var(--hero-steps-h, 0px) + 28px);
   }
 
   .wd-rig {

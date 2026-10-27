@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import WebProcessCards from './WebProcessCards'
 import './WebDesignHero.css'
 
 /*
@@ -392,6 +393,9 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
         <div className="wd-glow wd-glow--lime" />
         <div className="wd-glow wd-glow--lav" />
       </div>
+
+      {/* The process cards take the empty left of the slide (wide screens). */}
+      <WebProcessCards variant="cluster" active={active} playing={playing} reducedMotion={reducedMotion} />
 
       <div className="web-hero__stage">
         <div className="wd-rig" data-hero-hold>

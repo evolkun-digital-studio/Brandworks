@@ -792,7 +792,7 @@
 
   /* Web: never squeeze the browser below a readable size. */
   .hero[data-service='web'] {
-    min-height: max(100svh, calc(var(--web-stage-top, 124px) + var(--web-stage-min, 400px) + var(--hero-content-h, 480px)));
+    min-height: max(100svh, calc(var(--web-stage-top, 124px) + var(--web-stage-min, 400px) + var(--hero-content-h, 480px) + var(--hero-steps-h, 0px)));
   }
 
   .social-showcase__stage {
