@@ -1,23 +1,26 @@
 import { useEffect, useRef } from 'react'
-import { motion } from 'motion/react'
-import { Code, Lightbulb, PenTool, Rocket, type LucideIcon } from 'lucide-react'
 import './WebDesignHero.css'
-
 /*
  * Web Design & Development: a light, interactive studio scene.
  *
- * A browser (top-centre) holds a mock client site, built twice from the
- * same markup — a pale violet blueprint and the finished design — with a
- * lime sweep revealing one over the other. Around it, live panels:
- * Responsive (device widths), Interface (the H1's size and typeface),
- * Development (the component's code) and a Lighthouse card. Every panel
- * can be dragged by its title bar; positions reset when the slide returns.
+ * A browser (hero columns 2–7) shows a finished mock client site; its top
+ * bar holds the site switcher and three device icons (desktop / tablet /
+ * phone) that resize the browser so the site reflows. Two live panels
+ * overlap it: Interface (the H1's size and typeface) on its right edge and
+ * Development (the component's code) on its bottom-left corner. Panels can
+ * be dragged by their title bar; positions reset when the slide returns.
  *
- * Whenever the slide comes up, two cursors run a short (~3.5s) film sized to
- * the hero's 4s autoplay: BrandWorks clicks the mock CTA, the design sweeps
- * in, it selects the H1 and the Interface values count up while Dev updates
- * the code. Any interaction stops it; it replays 3s after the pointer
- * leaves. Reduced motion shows the finished design, still.
+ * Layout guard (fitZone): the whole visual zone scales from its top-left so
+ * nothing in it enters the headline / subtext / tabs box plus a 32px safe
+ * margin, the Development panel stays 40px above the hero's bottom, and the
+ * panel never covers the mock CTA (it moves lower instead). It runs on every
+ * resize, so every breakpoint is checked.
+ *
+ * Whenever the slide comes up, two cursors run a short (~3s) film sized to
+ * the hero's 4s autoplay: BrandWorks clicks the mock CTA, then selects the
+ * H1 and the Interface values count up while Dev updates the code. Any
+ * interaction stops it; it replays 3s after the pointer leaves. Reduced
+ * motion shows the finished design, still.
  */
 
 type Site = {
@@ -72,16 +75,6 @@ const SITES: Site[] = [
   },
 ]
 
-// Placeholder audit scores until real ones are supplied. Soft hyphens let
-// the long labels break inside their narrow columns.
-const AUDIT = [
-  { label: 'Perfor­mance', score: 98 },
-  { label: 'Accessi­bility', score: 100 },
-  { label: 'Best practices', score: 100 },
-  { label: 'SEO', score: 100 },
-]
-const RING = 2 * Math.PI * 15
-
 // Which page element each code line points at (by line index).
 const LMAP = ['', 'logo', 'h1', 'h1', 'img', '']
 const MOTIONS = ['considered', 'playful', 'still']
@@ -94,21 +87,19 @@ const DEVICES = [
   { k: '.36', bp: '390', device: 'phone' },
 ]
 const RESTART_MS = 3000
-
-// Process cards in the empty column left of the browser, light and dark alternating.
-const PROCESS: { title: string; text: string; Icon: LucideIcon; dark: boolean }[] = [
-  { title: 'Strategy', text: 'Ideas that create real impact.', Icon: Lightbulb, dark: false },
-  { title: 'Design', text: 'Clear, intentional and human.', Icon: PenTool, dark: true },
-  { title: 'Build', text: 'Scalable digital experiences.', Icon: Code, dark: false },
-  { title: 'Launch', text: 'Products people love to use.', Icon: Rocket, dark: true },
-]
+const FADE_MS = 450
+// The layout guard's margins (px): around the hero copy, under the
+// Development panel, and between the panel and the mock CTA.
+const SAFE = 32
+const BOTTOM_GAP = 40
+const CTA_GAP = 12
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 function siteHTML(s: Site) {
   return (
-    `<div class="s-nav"><b class="s-logo" data-l="logo">${s.logo}</b><span class="s-links" data-l="nav">${s.links.map((l) => `<i>${l}</i>`).join('')}</span><span class="s-btn">${s.btn}</span></div>` +
-    `<div class="s-hero"><div class="s-copy"><small class="s-eye">${s.eye}</small><span class="s-h1" data-l="h1 · 48 / 0.92">${s.h1}</span><p class="s-p" data-l="body">${s.p}</p><span class="s-cta" data-l="cta">${s.cta} →</span></div><div class="s-img" data-l="image"></div></div>` +
+    `<div class="s-nav"><b class="s-logo">${s.logo}</b><span class="s-links">${s.links.map((l) => `<i>${l}</i>`).join('')}</span><span class="s-btn">${s.btn}</span></div>` +
+    `<div class="s-hero"><div class="s-copy"><small class="s-eye">${s.eye}</small><span class="s-h1">${s.h1}</span><p class="s-p">${s.p}</p><span class="s-cta">${s.cta} →</span></div><div class="s-img"></div></div>` +
     `<div class="s-foot">${s.foot.map((f) => `<i>${f}</i>`).join('')}</div>`
   )
 }
@@ -124,6 +115,17 @@ function codeLines(s: Site, size: number, motion = 'considered') {
   ]
 }
 
+type Box = { l: number; t: number; r: number; b: number }
+
+/** An element's layout box inside an ancestor, ignoring transforms (the
+ *  zone's scale, parallax, the hero layers' cross-fade). */
+function boxIn(el: HTMLElement, ancestor: HTMLElement): Box {
+  let x = 0, y = 0
+  let n: HTMLElement | null = el
+  while (n && n !== ancestor) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent as HTMLElement | null }
+  return { l: x, t: y, r: x + el.offsetWidth, b: y + el.offsetHeight }
+}
+
 const ARROW = 'M2 2 2 21.6 6.9 17.1 10.1 24.7 13.5 23.3 10.4 15.9 17.2 15.9Z'
 
 function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; playing: boolean; reducedMotion: boolean }) {
@@ -131,6 +133,7 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
   // Read by the running film without re-creating it.
   const runRef = useRef(false)
   const activateRef = useRef<() => void>(() => undefined)
+  const wasActive = useRef(false)
 
   useEffect(() => {
     const root = rootRef.current
@@ -141,19 +144,23 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
     const on = <K extends keyof HTMLElementEventMap>(el: HTMLElement, type: K, fn: (e: HTMLElementEventMap[K]) => void) =>
       el.addEventListener(type, fn, { signal: ac.signal })
 
-    const stage = $('.web-hero__stage'), rig = $('.wd-rig'), browser = $('.wd-browser'), vp = $('.wd-viewport')
-    const wire = $('.wd-wire'), design = $('.wd-design'), url = $('.wd-url__text'), lines = $('.wd-lines'), aa = $('.wd-aa')
+    const hero = root.closest<HTMLElement>('.hero')
+    const stage = $('.web-hero__stage'), zone = $('.wd-zone'), rig = $('.wd-rig'), browser = $('.wd-browser'), vp = $('.wd-viewport')
+    const url = $('.wd-url__text'), lines = $('.wd-lines'), aa = $('.wd-aa'), code = $('.wd-card--code'), type = $('.wd-card--type')
     const curD = $('[data-cursor="design"]'), curV = $('[data-cursor="dev"]'), dots = $('.wd-sites')
     const kv: Record<string, HTMLElement> = {}
     $$('.wd-kv b').forEach((b) => { kv[b.dataset.k!] = b })
-    const range = $<HTMLInputElement>('.wd-range'), devBtns = $$<HTMLButtonElement>('.wd-device-btn'), bpLabel = $('.wd-card--resp .wd-bp')
-    const lhUrl = $('.wd-lh__url'), rings = $$('.wd-ring'), panels = $$('.wd-card')
+    const range = $<HTMLInputElement>('.wd-range'), devBtns = $$<HTMLButtonElement>('.wd-device-btn')
+    const panels = $$('.wd-card')
 
-    let rv = 0, siteIx = 0, size = 48, scrub = false, touched = false, hovering = false, gen = 1, motionIx = 0, fontIx = 0
-    let idleT: number | undefined
+    // The site on show; an outgoing one fades out beside it while switching.
+    let site: HTMLElement | null = null
+    let siteIx = 0, size = 48, touched = false, hovering = false, gen = 1, motionIx = 0, fontIx = 0
+    let idleT: number | undefined, deviceT: number | undefined
     const timers = new Set<number>()
     const later = (fn: () => void, ms: number) => { const id = window.setTimeout(() => { timers.delete(id); fn() }, ms); timers.add(id); return id }
-    const compact = () => window.matchMedia('(max-width: 900px)').matches
+    const compact = () => window.matchMedia('(max-width: 1023px)').matches
+    const inSite = (sel: string) => site!.querySelector<HTMLElement>(sel)!
 
     const flash = (el: Element) => { el.classList.remove('is-flash'); void (el as HTMLElement).offsetWidth; el.classList.add('is-flash') }
     // Any interaction stops the film; its cursors step aside until it replays.
@@ -172,15 +179,61 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       requestAnimationFrame(f)
     })
 
+    /* ---- layout guard ---- */
+    function fitZone() {
+      if (!hero || compact()) {
+        stage.style.removeProperty('--wd-fit'); code.style.removeProperty('--wd-push')
+        return
+      }
+      // 1. The Development panel sits below the mock's logo, H1, text, CTA
+      // and image (rig px, unscaled): only the bottom strip goes under it.
+      code.style.setProperty('--wd-push', '0px')
+      const panel = boxIn(code, rig)
+      const push = Math.max(0, ...['.s-logo', '.s-h1', '.s-p', '.s-cta', '.s-img'].map((sel) => {
+        const el = inSite(sel)
+        if (!el?.offsetWidth) return 0
+        const b = boxIn(el, rig)
+        return b.l < panel.r && b.r > panel.l ? Math.ceil(b.b + CTA_GAP - panel.t) : 0
+      }))
+      code.style.setProperty('--wd-push', `${push}px`)
+
+      // 2. The largest scale, from the breakpoint's, that keeps everything
+      // clear of the copy and the panel above the hero's bottom.
+      const base = parseFloat(getComputedStyle(stage).getPropertyValue('--wd-scale')) || 1
+      const origin = boxIn(stage, hero), rigBox = boxIn(rig, stage)
+      const items = [rigBox, ...[type, code].map((p) => {
+        const b = boxIn(p, rig)
+        return { l: rigBox.l + b.l, t: rigBox.t + b.t, r: rigBox.l + b.r, b: rigBox.t + b.b }
+      })]
+      const codeB = items[2].b
+      const text = ['.hero-caption__pane[data-id="web"] .hero-title', '.hero-caption__pane[data-id="web"] .hero-description', '.hero-switcher-wrap']
+        .map((sel) => hero.querySelector<HTMLElement>(sel)).filter((el): el is HTMLElement => !!el)
+        .map((el) => boxIn(el, hero))
+      const safe = text.length ? {
+        l: Math.min(...text.map((b) => b.l)) - SAFE, t: Math.min(...text.map((b) => b.t)) - SAFE,
+        r: Math.max(...text.map((b) => b.r)) + SAFE, b: Math.max(...text.map((b) => b.b)) + SAFE,
+      } : null
+      const clear = (s: number) => items.every((it) => {
+        const l = origin.l + it.l * s, t = origin.t + it.t * s, r = origin.l + it.r * s, b = origin.t + it.b * s
+        const hits = !!safe && l < safe.r && r > safe.l && t < safe.b && b > safe.t
+        return !hits && l >= 0 && r <= hero.offsetWidth
+      }) && origin.t + codeB * s <= hero.offsetHeight - BOTTOM_GAP
+      let s = base
+      while (s > 0.5 && !clear(s)) s = Math.round((s - 0.01) * 100) / 100
+      if (!clear(s)) console.warn('[WebDesignHero] the visual zone cannot clear the hero copy at this size')
+      stage.style.setProperty('--wd-fit', String(s))
+    }
+    let fitFrame = 0
+    const queueFit = () => { cancelAnimationFrame(fitFrame); fitFrame = requestAnimationFrame(fitZone) }
+
     /* ---- state setters ---- */
     const setDevice = (k: string) => {
       const d = DEVICES.find((x) => x.k === k) ?? DEVICES[0]
+      if (browser.dataset.device === d.device) return
       browser.dataset.device = d.device
-      devBtns.forEach((b) => b.classList.toggle('is-on', b.dataset.k === k))
-      bpLabel.textContent = d.bp
-    }
-    const setRv = (v: number, line = true) => {
-      rv = v; vp.style.setProperty('--rv', `${v}%`); vp.style.setProperty('--sw', line && v > 0.5 && v < 99.5 ? '1' : '0')
+      devBtns.forEach((b) => { const on = b.dataset.k === k; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)) })
+      // The mock reflows as the browser finishes resizing.
+      window.clearTimeout(deviceT); deviceT = later(queueFit, 750)
     }
     const setCodeLine = (i: number, html: string) => {
       const ln = lines.children[i] as HTMLElement | undefined
@@ -190,13 +243,12 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
     const setSize = (n: number, flashIt = true) => {
       size = Math.round(n)
       kv.size.textContent = String(size); range.value = String(size)
-      $$('.s-h1').forEach((h) => h.style.setProperty('--h1', `${size * 28 / 48}px`))
-      $$('.s-h1', wire).forEach((h) => { h.dataset.l = `h1 · ${size} / 0.92` })
+      inSite('.s-h1').style.setProperty('--h1', `${size * 2.8 / 48}em`)
       setCodeLine(3, codeLines(SITES[siteIx], size)[3])
       if (flashIt) flash(kv.size)
     }
-    const setTrack = (t: number) => { kv.track.textContent = `${Math.round(t)}%`; flash(kv.track) }
-    const setMotion = (m: string) => { design.dataset.motion = m; setCodeLine(4, codeLines(SITES[siteIx], size, m)[4]) }
+    const setTrack = (t: number) => { kv.track.textContent = `${Math.round(t)}%` }
+    const setMotion = (m: string) => { site!.dataset.motion = m; setCodeLine(4, codeLines(SITES[siteIx], size, m)[4]) }
     const fillCode = () => {
       lines.innerHTML = ''
       codeLines(SITES[siteIx], size, MOTIONS[motionIx]).forEach((l, i) => {
@@ -204,73 +256,64 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       })
     }
 
-    // Lighthouse: the rings fill and the scores count up.
-    const runAudit = () => {
-      lhUrl.textContent = SITES[siteIx].url
-      rings.forEach((ring, i) => {
-        const arc = ring.querySelector<SVGCircleElement>('.wd-ring__arc')!, num = ring.querySelector('b')!
-        const target = AUDIT[i].score
-        void tween(0, target, 1100 + i * 120, (v) => {
-          arc.style.strokeDashoffset = String(RING * (1 - v / 100)); num.textContent = String(Math.round(v))
-        })
-      })
-    }
-
-    const loadSite = (ix: number) => {
+    // Cross-fades the outgoing site out and the new one in (opacity + 8px).
+    const loadSite = (ix: number, fade: boolean) => {
       siteIx = ix
-      const s = SITES[ix]
-      ;[wire, design].forEach((el) => {
-        el.innerHTML = siteHTML(s)
-        Object.keys(s.vars).forEach((k) => { if (el === design || k.endsWith('F')) el.style.setProperty(k, s.vars[k]) })
-      })
+      const s = SITES[ix], old = site
+      site = document.createElement('div')
+      site.className = 'wd-site'
+      site.innerHTML = siteHTML(s)
+      Object.keys(s.vars).forEach((k) => site!.style.setProperty(k, s.vars[k]))
+      site.dataset.motion = 'considered'
+      vp.appendChild(site)
+      if (old && fade && !reducedMotion) {
+        site.classList.add('is-entering'); void site.offsetWidth; site.classList.remove('is-entering')
+        old.classList.add('is-leaving'); later(() => old.remove(), FADE_MS + 20)
+      } else old?.remove()
+
       url.textContent = s.url; aa.style.fontFamily = s.aa
-      design.style.removeProperty('--h1F'); design.style.setProperty('--h1F', s.vars['--h1F'])
-      fontIx = 0; motionIx = 0; design.dataset.motion = 'considered'
-      kv.track.textContent = '-4%'; kv.lead.textContent = '0.92'
+      fontIx = 0; motionIx = 0
+      setTrack(-4); kv.lead.textContent = '0.92'
       setSize(48, false); fillCode()
-      $$('button', dots).forEach((b, k) => b.classList.toggle('is-on', k === ix))
-      runAudit()
+      $$('button', dots).forEach((b, k) => { b.classList.toggle('is-on', k === ix); b.setAttribute('aria-pressed', String(k === ix)) })
+      queueFit()
     }
 
-    // Positions relative to the stage (the cursors' parent).
+    // Positions in the zone (the cursors' parent), undoing its scale.
     const pt = (el: Element, fx = 0.5, fy = 0.5): [number, number] => {
-      const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect()
-      return [r.left - s.left + r.width * fx, r.top - s.top + r.height * fy]
+      const r = el.getBoundingClientRect(), z = zone.getBoundingClientRect(), k = z.width / zone.offsetWidth || 1
+      return [(r.left - z.left + r.width * fx) / k, (r.top - z.top + r.height * fy) / k]
     }
     const move = (c: HTMLElement, p: [number, number], ms: number) => { c.style.transitionDuration = `${ms}ms`; c.style.transform = `translate(${p[0]}px,${p[1]}px)` }
     const ripple = (p: [number, number]) => {
       const r = document.createElement('span'); r.className = 'wd-ripple'; r.style.left = `${p[0]}px`; r.style.top = `${p[1]}px`
-      stage.appendChild(r); later(() => r.remove(), 700)
+      zone.appendChild(r); later(() => r.remove(), 700)
     }
     const resetPanels = () => panels.forEach((p) => { p.style.removeProperty('--dx'); p.style.removeProperty('--dy') })
 
     /* ---- interactions ---- */
-    dots.innerHTML = SITES.map((s) => `<button type="button" style="--c:${s.dot}" aria-label="Show ${s.logo}"></button>`).join('')
-    $$('button', dots).forEach((b, k) => on(b, 'click', async () => {
-      touch(); await tween(rv, 0, 280, (v) => setRv(v)); loadSite(k); await tween(0, 100, 650, (v) => setRv(v))
-    }))
+    dots.innerHTML = SITES.map((s) => `<button type="button" style="--c:${s.dot}" aria-label="Show ${s.logo}" aria-pressed="false"></button>`).join('')
+    $$('button', dots).forEach((b, k) => on(b, 'click', () => { touch(); if (k !== siteIx) loadSite(k, true) }))
     devBtns.forEach((b) => on(b, 'click', () => { touch(); setDevice(b.dataset.k!) }))
     on(range, 'input', () => { touch(); setSize(+range.value) })
     on(aa, 'click', () => {
       touch(); fontIx = (fontIx + 1) % FONTS.length
-      design.style.setProperty('--h1F', FONTS[fontIx] ?? SITES[siteIx].vars['--h1F'])
+      site!.style.setProperty('--h1F', FONTS[fontIx] ?? SITES[siteIx].vars['--h1F'])
       aa.style.fontFamily = FONT_FAMILIES[fontIx] ?? SITES[siteIx].aa
       flash(aa)
     })
-    const clearPeek = () => $$('.is-peek', design).forEach((x) => x.classList.remove('is-peek'))
+    const clearPeek = () => $$('.is-peek', vp).forEach((x) => x.classList.remove('is-peek'))
     on(lines, 'mouseover', (e) => {
       const d = (e.target as Element).closest<HTMLElement>('[data-t]'); clearPeek()
       if (!d) return
       const sel = ({ logo: '.s-logo', h1: '.s-h1', img: '.s-img' } as Record<string, string>)[d.dataset.t!]
-      design.querySelector(sel)?.classList.add('is-peek')
-      if (rv < 50) setRv(100)
+      site!.querySelector(sel)?.classList.add('is-peek')
     })
     on(lines, 'mouseleave', clearPeek)
     on(lines, 'click', (e) => {
       if (!(e.target as Element).closest('[data-t="img"]')) return
-      touch(); motionIx = (motionIx + 1) % MOTIONS.length; setMotion(MOTIONS[motionIx]); if (rv < 50) setRv(100)
+      touch(); motionIx = (motionIx + 1) % MOTIONS.length; setMotion(MOTIONS[motionIx])
     })
-    on($<HTMLButtonElement>('.wd-lh__run'), 'click', () => { touch(); runAudit() })
 
     // Drag any panel by its title bar.
     $$('.wd-drag').forEach((h) => {
@@ -282,20 +325,21 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       })
       on(h, 'pointermove', (e) => {
         if (!p.classList.contains('is-dragging')) return
-        p.style.setProperty('--dx', `${ox + e.clientX - sx}px`); p.style.setProperty('--dy', `${oy + e.clientY - sy}px`)
+        const k = zone.getBoundingClientRect().width / zone.offsetWidth || 1
+        p.style.setProperty('--dx', `${ox + (e.clientX - sx) / k}px`); p.style.setProperty('--dy', `${oy + (e.clientY - sy) / k}px`)
       })
       const end = () => p.classList.remove('is-dragging')
       on(h, 'pointerup', end); on(h, 'pointercancel', end)
     })
 
-    // Parallax: panels about ±9px one way, the browser about ±4px the other.
+    // Parallax: panels about ±10px one way, the browser about ±5px the other.
     on(rig, 'pointerenter', () => { hovering = true })
     on(stage, 'pointermove', (e) => {
       if (reducedMotion || e.pointerType !== 'mouse') return
       const r = rig.getBoundingClientRect(), mx = (e.clientX - r.left) / r.width - 0.5, my = (e.clientY - r.top) / r.height - 0.5
       const cx = Math.max(-0.5, Math.min(0.5, mx)), cy = Math.max(-0.5, Math.min(0.5, my))
-      browser.style.setProperty('--px', `${-cx * 8}px`); browser.style.setProperty('--py', `${-cy * 8}px`)
-      panels.forEach((p) => { p.style.setProperty('--px', `${cx * 18}px`); p.style.setProperty('--py', `${cy * 18}px`) })
+      browser.style.setProperty('--px', `${-cx * 10}px`); browser.style.setProperty('--py', `${-cy * 10}px`)
+      panels.forEach((p) => { p.style.setProperty('--px', `${cx * 20}px`); p.style.setProperty('--py', `${cy * 20}px`) })
     })
     on(rig, 'pointerleave', () => {
       hovering = false
@@ -306,63 +350,66 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       }
     })
 
-    // The pointer across the browser drags the sweep: compare structure and design.
-    on(vp, 'pointermove', (e) => {
-      if (e.pointerType !== 'mouse') return
-      const r = vp.getBoundingClientRect(); scrub = true; touch()
-      setRv(Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)))
-    })
-    on(vp, 'pointerleave', () => { scrub = false })
+    // Every size the hero takes is checked by the guard.
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(queueFit) : null
+    if (hero) ro?.observe(hero)
+    const caption = hero?.querySelector<HTMLElement>('.hero-content')
+    if (caption) ro?.observe(caption)
+    void document.fonts?.ready.then(() => { if (!ac.signal.aborted) queueFit() })
 
-    loadSite(0)
-    if (reducedMotion) {
-      setRv(100, false)
-      return () => { ac.abort(); timers.forEach(clearTimeout) }
+    loadSite(0, false)
+    // Undone on cleanup: the injected sites and ripples, and the activation,
+    // so a re-run (Strict Mode, Fast Refresh) starts the film again.
+    const teardown = () => {
+      gen++; ac.abort(); ro?.disconnect(); cancelAnimationFrame(fitFrame)
+      window.clearTimeout(idleT); timers.forEach(clearTimeout)
+      vp.replaceChildren(); $$('.wd-ripple').forEach((r) => r.remove())
+      wasActive.current = false
     }
+    if (reducedMotion) return teardown
 
-    /* ---- the short film (~3.5s) ---- */
+    /* ---- the short film (~3s) ---- */
     async function demo(g: number, nextSite: boolean) {
       const alive = () => { if (g !== gen || ac.signal.aborted) throw 0 }
-      const held = () => hovering || scrub || touched || !runRef.current || document.hidden
+      const held = () => hovering || touched || !runRef.current || document.hidden
       const wait = async (ms: number) => {
-        let left = ms
+        // Counts real time, not ticks: only time spent held is added back.
+        let left = ms, last = performance.now()
         while (left > 0) {
-          await sleep(50); alive()
-          if (held()) { while (held()) { await sleep(120); alive() } } else left -= 50
+          await sleep(Math.min(50, left)); alive()
+          const now = performance.now()
+          if (held()) { while (held()) { await sleep(120); alive() } last = performance.now() } else { left -= now - last; last = now }
         }
       }
       try {
         setDevice('1')
-        if (nextSite) loadSite((siteIx + 1) % SITES.length)
-        setRv(0); setSize(48, false); kv.track.textContent = '-4%'
-        $$('.is-selected', design).forEach((x) => x.classList.remove('is-selected'))
+        if (nextSite) loadSite((siteIx + 1) % SITES.length, true)
+        setSize(48, false); setTrack(-4)
+        $$('.is-selected', vp).forEach((x) => x.classList.remove('is-selected'))
         await sleep(60); alive()
 
         if (compact()) {
-          // Phones and tablets: the sweep, then the browser steps through devices.
-          await wait(250)
-          await tween(0, 100, 1000, (v) => setRv(v)); alive()
-          for (const k of ['.36', '.62', '1']) { await wait(650); setDevice(k) }
+          // Phones and tablets: the browser steps through the devices.
+          for (const k of ['.36', '.62', '1']) { await wait(700); setDevice(k) }
           return
         }
 
-        const rest = pt(rig, 0.98, 1.04)
-        move(curD, rest, 0); move(curV, pt($('.wd-card--code'), 1.06, 0.2), 0)
+        move(curD, pt(rig, 0.9, 1.04), 0); move(curV, pt(code, 1.04, 0.2), 0)
         curD.classList.add('is-on'); curV.classList.add('is-on')
-        await wait(60)
+        await wait(FADE_MS)
 
-        // 1. BrandWorks glides to the CTA and clicks: the design sweeps in.
-        const cta = pt($('.s-cta', wire), 0.62, 0.62)
-        move(curD, cta, 650); await wait(680)
-        ripple(cta); await wait(90)
-        await tween(0, 100, 950, (v) => setRv(v)); alive()
+        // 1. BrandWorks glides to the CTA and clicks it.
+        const cta = pt(inSite('.s-cta'), 0.62, 0.62)
+        move(curD, cta, 600); await wait(630)
+        ripple(cta); await wait(260)
 
-        // 2. It selects the H1; Interface counts up while Dev updates the code.
-        const h1 = $('.s-h1', design)
+        // 2. It selects the H1; Interface counts up (the slider moving with
+        // it) while Dev updates the code.
+        const h1 = inSite('.s-h1')
         move(curD, pt(h1, 0.98, 0.95), 420); await wait(440)
         h1.classList.add('is-selected')
         move(curV, pt(lines.children[3], 0.62, 0.55), 420)
-        void tween(-4, -2, 650, (v) => { kv.track.textContent = `${Math.round(v)}%` }).then(() => flash(kv.track))
+        void tween(-4, -2, 650, setTrack).then(() => flash(kv.track))
         await tween(48, 56, 650, (v) => setSize(v, false)); alive()
         flash(kv.size)
         await wait(450)
@@ -374,51 +421,15 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
 
     function restart(nextSite: boolean) { gen++; void demo(gen, nextSite) }
     activateRef.current = () => {
-      touched = false; scrub = false; resetPanels(); setRv(0)
+      touched = false; resetPanels(); queueFit()
       curD.classList.remove('is-on'); curV.classList.remove('is-on')
       restart(true)
     }
 
-    return () => {
-      gen++
-      ac.abort()
-      window.clearTimeout(idleT)
-      timers.forEach(clearTimeout)
-    }
+    return teardown
   }, [reducedMotion])
 
-  // Fit the process column at its natural size into whichever space is larger:
-  // the full stage height left of the code card, or the full width left of the
-  // browser above the code card (short stages park the code card in the column).
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-    const stage = root.querySelector<HTMLElement>('.web-hero__stage')!
-    const list = root.querySelector<HTMLElement>('.wd-process')!
-    const rig = root.querySelector<HTMLElement>('.wd-rig')!
-    const code = root.querySelector<HTMLElement>('.wd-card--code')!
-    const GAP = 28
-    const fit = () => {
-      if (window.matchMedia('(max-width: 1023px)').matches || !code.offsetParent) {
-        list.style.removeProperty('--fit'); list.style.removeProperty('--ptop'); return
-      }
-      const w = list.offsetWidth, h = list.offsetHeight, sh = stage.clientHeight
-      const codeL = rig.offsetLeft + code.offsetLeft, codeT = rig.offsetTop + code.offsetTop
-      const beside = Math.min(1, (codeL - GAP) / w, sh / h)
-      const above = Math.min(1, (rig.offsetLeft - GAP) / w, (codeT - GAP) / h)
-      const k = Math.max(0, beside, above)
-      const room = beside >= above ? sh : codeT - GAP
-      list.style.setProperty('--fit', String(k))
-      list.style.setProperty('--ptop', `${Math.max(0, (room - h * k) / 2)}px`)
-    }
-    const ro = new ResizeObserver(fit)
-    ro.observe(stage); ro.observe(list)
-    fit()
-    return () => ro.disconnect()
-  }, [])
-
   // Each time the slide comes up: panels home, next site, the film from the top.
-  const wasActive = useRef(false)
   useEffect(() => {
     runRef.current = active && playing
     if (active && !wasActive.current) activateRef.current()
@@ -429,101 +440,56 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
     <div ref={rootRef} className="web-hero">
       <div className="wd-paper" aria-hidden="true">
         <div className="wd-paper__dots" />
-        <div className="wd-glow wd-glow--lime" />
-        <div className="wd-glow wd-glow--lav" />
       </div>
 
       <div className="web-hero__stage">
-        <ol className="wd-process" aria-label="Our process">
-          {PROCESS.map(({ title, text, Icon, dark }, i) => (
-            <motion.li
-              key={title}
-              className={`wd-step ${dark ? 'wd-step--dark' : ''}`}
-              initial={false}
-              animate={active || reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
-              transition={reducedMotion ? { duration: 0 } : { duration: 0.6, delay: active ? 0.15 + i * 0.1 : 0, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={reducedMotion ? undefined : { y: -3, transition: { duration: 0.25 } }}
-            >
-              <span className="wd-step__icon" aria-hidden="true"><Icon size={19} strokeWidth={1.75} /></span>
-              <span className="wd-step__body">
-                <span className="wd-step__title">{title}</span>
-                <span className="wd-step__text">{text}</span>
-              </span>
-            </motion.li>
-          ))}
-        </ol>
+        {/* The visual zone: scaled as one from its top-left (fitZone). */}
+        <div className="wd-zone">
+          <div className="wd-rig" data-hero-hold>
+            <div className="wd-glow" aria-hidden="true" />
 
-        <div className="wd-rig" data-hero-hold>
-
-          <div className="wd-browser" data-device="desktop">
-            <div className="wd-chrome">
-              <span className="wd-dots"><i /><i /><i /></span>
-              <span className="wd-url"><span className="wd-url__lock" aria-hidden="true" /><span className="wd-url__text">soko-bakery.com</span></span>
-              <span className="wd-sites" />
+            <div className="wd-browser" data-device="desktop">
+              <div className="wd-chrome">
+                <span className="wd-dots"><i /><i /><i /></span>
+                <span className="wd-url"><span className="wd-url__lock" aria-hidden="true" /><span className="wd-url__text">soko-bakery.com</span></span>
+                <span className="wd-sites" />
+                <span className="wd-devices">
+                  {DEVICES.map((d) => (
+                    <button key={d.k} type="button" data-k={d.k} className={`wd-device-btn ${d.k === '1' ? 'is-on' : ''}`} aria-pressed={d.k === '1'} aria-label={`Preview at ${d.bp}px (${d.device})`} title={`${d.bp}`}>
+                      <span className={`wd-device wd-device--${d.device}`} />
+                    </button>
+                  ))}
+                </span>
+              </div>
+              <div className="wd-viewport" />
             </div>
-            <div className="wd-viewport">
-              <div className="wd-site wd-wire" aria-hidden="true" />
-              <div className="wd-site wd-design" />
-              <span className="wd-sweep" aria-hidden="true" />
-              <span className="wd-sweep-tag wd-sweep-tag--s" aria-hidden="true">Structure</span>
-              <span className="wd-sweep-tag wd-sweep-tag--d" aria-hidden="true">Design</span>
+
+            {/* The panels float nearer than the browser: they travel further with the pointer. */}
+            <div className="wd-depth">
+              <div className="wd-card wd-card--type">
+                <div className="wd-card__head wd-drag"><span>Interface</span><span className="wd-mono">H1</span></div>
+                <button type="button" className="wd-aa" title="Click to try another typeface">Aa</button>
+                <div className="wd-kv wd-mono">Size <b data-k="size">48</b></div>
+                <input className="wd-range" type="range" min="40" max="64" step="1" defaultValue="48" aria-label="Heading size" />
+                <div className="wd-kv wd-mono">Track <b data-k="track">-4%</b></div>
+                <div className="wd-kv wd-mono">Lead <b data-k="lead">0.92</b></div>
+              </div>
+
+              <div className="wd-card wd-card--code">
+                <div className="wd-card__head wd-drag"><span>Development</span><span className="wd-mono">hero.tsx</span></div>
+                <div className="wd-lines wd-mono" />
+              </div>
             </div>
           </div>
 
-          {/* The panels float nearer than the browser: they travel further with the pointer. */}
-          <div className="wd-depth">
-            <div className="wd-card wd-card--code">
-              <div className="wd-card__head wd-drag"><span>Development</span><span className="wd-mono">hero.tsx</span></div>
-              <div className="wd-lines wd-mono" />
-            </div>
-
-            <div className="wd-card wd-card--type">
-              <div className="wd-card__head wd-drag"><span>Interface</span><span className="wd-mono">H1</span></div>
-              <button type="button" className="wd-aa" title="Click to try another typeface">Aa</button>
-              <div className="wd-kv wd-mono">Size <b data-k="size">48</b></div>
-              <input className="wd-range" type="range" min="40" max="64" step="1" defaultValue="48" aria-label="Heading size" />
-              <div className="wd-kv wd-mono">Track <b data-k="track">-4%</b></div>
-              <div className="wd-kv wd-mono">Lead <b data-k="lead">0.92</b></div>
-            </div>
-
-            <div className="wd-card wd-card--resp">
-              <div className="wd-card__head wd-drag"><span>Responsive</span><span className="wd-mono wd-bp">1440</span></div>
-              <div className="wd-devices">
-                {DEVICES.map((d) => (
-                  <button key={d.k} type="button" data-k={d.k} className={`wd-device-btn ${d.k === '1' ? 'is-on' : ''}`} aria-label={`Preview at ${d.bp}px`}>
-                    <span className={`wd-device wd-device--${d.device}`} />
-                    <span className="wd-mono">{d.bp}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="wd-card wd-card--lh">
-              <div className="wd-card__head wd-drag"><span>Lighthouse</span><span className="wd-mono wd-lh__url">soko-bakery.com</span></div>
-              <div className="wd-lh__rings">
-                {AUDIT.map((a) => (
-                  <div key={a.label} className="wd-ring">
-                    <svg viewBox="0 0 36 36" aria-hidden="true">
-                      <circle className="wd-ring__track" cx="18" cy="18" r="15" />
-                      <circle className="wd-ring__arc" cx="18" cy="18" r="15" strokeDasharray={RING} strokeDashoffset={RING} />
-                    </svg>
-                    <b className="wd-mono">0</b>
-                    <span>{a.label}</span>
-                  </div>
-                ))}
-              </div>
-              <button type="button" className="wd-lh__run">↻ Run audit</button>
-            </div>
+          <div className="wd-cursor" data-cursor="design" aria-hidden="true">
+            <svg className="wd-cursor__arrow" viewBox="0 0 24 28"><path d={ARROW} /></svg>
+            <span className="wd-cursor__tag">BrandWorks</span>
           </div>
-        </div>
-
-        <div className="wd-cursor" data-cursor="design" aria-hidden="true">
-          <svg className="wd-cursor__arrow" viewBox="0 0 24 28"><path d={ARROW} /></svg>
-          <span className="wd-cursor__tag">BrandWorks</span>
-        </div>
-        <div className="wd-cursor wd-cursor--dev" data-cursor="dev" aria-hidden="true">
-          <svg className="wd-cursor__arrow" viewBox="0 0 24 28"><path d={ARROW} /></svg>
-          <span className="wd-cursor__tag">Dev</span>
+          <div className="wd-cursor wd-cursor--dev" data-cursor="dev" aria-hidden="true">
+            <svg className="wd-cursor__arrow" viewBox="0 0 24 28"><path d={ARROW} /></svg>
+            <span className="wd-cursor__tag">Dev</span>
+          </div>
         </div>
       </div>
     </div>

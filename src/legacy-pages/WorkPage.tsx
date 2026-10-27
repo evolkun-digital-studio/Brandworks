@@ -91,7 +91,7 @@ function Chars({ text, attr = 'data-char', className = '' }: { text: string; att
   return (
     <>
       {text.split('').map((ch, i) => (
-        <span key={`${ch}-${i}`} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
+        <span key={`${ch}-${i}`} className="-mb-[0.06em] -mt-[0.06em] inline-block overflow-hidden pb-[0.14em] pt-[0.06em] align-bottom">
           <span {...{ [attr]: '' }} className={`inline-block will-change-transform ${className}`}>
             {ch === ' ' ? ' ' : ch}
           </span>
@@ -196,7 +196,7 @@ function Hero() {
   useGSAP(() => {
     const mm = gsap.matchMedia()
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.from('[data-char]', { yPercent: 115, rotate: 8, duration: 1.1, ease: 'expo.out', stagger: 0.035, delay: 1.15 })
+      gsap.from('[data-char]', { yPercent: 135, rotate: 8, duration: 1.1, ease: 'expo.out', stagger: 0.035, delay: 1.15 })
       gsap.from('[data-hero-fade]', { autoAlpha: 0, y: 16, duration: 0.8, ease: 'power3.out', stagger: 0.08, delay: 1.5 })
       gsap.from('[data-thumb]', { yPercent: 120, duration: 1.1, ease: 'expo.out', stagger: 0.05, delay: 1.35 })
 
@@ -272,7 +272,7 @@ function ProjectCard({ project, index, onHover, onOpen, hiddenId }: ProjectHandl
       </button>
 
       <div data-label className="mt-4 flex items-baseline justify-between gap-4 font-(--font-secondary) text-white">
-        <h2 className="m-0 font-(--font-primary) text-[clamp(20px,1.6vw,26px)] leading-none tracking-[-0.02em] md:opacity-0 md:transition-opacity md:duration-500 md:group-hover:opacity-100">
+        <h2 className="-my-[0.05em] mx-0 font-(--font-primary) text-[clamp(20px,1.6vw,26px)] leading-[1.1] tracking-[-0.02em] md:opacity-0 md:transition-opacity md:duration-500 md:group-hover:opacity-100">
           {project.title}
         </h2>
         <span className="text-[10px] tracking-[0.06em] text-white/45">{[project.discipline, project.year].filter(Boolean).join(' · ')}</span>
@@ -431,19 +431,19 @@ function HoverTitle({ project }: { project: Project | null }) {
         {project && (
           <motion.p
             key={project.id}
-            className="m-0 whitespace-nowrap font-(--font-primary) text-[clamp(34px,6vw,140px)] leading-[0.95] tracking-[-0.04em] text-[#CCFF00]"
+            className="m-0 whitespace-nowrap font-(--font-primary) text-[clamp(34px,6vw,140px)] leading-[1.1] tracking-[-0.04em] text-[#CCFF00]"
             initial="hidden"
             animate="show"
             exit="exit"
           >
             {project.title.split('').map((ch, i) => (
-              <span key={i} className="inline-block overflow-hidden align-bottom">
+              <span key={i} className="-mb-[0.14em] -mt-[0.06em] inline-block overflow-hidden pb-[0.14em] pt-[0.06em] align-bottom">
                 <motion.span
                   className="inline-block"
                   variants={{
-                    hidden: { y: reduce ? 0 : '105%', opacity: reduce ? 0 : 1 },
+                    hidden: { y: reduce ? 0 : '120%', opacity: reduce ? 0 : 1 },
                     show: { y: 0, opacity: 1, transition: { duration: 0.5, ease: EASE_OUT, delay: i * 0.018 } },
-                    exit: { y: reduce ? 0 : '-105%', opacity: reduce ? 0 : 1, transition: { duration: 0.25, ease: EASE_IN_OUT, delay: i * 0.008 } },
+                    exit: { y: reduce ? 0 : '-120%', opacity: reduce ? 0 : 1, transition: { duration: 0.25, ease: EASE_IN_OUT, delay: i * 0.008 } },
                   }}
                 >
                   {ch === ' ' ? ' ' : ch}
@@ -514,7 +514,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
     } else {
       tl.fromTo(slot, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 }, 0.1)
     }
-    tl.fromTo(q('[data-ov-char]'), { yPercent: 115 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.025 }, reduce ? 0 : 0.7)
+    tl.fromTo(q('[data-ov-char]'), { yPercent: 125 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.025 }, reduce ? 0 : 0.7)
     tl.fromTo(q('[data-ov-fade]'), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 }, reduce ? 0 : 0.85)
     return () => { tl.kill() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -526,7 +526,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
     const tl = gsap.timeline()
     tl.fromTo(slotRef.current, { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'expo.inOut' }, 0)
     tl.fromTo(q('[data-ov-media]'), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: 'expo.out' }, 0)
-    tl.fromTo(q('[data-ov-char]'), { yPercent: 115 }, { yPercent: 0, duration: 0.8, ease: 'expo.out', stagger: 0.02 }, 0.25)
+    tl.fromTo(q('[data-ov-char]'), { yPercent: 125 }, { yPercent: 0, duration: 0.8, ease: 'expo.out', stagger: 0.02 }, 0.25)
     return () => { tl.kill() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index])
@@ -537,7 +537,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
     const slot = slotRef.current
     const tl = gsap.timeline({ onComplete: onClose })
     tl.to(q('[data-ov-fade]'), { autoAlpha: 0, duration: 0.25 }, 0)
-    tl.to(q('[data-ov-char]'), { yPercent: -115, duration: 0.45, ease: 'power3.in', stagger: 0.01 }, 0)
+    tl.to(q('[data-ov-char]'), { yPercent: -125, duration: 0.45, ease: 'power3.in', stagger: 0.01 }, 0)
     const src = sourceFor(project.id)
     if (slot && src && !reduce) {
       gsap.set(slot, { clearProps: 'transform' })
@@ -589,7 +589,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
 
         <div className="grid items-end gap-6 border-t border-white/15 pt-6 md:grid-cols-[1fr_auto]">
           <div>
-            <h2 id="overlay-title" key={project.id} className="m-0 font-(--font-primary) text-[clamp(44px,7vw,120px)] leading-[0.9] tracking-[-0.045em]">
+            <h2 id="overlay-title" key={project.id} className="m-0 font-(--font-primary) text-[clamp(44px,7vw,120px)] leading-[1.1] tracking-[-0.045em]">
               <span className="sr-only">{project.title}</span>
               <span aria-hidden="true"><Chars text={project.title} attr="data-ov-char" /></span>
             </h2>

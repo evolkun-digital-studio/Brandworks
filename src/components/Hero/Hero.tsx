@@ -176,15 +176,17 @@ function Hero() {
     const observer = new ResizeObserver(() => {
       const rect = content.getBoundingClientRect();
 
+      const height = rect.height;
+
       if (rect.width !== width) {
         width = rect.width;
 
         reserve = 0;
       }
 
-      if (rect.height <= reserve) return;
+      if (height <= reserve) return;
 
-      reserve = rect.height;
+      reserve = height;
 
       section.style.setProperty("--hero-content-h", `${Math.ceil(reserve)}px`);
     });

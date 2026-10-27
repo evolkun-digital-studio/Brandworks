@@ -20,8 +20,8 @@ type Brand = {
 }
 
 const BRANDS: Brand[] = [
-  // The thin chrome wordmark washes out on pale pink; the brand's deep pink lets the silver read.
-  { style: { background: '#E0237F' }, logo: { src: '/images/brands/jellystar-logo.png', alt: 'jellystar Clothing logo', width: 400, height: 109 }, fit: { maxWidth: '92%' } },
+  // The thin chrome wordmark washes out on pink; deep plum with a soft brand-pink glow lets the silver read.
+  { style: { background: 'radial-gradient(circle at 50% 50%, rgba(224,35,127,.35) 0%, rgba(224,35,127,0) 65%), #2B0A1F' }, logo: { src: '/images/brands/jellystar-logo.png', alt: 'jellystar Clothing logo', width: 400, height: 109 }, fit: { maxWidth: '86%', maxHeight: '64%' } },
   // The FALK mark is solid black, so its tile is brand lime rather than #111.
   { style: { background: '#C8F31D' }, logo: { src: '/images/brands/falk-logo.png', alt: 'FALK Gym Wear logo', width: 400, height: 80 }, fit: { maxWidth: '86%' } },
   { style: { background: '#F6E7D3' }, logo: { src: '/images/brands/soko-logo.png', alt: 'Soko Café & Bakery logo', width: 400, height: 301 }, fit: { maxHeight: '50%' } },
