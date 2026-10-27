@@ -26,12 +26,15 @@ function RollLabel({ children }: { children: string }) {
 
 function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   const [hidden, setHidden] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const lastScrollY = useRef(0)
   const { pathname } = useLocation()
 
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY
+
+      setScrolled(currentY > 40)
 
       if (currentY <= 5) {
         setHidden(false)
@@ -44,6 +47,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
       lastScrollY.current = currentY
     }
 
+    handleScroll()
     window.addEventListener("scroll", handleScroll, { passive: true })
 
     return () => {
@@ -79,7 +83,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   }
 
   return (
-    <header className={`site-header ${hidden ? "is-hidden" : ""}`}>
+    <header className={`site-header ${hidden ? "is-hidden" : ""} ${scrolled ? "is-scrolled" : ""}`}>
       {/* Desktop Layout */}
       <div
         className={`site-header__surface ${tone} hidden lg:grid w-full h-[64px] items-center px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}

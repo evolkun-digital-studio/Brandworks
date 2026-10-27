@@ -1,6 +1,6 @@
 /*
- * Header capsules. The page determines the tone once; scrolling only toggles
- * the header's visibility and never changes these visual styles:
+ * Header capsules. The page sets the starting tone; once scrolled, every page
+ * switches to the solid .is-scrolled capsules below:
  *   .is-on-dark   floating over the homepage hero photography
  *   .is-on-light  floating over white page introductions
  */
@@ -69,6 +69,23 @@ body:has(.hero[data-service='web']) .site-header__surface.is-on-dark {
   --cta-bg-hover: var(--color-bw-lime);
   --cta-border: #0E0E10;
   --cta-border-hover: var(--color-bw-lime);
+}
+
+/* Once the page scrolls, content of any colour passes under the header, so
+   the capsules take a solid dark fill that stays legible over anything.
+   `body` + :is() keeps this above the web-slide override's specificity. */
+body .site-header.is-scrolled .site-header__surface:is(.is-on-dark, .is-on-light) {
+  --pill-ink: #fff;
+  --pill-bg: rgba(17, 17, 17, 0.78);
+  --pill-bg-hover: rgba(17, 17, 17, 0.9);
+  --pill-border: rgba(255, 255, 255, 0.16);
+  --pill-border-hover: rgba(255, 255, 255, 0.4);
+  --cta-ink: #111;
+  --cta-ink-hover: #111;
+  --cta-bg: var(--color-bw-lime);
+  --cta-bg-hover: #fff;
+  --cta-border: var(--color-bw-lime);
+  --cta-border-hover: #fff;
 }
 
 .site-header__logo--dark {
