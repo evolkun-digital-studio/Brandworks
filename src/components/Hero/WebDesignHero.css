@@ -828,7 +828,102 @@
   to { transform: scale(1.6); opacity: 0; }
 }
 
+/* ------------------------------------------------------------- process */
+
+/* Four information cards in the empty column left of the browser, one per
+   row in a wide stagger: Strategy and Build right, Design and Launch left.
+   The column is laid out at its natural size and WebDesignHero.tsx sets
+   --fit (scale) and --ptop so it fits beside, or above, the code card. */
+.wd-process {
+  position: absolute;
+  top: var(--ptop, 0px);
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 340px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transform: scale(var(--fit, 1));
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.wd-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 246px;
+  min-height: 104px;
+  padding: 18px;
+  border: 1px solid rgba(14, 14, 16, 0.08);
+  border-radius: 18px;
+  background: #FBFBF8;
+  box-shadow: 0 8px 24px rgba(14, 14, 16, 0.05);
+  color: var(--wd-ink);
+  font-family: var(--font-secondary);
+  transition: box-shadow 0.3s ease;
+  pointer-events: auto;
+}
+
+/* Odd cards (Strategy, Build) sit 94px right of the even ones. */
+.wd-step:nth-child(odd) {
+  margin-left: auto;
+}
+
+.wd-step:hover {
+  box-shadow: 0 14px 30px rgba(14, 14, 16, 0.09);
+}
+
+.wd-step--dark {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: #1B1C1E;
+  color: #F2F2EE;
+}
+
+.wd-step__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(14, 14, 16, 0.05);
+  color: var(--wd-ink);
+}
+
+.wd-step--dark .wd-step__icon {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--wd-lime);
+}
+
+.wd-step__body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.wd-step__title {
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.wd-step__text {
+  color: #6E716A;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.wd-step--dark .wd-step__text {
+  color: rgba(242, 242, 238, 0.66);
+}
+
 /* --------------------------------------------------------------- tablet */
+
 
 @media (max-width: 1199px) {
   .wd-card--code,
@@ -912,6 +1007,88 @@
   .wd-cursor,
   .wd-ripple {
     display: none;
+  }
+}
+
+/* No side column below 1024px: the cards become one compact row of chips
+   (icon + title) under the browser, shown only where the stage leaves room
+   below it. */
+@media (max-width: 1023px) {
+  .wd-process {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    display: none;
+    flex-direction: row;
+    transform: none;
+    gap: 8px;
+    width: auto;
+  }
+
+  .wd-step {
+    flex: 1 1 0;
+    justify-content: center;
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 6px 8px;
+    border-radius: 16px;
+    gap: 6px;
+  }
+
+  .wd-step:nth-child(odd) {
+    margin-left: 0;
+  }
+
+  .wd-step:nth-child(n + 3) {
+    left: 0;
+  }
+
+  .wd-step__icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+  }
+
+  .wd-step__icon svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .wd-step__title {
+    font-size: 11px;
+  }
+
+  .wd-step__text {
+    display: none;
+  }
+
+  @container (min-height: 360px) {
+    .wd-process {
+      display: flex;
+    }
+  }
+}
+
+@media (max-width: 639px) {
+  .wd-process {
+    gap: 6px;
+  }
+
+  .wd-step {
+    padding: 5px 6px;
+    column-gap: 5px;
+  }
+
+  .wd-step__title {
+    font-size: 10px;
+  }
+
+  /* The taller mobile browser leaves less room below it. */
+  @container (max-height: 479px) {
+    .wd-process {
+      display: none;
+    }
   }
 }
 

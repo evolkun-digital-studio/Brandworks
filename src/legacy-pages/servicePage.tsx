@@ -303,7 +303,7 @@ export default function ServicesPage() {
       <section className="mx-auto w-full max-w-[1280px] px-5 pb-16 pt-24 sm:px-7 sm:pb-20 sm:pt-28 lg:px-10 lg:pb-24 lg:pt-32">
         <div className="mx-auto max-w-[880px] text-center"> 
 
-          <h1 className="mx-auto mt-5 max-w-[820px] text-[clamp(2.25rem,4.4vw,3rem)] font-medium leading-[0.98] tracking-[-0.045em]">
+          <h1 className="mx-auto mt-5 max-w-[820pUNx] text-[clamp(2.25rem,4.4vw,3rem)] font-medium leading-[0.98] tracking-[-0.045em]">
             From how a brand thinks to how the world sees it.
           </h1>
 

@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react'
+import { motion } from 'motion/react'
+import { Code, Lightbulb, PenTool, Rocket, type LucideIcon } from 'lucide-react'
 import './WebDesignHero.css'
 
 /*
@@ -92,6 +94,14 @@ const DEVICES = [
   { k: '.36', bp: '390', device: 'phone' },
 ]
 const RESTART_MS = 3000
+
+// Process cards in the empty column left of the browser, light and dark alternating.
+const PROCESS: { title: string; text: string; Icon: LucideIcon; dark: boolean }[] = [
+  { title: 'Strategy', text: 'Ideas that create real impact.', Icon: Lightbulb, dark: false },
+  { title: 'Design', text: 'Clear, intentional and human.', Icon: PenTool, dark: true },
+  { title: 'Build', text: 'Scalable digital experiences.', Icon: Code, dark: false },
+  { title: 'Launch', text: 'Products people love to use.', Icon: Rocket, dark: true },
+]
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
@@ -377,6 +387,36 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
     }
   }, [reducedMotion])
 
+  // Fit the process column at its natural size into whichever space is larger:
+  // the full stage height left of the code card, or the full width left of the
+  // browser above the code card (short stages park the code card in the column).
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const stage = root.querySelector<HTMLElement>('.web-hero__stage')!
+    const list = root.querySelector<HTMLElement>('.wd-process')!
+    const rig = root.querySelector<HTMLElement>('.wd-rig')!
+    const code = root.querySelector<HTMLElement>('.wd-card--code')!
+    const GAP = 28
+    const fit = () => {
+      if (window.matchMedia('(max-width: 1023px)').matches || !code.offsetParent) {
+        list.style.removeProperty('--fit'); list.style.removeProperty('--ptop'); return
+      }
+      const w = list.offsetWidth, h = list.offsetHeight, sh = stage.clientHeight
+      const codeL = rig.offsetLeft + code.offsetLeft, codeT = rig.offsetTop + code.offsetTop
+      const beside = Math.min(1, (codeL - GAP) / w, sh / h)
+      const above = Math.min(1, (rig.offsetLeft - GAP) / w, (codeT - GAP) / h)
+      const k = Math.max(0, beside, above)
+      const room = beside >= above ? sh : codeT - GAP
+      list.style.setProperty('--fit', String(k))
+      list.style.setProperty('--ptop', `${Math.max(0, (room - h * k) / 2)}px`)
+    }
+    const ro = new ResizeObserver(fit)
+    ro.observe(stage); ro.observe(list)
+    fit()
+    return () => ro.disconnect()
+  }, [])
+
   // Each time the slide comes up: panels home, next site, the film from the top.
   const wasActive = useRef(false)
   useEffect(() => {
@@ -394,6 +434,25 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       </div>
 
       <div className="web-hero__stage">
+        <ol className="wd-process" aria-label="Our process">
+          {PROCESS.map(({ title, text, Icon, dark }, i) => (
+            <motion.li
+              key={title}
+              className={`wd-step ${dark ? 'wd-step--dark' : ''}`}
+              initial={false}
+              animate={active || reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
+              transition={reducedMotion ? { duration: 0 } : { duration: 0.6, delay: active ? 0.15 + i * 0.1 : 0, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={reducedMotion ? undefined : { y: -3, transition: { duration: 0.25 } }}
+            >
+              <span className="wd-step__icon" aria-hidden="true"><Icon size={19} strokeWidth={1.75} /></span>
+              <span className="wd-step__body">
+                <span className="wd-step__title">{title}</span>
+                <span className="wd-step__text">{text}</span>
+              </span>
+            </motion.li>
+          ))}
+        </ol>
+
         <div className="wd-rig" data-hero-hold>
 
           <div className="wd-browser" data-device="desktop">

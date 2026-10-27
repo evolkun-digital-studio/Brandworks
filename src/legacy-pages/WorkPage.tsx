@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { Link } from '../routing'
 import { useNativeMetadata } from '../routing/context'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -18,6 +17,7 @@ interface Project {
   id: number
   title: string
   media: string
+  thumbnail: string
   mediaType: 'image' | 'video'
   ratio: 'landscape' | 'portrait' | 'square' | 'cinematic'
   position?: string
@@ -26,16 +26,27 @@ interface Project {
 }
 
 const projects: Project[] = [
-  { id: 1, title: 'Delhi-6', media: mediaUrl('campaign-still.webp'), mediaType: 'image', ratio: 'landscape' },
-  { id: 2, title: 'Workify Hub', media: mediaUrl('website .png'), mediaType: 'image', ratio: 'portrait', position: 'top center' },
-  { id: 3, title: 'India WMS', discipline: 'Identity · Content · Technology', year: '2026', media: mediaUrl('project 2.webp'), mediaType: 'image', ratio: 'square' },
-  { id: 4, title: 'Kinikh Infra', media: mediaUrl('3129595-hd_1920_1080_25fps.mp4'), mediaType: 'video', ratio: 'landscape' },
-  { id: 5, title: 'Riaaj Vintage', media: mediaUrl('photo-1483985988355-763728e1935b.jpg'), mediaType: 'image', ratio: 'portrait' },
-  { id: 6, title: 'BrandWorks', media: mediaUrl('business card mock up.png'), mediaType: 'image', ratio: 'square' },
-  { id: 7, title: 'Editorial Series', media: mediaUrl('photo-02.webp'), mediaType: 'image', ratio: 'landscape' },
-  { id: 8, title: 'Campaign Film', media: mediaUrl('brandworks_bw_transition_smooth_60fps.mp4'), mediaType: 'video', ratio: 'portrait' },
-  { id: 9, title: 'Founder Reputation', media: mediaUrl('PR.jpg'), mediaType: 'image', ratio: 'cinematic' },
-  { id: 10, title: 'Growth Campaign', media: mediaUrl('performance.jpg'), mediaType: 'image', ratio: 'square' },
+  { id: 1, title: 'Delhi-6', media: '/images/brands/delhi%206%203.png', thumbnail: '/images/brands/delhi%206%203.png', mediaType: 'image', ratio: 'landscape' },
+  { id: 2, title: 'Workify Hub', media: mediaUrl('website .png'), thumbnail: mediaUrl('website .png'), mediaType: 'image', ratio: 'portrait', position: 'top center' },
+  { id: 3, title: 'India WMS', media: mediaUrl('project 2.webp'), thumbnail: mediaUrl('project 2.webp'), mediaType: 'image', ratio: 'square' },
+  { id: 4, title: 'Kinikh Infra', media: '/images/brands/vertical-infrastructure.webp', thumbnail: '/images/brands/vertical-infrastructure.webp', mediaType: 'image', ratio: 'portrait' },
+  { id: 5, title: 'Riaaj Vintage', media: mediaUrl('photo-1483985988355-763728e1935b.jpg'), thumbnail: mediaUrl('content-still.webp'), mediaType: 'image', ratio: 'portrait' },
+  { id: 6, title: 'BrandWorks', media: mediaUrl('business card mock up.png'), thumbnail: mediaUrl('business card mock up.png'), mediaType: 'image', ratio: 'square' },
+  { id: 7, title: 'Editorial Series', media: mediaUrl('photo-02.webp'), thumbnail: mediaUrl('photo-02.webp'), mediaType: 'image', ratio: 'landscape' },
+  { id: 8, title: 'Campaign Film', media: mediaUrl('brandworks_bw_transition_smooth_60fps.mp4'), thumbnail: mediaUrl('photo-03.webp'), mediaType: 'video', ratio: 'portrait' },
+  { id: 9, title: 'Founder Reputation', media: mediaUrl('PR.jpg'), thumbnail: mediaUrl('PR.jpg'), mediaType: 'image', ratio: 'cinematic' },
+  { id: 10, title: 'Growth Campaign', media: mediaUrl('performance.jpg'), thumbnail: mediaUrl('performance.jpg'), mediaType: 'image', ratio: 'square' },
+]
+
+// Cloudflare R2 images already used in the Photography experience of the
+// homepage hero. Keeping this reel to that set avoids blank video frames.
+const photographyHeroImages = [
+  mediaUrl('Artboard 2.png'),
+  mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png'),
+  mediaUrl('moisturizer mock up.png'),
+  mediaUrl('Artboard 2@3x.png'),
+  mediaUrl('vcvcvcvcv.jpg'),
+  mediaUrl('Artboard 12@3x.png'),
 ]
 
 const ratioClasses = {
@@ -70,18 +81,6 @@ function usePageLenis(enabled: boolean) {
       pageLenis.current = null
     }
   }, [enabled])
-}
-
-function useFinePointer() {
-  const [fine, setFine] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia('(pointer: fine)')
-    setFine(mq.matches)
-    const onChange = () => setFine(mq.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-  return fine
 }
 
 /* -------------------------------------------------------------------------- */
@@ -163,7 +162,7 @@ function Curtain() {
   return (
     <motion.div
       aria-hidden="true"
-      className="fixed inset-0 z-[100] flex items-end bg-[#0b0b0b] px-[clamp(20px,2.4vw,48px)] pb-[clamp(24px,3vw,44px)]"
+      className="fixed inset-0 z-[100] flex items-end bg-[#0b0b0b] px-[var(--hero-gutter)] pb-[clamp(24px,3vw,44px)]"
       initial={{ y: 0 }}
       animate={{ y: '-100%' }}
       transition={{ duration: 1.05, ease: EASE_IN_OUT, delay: 0.55 }}
@@ -191,9 +190,7 @@ function Curtain() {
 /*  Hero                                                                      */
 /* -------------------------------------------------------------------------- */
 
-type View = 'grid' | 'index'
-
-function Hero({ view, setView }: { view: View; setView: (v: View) => void }) {
+function Hero() {
   const ref = useRef<HTMLElement>(null)
 
   useGSAP(() => {
@@ -211,57 +208,28 @@ function Hero({ view, setView }: { view: View; setView: (v: View) => void }) {
   }, { scope: ref })
 
   return (
-    <section ref={ref} aria-labelledby="work-title" className="relative flex min-h-[86svh] flex-col justify-end overflow-hidden px-[clamp(20px,2.4vw,48px)] pb-[clamp(30px,3.5vw,52px)] pt-[clamp(118px,12vh,150px)] max-md:min-h-[70svh]">
-      <div data-hero-fade className="mb-auto flex items-start justify-between gap-6 font-(--font-secondary) text-[11px] tracking-[0.06em] text-black/50">
-        <span>{projects.length} projects</span>
-        <span className="max-w-[28ch] text-right max-md:hidden">Brand, web, film, social and PR work for the businesses we’ve built alongside.</span>
-      </div>
-
+    <section ref={ref} aria-labelledby="work-title" className="relative flex min-h-[86svh] flex-col justify-end overflow-hidden px-[var(--hero-gutter)] pb-[clamp(30px,3.5vw,52px)] pt-[clamp(118px,12vh,150px)] max-md:min-h-[70svh]">
       {/* thumbnail reel */}
       <div aria-hidden="true" className="pointer-events-none mb-[clamp(28px,4vw,56px)] overflow-hidden">
-        <div data-reel className="flex w-max gap-3">
+        <div data-reel className="flex w-max gap-4">
           {[...projects, ...projects.slice(0, 4)].map((p, i) => (
             <div key={`${p.id}-${i}`} className="overflow-hidden">
-              <div data-thumb className="h-[clamp(64px,7vw,104px)] w-[clamp(52px,5.6vw,84px)] overflow-hidden bg-[#f1f1ed]">
-                {p.mediaType === 'image' ? (
-                  <img src={p.media} alt="" loading="lazy" className="h-full w-full object-cover grayscale" style={{ objectPosition: p.position }} />
-                ) : (
-                  <video src={p.media} muted playsInline preload="metadata" className="h-full w-full object-cover grayscale" />
-                )}
+              <div data-thumb className="h-[clamp(260px,30vw,460px)] w-[clamp(180px,18vw,280px)] overflow-hidden bg-[#f1f1ed]">
+                <img src={photographyHeroImages[i % photographyHeroImages.length]} alt="" loading={i < 4 ? 'eager' : 'lazy'} decoding="async" className="h-full w-full object-cover" />
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <h1 id="work-title" data-hero-title className="m-0 max-w-[1100px] font-(--font-primary) text-[clamp(56px,8.4vw,136px)] leading-[0.88] tracking-[-0.045em] text-[#111] max-md:text-[clamp(48px,14vw,72px)]">
-        <span className="sr-only">Selected Projects</span>
+      <h1 id="work-title" data-hero-title className="m-0 max-w-[1100px] font-(--font-primary) text-[48px] leading-[0.88] tracking-[-0.045em] text-[#111]">
+        <span className="sr-only">Selected Projects </span>
         <span aria-hidden="true">
-          <Chars text="Selected" /> <Chars text="Projects" />
-          <Chars text="." className="text-[#CCFF00]" />
+          <Chars text="Selected" /> <Chars text="Projects"/>
+          {/* <Chars text="." className="text-[#CCFF00]" /> */}
         </span>
       </h1>
 
-      <div data-hero-fade className="mt-[clamp(22px,3vw,38px)] flex items-center justify-between gap-6 border-t border-black/15 pt-4 font-(--font-secondary)">
-        <div className="relative inline-flex rounded-full border border-black/15 p-1" role="group" aria-label="Choose layout">
-          {(['grid', 'index'] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              aria-pressed={view === v}
-              onClick={() => setView(v)}
-              className={`relative z-10 rounded-full px-4 py-1.5 text-[11px] uppercase tracking-[0.08em] transition-colors duration-300 ${view === v ? 'text-[#111]' : 'text-black/45 hover:text-black'}`}
-            >
-              {view === v && <motion.span layoutId="view-pill" className="absolute inset-0 -z-10 rounded-full bg-[#CCFF00]" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-              {v === 'grid' ? 'Grid' : 'Index'}
-            </button>
-          ))}
-        </div>
-        <a href="#project-index" className="group inline-flex items-center gap-3 border-b border-black/50 pb-1.5 text-[11px] tracking-[0.08em] text-[#111] no-underline max-md:hidden">
-          View projects
-          <span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-y-1">↓</span>
-        </a>
-      </div>
     </section>
   )
 }
@@ -355,6 +323,7 @@ function ProjectGrid(props: ProjectHandlers) {
 /*  Index view — list with a floating preview that follows the cursor         */
 /* -------------------------------------------------------------------------- */
 
+/*
 function ProjectIndex({ onOpen, hiddenId }: Omit<ProjectHandlers, 'onHover'>) {
   const ref = useRef<HTMLDivElement>(null)
   const previewRef = useRef<HTMLDivElement>(null)
@@ -448,6 +417,7 @@ function ProjectIndex({ onOpen, hiddenId }: Omit<ProjectHandlers, 'onHover'>) {
     </div>
   )
 }
+*/
 
 /* -------------------------------------------------------------------------- */
 /*  Big centred title while hovering a card                                   */
@@ -597,7 +567,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
     <div ref={rootRef} role="dialog" aria-modal="true" aria-labelledby="overlay-title" data-lenis-prevent className="fixed inset-0 z-[90] overflow-y-auto text-white">
       <div ref={bgRef} className="fixed inset-0 bg-[#0b0b0b]" />
 
-      <div className="relative flex min-h-full flex-col px-[clamp(20px,2.4vw,48px)] py-[clamp(20px,2.2vw,36px)]">
+      <div className="relative flex min-h-full flex-col px-[var(--hero-gutter)] py-[clamp(20px,2.2vw,36px)]">
         <div className="flex items-center justify-between font-(--font-secondary) text-[11px] tracking-[0.08em]">
           <button ref={closeRef} data-ov-fade type="button" onClick={close} className="group inline-flex items-center gap-3 uppercase text-white outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00]">
             <span className="relative block size-3">
@@ -650,6 +620,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
 /*  Contact CTA — rolling letters + magnetic button                           */
 /* -------------------------------------------------------------------------- */
 
+/*
 function RollText({ text, accent }: { text: string; accent?: ReactNode }) {
   return (
     <span className="inline-flex">
@@ -699,9 +670,9 @@ function ContactCta() {
   }, { scope: ref })
 
   return (
-    <section ref={ref} aria-labelledby="work-contact-title" className="min-h-[56svh] overflow-hidden bg-[#111] px-[clamp(20px,2.4vw,48px)] py-[clamp(28px,3vw,44px)] text-white max-md:min-h-[42svh]">
+    <section ref={ref} aria-labelledby="work-contact-title" className="min-h-[56svh] overflow-hidden bg-[#111] px-[var(--hero-gutter)] py-[clamp(28px,3vw,44px)] text-white max-md:min-h-[42svh]">
       <Link to="/contact" className="group flex min-h-[56svh] items-end justify-between gap-8 text-white no-underline outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00] focus-visible:ring-offset-4 focus-visible:ring-offset-[#111] max-md:min-h-[42svh]">
-        <span id="work-contact-title" data-cta-text className="block origin-bottom-left font-(--font-primary) text-[clamp(56px,9vw,150px)] leading-[0.88] tracking-[-0.045em]">
+        <span id="work-contact-title" data-cta-text className="block origin-bottom-left font-(--font-primary) text-[48px] leading-[0.88] tracking-[-0.045em]">
           <span className="sr-only">Let’s work.</span>
           <span aria-hidden="true">
             <RollText text="Let’s work" accent={<span className="text-[#CCFF00]">.</span>} />
@@ -714,6 +685,7 @@ function ContactCta() {
     </section>
   )
 }
+*/
 
 /* -------------------------------------------------------------------------- */
 /*  Page                                                                      */
@@ -724,7 +696,6 @@ export default function WorkPage() {
   const reduce = useReducedMotion()
   usePageLenis(!reduce)
 
-  const [view, setView] = useState<View>('grid')
   const [hovered, setHovered] = useState<Project | null>(null)
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
@@ -740,35 +711,19 @@ export default function WorkPage() {
     }
   }, [nativeMetadata])
 
-  const changeView = (v: View) => {
-    setHovered(null)
-    setView(v)
-  }
-
   const openId = openIndex === null ? null : projects[openIndex].id
 
   return (
     <main className="overflow-clip bg-white text-[#111]">
       <Curtain />
 
-      <Hero view={view} setView={changeView} />
+      <Hero />
 
-      <section id="project-index" aria-label="Selected project index" className="bg-[#000] px-[clamp(20px,2.4vw,48px)] pb-[clamp(96px,10vw,160px)] pt-[clamp(72px,8vw,120px)] max-md:pb-20 max-md:pt-14">
-        <AnimatePresence mode="wait" onExitComplete={() => ScrollTrigger.refresh()}>
-          {view === 'grid' ? (
-            <motion.div key="grid" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.6, ease: EASE_OUT }}>
-              <ProjectGrid onHover={setHovered} onOpen={setOpenIndex} hiddenId={openId} />
-            </motion.div>
-          ) : (
-            <motion.div key="index" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }} transition={{ duration: 0.6, ease: EASE_OUT }} onPointerEnter={() => setHovered(null)}>
-              <ProjectIndex onOpen={setOpenIndex} hiddenId={openId} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <section id="project-index" aria-label="Selected project grid" className="bg-[#000] px-[var(--hero-gutter)] pb-[clamp(96px,10vw,160px)] pt-[clamp(72px,8vw,120px)] max-md:pb-20 max-md:pt-14">
+        <ProjectGrid onHover={setHovered} onOpen={setOpenIndex} hiddenId={openId} />
       </section>
 
-      <HoverTitle project={view === 'grid' && openIndex === null ? hovered : null} />
-      <ContactCta />
+      <HoverTitle project={openIndex === null ? hovered : null} />
 
       {openIndex !== null && (
         <ProjectOverlay

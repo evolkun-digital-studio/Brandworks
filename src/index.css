@@ -62,7 +62,7 @@
  */
 :root {
   --page-max-width: 1440px;
-  --page-gutter: clamp(20px, 4vw, 64px);
+  --page-gutter: var(--hero-gutter);
   --grid-gap: clamp(20px, 2.5vw, 40px);
   --section-space: clamp(88px, 11vw, 180px);
   --content-gap: clamp(24px, 4vw, 64px);
@@ -91,7 +91,6 @@
 
 @media (max-width: 767px) {
   :root {
-    --page-gutter: 18px;
     --section-space: 72px;
   }
 }
