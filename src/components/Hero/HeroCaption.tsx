@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { HeroServiceId } from '../../data/heroServices'
 import { heroServices, HERO_SERVICE_ORDER } from '../../data/heroServices'
 import { isIntroPending, onIntroDone } from '../../lib/introGate'
-import WebProcessCards from './WebProcessCards'
 
 /**
  * The headline and description for every service, stacked in one grid cell
@@ -40,10 +39,6 @@ function HeroCaption({ activeId, reducedMotion }: { activeId: HeroServiceId; red
             <span className="hero-mask">
               <span className="hero-description">{service.text}</span>
             </span>
-            {/* Narrow screens: Web's process cards sit under its subtext. */}
-            {id === 'web' && (
-              <WebProcessCards variant="row" active={active} playing={active} reducedMotion={reducedMotion} />
-            )}
           </div>
         )
       })}

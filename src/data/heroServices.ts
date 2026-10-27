@@ -1,7 +1,5 @@
 import { mediaUrl } from '../lib/media'
 import { assetUrl } from '../lib/assetUrl'
-import lavenderHijab from '../assets/photography/hero-lavender-hijab-1200.webp'
-import lavenderHijabSmall from '../assets/photography/hero-lavender-hijab-480.webp'
 import redFashion from '../assets/photography/hero-fashion-study-1200.webp'
 import redFashionSmall from '../assets/photography/hero-fashion-study-480.webp'
 import luxuryDuffle from '../assets/photography/hero-luxury-duffle-full.webp'
@@ -12,8 +10,6 @@ import gourmetBiryani from '../assets/photography/hero-gourmet-biryani-1200.webp
 import gourmetBiryaniSmall from '../assets/photography/hero-gourmet-biryani-480.webp'
 import azzaroNoir from '../assets/photography/hero-azzaro-noir-1200.webp'
 import azzaroNoirSmall from '../assets/photography/hero-azzaro-noir-480.webp'
-import jagermeister from '../assets/photography/hero-jagermeister-1600.webp'
-import jagermeisterSmall from '../assets/photography/hero-jagermeister-480.webp'
 import goldenSocks from '../assets/photography/hero-golden-socks-1600.webp'
 import goldenSocksSmall from '../assets/photography/hero-golden-socks-480.webp'
 import daisiesSneakers from '../assets/photography/hero-daisies-sneakers-1600.webp'
@@ -113,20 +109,18 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
       kind: 'grid',
       images: [
         {
-          id: 'hero-jagermeister',
-          src: assetUrl(jagermeister),
-          srcSet: `${assetUrl(jagermeisterSmall)} 480w, ${assetUrl(jagermeister)} 1122w`,
-          width: 1122,
-          height: 1402,
-          alt: 'Moody product photograph of a Jägermeister bottle in misty window light',
+          id: 'artboard-4-editorial',
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%204%403x%20(1).png',
+          width: 1787,
+          height: 2526,
+          alt: 'Artboard 4 photography composition',
         },
         {
           id: 'lavender-hijab-editorial',
-          src: assetUrl(lavenderHijab),
-          srcSet: `${assetUrl(lavenderHijabSmall)} 480w, ${assetUrl(lavenderHijab)} 1086w`,
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202.png',
           width: 1086,
           height: 1448,
-          alt: 'Top-down editorial portrait of a woman in a lavender hijab and white blazer adjusting sunglasses',
+          alt: 'Artboard 2 photography composition',
         },
         {
           id: 'hands-framed-editorial',

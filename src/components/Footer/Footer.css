@@ -544,19 +544,19 @@
   }
 }
 
-/* All footer copy: Open Sans on every page and breakpoint (18px, bottom row 14px). Placed
-   last and scoped to the footer root so it outranks the per-breakpoint
-   sizes above. The video's cursor/fullscreen chips keep their own size. */
+/* Shared footer navigation and metadata stay at one readable size on every
+   page and breakpoint. The video's cursor/fullscreen chips and CTA keep
+   their independent sizes. */
 .brandworks-footer :is(.footer-cta, .footer-main-nav a, .footer-email, .footer-socials a, .footer-meta, .footer-meta *) {
   font-family: "Open Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
-.brandworks-footer :is(.footer-cta, .footer-main-nav a, .footer-email, .footer-socials a) {
-  font-size: 18px;
+.brandworks-footer :is(.footer-main-nav a, .footer-email, .footer-socials a) {
+  font-size: 12px;
 }
 
-/* Bottom row (tagline, copyright, legal links, location): 14px. */
+/* Bottom row: tagline, copyright, legal links, and location. */
 .brandworks-footer .footer-meta,
 .brandworks-footer .footer-meta * {
-  font-size: 14px;
+  font-size: 12px;
 }

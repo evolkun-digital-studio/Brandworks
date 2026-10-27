@@ -91,7 +91,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       <div className="home-section home-section--capabilities"><Capabilities /></div>
       <div className="home-section home-section--testimonials"><Testimonials /></div>
       <div className="home-section"><FAQs /></div>
-      <div className="home-section"><Industries /></div>
+      {/* <div className="home-section"><Industries /></div> */}
         {/* <Blog /> */}
  
     </main>

@@ -481,6 +481,45 @@
   }
 }
 
+/* Desktop: a 12-column grid inside the content container (logo → "Let's
+   Talk"). The copy takes columns 8–12, 48px above the bottom; the Web
+   visual is placed on the same columns (WebDesignHero.css). The hero is the
+   container, so 100cqw is its width without the scrollbar. */
+@media (min-width: 1024px) {
+  .hero {
+    --hero-grid-gap: clamp(20px, 2.2vw, 32px);
+    --hero-col: calc((100cqw - var(--hero-gutter) * 2 - var(--hero-grid-gap) * 11) / 12);
+    container-type: inline-size;
+    min-height: 800px;
+  }
+
+  .hero-content {
+    padding-bottom: 48px;
+  }
+
+  .hero-aside {
+    width: calc(var(--hero-col) * 5 + var(--hero-grid-gap) * 4);
+    max-width: none;
+  }
+
+  .hero-caption {
+    max-width: none;
+  }
+
+  .hero-caption__pane:not([data-id='web']) {
+    max-width: 560px;
+  }
+
+  .hero-caption__pane[data-id='web'] .hero-mask--title {
+    font-size: clamp(44px, 3.8vw, 66px);
+  }
+
+  .hero-caption__pane[data-id='web'] .hero-description {
+    max-width: 520px;
+    font-size: 18px;
+  }
+}
+
 /* The right column: headline, description, then the service capsules. */
 .hero-aside {
   display: flex;
@@ -784,6 +823,8 @@
     --social-sheet-w: min(64vw, 540px);
     --social-sheet-h: calc(var(--social-sheet-w) * 3 / 5);
     --social-stage-h: calc(var(--social-pair-h) + var(--social-sheet-h) + 20px);
+    /* Web: room for the browser at full width (16 / 10) above the copy. */
+    --web-stage-min: calc((100vw - var(--hero-gutter) * 2) * 0.625 + 32px);
   }
 
   .hero[data-service='social'] {
@@ -792,7 +833,7 @@
 
   /* Web: never squeeze the browser below a readable size. */
   .hero[data-service='web'] {
-    min-height: max(100svh, calc(var(--web-stage-top, 124px) + var(--web-stage-min, 400px) + var(--hero-content-h, 480px) + var(--hero-steps-h, 0px)));
+    min-height: max(100svh, calc(var(--web-stage-top, 124px) + var(--web-stage-min, 400px) + var(--hero-content-h, 480px)));
   }
 
   .social-showcase__stage {
@@ -861,7 +902,6 @@
 @media (max-width: 767px) {
   .hero {
     --web-stage-top: 124px;
-    --web-stage-min: 290px;
     --social-card-w: min(60vw, 300px);
     --social-sheet-w: calc(100vw - var(--hero-gutter) * 2);
     --social-sheet-h: calc(var(--social-sheet-w) * 9 / 8);
@@ -904,6 +944,7 @@
 @media (max-width: 639px) {
   /* Grows past the fold rather than squeezing the copy. */
   .hero {
+    --web-stage-min: calc((100vw - var(--hero-gutter) * 2) / 1.3 + 4px);
     height: auto;
     min-height: 100vh;
     min-height: 100svh;

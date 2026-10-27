@@ -29,9 +29,10 @@
 }
 
 .inner {
-  width: min(100% - 48px, 1400px);
-  max-width: 1400px;
+  width: 100%;
+  max-width: var(--media-max-width);
   margin-inline: auto;
+  padding-inline: var(--media-pad);
 }
 
 .statementBlock {
@@ -120,7 +121,6 @@
 
 @media (max-width: 47.9375rem) {
   .inner {
-    width: min(100% - 2rem, 40rem);
     padding-bottom: 0;
   }
 
