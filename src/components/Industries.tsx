@@ -15,18 +15,6 @@ const industries = [
   },
 ]
 
-const INDUSTRY_LIST = [
-  'Real Estates',
-  'Technology',
-  'Hospitality',
-  'Consumer',
-  'Professional Services',
-  'Healthcare',
-  'Finance',
-  'Lifestyle',
-  'Founders',
-]
-
 /** The site's entrance curve — the same one Capabilities.tsx uses. */
 const EASE = [0.22, 1, 0.36, 1] as const
 
@@ -34,21 +22,7 @@ function Industries() {
   const reduce = useReducedMotion()
 
   return (
-    <section className="mx-auto flex w-full max-w-[var(--media-max-width)] flex-col overflow-hidden bg-white px-[var(--media-pad)] py-20 min-[900px]:py-[clamp(72px,9vw,140px)]">
-      <div className="mb-[calc(var(--heading-gap)_-_1.25rem)] flex w-full flex-col items-start text-left">
-        <h2 className="site-display max-w-[900px] text-black text-2xl sm:text-[clamp(2.25rem,3.5vw,4rem)] md:text-[clamp(2.5rem,3.75vw,4rem)] lg:text-[clamp(3rem,2.5vw,4rem)]">
-          Industries
-        </h2>
-
-        <p className="site-copy mt-4 max-w-[620px] text-neutral-600">
-          The context changes. The work adapts with it.
-        </p>
-
-        {/* <p className="mt-5 max-w-[900px] text-[12px] leading-[1.7] tracking-[0.01em] text-neutral-500 sm:text-[13px] md:text-[14px]">
-          {INDUSTRY_LIST.join(' · ')}
-        </p> */}
-      </div>
-
+    <section className="mx-auto flex w-full max-w-[var(--media-max-width)] flex-col overflow-hidden bg-white px-[var(--media-pad)] pb-20 pt-10 min-[900px]:pb-[clamp(72px,9vw,140px)] min-[900px]:pt-[clamp(36px,4.5vw,70px)]">
       {industries.map((industry) => (
         <div
           key={industry.name}

@@ -9,12 +9,10 @@ import {
   STEPS,
   branchOf,
   buildPath,
-  estimatedLength,
   summarize,
   validateStep,
   type Answer,
   type Answers,
-  type SectionKey,
   type Step,
 } from './flow'
 import {
@@ -36,22 +34,27 @@ import { BigInput, ContactFields, EASE, Helper, KEYS, LongAnswer, OptionRows, Vi
 const DRAFT_KEY = 'bw-project-planner:v1'
 const EMAIL = 'hello@brandworks.me'
 const INTRO = 'intro'
+
+// A small, one-shot burst of sparkles and confetti for the greeting pop-up.
+const CONFETTI = [
+  { x: -110, y: -18, rotate: -40, color: '#D4AF37', shape: 'spark' },
+  { x: -78, y: -40, rotate: 120, color: '#E8B4B8', shape: 'bit' },
+  { x: -44, y: -54, rotate: -80, color: '#A3B18A', shape: 'bit' },
+  { x: -14, y: -62, rotate: 30, color: '#D4AF37', shape: 'spark' },
+  { x: 18, y: -60, rotate: 160, color: '#B8C4E0', shape: 'bit' },
+  { x: 50, y: -50, rotate: -120, color: '#E8B4B8', shape: 'bit' },
+  { x: 82, y: -36, rotate: 60, color: '#D4AF37', shape: 'spark' },
+  { x: 112, y: -14, rotate: -150, color: '#A3B18A', shape: 'bit' },
+] as const
 const DONE = 'done'
-/** Steps whose answer starts the background website quick-look. */
 const URL_STEPS = new Set(['currentUrl', 'redesignUrl'])
-/** How long the thank-you screen waits for a scan before saying the report comes later. */
 const SCAN_DONE_WAIT_MS = 60_000
-/** Polling fallback stops after this while the visitor is still answering. */
 const SCAN_FLOW_WAIT_MS = 5 * 60_000
-/** A reaction that hasn't produced a token by then is dropped quietly. */
 const REACT_FIRST_TOKEN_MS = 3_000
-/** Reactions per session (the server also enforces QUESTIONNAIRE_REACT_LIMIT per IP). */
 const MAX_REACTIONS = 6
 
-/** A streamed AI message: the text so far, whether more is coming, and whether it came from the model. */
 type Live = { text: string; streaming: boolean; ai: boolean }
 type Reaction = { from: string; forStep: string; text: string; streaming: boolean }
-
 type Draft = { answers: Answers; stepId: string }
 
 function readDraft(): Draft | null {
@@ -71,7 +74,7 @@ function writeDraft(draft: Draft | null) {
     if (draft) window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
     else window.localStorage.removeItem(DRAFT_KEY)
   } catch {
-    /* storage unavailable (private mode, blocked) — the draft is a convenience only */
+    /* storage unavailable */
   }
 }
 
@@ -79,57 +82,8 @@ const str = (v: Answer | undefined) => (typeof v === 'string' ? v : '')
 const list = (v: Answer | undefined) => (Array.isArray(v) ? v : [])
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? ''
 
-/* -------------------------------------------------------------------------- */
-/*  Small pieces                                                              */
-/* -------------------------------------------------------------------------- */
-
-/** How long the greeting pop-up stays before the next question. */
-const INTERLUDE_MS = 2300
-/** Choice questions that move straight on without the greeting pop-up. */
-const NO_GREETING = new Set(['operation', 'projectStage', 'websiteType', 'redesignType'])
-type Interlude = { target: string; message?: string; pick?: string }
-/** Opening words for the greeting pop-up; picked per answer so it varies. */
-const GREETING_WORDS = ['Great choice', 'Lovely', 'Nice one', 'Wonderful', 'Brilliant'] as const
-
-/** A quiet, emoji-free sparkle animation for the selection greeting. */
-const SPARKLES = [
-  { top: '13%', left: '18%', size: 18, delay: 0, color: 'var(--color-bw-lime)' },
-  { top: '26%', left: '50%', size: 34, delay: 0.16, color: '#111' },
-  { top: '16%', left: '79%', size: 13, delay: 0.32, color: 'var(--color-bw-lime)' },
-  { top: '54%', left: '30%', size: 12, delay: 0.24, color: '#111' },
-  { top: '63%', left: '68%', size: 22, delay: 0.08, color: 'var(--color-bw-lime)' },
-  { top: '78%', left: '43%', size: 11, delay: 0.4, color: '#111' },
-] as const
-
-function SparkleEffect({ reduce, cover = false }: { reduce: boolean; cover?: boolean }) {
-  return (
-    <div aria-hidden="true" className={cover ? 'pointer-events-none absolute inset-0 opacity-50' : 'relative mx-auto h-36 w-56'}>
-      {/* Behind text, only a few faint ones so they don't compete with the words. */}
-      {(cover ? SPARKLES.filter((_, i) => i % 2 === 0) : SPARKLES).map((sparkle) => (
-        <motion.svg
-          key={`${sparkle.left}-${sparkle.top}`}
-          viewBox="0 0 32 32"
-          className="absolute"
-          style={{ top: sparkle.top, left: sparkle.left, width: cover ? sparkle.size * 0.7 : sparkle.size, height: cover ? sparkle.size * 0.7 : sparkle.size, color: sparkle.color }}
-          initial={reduce ? false : { opacity: 0, scale: 0.35, rotate: -35 }}
-          animate={reduce ? { opacity: 0.9, scale: 1, rotate: 0 } : {
-            opacity: [0.25, 1, 0.25],
-            scale: [0.7, 1.15, 0.7],
-            rotate: [-20, 20, -20],
-          }}
-          transition={{ duration: reduce ? 0 : 1.25, delay: reduce ? 0 : sparkle.delay, repeat: reduce ? 0 : Infinity, ease: 'easeInOut' }}
-        >
-          <path d="M16 0c2.7 9.3 6.7 13.3 16 16-9.3 2.7-13.3 6.7-16 16C13.3 22.7 9.3 18.7 0 16 9.3 13.3 13.3 9.3 16 0Z" fill="currentColor" />
-        </motion.svg>
-      ))}
-    </div>
-  )
-}
-
-/** Phone-only intro chips. */
-const INTRO_CHIPS = ['About 3 minutes', 'Tap to answer', 'Type or talk'] as const
-
-const SECTION_ORDER: SectionKey[] = ['basics', 'project', 'style', 'details', 'contact']
+const INTERLUDE_MS = 2500
+type Interlude = { target: string; title?: string; message: string; pick?: string }
 
 function PrimaryButton({ children, onClick, busy, type = 'button', className = '' }: { children: string; onClick?: () => void; busy?: boolean; type?: 'button' | 'submit'; className?: string }) {
   return (
@@ -137,7 +91,7 @@ function PrimaryButton({ children, onClick, busy, type = 'button', className = '
       type={type}
       onClick={onClick}
       aria-busy={busy || undefined}
-      className={`inline-flex h-12 shrink-0 items-center justify-center rounded-full border border-(--q-accent-border) bg-(--q-accent) px-7 text-[16px] font-medium text-(--q-ink) transition-[filter] duration-150 hover:brightness-95 max-sm:h-14 max-sm:text-[17px] max-sm:shadow-[0_8px_20px_rgba(160,200,0,0.35)] ${focusRing} ${className}`}
+      className={`inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-black px-8 text-[15px] font-normal text-white transition-all hover:bg-neutral-800 ${focusRing} ${className}`}
     >
       {children}
     </button>
@@ -146,13 +100,12 @@ function PrimaryButton({ children, onClick, busy, type = 'button', className = '
 
 function TextButton({ children, onClick, className = '' }: { children: ReactNode; onClick?: () => void; className?: string }) {
   return (
-    <button type="button" onClick={onClick} className={`inline-flex min-h-11 items-center rounded-lg px-2 text-[16px] text-(--q-ink) underline-offset-4 hover:underline ${focusRing} ${className}`}>
+    <button type="button" onClick={onClick} className={`inline-flex min-h-10 items-center text-[15px] font-normal text-neutral-500 hover:text-black ${focusRing} ${className}`}>
       {children}
     </button>
   )
 }
 
-/** Keeps Tab inside `ref` while open, closes on Escape and gives focus back to the opener. */
 function useFocusTrap(ref: RefObject<HTMLElement | null>, open: boolean, onClose: () => void) {
   const closeRef = useRef(onClose)
   useEffect(() => { closeRef.current = onClose })
@@ -181,35 +134,7 @@ function useFocusTrap(ref: RefObject<HTMLElement | null>, open: boolean, onClose
   }, [ref, open])
 }
 
-/** One dash per section; the current one fills by how far through that section they are. */
-function SectionDashes({ fills, label }: { fills: number[]; label: string }) {
-  return (
-    <div role="progressbar" aria-label="Progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((fills.reduce((a, b) => a + b, 0) / fills.length) * 100)} aria-valuetext={label} className="flex items-center gap-2">
-      {fills.map((fill, i) => (
-        <span key={SECTION_ORDER[i]} className="relative h-1 w-7 overflow-hidden rounded-full bg-black/12">
-          <span className="absolute inset-y-0 left-0 rounded-full bg-(--q-ink) transition-[width] duration-200" style={{ width: `${Math.round(fill * 100)}%` }} />
-        </span>
-      ))}
-    </div>
-  )
-}
-
-/** "Your answers" — bottom sheet on mobile, right drawer on desktop. */
-function AnswersDrawer({
-  open,
-  onClose,
-  answers,
-  upTo,
-  onEdit,
-  scan,
-}: {
-  open: boolean
-  onClose: () => void
-  answers: Answers
-  upTo: string
-  onEdit: (id: string) => void
-  scan: ReactNode
-}) {
+function AnswersDrawer({ open, onClose, answers, upTo, onEdit, scan }: { open: boolean; onClose: () => void; answers: Answers; upTo: string; onEdit: (id: string) => void; scan: ReactNode }) {
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, open, onClose)
   if (!open) return null
@@ -219,34 +144,34 @@ function AnswersDrawer({
   const rows = summarize(answers).filter((r) => visible.has(r.id))
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-xs" onClick={onClose} aria-hidden="true" />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="q-answers-title"
         data-lenis-prevent
-        className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-[24px] bg-(--q-card) pb-[env(safe-area-inset-bottom)] lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-full lg:max-w-[380px] lg:rounded-none lg:rounded-l-[24px]"
+        className="absolute inset-y-0 right-0 flex w-full max-w-[400px] flex-col bg-white p-6 shadow-2xl"
       >
-        <div className="flex items-center justify-between gap-4 px-6 pb-2 pt-5">
-          <h2 id="q-answers-title" className="m-0 text-[17px] font-semibold text-(--q-ink)">Your answers</h2>
+        <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+          <h2 id="q-answers-title" className="text-[17px] font-normal text-black">Your answers</h2>
           <TextButton onClick={onClose}>Close</TextButton>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
+        <div className="min-h-0 flex-1 overflow-y-auto pt-4">
           {scan && <div className="mb-5">{scan}</div>}
           {rows.length === 0 ? (
-            <p className="m-0 text-[15px] text-(--q-muted)">Your answers will show here as you go.</p>
+            <p className="text-[14px] font-normal text-neutral-500">Your answers will show here as you go.</p>
           ) : (
-            <ol className="m-0 list-none p-0">
+            <ol className="list-none divide-y divide-neutral-100 p-0">
               {rows.map((row) => (
-                <li key={row.id} className="flex items-start gap-3 border-b border-(--q-line) py-3 last:border-b-0">
+                <li key={row.id} className="flex items-start justify-between gap-4 py-3">
                   <div className="min-w-0 flex-1">
-                    <span className="block text-[13px] leading-[1.4] text-(--q-muted)">{row.question}</span>
-                    <span className="mt-0.5 block text-[15px] leading-[1.45]">{row.answer}</span>
+                    <span className="block text-[12px] font-normal text-neutral-400">{row.question}</span>
+                    <span className="mt-0.5 block text-[14px] font-normal text-black">{row.answer}</span>
                   </div>
                   {upTo !== DONE && (
-                    <TextButton onClick={() => onEdit(row.id)} className="-mr-2 shrink-0 text-[14px] underline">
-                      Edit<span className="sr-only">: {row.question}</span>
+                    <TextButton onClick={() => onEdit(row.id)} className="shrink-0 text-[13px] font-normal text-black underline">
+                      Edit
                     </TextButton>
                   )}
                 </li>
@@ -259,45 +184,33 @@ function AnswersDrawer({
   )
 }
 
-/** "Leave the planner?" — a tiny confirm inside the card. */
 function LeaveConfirm({ open, onStay }: { open: boolean; onStay: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   useFocusTrap(ref, open, onStay)
   if (!open) return null
   return (
-    <div
-      ref={ref}
-      role="alertdialog"
-      aria-modal="true"
-      aria-labelledby="q-leave-title"
-      aria-describedby="q-leave-body"
-      className="absolute right-4 top-16 z-20 w-[min(300px,calc(100%-32px))] rounded-2xl border border-(--q-line) bg-(--q-card) p-4 shadow-[0_12px_32px_rgba(0,0,0,0.12)] lg:right-8"
-    >
-      <p id="q-leave-title" className="m-0 text-[16px] font-semibold">Leave the planner?</p>
-      <p id="q-leave-body" className="m-0 mt-1 text-[14px] leading-[1.5] text-(--q-muted)">Your answers are saved on this device.</p>
-      <div className="mt-3 flex items-center justify-end gap-2">
-        <TextButton onClick={onStay}>Stay</TextButton>
-        <Link to="/" className={`inline-flex h-11 items-center rounded-full border border-(--q-accent-border) bg-(--q-accent) px-5 text-[15px] font-medium text-(--q-ink) ${focusRing}`}>Leave</Link>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
+      <div
+        ref={ref}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="q-leave-title"
+        aria-describedby="q-leave-body"
+        className="w-full max-w-[360px] rounded-2xl bg-white p-6 shadow-xl"
+      >
+        <h3 id="q-leave-title" className="text-[18px] font-normal text-black">Leave the planner?</h3>
+        <p id="q-leave-body" className="mt-2 text-[14px] font-normal text-neutral-600">Your answers are saved on this device.</p>
+        <div className="mt-6 flex items-center justify-end gap-3">
+          <TextButton onClick={onStay}>Stay</TextButton>
+          <Link to="/" className={`inline-flex h-10 items-center rounded-full bg-black px-5 text-[14px] font-normal text-white ${focusRing}`}>Leave</Link>
+        </div>
       </div>
     </div>
   )
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Page                                                                      */
-/* -------------------------------------------------------------------------- */
-
 export default function QuestionnairePage() {
   const reduce = useReducedMotion()
-  // Phones get only the full-screen question card: the background film isn't rendered (or downloaded) there.
-  const [film, setFilm] = useState(false)
-  useEffect(() => {
-    const query = window.matchMedia('(min-width: 640px)')
-    const sync = () => setFilm(query.matches)
-    sync()
-    query.addEventListener('change', sync)
-    return () => query.removeEventListener('change', sync)
-  }, [])
   const [answers, setAnswers] = useState<Answers>({})
   const [stepId, setStepId] = useState<string>(INTRO)
   const [error, setError] = useState<string | null>(null)
@@ -319,13 +232,11 @@ export default function QuestionnairePage() {
   const reactionRef = useRef<{ forStep: string; controller: AbortController } | null>(null)
   const reactionsUsed = useRef(0)
   const topRef = useRef<HTMLDivElement>(null)
-  // The card body is the only scroller; the page itself never scrolls.
   const bodyRef = useRef<HTMLDivElement>(null)
   const honeypotRef = useRef<HTMLInputElement>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [swapHint, setSwapHint] = useState(false)
-  /** The greeting pop-up shown between pressing Next and the next question. */
   const [interlude, setInterlude] = useState<Interlude | null>(null)
   const interludeTimer = useRef<number | undefined>(undefined)
   const swapTimer = useRef<number | undefined>(undefined)
@@ -333,10 +244,7 @@ export default function QuestionnairePage() {
   const path = useMemo(() => buildPath(answers), [answers])
   const step: Step | undefined = STEPS[stepId]
   const index = path.indexOf(stepId)
-  const total = estimatedLength(answers)
-  const questionNumber = path.slice(0, index + 1).filter((id) => STEPS[id]?.kind !== 'ai' && STEPS[id]?.kind !== 'exit').length
 
-  /* ---- draft --------------------------------------------------------------- */
   useEffect(() => { setDraft(readDraft()) }, [])
   useEffect(() => {
     if (stepId === INTRO || stepId === DONE || stepId === 'redesignExit') return
@@ -344,25 +252,10 @@ export default function QuestionnairePage() {
   }, [answers, stepId])
   useEffect(() => () => window.clearTimeout(swapTimer.current), [])
 
-  // Mobile: when the keyboard opens, bring the focused field into view.
-  useEffect(() => {
-    const onFocus = (event: FocusEvent) => {
-      const el = event.target as HTMLElement | null
-      if (!el || !/^(INPUT|TEXTAREA)$/.test(el.tagName) || !window.matchMedia('(max-width: 640px)').matches) return
-      window.setTimeout(() => el.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' }), 300)
-    }
-    document.addEventListener('focusin', onFocus)
-    return () => document.removeEventListener('focusin', onFocus)
-  }, [reduce])
-
-  /* ---- navigation --------------------------------------------------------- */
   const scrollTop = useCallback(() => {
     bodyRef.current?.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
-    const el = topRef.current
-    if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
   }, [reduce])
 
-  /** Stops a reaction that is still streaming and takes it off screen. */
   const cancelReaction = useCallback(() => {
     reactionRef.current?.controller.abort()
     reactionRef.current = null
@@ -372,22 +265,15 @@ export default function QuestionnairePage() {
   const go = useCallback((target: string) => {
     window.clearTimeout(swapTimer.current)
     setSwapHint(false)
-    // A reaction belongs to the question it was started for; moving anywhere else cancels it.
     if (reactionRef.current && reactionRef.current.forStep !== target) cancelReaction()
     setError(null)
     setStepId(target)
     scrollTop()
   }, [scrollTop, cancelReaction])
 
-  /**
-   * Streams a one-line reaction to the answer just given, shown at the top of
-   * the next question. Never blocks: if nothing arrives within 3 s it is
-   * dropped quietly, and moving on again cancels it.
-   */
   const startReaction = useCallback((from: string, forStep: string, current: Answers) => {
     const target = STEPS[forStep]
     if (!STEPS[from]?.aiReact || !target || reactionsUsed.current >= MAX_REACTIONS) return
-    // Not on the AI interstitial, the contact step or the exit; nor above the greeting, which already reacts.
     if (target.kind === 'ai' || target.kind === 'contact' || target.kind === 'exit' || (target.kind === 'longtext' && target.aiIntro)) return
     reactionRef.current?.controller.abort()
     const controller = new AbortController()
@@ -409,7 +295,6 @@ export default function QuestionnairePage() {
         if (controller.signal.aborted) return
         if (!r.ai || !r.message) { setReaction((x) => (x?.forStep === forStep ? null : x)); return }
         setReaction((x) => (x?.forStep === forStep ? { ...x, text: r.message, streaming: false } : x))
-        // Kept with the answers so the team sees exactly what the visitor was told.
         setAnswers((a) => ({ ...a, aiNotes: [...(Array.isArray(a.aiNotes) ? a.aiNotes : []), r.message].slice(-MAX_REACTIONS) }))
       })
       .catch(() => {
@@ -440,7 +325,6 @@ export default function QuestionnairePage() {
     setError(result.error ?? 'That didn’t go through.')
   }, [go])
 
-  /** Kicks off (or drops) the website quick-look without holding up the flow. */
   const startScan = useCallback((stepKey: string, current: Answers) => {
     const raw = str(current[stepKey]).trim()
     if (!raw) {
@@ -478,37 +362,48 @@ export default function QuestionnairePage() {
     const target = route[route.indexOf(stepId) + 1]
     if (!target) return
     if (here.aiReact) startReaction(here.id, target, current)
-    const greet = (message?: string, pick?: string) => {
-      setInterlude({ target, message, pick })
-      window.clearTimeout(interludeTimer.current)
-      interludeTimer.current = window.setTimeout(() => { setInterlude(null); go(target) }, INTERLUDE_MS)
-    }
-    // Briefly acknowledge the brand name before continuing.
-    if (here.id === 'brandName' && !NO_GREETING.has(here.id)) {
+
+    // Dedicated welcome greeting pop-up when brand name is entered
+    if (here.id === 'brandName') {
       const name = str(current.brandName).trim()
-      if (name) { greet(`Nice to meet you, ${name}. Let’s build something great together.`, 'Welcome'); return }
-    }
-    // A choice question greets the pick in a short pop-up, then moves on.
-    if ((here.kind === 'single' || here.kind === 'multi') && !NO_GREETING.has(here.id)) {
-      const value = here.kind === 'single' ? str(current[here.id]) : list(current[here.id]).at(-1) ?? ''
-      const option = here.options.find((o) => o.value === value)
-      if (option) {
-        // The business-type pick gets a line written for that answer.
-        greet(here.id === 'workType' ? cheerFor(option.value) : undefined, here.id === 'workType' ? GREETING_WORDS[option.value.length % GREETING_WORDS.length] : undefined)
+      if (name) {
+        setInterlude({ 
+          target, 
+          title: 'WELCOME TO BRANDWORKS',
+          message: `Nice to meet you, ${name}. Let’s build something extraordinary together.` 
+        })
+        window.clearTimeout(interludeTimer.current)
+        interludeTimer.current = window.setTimeout(() => { setInterlude(null); go(target) }, INTERLUDE_MS)
         return
       }
     }
+
+    // Proud, encouraging pop-up greeting after selecting work type
+    if (here.id === 'workType') {
+      const value = str(current.workType)
+      const option = here.options.find((o) => o.value === value)
+      if (option) {
+        const personalizedCheer = cheerFor(option.value) || `Designing high-impact digital solutions for ${option.label}.`
+        setInterlude({
+          target,
+          pick: option.label,
+          message: personalizedCheer
+        })
+        window.clearTimeout(interludeTimer.current)
+        interludeTimer.current = window.setTimeout(() => { setInterlude(null); go(target) }, INTERLUDE_MS)
+        return
+      }
+    }
+
     go(target)
   }, [answers, stepId, go, submit, startScan, startReaction])
 
-  /** Tap, Enter or Esc skips the rest of the greeting. */
   const finishInterlude = useCallback(() => {
     if (!interlude) return
     window.clearTimeout(interludeTimer.current)
     setInterlude(null)
     go(interlude.target)
   }, [interlude, go])
-  useEffect(() => () => window.clearTimeout(interludeTimer.current), [])
 
   const back = useCallback(() => {
     if (stepId === DONE) return
@@ -529,7 +424,6 @@ export default function QuestionnairePage() {
     trackEvent({ name: AnalyticsEvents.questionnaireStart, params: { resumed: Boolean(resume && draft) } })
   }
 
-  /* ---- answering ---------------------------------------------------------- */
   const setAnswer = (key: string, value: Answer | undefined) => {
     setError(null)
     setAnswers((a) => {
@@ -559,7 +453,6 @@ export default function QuestionnairePage() {
       if (step.max && updated.length > step.max) {
         if (step.max === 1) updated = [value]
         else {
-          // At the max: the hint line briefly says how to swap instead of an error.
           setSwapHint(true)
           window.clearTimeout(swapTimer.current)
           swapTimer.current = window.setTimeout(() => setSwapHint(false), 2200)
@@ -570,12 +463,10 @@ export default function QuestionnairePage() {
     setAnswer(step.id, updated)
   }
 
-  /* ---- AI moments --------------------------------------------------------- */
   const greetKey = ['greet', answers.brandName, answers.workType, answers.workTypeOther, answers.operation, answers.websiteType].join('|')
   const uspKey = ['usp', answers.brandName, answers.usp].join('|')
   const recKey = ['rec', answers.brandName, answers.workType, answers.workTypeOther, answers.operation].join('|')
 
-  // The greeting above the USP question and the reply after it, streamed token by token.
   useEffect(() => {
     const task = stepId === 'usp' ? 'greet' : stepId === 'uspReply' ? 'usp-reply' : null
     if (!task) return
@@ -590,14 +481,11 @@ export default function QuestionnairePage() {
       .then((r) => setAiText((t) => ({ ...t, [key]: { text: r.message, streaming: false, ai: r.ai } })))
       .catch((e: unknown) => {
         if (e instanceof DOMException && e.name === 'AbortError') return
-        // Neither stream nor fallback reached the server: plain, non-personal copy.
         setAiText((t) => ({ ...t, [key]: { text: task === 'greet' ? 'Thanks, that’s the basics covered.' : 'Thanks, noted.', streaming: false, ai: false } }))
       })
     return () => controller.abort()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by greetKey/uspKey, not every answer
   }, [stepId, greetKey, uspKey])
 
-  // "Not sure yet — help me choose": the type arrives first (meta), then the reason streams.
   const wantsRecommendation = stepId === 'websiteType' && answers.websiteType === 'not-sure'
   useEffect(() => {
     if (!wantsRecommendation || (recommendation?.key === recKey && !recommendation.streaming)) return
@@ -614,10 +502,8 @@ export default function QuestionnairePage() {
         setRecommendation({ key: recKey, suggestion: 'business', message: 'A business website is the usual starting point when people need to understand what you offer, trust you, and get in touch.', streaming: false, ai: false })
       })
     return () => controller.abort()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by recKey
   }, [wantsRecommendation, recKey])
 
-  // Idea chips for free-text questions, fetched when the step opens. No AI, no chips.
   const workTypeStep = STEPS.workType
   const workTypeLabel = answers.workType === 'other'
     ? str(answers.workTypeOther).trim()
@@ -630,16 +516,13 @@ export default function QuestionnairePage() {
       .then((r) => setSuggestions((s) => ({ ...s, [suggestKey]: r.ai ? r.items ?? [] : [] })))
       .catch(() => undefined)
     return () => controller.abort()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by suggestKey
   }, [suggestKey])
 
-  // Development only: say plainly when no AI provider is configured.
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return
     void getAiStatus().then((s) => { if (s && !s.aiProvider) setAiOff(true) })
   }, [])
 
-  /* ---- website quick-look -------------------------------------------------- */
   const scanId = str(answers.siteScanId)
   const scanFinished = scanView !== null
   const onDoneScreen = stepId === DONE
@@ -647,12 +530,10 @@ export default function QuestionnairePage() {
   useEffect(() => {
     doneAtRef.current = onDoneScreen ? Date.now() : null
     if (!onDoneScreen || !scanId || scanFinished) return
-    // The thank-you screen waits up to a minute, then says the report comes with the reply.
     const timer = window.setTimeout(() => setScanTimedOut(true), SCAN_DONE_WAIT_MS)
     return () => window.clearTimeout(timer)
   }, [onDoneScreen, scanId, scanFinished])
 
-  // Follow the scan live (SSE); the watcher reconnects once, then falls back to polling.
   useEffect(() => {
     if (!scanId || scanFinished) return
     const controller = new AbortController()
@@ -669,11 +550,8 @@ export default function QuestionnairePage() {
       },
     })
     return () => controller.abort()
-    // Restarts on the thank-you screen so a scan still running there gets its final minute of updates.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one watcher per scan id (and screen)
   }, [scanId, scanFinished, onDoneScreen])
 
-  /* ---- keyboard ----------------------------------------------------------- */
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (interlude) {
@@ -688,7 +566,6 @@ export default function QuestionnairePage() {
       if (event.key === 'Enter') {
         if (stepId === INTRO || stepId === DONE || !step || step.kind === 'exit') return
         if (tag === 'TEXTAREA' && !(event.metaKey || event.ctrlKey)) return
-        // Enter on a radio/checkbox row moves on, like Enter in a native form.
         const role = target?.getAttribute('role')
         if (tag === 'BUTTON' && role !== 'radio' && role !== 'checkbox') return
         event.preventDefault()
@@ -708,12 +585,11 @@ export default function QuestionnairePage() {
     return () => window.removeEventListener('keydown', onKey)
   })
 
-  /* ---- render ------------------------------------------------------------- */
-  const card = {
-    initial: reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 },
+  const stepAnimation = {
+    initial: reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 },
     animate: { opacity: 1, y: 0 },
-    exit: reduce ? { opacity: 1 } : { opacity: 0 },
-    transition: { duration: reduce ? 0 : 0.2, ease: EASE },
+    exit: reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: -6 },
+    transition: { duration: reduce ? 0 : 0.18, ease: EASE },
   }
 
   const name = firstName(str(answers.contactName))
@@ -723,46 +599,23 @@ export default function QuestionnairePage() {
     return `mailto:${EMAIL}?subject=${encodeURIComponent(`Website project — ${str(answers.brandName) || 'new enquiry'}`)}&body=${encodeURIComponent(body)}`
   }
 
-  // Section dashes: earlier sections full, the current one by how far through it they are.
-  const sectionFills = (() => {
-    if (stepId === DONE) return SECTION_ORDER.map(() => 1)
-    if (!step) return SECTION_ORDER.map(() => 0)
-    const current = SECTION_ORDER.indexOf(step.section)
-    const counted = (id: string) => STEPS[id]?.section === step.section && STEPS[id]?.kind !== 'ai' && STEPS[id]?.kind !== 'exit'
-    const inSection = path.filter(counted)
-    const reached = path.slice(0, index + 1).filter(counted).length
-    const fill = inSection.length ? Math.max(reached, 1) / inSection.length : 1
-    return SECTION_ORDER.map((_, i) => (i < current ? 1 : i === current ? Math.min(1, fill) : 0))
-  })()
-
-  const answeredCount = (() => {
-    const limit = stepId === DONE ? path.length : Math.max(0, index)
-    const visible = new Set(path.slice(0, limit))
-    return summarize(answers).filter((r) => visible.has(r.id)).length
-  })()
-  const scanRunning = Boolean(scanTarget) && !scanView
-
-  // Short, human hints — only where they add something the helper doesn't already say.
   const hintLine = (s: Step): string | null => {
     if (s.kind === 'multi') return swapHint ? 'Unselect one to swap' : s.max ? null : 'Pick as many as you like'
-    if ((s.kind === 'text' || s.kind === 'longtext') && s.optional) return 'Optional, skip it if you like'
+    // if ((s.kind === 'text' || s.kind === 'longtext') && s.optional) return 'Optional, skip it if you like'
     return null
   }
 
-  /** A fieldset whose legend is the title, then the hint, the helper and the answer. */
   const question = (s: Step, body: ReactNode) => {
     const hint = hintLine(s)
     return (
-      <>
-        <fieldset className="m-0 min-w-0 border-0 p-0">
-          <legend className="m-0 block w-full p-0 font-(family-name:--font-secondary) text-[24px] font-semibold leading-[1.2] text-(--q-ink) lg:text-[30px]">
-            {s.title}
-          </legend>
-          {hint && <span className="mt-2 flex items-center gap-1.5 text-[14px] italic text-(--q-muted)" aria-live={s.kind === 'multi' ? 'polite' : undefined}>{hint}</span>}
-          {s.helper && <Helper>{s.helper}</Helper>}
-          <div className="mt-6">{body}</div>
-        </fieldset>
-      </>
+      <fieldset className="m-0 border-0 p-0">
+        <legend className="m-0 block w-full text-[28px] font-normal leading-[1.2] tracking-tight text-neutral-900 lg:text-[34px]">
+          {s.title}
+        </legend>
+        {hint && <span className="mt-2 flex items-center gap-1.5 text-[14px] italic text-neutral-500 font-normal" aria-live={s.kind === 'multi' ? 'polite' : undefined}>{hint}</span>}
+        {s.helper && <Helper>{s.helper}</Helper>}
+        <div className="mt-6">{body}</div>
+      </fieldset>
     )
   }
 
@@ -798,7 +651,7 @@ export default function QuestionnairePage() {
             />
             {s.aiSuggest && (suggestions[suggestKey]?.length ?? 0) > 0 && (
               <div className="mt-4">
-                <span className="block text-[14px] font-medium text-(--q-ink)">Ideas for {workTypeLabel || 'your business'}</span>
+                <span className="block text-[14px] font-normal text-black">Ideas for {workTypeLabel || 'your business'}</span>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {suggestions[suggestKey].map((idea) => (
                     <button
@@ -809,7 +662,7 @@ export default function QuestionnairePage() {
                         const joined = current ? `${current}${/[.!?,;:]$/.test(current) ? ' ' : '. '}${idea}` : idea
                         setAnswer(s.id, s.maxLength ? joined.slice(0, s.maxLength) : joined)
                       }}
-                      className={`relative min-h-9 rounded-full border border-(--q-line) px-3.5 py-1.5 text-left text-[13px] leading-[1.3] transition-colors before:absolute before:-inset-1 before:content-[''] hover:border-(--q-ink) ${focusRing}`}
+                      className={`relative min-h-9 rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-left text-[13px] font-normal text-neutral-800 transition-colors hover:border-black ${focusRing}`}
                     >
                       + {idea}
                     </button>
@@ -833,18 +686,17 @@ export default function QuestionnairePage() {
             )}
             {s.assistValue && value === s.assistValue && (
               <div className="mt-5">
-                {/* Only a model answer is "BrandWorks suggests"; the written fallback is labelled as what it is. */}
                 <AiMessage
                   label={recommendation?.key === recKey && !recommendation.ai ? 'A common starting point' : 'BrandWorks suggests'}
                   text={recommendation?.key === recKey && recommendation.suggestion ? `${s.options.find((o) => o.value === recommendation.suggestion)?.label}. ${recommendation.message}` : null}
                   streaming={recommendation?.key === recKey ? recommendation.streaming : true}
                 />
                 {recommendation?.key === recKey && !recommendation.streaming && recommendation.suggestion && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button type="button" onClick={() => { const u = { ...answers, [`${s.id}Suggested`]: recommendation.suggestion }; setAnswers(u); next(u) }} className={`min-h-11 rounded-full bg-(--q-ink) px-5 text-[14px] text-white ${focusRing}`}>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <button type="button" onClick={() => { const u = { ...answers, [`${s.id}Suggested`]: recommendation.suggestion }; setAnswers(u); next(u) }} className={`min-h-11 rounded-full bg-black px-6 text-[14px] font-normal text-white ${focusRing}`}>
                       Sounds right
                     </button>
-                    <button type="button" onClick={() => { const u = { ...answers }; delete u[`${s.id}Suggested`]; setAnswers(u); next(u) }} className={`min-h-11 rounded-full border border-(--q-line) px-5 text-[14px] hover:border-(--q-ink) ${focusRing}`}>
+                    <button type="button" onClick={() => { const u = { ...answers }; delete u[`${s.id}Suggested`]; setAnswers(u); next(u) }} className={`min-h-11 rounded-full border border-neutral-200 px-6 text-[14px] font-normal text-black hover:border-black ${focusRing}`}>
                       Keep it open, decide together
                     </button>
                   </div>
@@ -860,16 +712,16 @@ export default function QuestionnairePage() {
         return <AiMessage text={aiText[uspKey]?.text || null} streaming={aiText[uspKey]?.streaming ?? true} large />
       case 'exit':
         return (
-          <>
-            <h2 className="m-0 text-[24px] font-semibold leading-[1.2] lg:text-[30px]">Thanks for sharing.</h2>
-            <p className="m-0 mt-3 text-[16px] leading-[1.6] text-(--q-muted)">{s.body}</p>
-            <div className="mt-8 flex flex-wrap items-center justify-end gap-3">
+          <div>
+            <h2 className="text-[28px] font-normal text-black lg:text-[34px]">Thanks for sharing.</h2>
+            <p className="mt-3 text-[16px] leading-[1.6] font-normal text-neutral-600">{s.body}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
               <TextButton onClick={back}>Change my answer</TextButton>
-              <Link to="/services" className={`inline-flex h-12 items-center rounded-full border border-(--q-accent-border) bg-(--q-accent) px-7 text-[16px] font-medium text-(--q-ink) ${focusRing}`}>
+              <Link to="/services" className={`inline-flex h-12 items-center rounded-full bg-black px-8 text-[15px] font-normal text-white ${focusRing}`}>
                 Explore our services
               </Link>
             </div>
-          </>
+          </div>
         )
       case 'contact':
         return question(s, (
@@ -884,8 +736,8 @@ export default function QuestionnairePage() {
               onChange={(k, v) => setAnswer(k, v)}
               askWebsite={branchOf(answers) === 'redesign' && !str(answers.redesignUrl).trim()}
             />
-            <p className="m-0 mt-5 text-[12px] leading-[1.6] text-(--q-muted)">
-              We only use these details to reply about your project. Your answers are summarised with AI to help our team prepare.
+            <p className="mt-4 text-[13px] font-normal text-neutral-500">
+              We only use these details to reply about your project. Your answers are summarized with AI to help our team prepare.
             </p>
           </>
         ))
@@ -893,267 +745,250 @@ export default function QuestionnairePage() {
   }
 
   const showFooter = step && step.kind !== 'exit'
-  const choiceMissing = (step?.kind === 'single' && !str(answers[step.id])) || (step?.kind === 'multi' && list(answers[step.id]).length === 0)
   const nextLabel = !step ? 'Next'
     : step.kind === 'ai' ? step.cta
     : step.kind === 'contact' ? (status === 'sending' ? 'Sending…' : 'Send my plan')
     : (step.kind === 'longtext' || step.kind === 'text') && step.optional && !str(answers[step.id]).trim() ? 'Skip'
     : 'Next'
-  // A reaction shows only where it is the screen's one AI message.
   const showReaction = Boolean(step && reaction?.forStep === stepId && reaction.text && step.kind !== 'ai'
     && !(step.kind === 'longtext' && step.aiIntro)
     && !(step.kind === 'single' && step.assistValue && answers[step.id] === step.assistValue))
-  const wide = step?.kind === 'single' && step.layout === 'visual'
 
   return (
-    <main className="bw-q relative isolate h-dvh overflow-hidden bg-white bg-none antialiased sm:bg-black sm:px-8 sm:pb-10 sm:pt-20 lg:grid lg:place-items-center lg:pb-16 lg:pt-16">
-      {/* Background film: decorative, muted, behind everything. With reduced motion it stays on its first frame. */}
-      {film && <video
-        key={reduce ? 'still' : 'loop'}
-        src="/video/ForWebsite.mp4"
-        autoPlay={!reduce}
-        loop
-        muted
-        playsInline
-        preload="auto"
-        aria-hidden="true"
-        tabIndex={-1}
-        className="pointer-events-none fixed inset-0 -z-10 h-full w-full scale-105 object-cover blur-[6px]"
-      />}
+    <main className="relative h-dvh w-full overflow-hidden bg-[#FAFAFA] text-neutral-900 antialiased">
       {aiOff && (
-        <div role="status" className="fixed inset-x-0 top-3 z-40 mx-auto flex w-[calc(100%-32px)] max-w-[520px] items-center justify-between gap-4 rounded-2xl bg-(--q-ink) px-4 py-3 text-[13px] text-white shadow-lg">
-          <span><span className="mr-2 font-medium text-(--q-accent)">Dev</span>AI is off. Showing neutral copy.</span>
-          <button type="button" onClick={() => setAiOff(false)} className="shrink-0 rounded-full border border-white/25 px-3 py-1 text-[12px] hover:border-white">Dismiss</button>
+        <div role="status" className="fixed inset-x-0 top-3 z-40 mx-auto flex w-[calc(100%-32px)] max-w-[520px] items-center justify-between gap-4 rounded-xl bg-black px-4 py-3 text-[13px] text-white shadow-lg">
+          <span><span className="mr-2 font-normal text-[#CCFF00]">Dev</span>AI is off. Showing neutral copy.</span>
+          <button type="button" onClick={() => setAiOff(false)} className="shrink-0 rounded-full border border-white/20 px-3 py-1 text-[12px] hover:border-white">Dismiss</button>
         </div>
       )}
+
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
         <label>Leave this empty<input ref={honeypotRef} type="text" name="website_url" tabIndex={-1} autoComplete="off" /></label>
       </div>
 
-      <div ref={topRef} className={`relative mx-auto flex w-full flex-col max-sm:h-dvh sm:max-h-[calc(100dvh-7.5rem)] lg:max-h-[calc(100dvh-8rem)] sm:max-w-[560px] sm:scroll-mt-20 ${wide ? 'lg:max-w-[760px]' : 'lg:max-w-[600px]'}`}>
-        <div aria-hidden="true" className="bw-q-back max-sm:hidden" />
-        <div className="bw-q-card relative flex min-h-0 flex-1 flex-col px-6 pt-[max(24px,env(safe-area-inset-top))] sm:pt-6 lg:px-10 lg:pt-8">
-          {/* Header row: section dashes | Answers + close */}
-          <div className="flex min-h-11 items-center justify-between gap-3">
-            {stepId !== INTRO ? (
-              <SectionDashes fills={sectionFills} label={stepId === DONE ? 'All questions answered' : `Question ${questionNumber} of ${total}`} />
-            ) : <span />}
-            <div className="flex items-center gap-1">
-              {stepId !== INTRO && stepId !== DONE && (answeredCount > 0 || scanRunning) && (
-                <button type="button" onClick={() => setDrawerOpen(true)} aria-haspopup="dialog" aria-label={scanRunning ? 'Your answers (website check running)' : 'Your answers'} title="Your answers" className={`relative grid size-11 place-items-center rounded-full text-(--q-ink) hover:bg-(--q-tint) ${focusRing}`}>
-                  {/* Icon only: a small list. The dot shows while the website check runs. */}
-                  <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
-                    <path d="M9 7h10M9 12h10M9 17h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                    <circle cx="5" cy="7" r="1.2" fill="currentColor" />
-                    <circle cx="5" cy="12" r="1.2" fill="currentColor" />
-                    <circle cx="5" cy="17" r="1.2" fill="currentColor" />
-                  </svg>
-                  {scanRunning && <span aria-hidden="true" className="absolute right-2 top-2 size-2 rounded-full bg-(--q-accent) ring-2 ring-white motion-safe:animate-pulse" />}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setConfirmOpen(true)}
-                aria-label="Close the planner"
-                aria-haspopup="dialog"
-                className={`grid size-11 place-items-center rounded-full ${focusRing}`}
-              >
-                <span aria-hidden="true" className="grid size-7 place-items-center rounded-full bg-black/35 text-white">
-                  <svg viewBox="0 0 12 12" className="size-2.5"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-                </span>
-              </button>
-            </div>
+      {/* Main Container - max-w-1500px Viewport Fit */}
+      <div className="mx-auto flex h-dvh max-w-[1500px] flex-col px-6 py-5 lg:px-12 lg:py-6">
+        
+        {/* Header Navigation */}
+        <header className="flex shrink-0 items-center justify-between border-b border-neutral-200/80 pb-4">
+          <Link to="/" className="inline-flex items-center gap-2 group focus:outline-none">
+            <span className="text-[22px] font-normal tracking-tight text-black">
+              {/* BrandWorks<span className="text-[#CCFF00]">.</span> */}
+            </span>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-normal text-neutral-700 transition-colors hover:border-black hover:text-black"
+            >
+              Leave to home page
+            </Link>
           </div>
-          <LeaveConfirm open={confirmOpen} onStay={() => setConfirmOpen(false)} />
+        </header>
 
-          <div ref={bodyRef} data-lenis-prevent className="-mx-6 min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-6 pb-2 pt-5 lg:-mx-10 lg:px-10 lg:pt-6">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div key={stepId} initial={card.initial} animate={card.animate} exit={card.exit} transition={card.transition}>
-                {stepId === INTRO && (
-                  <div className="pb-6 max-sm:flex max-sm:min-h-[calc(100dvh-110px)] max-sm:flex-col lg:pb-5">
-                    {/* {eyebrow('Website project planner')} */}
-                    <h1 className="m-0 mt-2 font-(family-name:--font-primary) text-[32px] font-normal leading-[1.05] tracking-[-0.02em] lg:text-[40px]">Let’s plan your website.</h1>
-                    <p className="m-0 mt-11 text-[16px] leading-[1.6] text-(--q-muted)">
-                      A few quick questions about your business and what you need, then we put together a short plan our team picks up from.
-                    </p>
-                    {/* <ul className="bw-q-mono m-0 mt-5 flex list-none flex-wrap gap-x-3 gap-y-1 p-0 text-[11px] text-(--q-muted)">
-                      <li>~3 minutes</li><li aria-hidden="true">·</li><li>Tap to answer</li><li aria-hidden="true">·</li><li>Type or talk</li>
-                    </ul> */}
-                    <ul className="m-0 mt-6 flex list-none flex-wrap gap-2 p-0 sm:hidden">
-                      {INTRO_CHIPS.map((text) => (
-                        <li key={text} className="inline-flex items-center rounded-full border border-(--q-line) bg-white px-3 py-1.5 text-[13px]">
-                          {text}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="mt-8 flex flex-wrap items-center justify-end gap-3 max-sm:mt-auto max-sm:flex-col-reverse max-sm:items-stretch max-sm:pt-8">
-                      {draft ? (
-                        <>
-                          <TextButton onClick={() => start(false)} className="max-sm:justify-center">Start over</TextButton>
-                          <PrimaryButton onClick={() => start(true)} className="max-sm:w-full">Continue</PrimaryButton>
-                        </>
-                      ) : (
-                        <PrimaryButton onClick={() => start(false)} className="max-sm:w-full">Start</PrimaryButton>
-                      )}
-                    </div>
-                  </div>
-                )}
+        {/* Full-Page Split Grid Body */}
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-8 pt-6 lg:grid-cols-12 lg:gap-12 lg:pt-8">
+          
+          {/* LEFT SIDEBAR */}
+          <div className="hidden flex-col justify-between border-r border-neutral-200/80 pr-10 lg:col-span-4 lg:flex">
+            <div className="max-w-[360px]">
+              <span className="text-[11px] font-normal tracking-widest text-neutral-400 uppercase">PROJECT BRIEF</span>
+              <h1 className="mt-3 text-[30px] font-normal leading-[1.15] tracking-tight text-neutral-900">
+                Let's build something worth remembering.
+              </h1>
+              <p className="mt-4 text-[14px] leading-[1.6] font-normal text-neutral-500">
+                A few details will help us understand your project vision and business targets clearly.
+              </p>
+            </div>
 
-                {stepId === DONE && (
-                  <div className="pb-6 lg:pb-10" role="status">
-                    <h1 className="m-0 font-(family-name:--font-primary) text-[32px] font-normal leading-[1.05] tracking-[-0.02em] lg:text-[40px]">
-                      Thanks{name ? `, ${name}` : ''}.
-                    </h1>
-                    <p className="m-0 mt-3 text-[16px] leading-[1.6] text-(--q-muted)">
-                      Your plan is with us. Someone from BrandWorks will reply to {str(answers.contactEmail) || 'your email'}, usually within one working day.
-                    </p>
-                    {brief && (
-                      <div className="mt-6">
-                        {/* Neutral copy when the summary couldn't be written by the model. */}
-                        <AiMessage label={briefAi ? 'Here’s what we heard' : 'What happens next'} text={brief.summary} />
-                        {brief.focus.length > 0 && (
-                          <div className="mt-5">
-                            <span className="block text-[15px] font-semibold">Where we’d start</span>
-                            <ul className="m-0 mt-2 list-none p-0">
-                              {brief.focus.map((f) => (
-                                <li key={f} className="flex gap-3 py-1 text-[15px] leading-[1.5]">
-                                  <span aria-hidden="true" className="mt-[9px] size-1.5 shrink-0 rounded-full bg-(--q-ink)" />
-                                  {f}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+          </div>
+
+          {/* RIGHT MAIN SECTION */}
+          <div className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden lg:col-span-8">
+            <div ref={topRef} />
+            
+            <div ref={bodyRef} data-lenis-prevent className="flex-1 overflow-y-auto pr-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div key={stepId} initial={stepAnimation.initial} animate={stepAnimation.animate} exit={stepAnimation.exit} transition={stepAnimation.transition} className="max-w-[720px]">
+                  
+                  {stepId === INTRO && (
+                    <div className="flex flex-col justify-center py-4">
+                      <span className="text-[12px] font-normal tracking-widest text-neutral-400 uppercase">WELCOME TO BRANDWORKS</span>
+                      <h2 className="mt-2 text-[32px] font-normal leading-[1.15] tracking-tight text-black lg:text-[42px]">
+                        "Every great website starts with a conversation."
+                      </h2>
+                      <p className="mt-4 max-w-[560px] text-[16px] leading-[1.6] font-normal text-neutral-600">
+                        Tell us a little about what you're building. We'll take it from there to create a high-impact digital platform tailored to your brand.
+                      </p>
+                      <div className="mt-8 flex items-center gap-4">
+                        {draft ? (
+                          <>
+                            <PrimaryButton onClick={() => start(true)}>Continue draft</PrimaryButton>
+                            <TextButton onClick={() => start(false)}>Start over</TextButton>
+                          </>
+                        ) : (
+                          <PrimaryButton onClick={() => start(false)}>Let's get started</PrimaryButton>
                         )}
                       </div>
-                    )}
-                    {scanTarget && scanId && (
-                      <SiteScanCard
-                        scan={scanView ?? { status: 'running', domain: scanTarget.domain, teaser: null, teaserAi: false, highlights: [], disclaimer: SCAN_DISCLAIMER }}
-                        timedOut={scanTimedOut}
-                      />
-                    )}
-                    <div className="mt-8 flex flex-wrap items-center justify-end gap-3">
-                      <TextButton onClick={() => {
-                        setAnswers({}); setBrief(null); setScanTarget(null); setScanChecks({}); setScanView(null); setScanTimedOut(false)
-                        scanUrlRef.current = null; reactionsUsed.current = 0; go(INTRO)
-                      }}>
-                        Plan another project
-                      </TextButton>
-                      <Link to="/work" className={`inline-flex h-12 items-center rounded-full border border-(--q-accent-border) bg-(--q-accent) px-7 text-[16px] font-medium text-(--q-ink) ${focusRing}`}>See our work</Link>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {step && (
-                  <div className={step.kind === 'exit' ? 'pb-6 lg:pb-10' : ''}>
-                    {step.kind === 'longtext' && step.aiIntro === 'greet' && (
-                      <AiMessage text={aiText[greetKey]?.text || null} streaming={aiText[greetKey]?.streaming ?? true} className="mb-5" />
-                    )}
-                    {showReaction && reaction && <AiMessage text={reaction.text} streaming={reaction.streaming} className="mb-5" />}
-                    {renderStep(step)}
-                  </div>
+                  {stepId === DONE && (
+                    <div className="py-4" role="status">
+                      <h1 className="text-[32px] font-normal text-black lg:text-[42px]">
+                        Thanks{name ? `, ${name}` : ''}.
+                      </h1>
+                      <p className="mt-3 text-[16px] leading-[1.6] font-normal text-neutral-600">
+                        Your plan is with us. Someone from BrandWorks will reply to {str(answers.contactEmail) || 'your email'}, usually within one working day.
+                      </p>
+                      {brief && (
+                        <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs">
+                          <AiMessage label={briefAi ? 'Here’s what we heard' : 'What happens next'} text={brief.summary} />
+                          {brief.focus.length > 0 && (
+                            <div className="mt-6 border-t border-neutral-100 pt-4">
+                              <span className="block text-[14px] font-normal text-black">Where we’d start</span>
+                              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[15px] font-normal text-neutral-700">
+                                {brief.focus.map((f) => (
+                                  <li key={f}>{f}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {scanTarget && scanId && (
+                        <div className="mt-6">
+                          <SiteScanCard
+                            scan={scanView ?? { status: 'running', domain: scanTarget.domain, teaser: null, teaserAi: false, highlights: [], disclaimer: SCAN_DISCLAIMER }}
+                            timedOut={scanTimedOut}
+                          />
+                        </div>
+                      )}
+                      <div className="mt-8 flex flex-wrap items-center gap-4">
+                        <PrimaryButton onClick={() => {
+                          setAnswers({}); setBrief(null); setScanTarget(null); setScanChecks({}); setScanView(null); setScanTimedOut(false)
+                          scanUrlRef.current = null; reactionsUsed.current = 0; go(INTRO)
+                        }}>
+                          Plan another project
+                        </PrimaryButton>
+                        <Link to="/work" className={`inline-flex h-12 items-center rounded-full border border-neutral-300 bg-white px-8 text-[15px] font-normal text-black hover:bg-neutral-50 ${focusRing}`}>See our work</Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {step && (
+                    <div className="py-2">
+                      {step.kind === 'longtext' && step.aiIntro === 'greet' && (
+                        <AiMessage text={aiText[greetKey]?.text || null} streaming={aiText[greetKey]?.streaming ?? true} className="mb-5" />
+                      )}
+                      {showReaction && reaction && <AiMessage text={reaction.text} streaming={reaction.streaming} className="mb-5" />}
+                      {renderStep(step)}
+                    </div>
+                  )}
+
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Bottom Navigation */}
+            {showFooter && step && (
+              <footer className="mt-6 shrink-0 border-t border-neutral-200/80 pt-4">
+                {error && (
+                  <p role="alert" className="mb-2 text-[14px] font-normal text-red-600">{error}</p>
                 )}
-              </motion.div>
-            </AnimatePresence>
+                {status === 'error' && (
+                  <p className="mb-2 text-[14px] font-normal text-red-600">
+                    Try again, or <a href={mailtoFallback()} className="underline">send your answers by email instead</a>.
+                  </p>
+                )}
+                <div className="flex items-center justify-between">
+                  <TextButton onClick={back} className={index <= 0 ? 'invisible' : ''}>
+                    ← Back
+                  </TextButton>
+                  <PrimaryButton onClick={() => { if (status !== 'sending' && !interlude) next() }} busy={status === 'sending'}>
+                    {nextLabel}
+                  </PrimaryButton>
+                </div>
+              </footer>
+            )}
           </div>
 
-          {showFooter && step && (
-            <div className="bw-q-footer -mx-6 px-6 pt-3 lg:-mx-10 lg:px-10 lg:pb-8 lg:pt-4">
-              {/* Phones: "nothing picked yet" isn't shown (still announced to screen readers); other errors always show. */}
-              {error && (
-                <p role="alert" className={`m-0 mb-2 text-right text-[14px] text-(--q-error) ${choiceMissing ? 'max-sm:sr-only' : ''}`}>{error}</p>
-              )}
-              {status === 'error' && (
-                <p className="m-0 mb-2 text-right text-[14px] leading-[1.6]">
-                  Try again, or{' '}
-                  <a href={mailtoFallback()} className="underline underline-offset-4">send your answers by email instead</a>
-                  {' '}(we’ve filled it in for you).
-                </p>
-              )}
-              <div className="flex items-center justify-end gap-2 max-sm:gap-3">
-                {/* Phones: a round back arrow and a full-width Next. */}
-                <TextButton onClick={back} className={`max-sm:size-14 max-sm:shrink-0 max-sm:justify-center max-sm:rounded-full max-sm:border max-sm:border-(--q-line) max-sm:bg-white max-sm:px-0 max-sm:no-underline ${index <= 0 ? 'invisible' : ''}`}>
-                  <svg viewBox="0 0 24 24" className="size-5 sm:hidden" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  <span className="max-sm:sr-only">Back</span>
-                </TextButton>
-                <PrimaryButton onClick={() => { if (status !== 'sending' && !interlude) next() }} busy={status === 'sending'} className="max-sm:flex-1">{nextLabel}</PrimaryButton>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
+      {/* Styled Greeting Interlude Modal - Strictly NO BOLD fonts */}
       <AnimatePresence>
         {interlude && (
           <motion.div
             key="interlude"
-            className="fixed inset-0 z-50 grid place-items-center bg-black/45 px-8 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/40 p-6 backdrop-blur-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: reduce ? 0 : 0.25 }}
+            transition={{ duration: reduce ? 0 : 0.2 }}
             onClick={finishInterlude}
           >
-            {/* A small celebration: the pick pops in with confetti, a big headline, then the greeting. */}
             <motion.div
               role="status"
               aria-live="polite"
-              className={`relative isolate w-full overflow-hidden rounded-[28px] border border-black/[0.06] bg-white text-center shadow-[0_30px_80px_rgba(0,0,0,0.35)] ${interlude.message ? 'max-w-[420px] px-8 pb-10 pt-10 sm:px-10' : 'max-w-[360px] px-8 pb-9 pt-9'}`}
-              initial={reduce ? false : { opacity: 0, y: 20, scale: 0.92 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }}
-              transition={{ duration: reduce ? 0 : 0.32, ease: EASE }}
+              className="relative w-full max-w-[480px] rounded-[28px] bg-[#FAF8F3] px-8 py-12 text-center shadow-[0_1px_0_rgba(0,0,0,0.04),0_30px_80px_-20px_rgba(0,0,0,0.35)] ring-1 ring-black/5 sm:px-12"
+              initial={reduce ? false : { opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: -8 }}
+              transition={{ duration: reduce ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
             >
-              {interlude.message ? (
-                <>
-                  {/* Background: two slow lime glows and the sparkles, all behind the words. */}
-                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+              {!reduce && (
+                <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-10 flex justify-center">
+                  {CONFETTI.map((c, i) => (
                     <motion.span
-                      className="absolute -left-16 -top-20 size-64 rounded-full bg-[radial-gradient(circle,rgba(206,253,16,0.55),transparent_68%)] blur-2xl"
-                      animate={reduce ? undefined : { x: [0, 24, 0], y: [0, 16, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                    />
-                    <motion.span
-                      className="absolute -bottom-24 -right-16 size-72 rounded-full bg-[radial-gradient(circle,rgba(206,253,16,0.35),transparent_68%)] blur-2xl"
-                      animate={reduce ? undefined : { x: [0, -20, 0], y: [0, -14, 0] }}
-                      transition={{ duration: 4.6, repeat: Infinity, ease: 'easeInOut' }}
-                    />
-                    <SparkleEffect reduce={reduce} cover />
-                    <span className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_50%,rgba(255,255,255,0.85),transparent)]" />
-                  </div>
-
-                  {interlude.pick && (
-                    <motion.span
-                      className="inline-flex items-center rounded-full border border-black/10 bg-white/80 px-3.5 py-1.5 text-[13px] font-normal leading-[1.3] tracking-[0.02em] text-(--q-ink) backdrop-blur-sm"
-                      initial={reduce ? false : { opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: reduce ? 0 : 0.35, delay: reduce ? 0 : 0.1, ease: EASE }}
+                      key={i}
+                      className="absolute"
+                      style={{ color: c.color }}
+                      initial={{ opacity: 0, x: 0, y: 0, scale: 0.4, rotate: 0 }}
+                      animate={{ opacity: [0, 1, 0], x: c.x, y: c.y, scale: 1, rotate: c.rotate }}
+                      transition={{ duration: 1.4, delay: 0.15 + i * 0.03, ease: [0.16, 1, 0.3, 1] }}
                     >
-                      {interlude.pick}
+                      {c.shape === 'spark' ? (
+                        <svg viewBox="0 0 10 10" className="size-2.5" fill="currentColor"><path d="M5 0l1.2 3.8L10 5 6.2 6.2 5 10 3.8 6.2 0 5l3.8-1.2z" /></svg>
+                      ) : (
+                        <span className="block h-1.5 w-[3px] rounded-full bg-current" />
+                      )}
                     </motion.span>
-                  )}
-                  <motion.p
-                    className="m-0 mt-5 text-[18px] font-normal leading-[1.45] text-(--q-ink) sm:text-[20px]"
-                    initial={reduce ? false : { opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: reduce ? 0 : 0.45, delay: reduce ? 0 : 0.2, ease: EASE }}
-                  >
-                    {interlude.message}
-                  </motion.p>
-                  {/* Time until the next question. */}
-                  <span aria-hidden="true" className="mx-auto mt-8 block h-[3px] w-24 overflow-hidden rounded-full bg-black/10">
-                    <motion.span
-                      className="block h-full origin-left rounded-full bg-(--q-ink)"
-                      initial={{ scaleX: 0 }}
-                      animate={{ scaleX: 1 }}
-                      transition={{ duration: INTERLUDE_MS / 1000, ease: 'linear' }}
-                    />
-                  </span>
-                </>
-              ) : (
-                <SparkleEffect reduce={reduce} />
+                  ))}
+                </div>
               )}
-              <span className="sr-only">Your selection is noted. Tap or press Enter to continue.</span>
+
+              {(interlude.pick || interlude.title) && (
+                <div className="mb-6 flex items-center justify-center gap-3">
+                  <span className="h-px w-8 bg-neutral-200" />
+                  <span className="text-[11px] font-normal tracking-[0.25em] text-neutral-500 uppercase">
+                    {interlude.pick || interlude.title}
+                  </span>
+                  <span className="h-px w-8 bg-neutral-200" />
+                </div>
+              )}
+
+              <motion.p
+                className="mx-auto max-w-[360px] text-[24px] font-normal leading-[1.35] tracking-tight text-neutral-900"
+                initial={reduce ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : 0.1, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {interlude.message}
+              </motion.p>
+
+              <div className="mx-auto mt-10 h-px w-24 overflow-hidden bg-neutral-100">
+                <motion.div
+                  className="h-full bg-neutral-900"
+                  initial={{ width: '0%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: INTERLUDE_MS / 1000, ease: 'linear' }}
+                />
+              </div>
+
+              <span className="mt-4 block text-[11px] font-normal tracking-wide text-neutral-400">Tap anywhere to continue</span>
             </motion.div>
           </motion.div>
         )}
@@ -1167,6 +1002,8 @@ export default function QuestionnairePage() {
         onEdit={(id) => { setDrawerOpen(false); go(id) }}
         scan={scanTarget ? <SiteScanChecklist domain={scanTarget.domain} checks={scanChecks} failed={scanView?.status === 'failed'} /> : null}
       />
+      
+      <LeaveConfirm open={confirmOpen} onStay={() => setConfirmOpen(false)} />
     </main>
   )
 }
