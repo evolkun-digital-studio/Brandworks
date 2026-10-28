@@ -38,27 +38,31 @@
   font-style: normal;
 }
 
-/* The homepage logo for light grounds (Header.css swaps the same two
-   files for its light hero slide): dark wordmark, lime mark. Over the
-   green sections the lime mark would vanish, so while the header sits on
-   one (AboutPage toggles the class) the whole logo goes to ink. */
+/* Header logo. The page uses the homepage's logo for light grounds
+   (BWorksLogo-dark.svg, the file Header.css swaps in for its light hero
+   slide). On the green hero its lime mark would vanish, so by default — the
+   page always opens on the hero — the logo is drawn in ink. Once the hero
+   leaves the header, AboutPage adds .about-logo-on-light and the asset
+   shows in its own brand colours, unfiltered. Both states are the same
+   <img>, so nothing shifts; the filter cross-fades in 250ms. */
 body:has(.about-page) .site-header__logo--light {
   display: none;
 }
 
 body:has(.about-page) .site-header__logo--dark {
   display: block;
-  transition: filter 0.3s ease;
-}
-
-body.about-logo-on-green .site-header__logo--dark {
   filter: brightness(0);
+  transition: filter 0.25s ease;
 }
 
-/* The rest of the header follows the logo: over green the scrolled
-   capsules stay ink, and the lime "Let's Talk" (which would vanish) turns
-   ink with lime type. Only the header's own tone variables change. */
-body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-on-dark, .is-on-light) {
+body.about-logo-on-light .site-header__logo--dark {
+  filter: none;
+}
+
+/* The rest of the scrolled header follows the logo over green: the lime
+   "Let's Talk" (which would vanish) turns ink with lime type, and the
+   capsules turn solid ink. Only the header's own tone variables change. */
+body:has(.about-page):not(.about-logo-on-light) .site-header.is-scrolled .site-header__surface:is(.is-on-dark, .is-on-light) {
   --pill-ink: #fff;
   --pill-bg: rgba(17, 17, 17, 0.86);
   --pill-bg-hover: #111;
@@ -110,6 +114,24 @@ body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-o
   color: var(--about-ink);
 }
 
+/* Small editorial labels and captions: the homepage P2 (.section-label),
+   restated at higher specificity so the paragraph rule above can't
+   override it. */
+.about-page p.section-label {
+  max-width: none;
+  font-family: var(--font-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.64);
+}
+
+.about-page .about-green p.section-label {
+  color: var(--about-ink);
+}
+
 /* Masked reveal: the line rises through its own clipping box. The padding
    keeps glyphs out of the clip; the negative margins give that space
    back, so layout and line spacing are unchanged. */
@@ -149,6 +171,7 @@ body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-o
 
 .about-feature__copy {
   display: grid;
+  align-content: start;
   gap: var(--text-gap);
 }
 
@@ -163,22 +186,43 @@ body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-o
 }
 
 /* Every primary photograph: four columns, 4:5, never taller than most of
-   the screen. */
+   the screen. The caption, when there is one, hangs under its frame. */
+.about-feature__visual {
+  display: grid;
+  gap: 12px;
+  width: min(100%, calc(64svh * 0.8));
+}
+
 .about-feature__media {
   aspect-ratio: 4 / 5;
-  width: min(100%, calc(64svh * 0.8));
+}
+
+.about-caption {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Fine pointers only: the photograph leans in slightly, like the team. */
+@media (hover: hover) and (pointer: fine) {
+  .about-feature__media img {
+    transition: transform 0.9s var(--about-ease);
+  }
+
+  .about-feature__visual:hover .about-feature__media img {
+    transform: scale(1.025);
+  }
 }
 
 .about-feature--media-end .about-feature__copy {
   grid-column: 1 / 7;
 }
 
-.about-feature--media-end .about-feature__media {
+.about-feature--media-end .about-feature__visual {
   grid-column: 9 / 13;
   justify-self: end;
 }
 
-.about-feature--media-start .about-feature__media {
+.about-feature--media-start .about-feature__visual {
   grid-column: 1 / 5;
   grid-row: 1;
 }
@@ -188,17 +232,22 @@ body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-o
   grid-row: 1;
 }
 
-/* ------------------------------------------------------------------ hero */
-
-.about-hero {
-  /* Content-height: just clears the fixed header (capsules end ~70px). */
-  padding-top: clamp(96px, 7.5vw, 116px);
-  padding-bottom: var(--about-space);
-  background: var(--about-paper);
+.about-feature__footer {
+  margin-top: 8px;
 }
 
-.about-hero .about-feature__media {
-  width: min(100%, calc(58svh * 0.8));
+/* ------------------------------------------------------------------ hero */
+
+/* The photograph sits inside the green with the same space above and
+   below it as the rest of the page's sections. */
+.about-hero {
+  padding-top: clamp(96px, 7.5vw, 116px);
+  padding-bottom: var(--about-space);
+}
+
+.about-hero .about-feature__visual {
+  grid-column: 8 / 13;
+  width: min(100%, calc(66svh * 0.8));
 }
 
 /* ------------------------------------------------------------ who we are */
@@ -209,10 +258,6 @@ body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-o
 
 .about-intro .about-statement {
   max-width: 22em;
-}
-
-.about-statement__lead {
-  color: rgba(17, 17, 17, 0.64);
 }
 
 .about-intro__columns {
@@ -262,22 +307,69 @@ body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-o
   padding-bottom: var(--about-space);
 }
 
+/* Journey: a hairline over the heading, the text centred on the photograph. */
+.about-journey .about-feature__copy {
+  padding-top: var(--text-gap);
+  border-top: 1px solid var(--about-rule);
+}
+
+/* The stages as an index: one left-aligned column of names on hairlines. */
+.about-path {
+  display: grid;
+  justify-items: start;
+  max-width: 32ch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-path li {
+  width: 100%;
+  text-align: left;
+  padding-block: 10px;
+  border-top: 1px solid var(--about-rule);
+  font-family: var(--font-secondary);
+  font-size: 15px;
+  line-height: 1.35;
+  color: rgba(17, 17, 17, 0.64);
+}
+
+/* Where We Are Now: the copy sits centred beside the photograph (the
+   shared feature alignment) and closes on the studio signature. */
 .about-brand {
   padding-bottom: var(--about-space);
 }
 
+.about-signature {
+  padding-top: 16px;
+  border-top: 1px solid var(--about-rule);
+}
+
 /* ----------------------------------------------------------- how we think */
 
+/* Heading on the left, the four principles as a 2×2 on the right — the
+   same split as Meet the Team below, so the two green sections read as one. */
 .about-principles {
   padding-block: var(--about-space);
 }
 
-.about-principles__list {
+.about-principles__grid {
+  row-gap: var(--content-gap);
+}
+
+.about-principles__head {
+  grid-column: 1 / 5;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: var(--grid-gap);
-  row-gap: 40px;
-  margin: var(--content-gap) 0 0;
+  align-content: start;
+  gap: var(--text-gap);
+}
+
+.about-principles__list {
+  grid-column: 6 / 13;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px var(--grid-gap);
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -473,11 +565,12 @@ body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-o
     grid-column: 1 / 5;
   }
 
-  .about-feature--media-end .about-feature__media {
+  .about-feature--media-end .about-feature__visual,
+  .about-hero .about-feature__visual {
     grid-column: 5 / 9;
   }
 
-  .about-feature--media-start .about-feature__media {
+  .about-feature--media-start .about-feature__visual {
     grid-column: 1 / 5;
   }
 
@@ -490,8 +583,9 @@ body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-o
     grid-column: span 4;
   }
 
+  .about-principles__head,
   .about-principles__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-column: 1 / -1;
   }
 
   .about-team__intro,
@@ -534,8 +628,10 @@ body.about-logo-on-green .site-header.site-header .site-header__surface:is(.is-o
   }
 
   /* Heading and words first, then the photograph — in every row. */
-  .about-feature__media {
+  .about-feature__visual,
+  .about-hero .about-feature__visual {
     order: 1;
+    width: 100%;
   }
 
   .about-principles__list {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useNativeMetadata } from '../routing/context'
 import gsap from 'gsap'
@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import Lenis from 'lenis'
 import { mediaUrl } from '../lib/media'
+import ProjectHoverPreview from '../components/ProjectHoverPreview/ProjectHoverPreview'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -23,19 +24,22 @@ interface Project {
   position?: string
   discipline?: string
   year?: string
+  category?: string
+  previewImages?: string[]
+  gallery?: string[]
 }
 
 const projects: Project[] = [
-  { id: 1, title: 'Delhi-6', media: '/images/brands/delhi%206%203.png', thumbnail: '/images/brands/delhi%206%203.png', mediaType: 'image', ratio: 'landscape' },
-  { id: 2, title: 'Workify Hub', media: mediaUrl('website .png'), thumbnail: mediaUrl('website .png'), mediaType: 'image', ratio: 'portrait', position: 'top center' },
-  { id: 3, title: 'India WMS', media: mediaUrl('project 2.webp'), thumbnail: mediaUrl('project 2.webp'), mediaType: 'image', ratio: 'square' },
-  { id: 4, title: 'Kinikh Infra', media: '/images/brands/vertical-infrastructure.webp', thumbnail: '/images/brands/vertical-infrastructure.webp', mediaType: 'image', ratio: 'portrait' },
-  { id: 5, title: 'Riaaj Vintage', media: mediaUrl('photo-1483985988355-763728e1935b.jpg'), thumbnail: mediaUrl('content-still.webp'), mediaType: 'image', ratio: 'portrait' },
-  { id: 6, title: 'BrandWorks', media: mediaUrl('business card mock up.png'), thumbnail: mediaUrl('business card mock up.png'), mediaType: 'image', ratio: 'square' },
-  { id: 7, title: 'Editorial Series', media: mediaUrl('photo-02.webp'), thumbnail: mediaUrl('photo-02.webp'), mediaType: 'image', ratio: 'landscape' },
-  { id: 8, title: 'Campaign Film', media: mediaUrl('brandworks_bw_transition_smooth_60fps.mp4'), thumbnail: mediaUrl('photo-03.webp'), mediaType: 'video', ratio: 'portrait' },
-  { id: 9, title: 'Founder Reputation', media: mediaUrl('PR.jpg'), thumbnail: mediaUrl('PR.jpg'), mediaType: 'image', ratio: 'cinematic' },
-  { id: 10, title: 'Growth Campaign', media: mediaUrl('performance.jpg'), thumbnail: mediaUrl('performance.jpg'), mediaType: 'image', ratio: 'square' },
+  { id: 1, title: 'Delhi-6', media: '/images/brands/delhi%206%203.png', thumbnail: '/images/brands/delhi%206%203.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: [mediaUrl('identity.jpg'), mediaUrl('Artboard 2.png'), mediaUrl('creative.jpg')], gallery: [mediaUrl('ChatGPT Image Sep 21, 2026, 12_05_00 PM.png'), mediaUrl('business card mock up.png'), mediaUrl('photo-02.webp')] },
+  { id: 2, title: 'Workify Hub', media: mediaUrl('website .png'), thumbnail: mediaUrl('website .png'), mediaType: 'image', ratio: 'portrait', position: 'top center', category: 'Web Development', previewImages: [mediaUrl('scrolling.jpg'), mediaUrl('photo-1519389950473-47ba0277781c.jpg'), mediaUrl('ideas.jpg')], gallery: [mediaUrl('website .png'), mediaUrl('photo-1497366754035-f200968a6e72.jpg'), mediaUrl('Strategy.jpg')] },
+  { id: 3, title: 'India WMS', media: mediaUrl('project 2.webp'), thumbnail: mediaUrl('project 2.webp'), mediaType: 'image', ratio: 'square', category: 'Digital Platform', previewImages: [mediaUrl('Strategy.jpg'), mediaUrl('photo-1497366754035-f200968a6e72.jpg'), mediaUrl('seo.jpg')], gallery: [mediaUrl('ideas.jpg'), mediaUrl('scrolling.jpg'), mediaUrl('photo-1519389950473-47ba0277781c.jpg')] },
+  { id: 4, title: 'Kinikh Infra', media: '/images/brands/vertical-infrastructure.webp', thumbnail: '/images/brands/vertical-infrastructure.webp', mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: [mediaUrl('our_stra.jpg'), mediaUrl('photo-1545235617-9465d2a55698.jpg'), mediaUrl('identity.jpg')], gallery: [mediaUrl('creative.jpg'), mediaUrl('Strategy.jpg'), mediaUrl('photo-1497366754035-f200968a6e72.jpg')] },
+  { id: 5, title: 'Riaaj Vintage', media: mediaUrl('photo-1483985988355-763728e1935b.jpg'), thumbnail: mediaUrl('content-still.webp'), mediaType: 'image', ratio: 'portrait', category: 'Photography', previewImages: [mediaUrl('photo-1524504388940-b1c1722653e1.jpg'), mediaUrl('photo-1513364776144-60967b0f800f.jpg'), mediaUrl('content-still.webp')], gallery: [mediaUrl('photo-1516035069371-29a1b244cc32.jpg'), mediaUrl('kyle-loftus-DqmXihYx5UE-unsplash.jpg'), mediaUrl('photo-02.webp')] },
+  { id: 6, title: 'BrandWorks', media: mediaUrl('business card mock up.png'), thumbnail: mediaUrl('business card mock up.png'), mediaType: 'image', ratio: 'square', category: 'Graphic Design', previewImages: [mediaUrl('moisturizer mock up.png'), mediaUrl('Artboard 12@3x.png'), mediaUrl('Artboard 2@3x.png')], gallery: [mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png'), mediaUrl('identity.jpg'), mediaUrl('vcvcvcvcv.jpg')] },
+  { id: 7, title: 'Editorial Series', media: mediaUrl('photo-02.webp'), thumbnail: mediaUrl('photo-02.webp'), mediaType: 'image', ratio: 'landscape', category: 'Editorial', previewImages: [mediaUrl('photo-03.webp'), mediaUrl('Photo1.jpg'), mediaUrl('vcvcvcvcv.jpg')], gallery: [mediaUrl('photo-1524504388940-b1c1722653e1.jpg'), mediaUrl('photo-1513364776144-60967b0f800f.jpg'), mediaUrl('kyle-loftus-DqmXihYx5UE-unsplash.jpg')] },
+  { id: 8, title: 'Campaign Film', media: mediaUrl('brandworks_bw_transition_smooth_60fps.mp4'), thumbnail: mediaUrl('photo-03.webp'), mediaType: 'video', ratio: 'portrait', category: 'Film', previewImages: [mediaUrl('campaign-still.webp'), mediaUrl('campaign-action.jpg'), mediaUrl('movment.jpg')], gallery: [mediaUrl('photo-03.webp'), mediaUrl('photo-1516035069371-29a1b244cc32.jpg'), mediaUrl('content-still.webp')] },
+  { id: 9, title: 'Founder Reputation', media: mediaUrl('PR.jpg'), thumbnail: mediaUrl('PR.jpg'), mediaType: 'image', ratio: 'cinematic', category: 'PR & Reputation', previewImages: [mediaUrl('photo-1560250097-0b93528c311a.jpg'), mediaUrl('photo-1500648767791-00dcc994a43e.jpg'), mediaUrl('photo-1506794778202-cad84cf45f1d.jpg')], gallery: [mediaUrl('PR.jpg'), mediaUrl('our_stra.jpg'), mediaUrl('team-04.webp')] },
+  { id: 10, title: 'Growth Campaign', media: mediaUrl('performance.jpg'), thumbnail: mediaUrl('performance.jpg'), mediaType: 'image', ratio: 'square', category: 'Performance Marketing', previewImages: [mediaUrl('enga.webp'), mediaUrl('content_creation.avif'), mediaUrl('team-04.webp')], gallery: [mediaUrl('performance.jpg'), mediaUrl('seo.jpg'), mediaUrl('Strategy.jpg')] },
 ]
 
 // Cloudflare R2 images already used in the Photography experience of the
@@ -201,14 +205,13 @@ function Hero() {
       gsap.from('[data-thumb]', { yPercent: 120, duration: 1.1, ease: 'expo.out', stagger: 0.05, delay: 1.35 })
 
       // as the hero leaves: title drifts up, thumbnail reel slides sideways
-      gsap.to('[data-hero-title]', { yPercent: -35, opacity: 0.15, ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top top', end: 'bottom top', scrub: true } })
       gsap.to('[data-reel]', { xPercent: -28, ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top top', end: 'bottom top', scrub: true } })
     })
     return () => mm.revert()
   }, { scope: ref })
 
   return (
-    <section ref={ref} aria-labelledby="work-title" className="relative flex min-h-[86svh] flex-col justify-end overflow-hidden px-[var(--hero-gutter)] pb-[clamp(30px,3.5vw,52px)] pt-[clamp(118px,12vh,150px)] max-md:min-h-[70svh]">
+    <section ref={ref} aria-label="Projects" className="relative flex min-h-[86svh] flex-col justify-end overflow-hidden px-[var(--hero-gutter)] pb-[clamp(30px,3.5vw,52px)] pt-[clamp(118px,12vh,150px)] max-md:min-h-[70svh]">
       {/* thumbnail reel */}
       <div aria-hidden="true" className="pointer-events-none mb-[clamp(28px,4vw,56px)] overflow-hidden">
         <div data-reel className="flex w-max gap-4">
@@ -221,15 +224,6 @@ function Hero() {
           ))}
         </div>
       </div>
-
-      <h1 id="work-title" data-hero-title className="m-0 max-w-[1100px] font-(--font-primary) text-[48px] leading-[0.88] tracking-[-0.045em] text-[#111]">
-        <span className="sr-only">Selected Projects </span>
-        <span aria-hidden="true">
-          <Chars text="Selected" /> <Chars text="Projects"/>
-          {/* <Chars text="." className="text-[#CCFF00]" /> */}
-        </span>
-      </h1>
-
     </section>
   )
 }
@@ -252,31 +246,40 @@ function ProjectCard({ project, index, onHover, onOpen, hiddenId }: ProjectHandl
       onPointerLeave={() => onHover(null)}
       className="group relative min-w-0"
     >
-      <button
-        type="button"
-        data-project-media={project.id}
-        aria-label={`Open ${project.title}`}
-        onClick={() => onOpen(index)}
-        onFocus={() => onHover(project)}
-        onBlur={() => onHover(null)}
-        style={{ opacity: hiddenId === project.id ? 0 : 1 }}
-        className={`relative block w-full cursor-pointer overflow-hidden border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00] focus-visible:ring-offset-4 focus-visible:ring-offset-black ${ratioClasses[project.ratio]}`}
+      <ProjectHoverPreview
+        project={{ title: project.title, category: project.category, coverImage: project.thumbnail, previewImages: project.previewImages ?? [] }}
+        onOpen={() => onOpen(index)}
       >
-        <div data-clip className="absolute inset-0 overflow-hidden bg-[#1a1a1a] will-change-[clip-path]">
-          <div data-inner className="absolute inset-x-0 -top-[10%] h-[120%] will-change-transform">
-            <div className="h-full w-full transition-[scale,filter] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] group-hover:saturate-[1.08]">
-              <ProjectMedia project={project} />
-            </div>
-          </div>
-        </div>
-      </button>
+        {(activate) => (
+          <>
+            <button
+              type="button"
+              data-project-media={project.id}
+              aria-label={`Open ${project.title}`}
+              onClick={activate}
+              onFocus={() => onHover(project)}
+              onBlur={() => onHover(null)}
+              style={{ opacity: hiddenId === project.id ? 0 : 1 }}
+              className={`relative block w-full cursor-pointer overflow-hidden border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00] focus-visible:ring-offset-4 focus-visible:ring-offset-black ${ratioClasses[project.ratio]}`}
+            >
+              <div data-clip className="absolute inset-0 overflow-hidden bg-[#1a1a1a] will-change-[clip-path]">
+                <div data-inner className="absolute inset-x-0 -top-[10%] h-[120%] will-change-transform">
+                  <div className="h-full w-full transition-[scale,filter] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04] group-hover:saturate-[1.08]">
+                    <ProjectMedia project={project} />
+                  </div>
+                </div>
+              </div>
+            </button>
 
-      <div data-label className="mt-4 flex items-baseline justify-between gap-4 font-(--font-secondary) text-white">
-        <h2 className="-my-[0.05em] mx-0 font-(--font-primary) text-[clamp(20px,1.6vw,26px)] leading-[1.1] tracking-[-0.02em] md:opacity-0 md:transition-opacity md:duration-500 md:group-hover:opacity-100">
-          {project.title}
-        </h2>
-        <span className="text-[10px] tracking-[0.06em] text-white/45">{[project.discipline, project.year].filter(Boolean).join(' · ')}</span>
-      </div>
+            <div data-label className="mt-4 flex items-baseline justify-between gap-4 font-(--font-secondary) text-white">
+              <h2 className="-my-[0.05em] mx-0 font-(--font-primary) text-[clamp(20px,1.6vw,26px)] leading-[1.1] tracking-[-0.02em] md:opacity-0 md:transition-opacity md:duration-500 md:group-hover:opacity-100">
+                {project.title}
+              </h2>
+              <span className="text-[10px] tracking-[0.06em] text-white/45">{[project.discipline, project.year].filter(Boolean).join(' · ')}</span>
+            </div>
+          </>
+        )}
+      </ProjectHoverPreview>
     </article>
   )
 }
@@ -477,6 +480,76 @@ function sourceFor(id: number) {
   return r.bottom > 0 && r.top < window.innerHeight ? r : null
 }
 
+/** Single-row photo strip (cover first) with prev/next buttons, shown inside the project overlay. */
+function OverlayGallery({ project, slotRef }: { project: Project; slotRef: RefObject<HTMLDivElement | null> }) {
+  const images = Array.from(new Set([...(project.previewImages ?? []), ...(project.gallery ?? [])]))
+    .filter((src) => src !== project.media)
+  const count = images.length + 1
+  const trackRef = useRef<HTMLDivElement>(null)
+  const [active, setActive] = useState(0)
+
+  useEffect(() => {
+    trackRef.current?.scrollTo({ left: 0 })
+    setActive(0)
+  }, [project.id])
+
+  const onScroll = () => {
+    const track = trackRef.current
+    if (!track) return
+    const items = Array.from(track.children) as HTMLElement[]
+    const left = track.scrollLeft
+    let best = 0
+    items.forEach((el, i) => { if (Math.abs(el.offsetLeft - left) < Math.abs(items[best].offsetLeft - left)) best = i })
+    // at the far end the last item may never reach the left edge
+    if (left + track.clientWidth >= track.scrollWidth - 2) best = items.length - 1
+    setActive(best)
+  }
+
+  const goTo = (i: number) => {
+    const track = trackRef.current
+    const el = track?.children[Math.max(0, Math.min(count - 1, i))] as HTMLElement | undefined
+    if (track && el) track.scrollTo({ left: el.offsetLeft, behavior: 'smooth' })
+  }
+
+  const atEnd = () => {
+    const track = trackRef.current
+    return !track || track.scrollLeft + track.clientWidth >= track.scrollWidth - 2
+  }
+
+  const item = 'relative aspect-[4/5] h-[min(58vh,640px)] shrink-0 snap-start overflow-hidden bg-[#1a1a1a] max-md:h-[min(52vh,460px)]'
+  const navBtn = 'grid size-11 place-items-center rounded-full border border-white/25 text-white transition-colors duration-300 hover:border-[#CCFF00] hover:text-[#CCFF00] disabled:opacity-30 disabled:hover:border-white/25 disabled:hover:text-white'
+
+  return (
+    <div className="flex flex-1 flex-col justify-center py-[clamp(24px,4vh,48px)]">
+      <div
+        ref={trackRef}
+        onScroll={onScroll}
+        className="flex snap-x snap-mandatory gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        <div ref={slotRef} className={`${item} will-change-transform`}>
+          <div data-ov-media key={project.id} className="h-full w-full">
+            <ProjectMedia project={project} autoPlay />
+          </div>
+        </div>
+        {images.map((src, i) => (
+          <div key={src} data-ov-fade className={item}>
+            <img src={src} alt={`${project.title} — photo ${i + 2}`} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+          </div>
+        ))}
+      </div>
+
+      <div data-ov-fade className="mt-4 flex items-center justify-end gap-3">
+        <button type="button" onClick={() => goTo(active - 1)} disabled={active === 0} aria-label="Previous photo" className={navBtn}>
+          <ArrowIcon className="w-3.5 -rotate-[135deg]" />
+        </button>
+        <button type="button" onClick={() => goTo(active + 1)} disabled={active === count - 1 || atEnd()} aria-label="Next photo" className={navBtn}>
+          <ArrowIcon className="w-3.5 rotate-45" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex: (i: number) => void; onClose: () => void }) {
   const project = projects[index]
   const rootRef = useRef<HTMLDivElement>(null)
@@ -576,20 +649,13 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
             </span>
             Close
           </button>
-          <span data-ov-fade className="text-white/50">{index + 1} of {projects.length}</span>
         </div>
 
-        <div className="flex flex-1 items-center justify-center py-[clamp(24px,4vh,56px)]">
-          <div ref={slotRef} className={`relative h-[min(60vh,700px)] max-w-full overflow-hidden bg-[#1a1a1a] will-change-transform ${ratioClasses[project.ratio]}`}>
-            <div data-ov-media key={project.id} className="h-full w-full">
-              <ProjectMedia project={project} autoPlay />
-            </div>
-          </div>
-        </div>
+        <OverlayGallery project={project} slotRef={slotRef} />
 
         <div className="grid items-end gap-6 border-t border-white/15 pt-6 md:grid-cols-[1fr_auto]">
           <div>
-            <h2 id="overlay-title" key={project.id} className="m-0 font-(--font-primary) text-[clamp(44px,7vw,120px)] leading-[1.1] tracking-[-0.045em]">
+            <h2 id="overlay-title" key={project.id} className="m-0 font-(--font-primary) text-[48px] leading-[1.1] tracking-[-0.045em]">
               <span className="sr-only">{project.title}</span>
               <span aria-hidden="true"><Chars text={project.title} attr="data-ov-char" /></span>
             </h2>
@@ -604,7 +670,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
               <ArrowIcon className="w-4 -rotate-[135deg]" />
             </button>
             <button type="button" onClick={() => step(1)} className="group inline-flex h-12 items-center gap-4 rounded-full bg-[#CCFF00] pl-5 pr-2 text-[12px] font-medium text-[#111]">
-              <span className="max-w-[18ch] truncate">Next: {next.title}</span>
+              <span className="max-w-[18ch] truncate">{next.title}</span>
               <span className="grid size-8 place-items-center rounded-full bg-[#111] text-[#CCFF00] transition-transform duration-500 group-hover:rotate-45">
                 <ArrowIcon className="w-3.5" />
               </span>

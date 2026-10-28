@@ -82,30 +82,33 @@ function MaskLine({ children, className }: { children: string; className?: strin
 
 /*
  * Hero, Our Journey and Where We Are Now share one composition: a 12-column
- * row with copy on six columns and one 4:5 photograph on five, the side
- * alternating. Same frame, same gap, same type in every one of them.
+ * row with copy on six columns and one 4:5 photograph on four, the side
+ * alternating. Same frame and type in each; the optional caption and footer
+ * give each row its own small variation without a new layout.
  */
 function Feature({
   id,
   heading,
   as: Heading = 'h2',
   image,
+  caption,
   mediaSide,
   eager = false,
-  className,
+  footer,
   children,
 }: {
   id: string
   heading: string
   as?: 'h1' | 'h2'
   image: AboutImage
+  caption?: string
   mediaSide: 'start' | 'end'
   eager?: boolean
-  className?: string
+  footer?: ReactNode
   children: ReactNode
 }) {
   return (
-    <div className={`section-container about-feature about-feature--media-${mediaSide} ${className ?? ''}`}>
+    <div className={`section-container about-feature about-feature--media-${mediaSide}`}>
       <div className="section-grid about-feature__grid" data-reveal-group>
         <div className="about-feature__copy">
           <Heading id={id} className="section-heading about-feature__heading">
@@ -114,13 +117,25 @@ function Feature({
           <div data-reveal="fade" className="about-feature__text">
             {children}
           </div>
+          {footer && (
+            <div data-reveal="fade" className="about-feature__footer">
+              {footer}
+            </div>
+          )}
         </div>
-        <Media
-          image={image}
-          className="about-feature__media"
-          sizes="(min-width: 1440px) 520px, (min-width: 768px) 40vw, 100vw"
-          eager={eager}
-        />
+        <div className="about-feature__visual">
+          <Media
+            image={image}
+            className="about-feature__media"
+            sizes="(min-width: 1440px) 420px, (min-width: 768px) 34vw, 100vw"
+            eager={eager}
+          />
+          {caption && (
+            <p data-reveal="fade" className="section-label about-caption">
+              {caption}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -128,8 +143,15 @@ function Feature({
 
 function AboutHero() {
   return (
-    <section className="about-hero" aria-labelledby="about-hero-heading">
-      <Feature id="about-hero-heading" as="h1" heading={ABOUT_HERO.heading} image={ABOUT_HERO.image} mediaSide="end" eager>
+    <section className="about-hero about-green" aria-labelledby="about-hero-heading">
+      <Feature
+        id="about-hero-heading"
+        as="h1"
+        heading={ABOUT_HERO.heading}
+        image={ABOUT_HERO.image}
+        mediaSide="end"
+        eager
+      >
         <p className="about-feature__lead">{ABOUT_HERO.description}</p>
         {ABOUT_HERO.body.map((line) => (
           <p key={line}>{line}</p>
@@ -145,8 +167,7 @@ function AboutIntro() {
       <div className="section-container">
         <div className="about-intro__head" data-reveal-group>
           <h2 id="about-intro-heading" className="section-heading about-statement">
-            <MaskLine className="about-statement__lead">{ABOUT_INTRO.statement.lead}</MaskLine>{' '}
-            <MaskLine>{ABOUT_INTRO.statement.idea}</MaskLine>
+            <MaskLine>{ABOUT_INTRO.statement.lead}</MaskLine>
           </h2>
         </div>
 
@@ -170,6 +191,8 @@ function AboutIntro() {
 }
 
 function AboutJourney() {
+  const [beginning] = ABOUT_JOURNEY.stages
+
   return (
     <section className="about-journey about-surface" aria-labelledby="about-journey-heading">
       <Feature
@@ -177,9 +200,18 @@ function AboutJourney() {
         heading={ABOUT_JOURNEY.heading}
         image={ABOUT_JOURNEY.images.beginning}
         mediaSide="start"
+        footer={
+          // The path the story takes, by its stage names: an index, not
+          // more copy.
+          <ol className="about-path" aria-label="Stages of the journey">
+            {ABOUT_JOURNEY.stages.map((stage) => (
+              <li key={stage.title}>{stage.title}</li>
+            ))}
+          </ol>
+        }
       >
         <p className="about-feature__lead">{ABOUT_JOURNEY.description}</p>
-        <p>{ABOUT_JOURNEY.stages[0].text}</p>
+        <p>{beginning.text}</p>
       </Feature>
     </section>
   )
@@ -188,7 +220,13 @@ function AboutJourney() {
 function AboutStatement() {
   return (
     <section className="about-brand about-surface" aria-labelledby="about-brand-heading">
-      <Feature id="about-brand-heading" heading={ABOUT_STATEMENT.heading} image={ABOUT_STATEMENT.image} mediaSide="end">
+      <Feature
+        id="about-brand-heading"
+        heading={ABOUT_STATEMENT.heading}
+        image={ABOUT_STATEMENT.image}
+        mediaSide="end"
+        footer={<p className="section-label about-signature">{ABOUT_STATEMENT.signature}</p>}
+      >
         <p className="about-feature__lead">{ABOUT_STATEMENT.text}</p>
       </Feature>
     </section>
@@ -199,20 +237,22 @@ function AboutPrinciples() {
   return (
     <section className="about-principles about-green" aria-labelledby="about-principles-heading">
       <div className="section-container">
-        <header className="about-principles__head" data-reveal-group>
-          <h2 id="about-principles-heading" className="section-heading about-principles__heading">
-            <MaskLine>{ABOUT_PRINCIPLES.heading}</MaskLine>
-          </h2>
-        </header>
+        <div className="section-grid about-principles__grid">
+          <header className="about-principles__head" data-reveal-group>
+            <h2 id="about-principles-heading" className="section-heading about-principles__heading">
+              <MaskLine>{ABOUT_PRINCIPLES.heading}</MaskLine>
+            </h2>
+          </header>
 
-        <ol className="about-principles__list" data-reveal-group>
-          {ABOUT_PRINCIPLES.items.map((item) => (
-            <li key={item.title} data-reveal="fade" className="about-principle">
-              <h3 className="about-principle__title">{item.title}</h3>
-              <p className="about-principle__text">{item.text}</p>
-            </li>
-          ))}
-        </ol>
+          <ol className="about-principles__list" data-reveal-group>
+            {ABOUT_PRINCIPLES.items.map((item) => (
+              <li key={item.title} data-reveal="fade" className="about-principle">
+                <h3 className="about-principle__title">{item.title}</h3>
+                <p className="about-principle__text">{item.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   )
@@ -365,11 +405,16 @@ function AboutPage() {
       })
 
 
-      // Not motion, so it runs with reduced motion too: the header logo turns
-      // to ink while it sits over a green section (see AboutPage.css).
+      // Not motion, so it runs with reduced motion too. The header logo is ink
+      // by default (the page opens on the green hero, so first paint is right
+      // before this runs) and returns to its brand colours, by class, while
+      // the header sits over an off-white section (see AboutPage.css).
+      // Declared first: a trigger already active fires onToggle while it is
+      // still being created.
+      let onGreen: ScrollTrigger[] = []
       const sync = () =>
-        document.body.classList.toggle('about-logo-on-green', onGreen.some((trigger) => trigger.isActive))
-      const onGreen: ScrollTrigger[] = gsap.utils.toArray<HTMLElement>('.about-green', root).map((section) =>
+        document.body.classList.toggle('about-logo-on-light', !onGreen.some((trigger) => trigger.isActive))
+      onGreen = gsap.utils.toArray<HTMLElement>('.about-green', root).map((section) =>
         ScrollTrigger.create({ trigger: section, start: 'top 48px', end: 'bottom 48px', onToggle: sync }),
       )
       sync()
@@ -377,7 +422,7 @@ function AboutPage() {
       return () => {
         mm.revert()
         onGreen.forEach((trigger) => trigger.kill())
-        document.body.classList.remove('about-logo-on-green')
+        document.body.classList.remove('about-logo-on-light')
       }
     },
     { scope: rootRef },

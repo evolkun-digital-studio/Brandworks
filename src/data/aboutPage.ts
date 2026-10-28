@@ -32,10 +32,11 @@ export type AboutImage = {
 }
 
 export const ABOUT_HERO = { 
+  label: 'Creative & Marketing Studio',
   heading: 'About Us',
   description: 'The people, thinking and journey behind BrandWorks.',
   body: [
-    'BrandWorks is an interdisciplinary creative and marketing studio. Strategy, design, content, photography, film and technology work as one process, under one roof.',
+    // 'BrandWorks is an interdisciplinary creative and marketing studio. Strategy, design, content, photography, film and technology work as one process, under one roof.',
     'We partner with brands that want more than output: work that is clear, consistent and built to be remembered.',
   ],
   image: {
@@ -53,8 +54,8 @@ export const ABOUT_INTRO = {
   // Two phrases: the lead-in sits in the muted tone, the idea in full ink —
   // emphasis carried by colour, never by italics.
   statement: {
-    lead: 'We built BrandWorks around a simple idea:',
-    idea: 'great brands become stronger when strategy, creativity and technology work together.',
+    lead: 'We built BrandWorks around a simple idea',
+    // idea: 'great brands become stronger when strategy, creativity and technology work together.',
   },
   studio:
     'BrandWorks is a creative and marketing studio. We bring every discipline a brand needs into one process, under one roof:',
@@ -74,8 +75,8 @@ export const ABOUT_INTRO = {
   // making the property explicit for Next's route-scoped typecheck.
   approachLabel: undefined as string | undefined,
   approach: [
-    "We don't create for the sake of creating.",
-    'Every image, campaign, story and digital experience should help people understand, remember and trust the brand behind it.',
+    // "We don't create for the sake of creating.",
+    // 'Every image, campaign, story and digital experience should help people understand, remember and trust the brand behind it.',
   ],
 }
 
@@ -129,8 +130,10 @@ export const ABOUT_JOURNEY = {
 }
 
 export const ABOUT_STATEMENT = {
+  label: 'Today',
   heading: 'Where We Are Now',
   text: "BrandWorks wasn't built to simply produce more content. It was built to make every piece of work matter.",
+  // signature: 'The BrandWorks Studio',
   image: {
     src: websiteDevStill,
     width: 1600,

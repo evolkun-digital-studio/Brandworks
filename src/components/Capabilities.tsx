@@ -250,14 +250,12 @@ function ServiceScrollIndex() {
   return (
     <div ref={runwayRef} className="relative min-h-[240vh] lg:min-h-[320vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden bg-white lg:h-screen">
-        {/* The grid is sized to what is visibly there — title, arrow, the
-           names — and centred on that, so the composition sits on the
-           viewport's centre rather than the list's ragged right edge
-           pulling it left; a small optical nudge right finishes the job.
-           The roller's masked window then bleeds out to the viewport edge
-           (--svc-bleed) for its full visible width. Below lg the same
-           stage stacks: title and description on top, the roller under it. */}
-        <div className="mx-auto flex h-full w-full max-w-[var(--media-max-width)] flex-col px-[var(--media-pad)] lg:grid lg:grid-cols-[max-content_minmax(0,1fr)] lg:gap-x-[var(--svc-gap)] lg:translate-x-[clamp(0px,2.5vw,40px)] [--svc-bleed:calc(var(--media-pad)_+_max(0px,(100vw_-_var(--media-max-width))_/_2))] [--svc-gap:clamp(20px,2vw,36px)]">
+        {/* On lg both columns are sized to their content (title + arrow,
+           the names) and the pair is centred in the viewport. The roller's
+           window keeps a little right padding so the focused row, which
+           scales up from its left edge, isn't clipped. Below lg the stage
+           stacks: title and description on top, the roller under it. */}
+        <div className="mx-auto flex h-full w-full max-w-[var(--media-max-width)] flex-col px-[var(--media-pad)] lg:grid lg:grid-cols-[max-content_max-content] lg:justify-center lg:gap-x-[var(--svc-gap)] [--svc-bleed:calc(var(--media-pad)_+_max(0px,(100vw_-_var(--media-max-width))_/_2))] [--svc-gap:clamp(20px,2vw,36px)]">
           {/* Left: title and arrow share one flex row, so their centres
               remain aligned at every responsive title size. */}
           <div className="relative flex shrink-0 items-start pt-[14svh] lg:h-full lg:pt-[29vh]">
@@ -266,7 +264,7 @@ function ServiceScrollIndex() {
                 <h2
                   ref={headingRef}
                   id="our-services-heading"
-                  className={`${TITLE_CLASS} max-lg:whitespace-normal`}
+                  className={`${TITLE_CLASS} text-center max-lg:whitespace-normal`}
                 >
                   The studio works across.
                 </h2>
@@ -299,7 +297,7 @@ function ServiceScrollIndex() {
           {/* Right: the active row is measured onto the title/arrow centre. */}
           <div
             ref={windowRef}
-            className="relative -mr-[var(--svc-bleed)] mt-2 min-h-0 flex-1 overflow-hidden pr-[var(--svc-bleed)] lg:mt-0 lg:h-full"
+            className="relative -mr-[var(--svc-bleed)] mt-2 min-h-0 flex-1 overflow-hidden pr-[var(--svc-bleed)] lg:mr-0 lg:mt-0 lg:h-full lg:pr-[clamp(48px,5vw,90px)]"
             style={{
               WebkitMaskImage:
                 "linear-gradient(to bottom, transparent 0%, black 17%, black 83%, transparent 100%)",
@@ -407,7 +405,7 @@ function ServiceStack({ animated }: { animated: boolean }) {
     <div className="mx-auto w-full max-w-[var(--media-max-width)] px-[var(--media-pad)] pb-24 md:pb-32 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:pb-36">
       <div className="lg:sticky lg:top-[30vh] lg:col-span-5 lg:self-start">
         <span className={LABEL_CLASS}>What we do</span>
-        <h2 id="our-services-heading" className={`mt-3 ${TITLE_CLASS}`}>
+        <h2 id="our-services-heading" className={`mt-3 text-center ${TITLE_CLASS}`}>
           The studio works across.
         </h2>
       </div>
