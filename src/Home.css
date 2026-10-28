@@ -32,6 +32,27 @@
   font-weight: 500;
 }
 
+/* Shared reading style for every paragraph on the homepage. Scoped here so
+   other public pages retain their own editorial type treatments. */
+.home-page p {
+  color: rgba(17, 17, 17, 0.64);
+  background-color: transparent;
+  font-family: "Open Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  font-style: normal;
+  font-variant: normal;
+  font-kerning: auto;
+  font-optical-sizing: auto;
+  font-stretch: 100%;
+  font-variation-settings: normal;
+  font-feature-settings: normal;
+  text-transform: none;
+  text-decoration: none;
+  text-align: start;
+  text-indent: 0;
+}
+
 .home-page h2:not(#brandworks-intro-statement, .hero-mask) {
   font-family: var(--font-primary);
   font-size: var(--home-section-title-size);

@@ -34,6 +34,10 @@ export type AboutImage = {
 export const ABOUT_HERO = { 
   heading: 'About Us',
   description: 'The people, thinking and journey behind BrandWorks.',
+  body: [
+    'BrandWorks is an interdisciplinary creative and marketing studio. Strategy, design, content, photography, film and technology work as one process, under one roof.',
+    'We partner with brands that want more than output: work that is clear, consistent and built to be remembered.',
+  ],
   image: {
     src: studioStill,
     width: 6000,
@@ -125,10 +129,8 @@ export const ABOUT_JOURNEY = {
 }
 
 export const ABOUT_STATEMENT = {
-  label: 'Why BrandWorks',
-  heading: "We didn't want to build another agency that simply produced more content.",
-  text: 'We wanted to build a studio where every discipline contributes to the same idea.',
-  signature: 'The BrandWorks Studio',
+  heading: 'Where We Are Now',
+  text: "BrandWorks wasn't built to simply produce more content. It was built to make every piece of work matter.",
   image: {
     src: websiteDevStill,
     width: 1600,

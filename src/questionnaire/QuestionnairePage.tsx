@@ -385,7 +385,7 @@ export default function QuestionnairePage() {
     }
 
     // Proud, encouraging pop-up greeting after selecting work type
-    if (here.id === 'workType') {
+    if (here.id === 'workType' && here.kind === 'single') {
       const value = str(current.workType)
       const option = here.options.find((o) => o.value === value)
       if (option) {
@@ -599,6 +599,9 @@ export default function QuestionnairePage() {
   }
 
   const name = firstName(str(answers.contactName))
+  const completedSteps = stepId === INTRO ? 0 : stepId === DONE ? path.length : Math.max(0, index)
+  const progressTotal = Math.max(1, path.filter((id) => STEPS[id]?.kind !== 'ai').length)
+  const progressValue = stepId === INTRO ? 0 : stepId === DONE ? 100 : Math.min(100, Math.round((completedSteps / progressTotal) * 100))
 
   const mailtoFallback = () => {
     const body = summarize(answers).map((r) => `${r.question}\n${r.answer}`).join('\n\n')
@@ -761,7 +764,7 @@ export default function QuestionnairePage() {
     && !(step.kind === 'single' && step.assistValue && answers[step.id] === step.assistValue))
 
   return (
-    <main className="relative h-dvh w-full overflow-hidden bg-[#FAFAFA] text-neutral-900 antialiased">
+    <main className="relative h-dvh w-full overflow-hidden bg-[#f6f6f2] text-neutral-900 antialiased">
       {aiOff && (
         <div role="status" className="fixed inset-x-0 top-3 z-40 mx-auto flex w-[calc(100%-32px)] max-w-[520px] items-center justify-between gap-4 rounded-xl bg-black px-4 py-3 text-[13px] text-white shadow-lg">
           <span><span className="mr-2 font-normal text-[#CCFF00]">Dev</span>AI is off. Showing neutral copy.</span>
@@ -773,46 +776,50 @@ export default function QuestionnairePage() {
         <label>Leave this empty<input ref={honeypotRef} type="text" name="website_url" tabIndex={-1} autoComplete="off" /></label>
       </div>
 
-      {/* Main Container - max-w-1500px Viewport Fit */}
-      <div className="mx-auto flex h-dvh max-w-[1500px] flex-col px-6 py-5 lg:px-12 lg:py-6">
+      <div className="mx-auto flex h-dvh max-w-[1500px] flex-col px-5 py-4 sm:px-7 lg:px-12 lg:py-6">
         
         {/* Header Navigation */}
         <header className="flex shrink-0 items-center justify-between border-b border-neutral-200/80 pb-4">
-          <Link to="/" className="inline-flex items-center gap-2 group focus:outline-none">
-            <span className="text-[22px] font-normal tracking-tight text-black">
-              {/* BrandWorks<span className="text-[#CCFF00]">.</span> */}
-            </span>
+          <Link to="/" className={`inline-flex items-center sm:hidden ${focusRing}`} aria-label="BrandWorks home">
+            <span className="text-[15px] font-medium tracking-[-0.04em] text-black">BRANDWORKS<span className="text-[#9dc000]">.</span></span>
           </Link>
+          <span className="hidden sm:block" aria-hidden="true" />
 
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-normal text-neutral-700 transition-colors hover:border-black hover:text-black"
-            >
-              Leave to home page
-            </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button type="button" onClick={() => setConfirmOpen(true)} className={`inline-flex min-h-9 items-center rounded-full border border-neutral-200 bg-white px-3.5 text-[13px] text-neutral-700 transition-colors hover:border-black hover:text-black ${focusRing}`}>
+              Exit<span className="hidden sm:inline">&nbsp;planner</span>
+            </button>
           </div>
         </header>
 
         {/* Full-Page Split Grid Body */}
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-8 pt-6 lg:grid-cols-12 lg:gap-12 lg:pt-8">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 pt-5 lg:grid-cols-12 lg:gap-12 lg:pt-8">
           
           {/* LEFT SIDEBAR */}
-          <div className="hidden flex-col justify-between border-r border-neutral-200/80 pr-10 lg:col-span-4 lg:flex">
+          <aside className="hidden flex-col justify-between border-r border-neutral-200/80 pr-10 lg:col-span-4 lg:flex">
             <div className="max-w-[360px]">
-              <span className="text-[11px] font-normal tracking-widest text-neutral-400 uppercase">PROJECT BRIEF</span>
-              <h1 className="mt-3 text-[30px] font-normal leading-[1.15] tracking-tight text-neutral-900">
-                Let's build something worth remembering.
+              <span className="text-[11px] font-medium tracking-[0.16em] text-neutral-400 uppercase">Project planner</span>
+              <h1 className="mt-3 text-[32px] font-normal leading-[1.12] tracking-tight text-neutral-900">
+                A clear brief makes better work.
               </h1>
-              <p className="mt-4 text-[14px] leading-[1.6] font-normal text-neutral-500">
-                A few details will help us understand your project vision and business targets clearly.
+              <p className="mt-4 max-w-[31ch] text-[14px] leading-[1.65] text-neutral-500">
+                Share what matters. We’ll use it to shape a focused first conversation.
               </p>
             </div>
-
-          </div>
+            <div className="max-w-[290px] pb-2">
+              <div className="mb-3 flex items-baseline justify-between text-[12px] text-neutral-500"><span>Your progress</span><span className="tabular-nums">{stepId === INTRO ? 'Ready' : stepId === DONE ? 'Complete' : `${Math.min(completedSteps + 1, progressTotal)} of ${progressTotal}`}</span></div>
+              <div className="h-px overflow-hidden bg-neutral-200"><div className="h-full bg-black transition-[width] duration-300" style={{ width: `${progressValue}%` }} /></div>
+            </div>
+          </aside>
 
           {/* RIGHT MAIN SECTION */}
           <div className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden lg:col-span-8">
+            {stepId !== INTRO && stepId !== DONE && (
+              <div className="mb-4 flex items-center justify-between lg:hidden">
+                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-400">Project planner</span>
+                <span className="text-[12px] tabular-nums text-neutral-500">{Math.min(completedSteps + 1, progressTotal)} / {progressTotal}</span>
+              </div>
+            )}
             <div ref={topRef} />
             
             <div ref={bodyRef} data-lenis-prevent className="flex-1 overflow-y-auto pr-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -820,13 +827,13 @@ export default function QuestionnairePage() {
                 <motion.div key={stepId} initial={stepAnimation.initial} animate={stepAnimation.animate} exit={stepAnimation.exit} transition={stepAnimation.transition} className="max-w-[720px]">
                   
                   {stepId === INTRO && (
-                    <div className="flex flex-col justify-center py-4">
-                      <span className="text-[12px] font-normal tracking-widest text-neutral-400 uppercase">WELCOME TO BRANDWORKS</span>
-                      <h2 className="mt-2 text-[32px] font-normal leading-[1.15] tracking-tight text-black lg:text-[42px]">
-                        "Every great website starts with a conversation."
+                    <div className="flex flex-col justify-center py-4 sm:py-8">
+                      <span className="text-[11px] font-medium tracking-[0.16em] text-neutral-400 uppercase">Start a project</span>
+                      <h2 className="mt-3 max-w-[16ch] text-[34px] font-normal leading-[1.08] tracking-tight text-black lg:text-[46px]">
+                        Let’s make the first conversation count.
                       </h2>
-                      <p className="mt-4 max-w-[560px] text-[16px] leading-[1.6] font-normal text-neutral-600">
-                        Tell us a little about what you're building. We'll take it from there to create a high-impact digital platform tailored to your brand.
+                      <p className="mt-5 max-w-[54ch] text-[16px] leading-[1.65] text-neutral-600">
+                        Tell us a little about what you’re building. It takes a few minutes, saves as you go, and gives our team the context to come prepared.
                       </p>
                       <div className="mt-8 flex items-center gap-4">
                         {draft ? (
@@ -835,7 +842,7 @@ export default function QuestionnairePage() {
                             <TextButton onClick={() => start(false)}>Start over</TextButton>
                           </>
                         ) : (
-                          <PrimaryButton onClick={() => start(false)}>Let's get started</PrimaryButton>
+                          <PrimaryButton onClick={() => start(false)}>Let&apos;s get started</PrimaryButton>
                         )}
                       </div>
                     </div>
