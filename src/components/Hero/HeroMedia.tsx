@@ -6,6 +6,7 @@ import { heroServices, HERO_SERVICE_ORDER, DEFAULT_HERO_SERVICE } from '../../da
 import HeroPhotographyGrid from './HeroPhotographyGrid'
 import HeroSocialShowcase from './HeroSocialShowcase'
 import WebDesignHero from './WebDesignHero'
+import HeroDesignPair from './HeroDesignPair'
 import { HeroImg } from './HeroImg'
 import type { ImagePriority } from './HeroImg'
 
@@ -36,6 +37,7 @@ function HeroVideo({
   const videoRef = useRef<HTMLVideoElement>(null)
   const [requested, setRequested] = useState(false)
   const [ready, setReady] = useState(false)
+  const isHlsStream = src.includes('.m3u8')
 
   // Reduced motion keeps the still: no autoplaying footage at all.
   const wantsVideo = playing && !reducedMotion
@@ -53,13 +55,43 @@ function HeroVideo({
     }
   }, [wantsVideo, requested])
 
+  // Safari plays HLS natively. Other browsers receive the same stream through
+  // hls.js, while the poster remains visible until playback begins.
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !requested || !isHlsStream) return
+    let disposed = false
+    let player: { destroy: () => void } | undefined
+
+    void import('hls.js').then(({ default: Hls }) => {
+      if (disposed) return
+      if (Hls.isSupported()) {
+        const hls = new Hls({ enableWorker: true })
+        player = hls
+        hls.loadSource(src)
+        hls.attachMedia(video)
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (!disposed && wantsVideo) void video.play().catch(() => undefined)
+        })
+      } else {
+        video.src = src
+        if (wantsVideo) void video.play().catch(() => undefined)
+      }
+    })
+
+    return () => {
+      disposed = true
+      player?.destroy()
+    }
+  }, [isHlsStream, requested, src, wantsVideo])
+
   return (
     <>
       <HeroImg image={poster} sizes="100vw" priority="low" />
       {requested && (
         <video
           ref={videoRef}
-          src={src}
+          src={isHlsStream ? undefined : src}
           muted
           loop
           playsInline
@@ -190,6 +222,8 @@ function HeroMedia({
                 />
               ) : media.kind === 'web' ? (
                 <WebDesignHero active={isActive} playing={isActive && inView} reducedMotion={reducedMotion} />
+              ) : media.kind === 'pair' ? (
+                <HeroDesignPair back={media.back} front={media.front} priority={priority} active={isActive && inView} reducedMotion={reducedMotion} />
               ) : (
                 <HeroImg image={media.image} sizes="100vw" priority={priority} />
               ))}

@@ -1,5 +1,5 @@
-import { useEffect, useId, useLayoutEffect, useRef } from 'react'
-import type { CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
@@ -14,7 +14,7 @@ import {
   ABOUT_STATEMENT,
   ABOUT_TEAM,
 } from '../../data/aboutPage'
-import type { AboutImage, JourneyStage, TeamMember } from '../../data/aboutPage'
+import type { AboutImage, TeamMember } from '../../data/aboutPage'
 import './AboutPage.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
@@ -30,9 +30,7 @@ const ABOUT_DESCRIPTION =
  *   fade   fades up a few pixels
  *   rise   a team portrait's entrance, a little further
  *   media  a frame uncovered from the bottom edge, its photograph settling
- * `[data-parallax]` is the oversized layer inside a frame that drifts with
- * scroll. With reduced motion none of it runs and everything is simply
- * in place.
+ * With reduced motion none of it runs and everything is simply in place.
  */
 type Reveal = 'line' | 'fade' | 'rise' | 'media'
 
@@ -41,13 +39,11 @@ function Media({
   sizes,
   className,
   eager = false,
-  parallax = false,
 }: {
   image: AboutImage
   sizes: string
   className?: string
   eager?: boolean
-  parallax?: boolean
 }) {
   const img = (
     <img
@@ -66,13 +62,7 @@ function Media({
 
   return (
     <figure data-reveal="media" className={`about-media ${className ?? ''}`}>
-      {parallax ? (
-        <div data-parallax className="about-media__parallax">
-          {img}
-        </div>
-      ) : (
-        img
-      )}
+      {img}
     </figure>
   )
 }
@@ -90,28 +80,83 @@ function MaskLine({ children, className }: { children: string; className?: strin
 
 // ------------------------------------------------------------------ sections
 
-function AboutHero() {
-  const [first, ...rest] = ABOUT_HERO.heading.split(' ')
-
+/*
+ * Hero, Our Journey and Where We Are Now share one composition: a 12-column
+ * row with copy on six columns and one 4:5 photograph on four, the side
+ * alternating. Same frame and type in each; the optional caption and footer
+ * give each row its own small variation without a new layout.
+ */
+function Feature({
+  id,
+  heading,
+  as: Heading = 'h2',
+  image,
+  caption,
+  mediaSide,
+  eager = false,
+  footer,
+  children,
+}: {
+  id: string
+  heading: string
+  as?: 'h1' | 'h2'
+  image: AboutImage
+  caption?: string
+  mediaSide: 'start' | 'end'
+  eager?: boolean
+  footer?: ReactNode
+  children: ReactNode
+}) {
   return (
-    <section className="about-hero" aria-labelledby="about-hero-heading" data-reveal-group>
-      <div className="section-container">
-        <h1 id="about-hero-heading" className="about-hero__heading">
-          <MaskLine>{first}</MaskLine> <MaskLine>{rest.join(' ')}</MaskLine>
-        </h1>
-
-        <p data-reveal="fade" className="about-hero__description">
-          {ABOUT_HERO.description}
-        </p>
-
-        <Media
-          image={ABOUT_HERO.image}
-          className="about-hero__media"
-          sizes="(min-width: 1440px) 380px, (min-width: 768px) 27vw, 62vw"
-          eager
-          parallax
-        />
+    <div className={`section-container about-feature about-feature--media-${mediaSide}`}>
+      <div className="section-grid about-feature__grid" data-reveal-group>
+        <div className="about-feature__copy">
+          <Heading id={id} className="section-heading about-feature__heading">
+            <MaskLine>{heading}</MaskLine>
+          </Heading>
+          <div data-reveal="fade" className="about-feature__text">
+            {children}
+          </div>
+          {footer && (
+            <div data-reveal="fade" className="about-feature__footer">
+              {footer}
+            </div>
+          )}
+        </div>
+        <div className="about-feature__visual">
+          <Media
+            image={image}
+            className="about-feature__media"
+            sizes="(min-width: 1440px) 420px, (min-width: 768px) 34vw, 100vw"
+            eager={eager}
+          />
+          {caption && (
+            <p data-reveal="fade" className="section-label about-caption">
+              {caption}
+            </p>
+          )}
+        </div>
       </div>
+    </div>
+  )
+}
+
+function AboutHero() {
+  return (
+    <section className="about-hero about-green" aria-labelledby="about-hero-heading">
+      <Feature
+        id="about-hero-heading"
+        as="h1"
+        heading={ABOUT_HERO.heading}
+        image={ABOUT_HERO.image}
+        mediaSide="end"
+        eager
+      >
+        <p className="about-feature__lead">{ABOUT_HERO.description}</p>
+        {ABOUT_HERO.body.map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+      </Feature>
     </section>
   )
 }
@@ -121,15 +166,14 @@ function AboutIntro() {
     <section className="about-intro about-surface" aria-labelledby="about-intro-heading">
       <div className="section-container">
         <div className="about-intro__head" data-reveal-group>
-          <h2 id="about-intro-heading" className="about-statement">
-            <MaskLine className="about-statement__lead">{ABOUT_INTRO.statement.lead}</MaskLine>{' '}
-            <MaskLine>{ABOUT_INTRO.statement.idea}</MaskLine>
+          <h2 id="about-intro-heading" className="section-heading about-statement">
+            <MaskLine>{ABOUT_INTRO.statement.lead}</MaskLine>
           </h2>
         </div>
 
         <div className="section-grid about-intro__columns" data-reveal-group>
           <div data-reveal="fade" className="about-intro__studio">
-            <p className="about-copy">{ABOUT_INTRO.studio}</p>
+            <p>{ABOUT_INTRO.studio}</p>
             <ul className="about-disciplines" aria-label="Disciplines">
               {ABOUT_INTRO.disciplines.map((discipline) => (
                 <li key={discipline}>{discipline}</li>
@@ -138,9 +182,7 @@ function AboutIntro() {
           </div>
 
           <div data-reveal="fade" className="about-intro__approach">
-            <p className="section-label about-label">{ABOUT_INTRO.approachLabel}</p>
-            <p className="about-lede">{ABOUT_INTRO.approach[0]}</p>
-            <p className="about-copy about-copy--muted">{ABOUT_INTRO.approach[1]}</p>
+            <p className="about-intro__lead">{ABOUT_INTRO.approach[0]}</p>
           </div>
         </div>
       </div>
@@ -148,72 +190,29 @@ function AboutIntro() {
   )
 }
 
-function Stage({ stage, className }: { stage: JourneyStage; className: string }) {
-  const titleId = useId()
-
-  return (
-    <article data-reveal="fade" className={`about-stage ${className}`} aria-labelledby={titleId}>
-      <h3 id={titleId} className="section-label about-stage__title">
-        {stage.title}
-      </h3>
-      <p className="about-stage__text">{stage.text}</p>
-    </article>
-  )
-}
-
 function AboutJourney() {
-  const [beginning, studio, strategy, now] = ABOUT_JOURNEY.stages
-  const { images } = ABOUT_JOURNEY
+  const [beginning] = ABOUT_JOURNEY.stages
 
   return (
     <section className="about-journey about-surface" aria-labelledby="about-journey-heading">
-      <div className="section-container">
-        <header className="section-grid about-journey__head" data-reveal-group>
-          <div className="about-journey__intro">
-            <h2 id="about-journey-heading" className="about-heading">
-              <MaskLine>{ABOUT_JOURNEY.heading}</MaskLine>
-            </h2>
-            <p data-reveal="fade" className="section-description about-journey__description">
-              {ABOUT_JOURNEY.description}
-            </p>
-          </div>
-        </header>
-
-        <div className="about-journey__story">
-          <div className="section-grid about-journey__row about-journey__row--one" data-reveal-group>
-            <Stage stage={beginning} className="about-stage--left about-stage--end" />
-            <Media
-              image={images.beginning}
-              className="about-journey__image about-journey__image--tall"
-              sizes="(min-width: 1024px) 38vw, (min-width: 768px) 46vw, 100vw"
-              parallax
-            />
-          </div>
-
-          <div className="section-grid about-journey__row about-journey__row--two" data-reveal-group>
-            <Media
-              image={images.studio}
-              className="about-journey__image about-journey__image--small"
-              sizes="(min-width: 1024px) 30vw, (min-width: 768px) 40vw, 100vw"
-            />
-            <Stage stage={studio} className="about-stage--right about-stage--center" />
-          </div>
-
-          <div className="section-grid about-journey__row about-journey__row--three" data-reveal-group>
-            <Stage stage={strategy} className="about-stage--left about-stage--center" />
-            <Media
-              image={images.road}
-              className="about-journey__image about-journey__image--technology"
-              sizes="(min-width: 1024px) 38vw, (min-width: 768px) 46vw, 100vw"
-              parallax
-            />
-          </div>
-
-          <div className="section-grid about-journey__row about-journey__row--four" data-reveal-group>
-            <Stage stage={now} className="about-stage--right" />
-          </div>
-        </div>
-      </div>
+      <Feature
+        id="about-journey-heading"
+        heading={ABOUT_JOURNEY.heading}
+        image={ABOUT_JOURNEY.images.beginning}
+        mediaSide="start"
+        footer={
+          // The path the story takes, by its stage names: an index, not
+          // more copy.
+          <ol className="about-path" aria-label="Stages of the journey">
+            {ABOUT_JOURNEY.stages.map((stage) => (
+              <li key={stage.title}>{stage.title}</li>
+            ))}
+          </ol>
+        }
+      >
+        <p className="about-feature__lead">{ABOUT_JOURNEY.description}</p>
+        <p>{beginning.text}</p>
+      </Feature>
     </section>
   )
 }
@@ -221,27 +220,15 @@ function AboutJourney() {
 function AboutStatement() {
   return (
     <section className="about-brand about-surface" aria-labelledby="about-brand-heading">
-      <div className="section-container">
-        <div className="section-grid about-brand__grid" data-reveal-group>
-          <Media
-            image={ABOUT_STATEMENT.image}
-            className="about-brand__image"
-            sizes="(min-width: 1024px) 44vw, (min-width: 768px) 50vw, 100vw"
-            parallax
-          />
-          <div className="about-brand__copy">
-            <h2 id="about-brand-heading" className="about-heading about-brand__heading">
-              <MaskLine>{ABOUT_STATEMENT.heading}</MaskLine>
-            </h2>
-            <p data-reveal="fade" className="section-description about-brand__text">
-              {ABOUT_STATEMENT.text}
-            </p>
-            <p data-reveal="fade" className="section-label about-label about-brand__signature">
-              {ABOUT_STATEMENT.signature}
-            </p>
-          </div>
-        </div>
-      </div>
+      <Feature
+        id="about-brand-heading"
+        heading={ABOUT_STATEMENT.heading}
+        image={ABOUT_STATEMENT.image}
+        mediaSide="end"
+        footer={<p className="section-label about-signature">{ABOUT_STATEMENT.signature}</p>}
+      >
+        <p className="about-feature__lead">{ABOUT_STATEMENT.text}</p>
+      </Feature>
     </section>
   )
 }
@@ -250,23 +237,22 @@ function AboutPrinciples() {
   return (
     <section className="about-principles about-green" aria-labelledby="about-principles-heading">
       <div className="section-container">
-        <header className="about-principles__head" data-reveal-group>
-          <h2 id="about-principles-heading" className="about-statement about-principles__heading">
-            <MaskLine>{ABOUT_PRINCIPLES.heading}</MaskLine>
-          </h2>
-        </header>
+        <div className="section-grid about-principles__grid">
+          <header className="about-principles__head" data-reveal-group>
+            <h2 id="about-principles-heading" className="section-heading about-principles__heading">
+              <MaskLine>{ABOUT_PRINCIPLES.heading}</MaskLine>
+            </h2>
+          </header>
 
-        <ol className="about-principles__list" data-reveal-group>
-          {ABOUT_PRINCIPLES.items.map((item) => (
-            <li key={item.number} data-reveal="fade" className="about-principle">
-              <span className="about-principle__number" aria-hidden="true">
-                {item.number}
-              </span>
-              <h3 className="about-principle__title">{item.title}</h3>
-              <p className="about-principle__text">{item.text}</p>
-            </li>
-          ))}
-        </ol>
+          <ol className="about-principles__list" data-reveal-group>
+            {ABOUT_PRINCIPLES.items.map((item) => (
+              <li key={item.title} data-reveal="fade" className="about-principle">
+                <h3 className="about-principle__title">{item.title}</h3>
+                <p className="about-principle__text">{item.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   )
@@ -310,10 +296,10 @@ function AboutTeam() {
       <div className="section-container">
         <div className="section-grid about-team__grid">
           <header className="about-team__intro" data-reveal-group>
-            <h2 id="about-team-heading" className="about-statement about-team__heading">
+            <h2 id="about-team-heading" className="section-heading about-team__heading">
               <MaskLine>{ABOUT_TEAM.heading}</MaskLine>
             </h2>
-            <p data-reveal="fade" className="about-copy about-team__description">
+            <p data-reveal="fade" className="about-team__description">
               {ABOUT_TEAM.description}
             </p>
           </header>
@@ -339,7 +325,7 @@ function AboutClosing() {
   return (
     <section className="about-closing about-surface" aria-labelledby="about-closing-heading" data-reveal-group>
       <div className="section-container about-closing__inner">
-        <h2 id="about-closing-heading" className="about-heading about-closing__heading">
+        <h2 id="about-closing-heading" className="section-heading about-closing__heading">
           <MaskLine className="about-closing__muted">{first}</MaskLine> <MaskLine>{second}</MaskLine>
         </h2>
         <a data-reveal="fade" href={ABOUT_CLOSING.cta.href} className="about-link">
@@ -418,23 +404,26 @@ function AboutPage() {
         })
       })
 
-      // Parallax is a desktop/tablet nicety; on a phone the frames are
-      // near full-width and the drift reads as jitter rather than depth.
-      mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
-        gsap.utils.toArray<HTMLElement>('[data-parallax]', root).forEach((layer) => {
-          gsap.fromTo(
-            layer,
-            { yPercent: -4 },
-            {
-              yPercent: 4,
-              ease: 'none',
-              scrollTrigger: { trigger: layer.parentElement, start: 'top bottom', end: 'bottom top', scrub: true },
-            },
-          )
-        })
-      })
 
-      return () => mm.revert()
+      // Not motion, so it runs with reduced motion too. The header logo is ink
+      // by default (the page opens on the green hero, so first paint is right
+      // before this runs) and returns to its brand colours, by class, while
+      // the header sits over an off-white section (see AboutPage.css).
+      // Declared first: a trigger already active fires onToggle while it is
+      // still being created.
+      let onGreen: ScrollTrigger[] = []
+      const sync = () =>
+        document.body.classList.toggle('about-logo-on-light', !onGreen.some((trigger) => trigger.isActive))
+      onGreen = gsap.utils.toArray<HTMLElement>('.about-green', root).map((section) =>
+        ScrollTrigger.create({ trigger: section, start: 'top 48px', end: 'bottom 48px', onToggle: sync }),
+      )
+      sync()
+
+      return () => {
+        mm.revert()
+        onGreen.forEach((trigger) => trigger.kill())
+        document.body.classList.remove('about-logo-on-light')
+      }
     },
     { scope: rootRef },
   )

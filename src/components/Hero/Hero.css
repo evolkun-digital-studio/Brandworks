@@ -461,9 +461,10 @@
   letter-spacing: -0.010em;
 }
 
-/* Web's headline reads as two even lines, not a one-word widow. */
+/* Web's headline breaks where its copy says (the newline in
+   heroServices.ts): "Digital experiences built / to work." */
 .hero[data-service='web'] .hero-title {
-  text-wrap: balance;
+  white-space: pre-line;
 }
 
 .hero-description {
@@ -506,17 +507,25 @@
     max-width: none;
   }
 
-  .hero-caption__pane:not([data-id='web']) {
+  /* Every service, Web included, uses the same measure and type size. */
+  .hero-caption__pane {
     max-width: 560px;
   }
 
-  .hero-caption__pane[data-id='web'] .hero-mask--title {
-    font-size: clamp(44px, 3.8vw, 66px);
+  /* Web's two set lines ("Digital experiences built / to work.") never
+     re-wrap: on wide screens the headline outgrows 560px, so this slide
+     uses the column's full five-column width; the description keeps 560px. */
+  .hero[data-service='web'] :is(.hero-aside, .hero-caption),
+  .hero-caption__pane[data-id='web'] {
+    max-width: none;
+  }
+
+  .hero-caption__pane[data-id='web'] .hero-title {
+    white-space: pre;
   }
 
   .hero-caption__pane[data-id='web'] .hero-description {
-    max-width: 520px;
-    font-size: 18px;
+    max-width: 560px;
   }
 }
 
@@ -572,14 +581,14 @@
   transform: translateY(24px);
 }
 
-/* Web Design & Dev sits on warm off-white: dark ink, larger subtext. */
+/* Web Design & Dev sits on warm off-white: dark ink, at the same sizes as
+   every other service. */
 .hero-caption__pane[data-id='web'] .hero-title {
   color: #0E0E10;
 }
 
 .hero-caption__pane[data-id='web'] .hero-description {
   color: #4F534B;
-  font-size: 17px;
 }
 
 .hero-mask {
@@ -1032,5 +1041,59 @@
 
   .social-line.is-drawn {
     animation: none;
+  }
+}
+
+/* ------------------------------------------------- Design & Motion pair */
+
+/*
+ * Two 4:5 stills in the empty left of the dark hero (HeroDesignPair.tsx):
+ * the larger behind, the smaller in front, lower and to the right. The back
+ * frame sits on the page gutter just below the header; everything else is
+ * a proportion of it, so the pair scales as one. Sized by both width and
+ * height, so it never reaches the headline or the capsules at the bottom.
+ */
+.design-pair {
+  --pair-w: min(27vw, 50svh * 0.8, 400px);
+  position: absolute;
+  top: clamp(120px, 15svh, 160px);
+  left: var(--hero-gutter);
+  width: var(--pair-w);
+  aspect-ratio: 4 / 5;
+}
+
+.design-pair__frame {
+  position: absolute;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: #161616;
+  will-change: transform;
+}
+
+.design-pair__back {
+  inset: 0 auto auto 0;
+  width: 100%;
+}
+
+.design-pair__front {
+  top: 58%;
+  left: 62%;
+  width: 70%;
+}
+
+/* Tablets: the copy runs full width along the bottom, so the whole upper
+   area is free and the pair can take more of it. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .design-pair {
+    --pair-w: min(42vw, 38svh * 0.8);
+  }
+}
+
+/* Phones: the headline fills the lower half, so the pair sits in the top
+   half, smaller, still overlapping. No scroll drift here (see the TSX). */
+@media (max-width: 767px) {
+  .design-pair {
+    --pair-w: min(44vw, 30svh * 0.8);
+    top: max(96px, calc(76px + env(safe-area-inset-top)));
   }
 }

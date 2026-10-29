@@ -15,13 +15,11 @@ const LOGO_SRC = '/BWorksLogo-01.svg'
 
 gsap.registerPlugin(useGSAP)
 
-// Pexels video 39105126, served from the Pexels CDN until copies are
-// uploaded to the media bucket.
-// Phones get the lighter encode; the choice is made once,
-// when the video is first attached.
+// Shared footer film. The same adaptive MP4 is used across breakpoints so
+// every public page carries one consistent closing visual.
 const SHOWREEL = {
-  desktop: 'https://videos.pexels.com/video-files/39105126/16638118_1920_1080_30fps.mp4',
-  mobile: 'https://videos.pexels.com/video-files/39105126/16638112_1280_720_30fps.mp4',
+  desktop: 'https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/cloudinarry%20to%20cloudflare/202606021731-e_hqa6sn.mp4',
+  mobile: 'https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/cloudinarry%20to%20cloudflare/202606021731-e_hqa6sn.mp4',
 }
 
 /** Where the fullscreen cursor follows the pointer instead of a button. */
@@ -110,8 +108,8 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
   }, [reducedMotion])
 
   /**
-   * Attach the film only as the footer approaches,
-   * then play it while it's visible.
+   * Start buffering the compact showreel well before the footer enters view,
+   * so its first frame is ready when the visitor arrives.
    */
   useEffect(() => {
     const root = rootRef.current
@@ -125,6 +123,7 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
       video.src = matches('(max-width: 767px)')
         ? SHOWREEL.mobile
         : SHOWREEL.desktop
+      video.load()
     }
 
     if (typeof IntersectionObserver === 'undefined') {
@@ -140,7 +139,7 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
         nearby.disconnect()
       },
       {
-        rootMargin: '600px 0px',
+        rootMargin: '1600px 0px',
       },
     )
 
@@ -507,7 +506,7 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           disablePictureInPicture
         />
 

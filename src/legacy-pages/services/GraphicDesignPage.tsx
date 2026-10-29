@@ -432,7 +432,7 @@ export default function GraphicDesignPage() {
   return (
     <main
       ref={pageRef}
-      className="relative isolate overflow-hidden text-[#111]"
+      className="relative isolate overflow-hidden text-[#111] [font-family:var(--font-secondary)]"
     >
       {/* =========================================================
           HERO
@@ -456,16 +456,16 @@ export default function GraphicDesignPage() {
 
           <div className="mt-[clamp(50px,7vw,100px)] grid items-end gap-10 md:grid-cols-12">
             <div className="md:col-span-8">
-              <h1 className="m-0 max-w-[940px] font-[400] text-[clamp(44px,6vw,72px)] leading-[0.91] tracking-[-0.055em] [font-family:Grimblade,serif]">
+              <h1 className="m-0 max-w-[940px] font-[400] text-[48px] leading-[0.91] tracking-[-0.055em]">
                 <span className="block overflow-hidden pb-[0.08em]">
                   <span data-hero-line className="block">
-                    Graphic systems
+                    Graphic systems with
                   </span>
                 </span>
 
                 <span className="block overflow-hidden pb-[0.08em]">
                   <span data-hero-line className="block">
-                    with a pulse.
+                    a pulse.
                   </span>
                 </span>
               </h1>
@@ -767,7 +767,7 @@ export default function GraphicDesignPage() {
                   Brand motion
                 </p>
 
-                <h3 className="mb-0 mt-2 font-[400] text-[26px] leading-none tracking-[-0.035em] [font-family:Grimblade,serif]">
+                <h3 className="mb-0 mt-2 font-[400] text-[26px] leading-none tracking-[-0.035em]">
                   A visual language with a pulse.
                 </h3>
               </div>
@@ -812,7 +812,7 @@ export default function GraphicDesignPage() {
                 data-process-row
                 className="grid gap-x-6 gap-y-5 border-b border-black/20 py-[clamp(30px,4vw,48px)] md:grid-cols-12 md:items-start"
               >
-                <h3 className="m-0 font-[400] text-[clamp(25px,2.6vw,34px)] leading-none tracking-[-0.04em] [font-family:Grimblade,serif] md:col-span-5">
+                <h3 className="m-0 font-[400] text-[clamp(25px,2.6vw,34px)] leading-none tracking-[-0.04em] md:col-span-5">
                   {step.title}
                 </h3>
 

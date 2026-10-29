@@ -1,9 +1,9 @@
 /*
  * About page (components/AboutPage). Built on the shared editorial system
- * in index.css — .section-container, .section-grid, .section-label,
- * .section-description, the page gutter and section rhythm — so it shares
- * the homepage's edges and spacing. Everything specific to this page is
- * scoped under .about-page; nothing here reaches the rest of the site.
+ * in index.css — .section-container, .section-grid, .section-heading and
+ * the page gutter — and on the homepage paragraph style (Home.css
+ * .home-page p), so it shares the homepage's edges and type. Everything
+ * specific to this page is scoped under .about-page.
  *
  * Surfaces: the BrandWorks green is used as architecture — whole sections
  * (hero, principles, team) — never as small decorative marks. Everything
@@ -14,49 +14,66 @@
   --about-green: #c7f703;
   --about-paper: #f5f5f0;
   --about-ink: var(--ink);
-  /* No grey type on this page: secondary text is full ink too, and the
-     site-wide muted tint (used by .section-label / .section-description)
-     is overridden to match. */
-  --ink-muted: var(--ink);
-  --about-muted: var(--ink);
   --about-rule: rgba(17, 17, 17, 0.12);
   --about-rule-strong: rgba(17, 17, 17, 0.22);
-
-  --about-hero-size: clamp(4rem, 10vw, 10rem);
-  --about-statement-size: clamp(2.5rem, 4.6vw, 2.5rem);
-  --about-heading-size: clamp(2rem, 4vw, 3rem);
-
-  /* How far the hero portrait reaches into the section below it. */
-  --about-overlap: clamp(96px, 14vw, 220px);
+  /* One content-driven rhythm for every section: generous, never a
+     screen-height spacer. */
+  --about-space: clamp(64px, 8vw, 128px);
   --about-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* Oversized parallax layers and scaled images never widen the page. */
   overflow-x: clip;
   background: var(--about-paper);
   color: var(--about-ink);
 }
 
-/* Let grid children shrink with the viewport, especially long display words
-   and media frames on narrow tablets. */
+/* Let grid children shrink with the viewport. */
 .about-page .section-grid > *,
-.about-page .about-hero > .section-container,
 .about-page .about-media {
   min-width: 0;
   max-width: 100%;
 }
 
-/* No italics anywhere on this page, whatever the markup or UA defaults. */
 .about-page,
 .about-page * {
   font-style: normal;
 }
 
-/* The shared header logo is a lime mark with a white wordmark, drawn for
-   the dark homepage hero — on this page's green both halves vanish. While
-   the About page is mounted it is shown as a single-colour dark logo; the
-   header itself is untouched. */
-body:has(.about-page) .site-header__logo {
+/* Header logo. The page uses the homepage's logo for light grounds
+   (BWorksLogo-dark.svg, the file Header.css swaps in for its light hero
+   slide). On the green hero its lime mark would vanish, so by default — the
+   page always opens on the hero — the logo is drawn in ink. Once the hero
+   leaves the header, AboutPage adds .about-logo-on-light and the asset
+   shows in its own brand colours, unfiltered. Both states are the same
+   <img>, so nothing shifts; the filter cross-fades in 250ms. */
+body:has(.about-page) .site-header__logo--light {
+  display: none;
+}
+
+body:has(.about-page) .site-header__logo--dark {
+  display: block;
   filter: brightness(0);
+  transition: filter 0.25s ease;
+}
+
+body.about-logo-on-light .site-header__logo--dark {
+  filter: none;
+}
+
+/* The rest of the scrolled header follows the logo over green: the lime
+   "Let's Talk" (which would vanish) turns ink with lime type, and the
+   capsules turn solid ink. Only the header's own tone variables change. */
+body:has(.about-page):not(.about-logo-on-light) .site-header.is-scrolled .site-header__surface:is(.is-on-dark, .is-on-light) {
+  --pill-ink: #fff;
+  --pill-bg: rgba(17, 17, 17, 0.86);
+  --pill-bg-hover: #111;
+  --pill-border: rgba(17, 17, 17, 0.86);
+  --pill-border-hover: #111;
+  --cta-ink: var(--color-bw-lime);
+  --cta-ink-hover: #111;
+  --cta-bg: #111;
+  --cta-bg-hover: #fff;
+  --cta-border: #111;
+  --cta-border-hover: #fff;
 }
 
 .about-surface {
@@ -72,16 +89,52 @@ body:has(.about-page) .site-header__logo {
 
 /* ------------------------------------------------------------ shared type */
 
-.about-label {
+/* Section titles are the homepage chapter titles (.section-heading, which
+   reads the same tokens as Home.css .home-page h2). */
+.about-page .section-heading {
   margin: 0;
-  color: var(--about-muted);
+  line-height: 1.05;
+  color: var(--about-ink);
+}
+
+/* The homepage paragraph treatment (Home.css .home-page p). */
+.about-page p {
+  margin: 0;
+  max-width: 58ch;
+  color: rgba(17, 17, 17, 0.64);
+  font-family: "Open Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* On the green the 64% tint loses contrast; full ink reads cleanly. */
+.about-page .about-green p {
+  color: var(--about-ink);
+}
+
+/* Small editorial labels and captions: the homepage P2 (.section-label),
+   restated at higher specificity so the paragraph rule above can't
+   override it. */
+.about-page p.section-label {
+  max-width: none;
+  font-family: var(--font-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.64);
+}
+
+.about-page .about-green p.section-label {
+  color: var(--about-ink);
 }
 
 /* Masked reveal: the line rises through its own clipping box. The padding
-   keeps glyphs out of the clip — descenders below, and at the sides the
-   last letter, which negative tracking pushes past the box's edge (it cut
-   the S of the hero's "US"). The negative margins give that space back,
-   so layout and line spacing are unchanged. */
+   keeps glyphs out of the clip; the negative margins give that space
+   back, so layout and line spacing are unchanged. */
 .about-mask {
   display: block;
   overflow: hidden;
@@ -91,54 +144,6 @@ body:has(.about-page) .site-header__logo {
 
 .about-mask__line {
   display: block;
-}
-
-.about-statement {
-  margin: 0;
-  font-family: var(--section-title-font);
-  font-size: var(--section-title-size);
-  font-weight: var(--section-title-weight);
-  line-height: 1;
-  letter-spacing: var(--section-title-tracking);
-  text-wrap: balance;
-  color: var(--about-ink);
-}
-
-.about-heading {
-  margin: 0;
-  font-family: var(--section-title-font);
-  font-size: var(--section-title-size);
-  font-weight: var(--section-title-weight);
-  line-height: 1;
-  letter-spacing: var(--section-title-tracking);
-  text-wrap: balance;
-  color: var(--about-ink);
-}
-
-/* A short sentence given weight without a new face: the display voice at
-   a reading size. */
-.about-lede {
-  margin: 0;
-  font-family: var(--font-primary);
-  font-size: clamp(22px, 2vw, 30px);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-  color: var(--about-ink);
-}
-
-.about-copy {
-  margin: 0;
-  font-family: var(--font-secondary);
-  font-size: clamp(14px, 1.2vw, 16px);
-  line-height: 1.6;
-  text-wrap: pretty;
-  color: var(--about-ink);
-}
-
-.about-copy--muted {
-  color: var(--about-muted);
 }
 
 /* ------------------------------------------------------------------ media */
@@ -157,100 +162,125 @@ body:has(.about-page) .site-header__logo {
   object-fit: cover;
 }
 
-/* 8% taller than its frame, so a ±4% drift never shows an edge. */
-.about-media__parallax {
-  position: absolute;
-  inset: -4% 0;
-  will-change: transform;
+/* ------------------------------------------- feature rows (hero/journey/now) */
+
+.about-feature__grid {
+  align-items: center;
+  row-gap: var(--content-gap);
 }
 
-/* -------------------------------------------------------------- 01 — hero */
-
-.about-hero {
-  position: relative;
-  /* Above the next section, so the portrait can overlap into it. */
-  z-index: 2;
-  /* Keeps the portrait's negative bottom margin inside this box instead of
-     collapsing through it — that is what lets the image hang below. */
-  display: flow-root;
-  /* Clears the fixed header (64px capsules, 18–20px from the top). */
-  padding-top: clamp(116px, 12vw, 168px);
-  background: var(--about-green);
+.about-feature__copy {
+  display: grid;
+  align-content: start;
+  gap: var(--text-gap);
 }
 
-.about-hero__heading {
-  margin: clamp(48px, 7vw, 112px) 0 0;
-  font-family: var(--font-primary);
-  font-size: var(--about-hero-size);
-  font-weight: 500;
-  line-height: 0.9;
-  letter-spacing: -0.045em;
-  text-align: center;
-  text-transform: uppercase;
+.about-feature__text {
+  display: grid;
+  gap: 16px;
+}
+
+/* The section's key sentence: same paragraph face, full ink. */
+.about-page .about-feature__lead {
   color: var(--about-ink);
 }
 
-.about-hero__heading .about-mask {
-  display: inline-block;
-  vertical-align: top;
+/* Every primary photograph: four columns, 4:5, never taller than most of
+   the screen. The caption, when there is one, hangs under its frame. */
+.about-feature__visual {
+  display: grid;
+  gap: 12px;
+  width: min(100%, calc(64svh * 0.8));
 }
 
-.about-hero__description {
-  max-width: 56ch;
-  margin: clamp(20px, 2vw, 28px) auto 0;
-  font-family: var(--font-secondary);
-  font-size: clamp(14px, 1.2vw, 16px);
-  line-height: 1.5;
-  text-align: center;
-  text-wrap: balance;
-  color: var(--about-ink);
-}
-
-.about-hero__media {
-  width: clamp(240px, 27vw, 380px);
+.about-feature__media {
   aspect-ratio: 4 / 5;
-  margin: clamp(48px, 6vw, 88px) auto calc(-1 * var(--about-overlap));
 }
 
-/* ------------------------------------------------------- 02 — who we are */
+.about-caption {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Fine pointers only: the photograph leans in slightly, like the team. */
+@media (hover: hover) and (pointer: fine) {
+  .about-feature__media img {
+    transition: transform 0.9s var(--about-ease);
+  }
+
+  .about-feature__visual:hover .about-feature__media img {
+    transform: scale(1.025);
+  }
+}
+
+.about-feature--media-end .about-feature__copy {
+  grid-column: 1 / 7;
+}
+
+.about-feature--media-end .about-feature__visual {
+  grid-column: 9 / 13;
+  justify-self: end;
+}
+
+.about-feature--media-start .about-feature__visual {
+  grid-column: 1 / 5;
+  grid-row: 1;
+}
+
+.about-feature--media-start .about-feature__copy {
+  grid-column: 7 / 13;
+  grid-row: 1;
+}
+
+.about-feature__footer {
+  margin-top: 8px;
+}
+
+/* ------------------------------------------------------------------ hero */
+
+/* The photograph sits inside the green with the same space above and
+   below it as the rest of the page's sections. */
+.about-hero {
+  padding-top: clamp(96px, 7.5vw, 116px);
+  padding-bottom: var(--about-space);
+}
+
+.about-hero .about-feature__visual {
+  grid-column: 8 / 13;
+  width: min(100%, calc(66svh * 0.8));
+}
+
+/* ------------------------------------------------------------ who we are */
 
 .about-intro {
-  padding-top: calc(var(--about-overlap) + var(--section-space));
-  padding-bottom: var(--section-space);
-}
-
-.about-intro__head {
-  display: grid;
-  justify-items: center;
-  gap: clamp(24px, 3vw, 40px);
-  text-align: center;
+  padding-block: var(--about-space);
 }
 
 .about-intro .about-statement {
-  max-width: 18.5em;
-}
-
-.about-statement__lead {
-  color: var(--about-muted);
+  max-width: 22em;
 }
 
 .about-intro__columns {
-  margin-top: var(--media-gap);
+  margin-top: var(--content-gap);
   row-gap: var(--content-gap);
 }
 
 .about-intro__studio {
-  grid-column: 2 / 6;
+  grid-column: 1 / 7;
   display: grid;
   align-content: start;
   gap: var(--text-gap);
 }
 
 .about-intro__approach {
-  grid-column: 8 / 12;
+  grid-column: 8 / 13;
   display: grid;
   align-content: start;
-  gap: clamp(16px, 1.6vw, 24px);
+  gap: 16px;
+}
+
+.about-page .about-intro__lead {
+  color: var(--about-ink);
 }
 
 .about-disciplines {
@@ -263,162 +293,83 @@ body:has(.about-page) .site-header__logo {
 }
 
 .about-disciplines li {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
   padding-block: 10px;
   border-top: 1px solid var(--about-rule);
   font-family: var(--font-secondary);
-  font-size: clamp(13px, 1.05vw, 15px);
+  font-size: 15px;
   line-height: 1.35;
   color: var(--about-ink);
 }
 
-/* ------------------------------------------------------- 03 — our journey */
+/* ------------------------------------------------- journey / where we are */
 
 .about-journey {
-  padding-bottom: var(--section-space);
+  padding-bottom: var(--about-space);
 }
 
-.about-journey__head {
-  align-items: start;
-  row-gap: var(--text-gap);
-  padding-top: clamp(24px, 2.4vw, 36px);
+/* Journey: a hairline over the heading, the text centred on the photograph. */
+.about-journey .about-feature__copy {
+  padding-top: var(--text-gap);
   border-top: 1px solid var(--about-rule);
 }
 
-.about-journey__intro {
-  grid-column: 4 / 11;
-}
-
-.about-journey__description {
-  margin: var(--text-gap) 0 0;
-}
-
-.about-journey__story {
+/* The stages as an index: one left-aligned column of names on hairlines. */
+.about-path {
   display: grid;
-  gap: clamp(80px, 11vw, 176px);
-  margin-top: clamp(80px, 10vw, 160px);
-}
-
-.about-journey__row {
-  row-gap: var(--content-gap);
-}
-
-/* A story block: hairline, index, one sentence. No dots, no connectors —
-   the rhythm of the page is the timeline. */
-.about-stage {
-  padding-top: clamp(16px, 1.4vw, 22px);
-  border-top: 1px solid var(--about-rule-strong);
-}
-
-.about-stage--left {
-  grid-column: 1 / 6;
-}
-
-.about-stage--right {
-  grid-column: 7 / 12;
-}
-
-.about-stage--end {
-  align-self: end;
-}
-
-.about-stage--center {
-  align-self: center;
-}
-
-.about-stage__title {
+  justify-items: start;
+  max-width: 32ch;
   margin: 0;
-  color: var(--about-muted);
+  padding: 0;
+  list-style: none;
 }
 
-.about-stage__text {
-  max-width: 22ch;
-  margin: clamp(20px, 2vw, 32px) 0 0;
-  font-family: var(--font-primary);
-  font-size: 36px;
-  font-weight: 200;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
-  text-wrap: pretty;
-  color: var(--about-ink);
+.about-path li {
+  width: 100%;
+  text-align: left;
+  padding-block: 10px;
+  border-top: 1px solid var(--about-rule);
+  font-family: var(--font-secondary);
+  font-size: 15px;
+  line-height: 1.35;
+  color: rgba(17, 17, 17, 0.64);
 }
 
-.about-journey__image--tall {
-  grid-column: 8 / 13;
-  aspect-ratio: 4 / 5;
-}
-
-.about-journey__image--small {
-  grid-column: 2 / 6;
-  aspect-ratio: 4 / 3;
-}
-
-.about-journey__image--technology {
-  grid-column: 8 / 13;
-  aspect-ratio: 4 / 3;
-  align-self: center;
-}
-
-/* --------------------------------------------------- 04 — brand statement */
-
+/* Where We Are Now: the copy sits centred beside the photograph (the
+   shared feature alignment) and closes on the studio signature. */
 .about-brand {
-  padding-bottom: var(--section-space);
+  padding-bottom: var(--about-space);
 }
 
-.about-brand__grid {
-  align-items: center;
-  row-gap: var(--content-gap);
+.about-signature {
+  padding-top: 16px;
+  border-top: 1px solid var(--about-rule);
 }
 
-.about-brand__image {
-  grid-column: 1 / 7;
-  aspect-ratio: 4 / 5;
-}
+/* ----------------------------------------------------------- how we think */
 
-.about-brand__copy {
-  grid-column: 8 / 13;
-  display: grid;
-  gap: var(--text-gap);
-}
-
-.about-brand__text {
-  margin: 0;
-  color: var(--about-ink);
-}
-
-.about-brand__signature {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: clamp(8px, 1vw, 16px);
-}
-
-.about-brand__signature::before {
-  content: '';
-  width: 36px;
-  height: 1px;
-  background: currentColor;
-}
-
-/* ----------------------------------------------------- 05 — how we think */
-
+/* Heading on the left, the four principles as a 2×2 on the right — the
+   same split as Meet the Team below, so the two green sections read as one. */
 .about-principles {
-  padding-block: var(--section-space);
+  padding-block: var(--about-space);
+}
+
+.about-principles__grid {
+  row-gap: var(--content-gap);
 }
 
 .about-principles__head {
+  grid-column: 1 / 5;
   display: grid;
-  gap: clamp(20px, 2vw, 28px);
+  align-content: start;
+  gap: var(--text-gap);
 }
 
 .about-principles__list {
+  grid-column: 6 / 13;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: var(--grid-gap);
-  row-gap: clamp(48px, 5vw, 72px);
-  margin: clamp(64px, 8vw, 128px) 0 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px var(--grid-gap);
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -426,59 +377,38 @@ body:has(.about-page) .site-header__logo {
 .about-principle {
   display: grid;
   align-content: start;
-  padding-top: clamp(16px, 1.4vw, 22px);
+  gap: 8px;
+  padding-top: 20px;
   border-top: 1px solid var(--about-rule-strong);
 }
 
-.about-principle__number {
-  font-family: var(--font-primary);
-  font-size: clamp(56px, 7vw, 112px);
+.about-page .about-principle__title {
+  margin: 0;
+  font-size: clamp(20px, 1.6vw, 24px);
   font-weight: 500;
-  line-height: 0.9;
-  letter-spacing: -0.05em;
-  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
   color: var(--about-ink);
 }
 
-.about-principle__title {
-  margin: clamp(28px, 3vw, 48px) 0 0;
-  font-family: var(--font-primary);
-  font-size: clamp(20px, 1.7vw, 26px);
-  font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--about-ink);
-}
-
-.about-principle__text {
-  max-width: 26ch;
-  margin: 10px 0 0;
-  font-family: var(--font-secondary);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--about-muted);
-}
-
-/* ------------------------------------------------------ 06 — meet the team */
+/* ------------------------------------------------------------ meet the team */
 
 .about-team {
-  padding-bottom: var(--section-space);
+  padding-bottom: var(--about-space);
 }
 
 .about-team__grid {
   row-gap: var(--media-gap);
-  padding-top: clamp(24px, 2.4vw, 36px);
-  border-top: 1px solid var(--about-rule);
 }
 
 .about-team__intro {
   grid-column: 1 / 5;
   align-self: start;
   display: grid;
-  gap: clamp(20px, 2vw, 28px);
+  gap: var(--text-gap);
 }
 
-.about-team__description {
+.about-page .about-team__description {
   max-width: 28ch;
 }
 
@@ -490,6 +420,7 @@ body:has(.about-page) .site-header__logo {
   }
 }
 
+/* Team image layout — locked. Do not change. */
 .about-team__members {
   grid-column: 6 / 13;
   display: grid;
@@ -528,29 +459,23 @@ body:has(.about-page) .site-header__logo {
 
 .about-member__meta {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   margin-top: 16px;
 }
 
-.about-member__name {
+.about-page .about-member__name {
   margin: 0;
-  font-family: var(--font-primary);
-  font-size: clamp(20px, 1.7vw, 26px);
+  font-size: clamp(20px, 1.6vw, 24px);
   font-weight: 500;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
   color: var(--about-ink);
 }
 
-.about-member__role {
-  margin: 0;
-  font-family: var(--font-secondary);
-  font-size: clamp(9px, 0.8vw, 11px);
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--about-ink);
+.about-page .about-member__role {
+  font-size: 15px;
+  line-height: 1.4;
+  color: rgba(17, 17, 17, 0.64);
 }
 
 .about-member__speciality {
@@ -558,12 +483,8 @@ body:has(.about-page) .site-header__logo {
   font-family: var(--font-secondary);
   font-size: 13px;
   line-height: 1.45;
-  color: var(--about-muted);
 }
 
-/* Fine pointers only: the speciality line waits for hover and the
-   portrait leans in slightly. Its space is always reserved, so nothing
-   below moves. Touch screens always show everything. */
 @media (hover: hover) and (pointer: fine) {
   .about-member__speciality {
     opacity: 0;
@@ -586,18 +507,22 @@ body:has(.about-page) .site-header__logo {
 /* ---------------------------------------------------------------- closing */
 
 .about-closing {
-  padding-block: var(--section-space);
+  padding-block: var(--about-space);
 }
 
 .about-closing__inner {
   display: grid;
   justify-items: center;
-  gap: clamp(32px, 4vw, 56px);
+  gap: var(--content-gap);
+  text-align: center;
+}
+
+.about-page .about-closing__heading {
   text-align: center;
 }
 
 .about-closing__muted {
-  color: var(--about-muted);
+  color: rgba(17, 17, 17, 0.64);
 }
 
 /* Understated: a text link on a hairline — the footer already carries
@@ -609,7 +534,7 @@ body:has(.about-page) .site-header__logo {
   padding-bottom: 8px;
   border-bottom: 1px solid currentColor;
   font-family: var(--font-secondary);
-  font-size: clamp(11px, 1vw, 13px);
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.12em;
@@ -636,72 +561,31 @@ body:has(.about-page) .site-header__logo {
 /* ---------------------------------------------------------------- tablet */
 
 @media (max-width: 1023px) {
-  .about-page {
-    --about-hero-size: clamp(4.25rem, 10vw, 7rem);
-    --about-statement-size: clamp(2.25rem, 5.4vw, 3.25rem);
-    --about-heading-size: clamp(2rem, 4.8vw, 3.5rem);
-    --about-overlap: clamp(80px, 12vw, 128px);
-  }
-
-  .about-hero {
-    padding-top: clamp(104px, 13vw, 144px);
-  }
-
-  .about-hero__heading {
-    margin-top: clamp(40px, 7vw, 80px);
-  }
-
-  .about-hero__media {
-    width: clamp(220px, 32vw, 320px);
-    margin-top: clamp(40px, 6vw, 72px);
-  }
-
-  .about-intro__studio {
+  .about-feature--media-end .about-feature__copy {
     grid-column: 1 / 5;
   }
 
+  .about-feature--media-end .about-feature__visual,
+  .about-hero .about-feature__visual {
+    grid-column: 5 / 9;
+  }
+
+  .about-feature--media-start .about-feature__visual {
+    grid-column: 1 / 5;
+  }
+
+  .about-feature--media-start .about-feature__copy {
+    grid-column: 5 / 9;
+  }
+
+  .about-intro__studio,
   .about-intro__approach {
-    grid-column: 5 / 9;
+    grid-column: span 4;
   }
 
-  .about-journey__intro {
-    grid-column: 1 / 8;
-  }
-
-  .about-stage--left {
-    grid-column: 1 / 5;
-  }
-
-  .about-stage--right {
-    grid-column: 5 / 9;
-  }
-
-  .about-stage__text {
-    font-size: 32px;
-  }
-
-  .about-journey__image--tall {
-    grid-column: 5 / 9;
-  }
-
-  .about-journey__image--small {
-    grid-column: 1 / 5;
-  }
-
-  .about-journey__image--technology {
-    grid-column: 5 / 9;
-  }
-
-  .about-brand__image {
-    grid-column: 1 / 5;
-  }
-
-  .about-brand__copy {
-    grid-column: 5 / 9;
-  }
-
+  .about-principles__head,
   .about-principles__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-column: 1 / -1;
   }
 
   .about-team__intro,
@@ -722,33 +606,15 @@ body:has(.about-page) .site-header__logo {
 
 @media (max-width: 767px) {
   .about-page {
-    --about-hero-size: clamp(2.7rem, 15.5vw, 4rem);
-    --about-statement-size: clamp(30px, 8.4vw, 32px);
-    --about-heading-size: clamp(28px, 7.6vw, 36px);
-    /* A small overlap still links the hero to the page below. */
-    --about-overlap: 64px;
+    --about-space: 56px;
   }
 
-  .about-page .section-container {
-    padding-inline: max(18px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right));
+  .about-page p {
+    font-size: 16px;
   }
 
   .about-page .section-grid {
-    row-gap: var(--content-gap);
-  }
-
-  .about-hero {
-    padding-top: max(96px, calc(72px + env(safe-area-inset-top)));
-  }
-
-  .about-hero__heading {
-    margin-top: clamp(36px, 12vw, 56px);
-    line-height: 0.92;
-  }
-
-  .about-hero__description {
-    max-width: 32ch;
-    margin-top: 20px;
+    row-gap: 32px;
   }
 
   /* .section-grid is a flex column here: the desktop vertical alignments
@@ -757,54 +623,20 @@ body:has(.about-page) .site-header__logo {
     align-self: stretch;
   }
 
-  .about-hero__media {
-    width: min(68vw, 300px);
-    margin-top: clamp(40px, 12vw, 56px);
+  .about-hero {
+    padding-top: max(104px, calc(80px + env(safe-area-inset-top)));
   }
 
-  .about-intro__head {
-    justify-items: start;
-    text-align: left;
-  }
-
-  .about-disciplines {
-    column-gap: 16px;
-  }
-
-  .about-journey__story {
-    gap: clamp(56px, 15vw, 88px);
-  }
-
-  /* Image first, then its words, whatever the desktop order. */
-  .about-journey__row--one .about-journey__image,
-  .about-journey__row--three .about-journey__image {
-    order: -1;
-  }
-
-  .about-stage__text {
-    max-width: none;
-    font-size: clamp(26px, 7.4vw, 30px);
+  /* Heading and words first, then the photograph — in every row. */
+  .about-feature__visual,
+  .about-hero .about-feature__visual {
+    order: 1;
+    width: 100%;
   }
 
   .about-principles__list {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: 40px;
-  }
-
-  /* Number and title side by side: the list reads in a glance. */
-  .about-principle {
-    grid-template-columns: auto minmax(0, 1fr);
-    column-gap: 20px;
-    align-items: baseline;
-  }
-
-  .about-principle__number {
-    grid-row: span 2;
-    font-size: 48px;
-  }
-
-  .about-principle__title {
-    margin-top: 0;
+    row-gap: 28px;
   }
 
   /* The staggered columns dissolve into one sequence (see AboutTeam). */
@@ -829,19 +661,9 @@ body:has(.about-page) .site-header__logo {
   }
 }
 
-/* Very narrow phones: keep the discipline list readable instead of forcing
-   two cramped columns. */
 @media (max-width: 379px) {
   .about-disciplines {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .about-principle {
-    column-gap: 14px;
-  }
-
-  .about-principle__number {
-    font-size: 42px;
   }
 }
 

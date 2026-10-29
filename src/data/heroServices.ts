@@ -21,7 +21,6 @@ import studioRedSweatshirtSmall from '../assets/photography/hero-p1001110-480.we
 // Every service the hero can preview lives here, so swapping a photo,
 // a film or a line of copy never means touching the components.
 
-const experimentalCreative = mediaUrl("gm-06-800.webp")
 const socialReel = "/video/ForWebsite.mp4"
 const socialReelPoster = mediaUrl("footer-showreel-poster.webp")
 
@@ -54,6 +53,8 @@ export type HeroMedia =
     }
   /** Web Design & Development: a coded composition, no media to fetch. */
   | { kind: 'web' }
+  /** Design & Motion: two overlapping stills, the larger one behind. */
+  | { kind: 'pair'; back: HeroImage; front: HeroImage }
 
 export type HeroServiceId = 'photography' | 'videography' | 'social' | 'pr' | 'graphic-animation' | 'web'
 
@@ -347,19 +348,21 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
     text: 'Graphic design, campaign assets, animation and motion built to keep the brand clear across different formats.',
     serviceList: 'Graphic Design · Motion · Animation · Campaign Assets',
     media: {
-      kind: 'image',
-      image: {
-        src: experimentalCreative,
-        width: 800,
-        height: 603,
-        alt: 'Abstract spectrum of coloured light in motion against black',
+      kind: 'video',
+      src: 'https://stream.mux.com/Jwr2RhmsNrd6GEspBNgm02vJsRZAGlaoQIh4AucGdASw.m3u8',
+      poster: {
+        src: 'https://image.mux.com/Jwr2RhmsNrd6GEspBNgm02vJsRZAGlaoQIh4AucGdASw/thumbnail.jpg?time=1',
+        width: 1920,
+        height: 1080,
+        alt: 'Still from the BrandWorks Design and Motion film',
       },
     },
   },
   web: {
     id: 'web',
     label: 'Web Design & Dev',
-    headline: 'Digital experiences built to work.',
+    // The newline is the line break (white-space: pre-line in Hero.css).
+    headline: 'Digital experiences built\nto work.',
     text: 'Websites designed and developed around clarity, interaction and how people actually use the web.',
     serviceList: 'Strategy · UX/UI · Development · Performance',
     media: { kind: 'web' },

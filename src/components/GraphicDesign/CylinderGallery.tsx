@@ -255,7 +255,7 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
                     <span className="text-[9px] uppercase tracking-[0.15em] text-white/70">
                       {project.type}
                     </span>
-                    <span className="max-w-[90%] text-[clamp(18px,1.6vw,24px)] leading-[1] tracking-[-0.035em] [font-family:Grimblade,serif]">
+                    <span className="max-w-[90%] text-[clamp(18px,1.6vw,24px)] leading-[1] tracking-[-0.035em] [font-family:var(--section-title-font)]">
                       {project.title}
                     </span>
                   </div>
@@ -266,7 +266,7 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
                     <span>{project.type}</span>
                     {/* <span>{project.year}</span> */}
                   </p>
-                  <h3 className="mb-0 mt-3 font-[400] text-[clamp(22px,2.4vw,30px)] leading-[0.98] tracking-[-0.04em] [font-family:Grimblade,serif]">
+                  <h3 className="mb-0 mt-3 font-[400] text-[clamp(22px,2.4vw,30px)] leading-[0.98] tracking-[-0.04em]">
                     {project.title}
                   </h3>
                 </div>
@@ -277,7 +277,7 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
           <div className="cyl__captions" aria-hidden="true">
             {projects.map((project) => (
               <div key={project.title} data-cyl-caption className="cyl__caption">
-                <p className="m-0 text-[clamp(22px,2vw,30px)] leading-[1] tracking-[-0.04em] [font-family:Grimblade,serif]">
+                <p className="m-0 text-[clamp(22px,2vw,30px)] leading-[1] tracking-[-0.04em] [font-family:var(--section-title-font)]">
                   {project.title}
                 </p>
                 <p className="m-0 mt-2 text-[9px] uppercase tracking-[0.14em] text-black/45">
