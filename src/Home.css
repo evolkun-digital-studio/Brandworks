@@ -34,7 +34,7 @@
 
 /* Shared reading style for every paragraph on the homepage. Scoped here so
    other public pages retain their own editorial type treatments. */
-.home-page p {
+/* .home-page p {
   color: rgba(17, 17, 17, 0.64);
   background-color: transparent;
   font-family: "Open Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -51,7 +51,7 @@
   text-decoration: none;
   text-align: start;
   text-indent: 0;
-}
+} */
 
 .home-page h2:not(#brandworks-intro-statement, .hero-mask) {
   font-family: var(--font-primary);

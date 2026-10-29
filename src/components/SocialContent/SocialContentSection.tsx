@@ -150,7 +150,7 @@ export default function SocialContentSection() {
                   preload="metadata"
                   aria-label={`${label}: ${reel.caption}`}
                 />
-                <span className="culture-reels__label" aria-hidden="true">{label}</span>
+                {/* <span className="culture-reels__label" aria-hidden="true">{label}</span> */}
                 {/* Shown only under reduced motion (see the stylesheet). */}
                 <button
                   type="button"
