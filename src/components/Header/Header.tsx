@@ -4,6 +4,11 @@ import { useState, useEffect, useRef } from 'react'
 import './Header.css'
 import type { SiteNavigationLabels } from '../../server/site-settings/types'
 
+// Keep the scrolled capsules legible over the About page’s green sections.
+const aboutSurfaceClasses =
+  '[body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-ink:#fff]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-bg:rgba(17,17,17,0.86)]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-bg-hover:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-border:rgba(17,17,17,0.86)]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-border-hover:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-ink:var(--color-bw-lime)]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-ink-hover:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-bg:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-bg-hover:#fff]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-border:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-border-hover:#fff]!'
+
+
 const navLinks:{ label: string; href: string }[] = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
@@ -86,7 +91,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
     <header className={`site-header ${hidden ? "is-hidden" : ""} ${scrolled ? "is-scrolled" : ""}`}>
       {/* Desktop Layout */}
       <div
-        className={`site-header__surface ${tone} hidden lg:grid w-full h-[64px] items-center px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}
+        className={`site-header__surface ${tone} ${aboutSurfaceClasses} hidden lg:grid w-full h-[64px] items-center px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}
         style={{ gridTemplateColumns: '1fr auto 1fr' }}
       >
         {/* Left */}
@@ -97,7 +102,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               alt="BrandWorks"
               width={175}
               height={30}
-              className="site-header__logo site-header__logo--light block h-auto w-[175px] object-contain"
+              className="site-header__logo site-header__logo--light [body:has(.about-page)_&]:hidden! block h-auto w-[175px] object-contain"
             />
             {/* Shown instead while the hero's light Web Design & Dev slide is up (Header.css). */}
             <Image
@@ -106,7 +111,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               aria-hidden="true"
               width={175}
               height={30}
-              className="site-header__logo site-header__logo--dark h-auto w-[175px] object-contain"
+              className="site-header__logo site-header__logo--dark [body:has(.about-page)_&]:block! [body:has(.about-page):not(.about-logo-on-light)_&]:brightness-0! [body.about-logo-on-light_&]:filter-none! [body:has(.about-page)_&]:transition-[filter] [body:has(.about-page)_&]:duration-250 [body:has(.about-page)_&]:ease-[ease] h-auto w-[175px] object-contain"
             />
           </Link>
         </div>
@@ -143,7 +148,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
       </div>
 
       {/* Mobile/Tablet Layout */}
-      <div className={`site-header__surface ${tone} flex lg:hidden w-full h-[64px] items-center justify-between px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}>
+      <div className={`site-header__surface ${tone} ${aboutSurfaceClasses} flex lg:hidden w-full h-[64px] items-center justify-between px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}>
         <div className="flex items-center">
           <Link to="/" aria-label="Brandworks home" className="block">
             <Image
@@ -151,7 +156,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               alt="BrandWorks"
               width={145}
               height={25}
-              className="site-header__logo site-header__logo--light block h-auto w-[145px] object-contain"
+              className="site-header__logo site-header__logo--light [body:has(.about-page)_&]:hidden! block h-auto w-[145px] object-contain"
             />
             {/* Shown instead while the hero's light Web Design & Dev slide is up (Header.css). */}
             <Image
@@ -160,7 +165,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               aria-hidden="true"
               width={145}
               height={25}
-              className="site-header__logo site-header__logo--dark h-auto w-[145px] object-contain"
+              className="site-header__logo site-header__logo--dark [body:has(.about-page)_&]:block! [body:has(.about-page):not(.about-logo-on-light)_&]:brightness-0! [body.about-logo-on-light_&]:filter-none! [body:has(.about-page)_&]:transition-[filter] [body:has(.about-page)_&]:duration-250 [body:has(.about-page)_&]:ease-[ease] h-auto w-[145px] object-contain"
             />
           </Link>
         </div>

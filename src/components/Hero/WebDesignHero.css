@@ -6,7 +6,7 @@
  *                      the content container (logo → "Let's Talk")
  *   .wd-zone           everything visual, scaled as one from its top-left
  *                      (--wd-scale per breakpoint, --wd-fit from the guard)
- *   .wd-rig            the browser's box: hero columns 2–7, 16 / 10; the
+ *   .wd-rig            the browser's box: hero columns 1–7, 16 / 10; the
  *                      panels are placed against it
  *   .wd-browser        chrome + viewport (a size container for the site)
  *
@@ -97,8 +97,8 @@
 .wd-rig {
   position: absolute;
   top: 0;
-  left: calc(var(--hero-col) + var(--hero-grid-gap));
-  width: calc(var(--hero-col) * 6 + var(--hero-grid-gap) * 5);
+  left: 0;
+  width: calc(var(--hero-col) * 7 + var(--hero-grid-gap) * 6);
   aspect-ratio: 16 / 10;
 }
 
@@ -551,7 +551,7 @@
 .wd-card--code {
   z-index: 3;
   top: calc(100% - 80px + var(--wd-push, 0px));
-  left: calc(-1 * (var(--hero-col) + var(--hero-grid-gap)));
+  left: 0;
   width: clamp(300px, 24vw, 380px);
   padding: 18px;
   border-color: rgba(255, 255, 255, 0.08);
@@ -689,19 +689,8 @@
   }
 }
 
-/* The same arrangement, smaller: the guard (fitZone) only ever scales
-   further down from these. */
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .web-hero__stage { --wd-scale: 0.9; }
-}
-
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .web-hero__stage { --wd-scale: 0.8; }
-}
-
-@media (min-width: 1280px) and (max-height: 819px) {
-  .web-hero__stage { --wd-scale: 0.85; }
-}
+/* Use the full desktop preview size. fitZone reduces it only when the
+   actual headline, floating panels, or viewport edges require clearance. */
 
 /* ------------------------------------------------- tablet and phone */
 
