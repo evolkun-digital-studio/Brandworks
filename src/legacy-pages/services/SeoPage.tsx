@@ -1003,10 +1003,10 @@ export default function SEOPage({ siteUrl }: { siteUrl?: string }) {
       {/* <Services /> */}
       {/* <AiSearch /> */}
       <Process />
-      <Guarantee />
+      {/* <Guarantee /> */}
       <Faq />
       {/* <Sources /> */}
-      <FinalCta />
+      {/* <FinalCta /> */}
     </main>
   )
 }
