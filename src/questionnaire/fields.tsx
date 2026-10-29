@@ -1,55 +1,116 @@
 'use client'
 
-import { useId, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { FieldLine, TextField, formHint, formInput, formSmallButton, formTextarea } from '../components/ContactForm/ContactForm'
 import type { Option } from './flow'
-import { OptionVisual } from './visuals'
 import { useSpeech } from './useSpeech'
 
-export const EASE = [0.22, 1, 0.36, 1] as const
+export { EASE } from '../components/ContactForm/ContactForm'
 export const KEYS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
-export const focusRing = 'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--q-ink)'
+export const focusRing = 'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black'
 
 /* -------------------------------------------------------------------------- */
-/*  Option rows (single + multi)                                              */
+/*  Option tiles: every option step is an even grid of equal tiles            */
 /* -------------------------------------------------------------------------- */
 
-export function OptionRows({
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 16 16" className="size-4 shrink-0" fill="none" aria-hidden="true">
+      <path d="M3.5 8.5 6.5 11.5 12.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+// Selected: brand lime with a single 1px #111 edge. The focus outline shows
+// for keyboard users only (:focus-visible), never after a mouse click.
+const tile = 'relative flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-[12px] border px-4 py-2 text-left text-[14px] font-medium leading-[1.25] text-[#111] outline-none transition-[background-color,border-color] duration-150 sm:min-h-12 sm:px-5 sm:text-[15px]'
+const tileIdle = 'border-[#E5E5E5] bg-white hover:border-[#111] hover:bg-[#FAFAFA]'
+const tileActive = 'border-[#111] bg-(--color-bw-lime)'
+const tileFocus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111]'
+const tileFocusWithin = 'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[#111]'
+
+// Labels longer than this get a phone row each; shorter ones pair up and may wrap to two lines.
+const LONG_LABEL = 26
+
+/**
+ * Columns by option count: 2 and 4 options make two columns (one row, or
+ * 2 × 2); 3 and 5+ make three from 1024px. 640–1023px tops out at two.
+ * A short last row stays left-aligned at full tile width (plain grid flow).
+ */
+function gridColumns(options: Option[]) {
+  const phone = options.some((o) => o.label.length > LONG_LABEL) ? 'grid-cols-1' : 'grid-cols-2'
+  const wide = options.length === 2 || options.length === 4 ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3'
+  return `${phone} ${wide}`
+}
+
+export function OptionTiles({
+  name,
   options,
   selected,
   onToggle,
   multi = false,
-  max,
   label,
 }: {
+  name: string
   options: Option[]
   selected: string[]
   onToggle: (value: string) => void
   multi?: boolean
-  max?: number
   label: string
 }) {
-  const full = multi && max !== undefined && selected.length >= max
+  const grid = `grid auto-rows-fr gap-[10px] ${gridColumns(options)}`
+
+  // Multi-select: toggle buttons.
+  if (multi) {
+    return (
+      <div role="group" aria-label={label} className={grid}>
+        {options.map((option) => {
+          const active = selected.includes(option.value)
+          return (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={active}
+              title={option.hint}
+              onClick={() => onToggle(option.value)}
+              className={`${tile} ${tileFocus} ${active ? tileActive : tileIdle}`}
+            >
+              <span className="min-w-0">{option.label}</span>
+              {active && <CheckIcon />}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Single-select: native radios, so arrow keys move between them.
   return (
-    <div role={multi ? 'group' : 'radiogroup'} aria-label={label} className="flex flex-wrap justify-start gap-2.5 sm:gap-3">
+    <div role="radiogroup" aria-label={label} className={grid}>
       {options.map((option) => {
         const active = selected.includes(option.value)
-        const dim = full && !active
+        const id = `${name}-${option.value}`
         return (
-          <button
+          <label
             key={option.value}
-            type="button"
-            role={multi ? 'checkbox' : 'radio'}
-            aria-checked={active}
-            aria-description={option.hint}
+            htmlFor={id}
             title={option.hint}
-            onClick={() => onToggle(option.value)}
-            className={`inline-flex min-h-11 max-w-full items-center justify-center rounded-full border px-3.5 py-2.5 text-center text-[15px] leading-[1.3] text-[#171717] transition-[background-color,border-color,opacity] duration-200 sm:px-4 sm:text-[16px] ${focusRing} ${
-              active ? 'border-(--color-bw-lime) bg-(--color-bw-lime)/25 shadow-[0_0_0_1px_var(--color-bw-lime)]' : 'border-(--q-line) bg-transparent hover:border-black/35 hover:bg-(--q-tint)'
-            } ${dim ? 'opacity-60' : ''}`}
+            className={`${tile} ${tileFocusWithin} ${active ? tileActive : tileIdle}`}
           >
-            {option.label}
-          </button>
+            <input
+              id={id}
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={active}
+              title={option.hint}
+              onChange={() => onToggle(option.value)}
+              className="sr-only"
+            />
+            <span className="min-w-0">{option.label}</span>
+            {active && <CheckIcon />}
+          </label>
         )
       })}
     </div>
@@ -57,59 +118,8 @@ export function OptionRows({
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Visual cards                                                              */
+/*  Text inputs: the Contact page's underlined fields                         */
 /* -------------------------------------------------------------------------- */
-
-export function VisualCards({
-  options,
-  selected,
-  onToggle,
-  label,
-}: {
-  options: Option[]
-  selected: string[]
-  onToggle: (value: string) => void
-  label: string
-}) {
-  return (
-    <div role="radiogroup" aria-label={label} className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
-      {options.map((option) => {
-        const active = selected.includes(option.value)
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            onClick={() => onToggle(option.value)}
-            className={`relative flex flex-col rounded-2xl border p-2 text-left transition-[border-color,box-shadow] duration-150 ${focusRing} ${
-              active ? 'border-(--color-bw-lime) shadow-[0_0_0_2px_var(--color-bw-lime)]' : 'border-(--q-line) hover:border-black/35'
-            }`}
-          >
-            <span className="block aspect-[16/10] w-full overflow-hidden rounded-[10px] text-[#111]">
-              {option.visual && <OptionVisual visual={option.visual} />}
-            </span>
-            <span className="block px-1 pb-1 pt-2.5">
-              <span className={`block text-[15px] leading-[1.3] ${active ? 'font-semibold' : 'font-medium'}`}>{option.label}</span>
-              {option.hint && <span className="mt-0.5 block text-[12px] leading-[1.4] text-(--q-muted)">{option.hint}</span>}
-            </span>
-            {active && (
-              <span aria-hidden="true" className="absolute right-3.5 top-3.5 grid size-4 place-items-center rounded-full border-[1.5px] border-(--q-ink) bg-white">
-                <span className="size-2 rounded-full bg-(--q-ink)" />
-              </span>
-            )}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Text inputs                                                               */
-/* -------------------------------------------------------------------------- */
-
-const underline = 'block w-full rounded-none border-0 border-b border-(--q-line) bg-transparent text-(--q-ink) outline-none transition-colors duration-150 placeholder:text-black/40 focus:border-(--q-ink)'
 
 export function BigInput({
   id,
@@ -117,43 +127,42 @@ export function BigInput({
   onChange,
   placeholder,
   type = 'text',
-  autoFocus,
   maxLength,
-  label,
   autoComplete,
   inputMode,
+  invalid,
 }: {
   id: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
   type?: string
-  autoFocus?: boolean
   maxLength?: number
-  label: string
   autoComplete?: string
   inputMode?: 'url' | 'email' | 'tel' | 'text'
+  invalid?: boolean
 }) {
   return (
-    <input
-      id={id}
-      aria-label={label}
-      type={type}
-      value={value}
-      autoFocus={autoFocus}
-      maxLength={maxLength}
-      autoComplete={autoComplete ?? 'off'}
-      inputMode={inputMode}
-      placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)}
-      className={`${underline} h-12 text-[18px]`}
-    />
+    <FieldLine>
+      <input
+        id={id}
+        type={type}
+        value={value}
+        maxLength={maxLength}
+        autoComplete={autoComplete ?? 'off'}
+        inputMode={inputMode}
+        placeholder={placeholder}
+        aria-invalid={invalid || undefined}
+        onChange={(e) => onChange(e.target.value)}
+        className={formInput}
+      />
+    </FieldLine>
   )
 }
 
 function MicIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="size-4" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="size-3.5" fill="none" aria-hidden="true">
       <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.6" />
       <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
@@ -167,8 +176,7 @@ export function LongAnswer({
   placeholder,
   maxLength = 3000,
   voice,
-  autoFocus,
-  label,
+  invalid,
 }: {
   id: string
   value: string
@@ -176,8 +184,7 @@ export function LongAnswer({
   placeholder?: string
   maxLength?: number
   voice?: boolean
-  autoFocus?: boolean
-  label: string
+  invalid?: boolean
 }) {
   const speech = useSpeech((text) => {
     if (!text) return
@@ -185,88 +192,45 @@ export function LongAnswer({
     onChange(joined.slice(0, maxLength))
   })
   const showMic = voice && speech.supported
+  const count = value.length > maxLength * 0.7 ? `${value.length} / ${maxLength}` : ''
 
   return (
-    <div>
-      <div className={`relative rounded-[14px] border bg-white/60 transition-colors duration-150 focus-within:border-(--q-ink) ${speech.listening ? 'border-(--q-ink)' : 'border-(--q-line)'}`}>
-        <textarea
-          id={id}
-          aria-label={label}
-          rows={4}
-          value={speech.listening && speech.interim ? `${value}${value ? ' ' : ''}${speech.interim}` : value}
-          autoFocus={autoFocus}
-          maxLength={maxLength}
-          placeholder={placeholder}
-          readOnly={speech.listening}
-          onChange={(e) => onChange(e.target.value)}
-          className="block min-h-[120px] w-full resize-y rounded-[14px] bg-transparent px-4 pb-14 pt-3.5 text-[16px] leading-[1.55] text-(--q-ink) outline-none placeholder:text-black/40"
-        />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-3 pb-2.5">
+    <FieldLine className="pb-7">
+      <textarea
+        id={id}
+        rows={5}
+        value={speech.listening && speech.interim ? `${value}${value ? ' ' : ''}${speech.interim}` : value}
+        maxLength={maxLength}
+        placeholder={placeholder}
+        readOnly={speech.listening}
+        aria-invalid={invalid || undefined}
+        onChange={(e) => onChange(e.target.value)}
+        className={formTextarea}
+      />
+      {(showMic || count) && (
+        <div className="mt-3 flex items-center justify-between gap-3">
           {showMic ? (
             <button
               type="button"
               onClick={speech.listening ? speech.stop : speech.start}
               aria-pressed={speech.listening}
-              className={`pointer-events-auto relative inline-flex h-9 items-center gap-1.5 rounded-full border pl-2.5 pr-3.5 text-[13px] transition-colors duration-150 before:absolute before:-inset-1 before:content-[''] ${focusRing} ${
-                speech.listening ? 'border-(--q-ink) bg-(--q-ink) text-white' : 'border-(--q-line) text-(--q-ink) hover:border-(--q-ink)'
-              }`}
+              className={`${formSmallButton} inline-flex items-center gap-1.5 ${speech.listening ? 'border-black bg-[#ccff00]' : ''}`}
             >
-              {speech.listening ? <span className="mx-1 size-2 rounded-full bg-(--q-accent)" aria-hidden="true" /> : <MicIcon />}
+              <MicIcon />
               {speech.listening ? 'Listening… tap to stop' : 'Speak instead'}
             </button>
           ) : <span />}
-          <span className="text-[12px] tabular-nums text-(--q-muted)">{value.length > maxLength * 0.7 ? `${value.length} / ${maxLength}` : ''}</span>
+          <span className="text-[12px] tabular-nums text-black/35">{count}</span>
         </div>
-      </div>
-      {speech.error && <p role="alert" className="mt-3 text-[13px] text-(--q-error)">{speech.error}</p>}
-    </div>
+      )}
+      {speech.error && <p role="alert" className="mt-3 text-[12px] text-[#c4302b]">{speech.error}</p>}
+    </FieldLine>
   )
 }
 
 /* -------------------------------------------------------------------------- */
 /*  Contact                                                                   */
 /* -------------------------------------------------------------------------- */
-
-function SmallField({
-  label,
-  value,
-  onChange,
-  type = 'text',
-  placeholder,
-  autoComplete,
-  optional,
-  autoFocus,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  type?: string
-  placeholder?: string
-  autoComplete?: string
-  optional?: boolean
-  autoFocus?: boolean
-}) {
-  const id = useId()
-  return (
-    <div className="pt-5">
-      <div className="flex items-baseline justify-between gap-4">
-        <label htmlFor={id} className="text-[14px] font-medium text-(--q-ink)">{label}</label>
-        {optional && <span className="text-[13px] italic text-(--q-muted)">optional</span>}
-      </div>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        autoFocus={autoFocus}
-        autoComplete={autoComplete}
-        placeholder={placeholder}
-        maxLength={type === 'url' ? 300 : 160}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${underline} h-11 text-[17px]`}
-      />
-    </div>
-  )
-}
 
 export function ContactFields({
   values,
@@ -278,17 +242,17 @@ export function ContactFields({
   askWebsite: boolean
 }) {
   return (
-    <div className="flex flex-col">
-      <SmallField label="Your name" value={values.contactName} onChange={(v) => onChange('contactName', v)} placeholder="Your name" autoComplete="name" autoFocus />
-      <SmallField label="Email" type="email" value={values.contactEmail} onChange={(v) => onChange('contactEmail', v)} placeholder="you@brand.com" autoComplete="email" />
-      <SmallField label="Phone / WhatsApp" type="tel" value={values.contactPhone} onChange={(v) => onChange('contactPhone', v)} placeholder="+91 98765 43210" autoComplete="tel" optional />
+    <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-8">
+      <TextField label="Your name" name="contactName" id="q-contactName" value={values.contactName} onChange={(v) => onChange('contactName', v)} placeholder="Your name" autoComplete="name" maxLength={160} />
+      <TextField label="Email" name="contactEmail" id="q-contactEmail" type="email" value={values.contactEmail} onChange={(v) => onChange('contactEmail', v)} placeholder="you@brand.com" autoComplete="email" maxLength={160} />
+      <TextField label="Phone / WhatsApp" name="contactPhone" id="q-contactPhone" type="tel" value={values.contactPhone} onChange={(v) => onChange('contactPhone', v)} placeholder="+91 98765 43210" autoComplete="tel" maxLength={160} optional />
       {askWebsite && (
-        <SmallField label="Current website" type="url" value={values.contactWebsite} onChange={(v) => onChange('contactWebsite', v)} placeholder="yourbrand.com" autoComplete="url" optional />
+        <TextField label="Current website" name="contactWebsite" id="q-contactWebsite" type="url" value={values.contactWebsite} onChange={(v) => onChange('contactWebsite', v)} placeholder="yourbrand.com" autoComplete="url" maxLength={300} optional />
       )}
     </div>
   )
 }
 
 export function Helper({ children }: { children: ReactNode }) {
-  return <p className="m-0 mt-2 text-[15px] leading-[1.55] text-(--q-muted)">{children}</p>
+  return <p className={`m-0 mt-3 ${formHint}`}>{children}</p>
 }

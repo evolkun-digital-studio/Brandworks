@@ -13,7 +13,7 @@ const SEO_DESCRIPTION =
   'Building a brand without a strategy? BrandWorks defines who you’re for, what you stand for and why you win, then turns it into a 90-day growth roadmap.'
 
 // Served from ImageKit; the ?tr= options pick width, format (WebP/AVIF) and quality.
-const HERO_IMAGE = 'https://ik.imagekit.io/rxoyjxx4c/Sticky%20Note%20Brainstorm%20Portrait%20(1).png'
+const HERO_IMAGE = 'https://ik.imagekit.io/rxoyjxx4c/Sticky%20Note%20Brainstorm%20Portrait%20(2).png'
 
 const STEPS = [
   { name: 'Discover', desc: 'An honest look at your brand, market, competitors and customers.' },

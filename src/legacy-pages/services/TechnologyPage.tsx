@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useGSAP } from '@gsap/react'
-import { ConstellationField } from '@designcodeio/threeui'
-import '@designcodeio/threeui/style.css'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useReducedMotion } from 'motion/react'
@@ -146,20 +144,6 @@ function Hero({ reduced }: { reduced: boolean }) {
   return (
     <section ref={sectionRef} className="bwt-hero" aria-labelledby="bwt-hero-title">
       <div className="bwt-hero__stage">
-        <div className="bwt-hero__field shader-frame" aria-hidden="true">
-          <ConstellationField
-            mode="light"
-            speed={1.0}
-            size={1.0}
-            strokeWidth={1.0}
-            length={1.0}
-            density={1.0}
-            opacity={1.0}
-            hue={0}
-            saturation={1.0}
-            brightness={1.0}
-          />
-        </div>
         <div className="bwt-container bwt-hero__inner" data-hero>
           <p className="bwt-label" data-hero-fade>
             {technologyHero.label}

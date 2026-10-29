@@ -170,7 +170,7 @@ describe('react and suggest', () => {
     expect(body.max_completion_tokens).toBe(60 + 2000)
     const prompt = body.messages[1].content as string
     expect(prompt).toContain('Just answered — What kind of work do you do?')
-    expect(prompt).toContain('Restaurant / Café / Food brand')
+    expect(prompt).toContain('Restaurant & Food')
     expect(prompt).toContain('ONE sentence (max 22 words)')
     expect(prompt).toMatch(/<customer_answers>[\s\S]*Just answered[\s\S]*<\/customer_answers>/)
   })

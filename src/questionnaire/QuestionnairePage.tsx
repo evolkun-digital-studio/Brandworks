@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { Link } from '../routing'
+import { Link, useNavigate } from '../routing'
 import { trackEvent } from '../analytics/analytics'
 import { AnalyticsEvents } from '../analytics/events'
 import {
@@ -29,7 +29,29 @@ import {
 import AiMessage from './AiMessage'
 import { cheerFor } from './cheers'
 import { SiteScanCard, SiteScanChecklist, type ScanChecks } from './SiteScanCard'
-import { BigInput, ContactFields, EASE, Helper, KEYS, LongAnswer, OptionRows, VisualCards, focusRing } from './fields'
+import { BigInput, ContactFields, EASE, Helper, KEYS, LongAnswer, OptionTiles, focusRing } from './fields'
+import {
+  BackButton,
+  ErrorText,
+  PillButton,
+  ProgressBar,
+  TextField,
+  formBody,
+  formDisplayHeading,
+  formEyebrow,
+  formFooterPlain,
+  formFooterCompact,
+  formFootnote,
+  formHint,
+  formPage,
+  formSection,
+  formSectionFit,
+  formSmallButton,
+  formStepHeading,
+  formStepHeadingCompact,
+  formTextLink,
+} from '../components/ContactForm/ContactForm'
+import { SECTION_LABELS } from './flow'
 
 const DRAFT_KEY = 'bw-project-planner:v1'
 const EMAIL = 'hello@brandworks.me'
@@ -91,18 +113,8 @@ const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? ''
 const INTERLUDE_MS = 2500
 type Interlude = { target: string; title?: string; message: string; pick?: string }
 
-function PrimaryButton({ children, onClick, busy, type = 'button', className = '' }: { children: string; onClick?: () => void; busy?: boolean; type?: 'button' | 'submit'; className?: string }) {
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      aria-busy={busy || undefined}
-      className={`inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-black px-8 text-[15px] font-normal text-white transition-all hover:bg-neutral-800 ${focusRing} ${className}`}
-    >
-      {children}
-    </button>
-  )
-}
+// Where focus lands when a step opens: its field, else its chosen or first option, else its heading.
+const FOCUS_TARGETS = ['input[type="radio"]:checked', 'input:not([type="radio"]), textarea, input[type="radio"]', '[role="radio"][aria-checked="true"]', '[role="radio"], [role="checkbox"]', '[data-step-heading]']
 
 function TextButton({ children, onClick, className = '' }: { children: ReactNode; onClick?: () => void; className?: string }) {
   return (
@@ -190,7 +202,7 @@ function AnswersDrawer({ open, onClose, answers, upTo, onEdit, scan }: { open: b
   )
 }
 
-function LeaveConfirm({ open, onStay }: { open: boolean; onStay: () => void }) {
+function LeaveConfirm({ open, onStay, onLeave }: { open: boolean; onStay: () => void; onLeave: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   useFocusTrap(ref, open, onStay)
   if (!open) return null
@@ -202,13 +214,13 @@ function LeaveConfirm({ open, onStay }: { open: boolean; onStay: () => void }) {
         aria-modal="true"
         aria-labelledby="q-leave-title"
         aria-describedby="q-leave-body"
-        className="w-full max-w-[360px] rounded-2xl bg-white p-6 shadow-xl"
+        className="w-full max-w-[420px] bg-white p-8 shadow-xl"
       >
-        <h3 id="q-leave-title" className="text-[18px] font-normal text-black">Leave the planner?</h3>
-        <p id="q-leave-body" className="mt-2 text-[14px] font-normal text-neutral-600">Your answers are saved on this device.</p>
-        <div className="mt-6 flex items-center justify-end gap-3">
-          <TextButton onClick={onStay}>Stay</TextButton>
-          <Link to="/" className={`inline-flex h-10 items-center rounded-full bg-black px-5 text-[14px] font-normal text-white ${focusRing}`}>Leave</Link>
+        <h3 id="q-leave-title" className={`m-0 ${formStepHeadingCompact}`}>Leave the planner?</h3>
+        <p id="q-leave-body" className={`mt-4 ${formBody}`}>Your answers won’t be saved.</p>
+        <div className={formFooterCompact}>
+          <BackButton onClick={onStay}>Stay</BackButton>
+          <PillButton onClick={onLeave}>Leave</PillButton>
         </div>
       </div>
     </div>
@@ -217,6 +229,7 @@ function LeaveConfirm({ open, onStay }: { open: boolean; onStay: () => void }) {
 
 export default function QuestionnairePage() {
   const reduce = useReducedMotion()
+  const navigate = useNavigate()
   const [answers, setAnswers] = useState<Answers>({})
   const [stepId, setStepId] = useState<string>(INTRO)
   const [error, setError] = useState<string | null>(null)
@@ -237,8 +250,6 @@ export default function QuestionnairePage() {
   const doneAtRef = useRef<number | null>(null)
   const reactionRef = useRef<{ forStep: string; controller: AbortController } | null>(null)
   const reactionsUsed = useRef(0)
-  const topRef = useRef<HTMLDivElement>(null)
-  const bodyRef = useRef<HTMLDivElement>(null)
   const honeypotRef = useRef<HTMLInputElement>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -259,8 +270,31 @@ export default function QuestionnairePage() {
   useEffect(() => () => window.clearTimeout(swapTimer.current), [])
 
   const scrollTop = useCallback(() => {
-    bodyRef.current?.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
   }, [reduce])
+
+  // After a step change, wait for the new step to mount (the old one animates
+  // out first), then move focus into it.
+  const focusPending = useRef(false)
+  useEffect(() => {
+    if (!focusPending.current) return
+    let frame = 0
+    let tries = 0
+    const tick = () => {
+      const root = document.querySelector<HTMLElement>(`[data-step="${stepId}"]`)
+      if (root) {
+        focusPending.current = false
+        for (const selector of FOCUS_TARGETS) {
+          const target = root.querySelector<HTMLElement>(selector)
+          if (target) { target.focus({ preventScroll: true }); return }
+        }
+        return
+      }
+      if (++tries < 120) frame = window.requestAnimationFrame(tick)
+    }
+    frame = window.requestAnimationFrame(tick)
+    return () => window.cancelAnimationFrame(frame)
+  }, [stepId])
 
   const cancelReaction = useCallback(() => {
     reactionRef.current?.controller.abort()
@@ -273,6 +307,7 @@ export default function QuestionnairePage() {
     setSwapHint(false)
     if (reactionRef.current && reactionRef.current.forStep !== target) cancelReaction()
     setError(null)
+    focusPending.current = true
     setStepId(target)
     scrollTop()
   }, [scrollTop, cancelReaction])
@@ -416,6 +451,14 @@ export default function QuestionnairePage() {
     const i = path.indexOf(stepId)
     go(i <= 0 ? INTRO : path[i - 1])
   }, [path, stepId, go])
+
+  // Exit: straight home when nothing is filled in, otherwise confirm first.
+  // Leaving discards the saved draft, so the confirm's "won't be saved" holds.
+  const leave = () => { writeDraft(null); navigate('/') }
+  const requestExit = () => {
+    if (Object.keys(answers).length === 0) leave()
+    else setConfirmOpen(true)
+  }
 
   const start = (resume: boolean) => {
     if (resume && draft) {
@@ -565,10 +608,11 @@ export default function QuestionnairePage() {
         return
       }
       if (drawerOpen || confirmOpen) return
+      if (event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); requestExit(); return }
       if (event.defaultPrevented || event.altKey || (event.metaKey && event.key !== 'Enter')) return
       const target = event.target as HTMLElement | null
       const tag = target?.tagName
-      const typing = tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable
+      const typing = (tag === 'INPUT' && (target as HTMLInputElement).type !== 'radio') || tag === 'TEXTAREA' || target?.isContentEditable
       if (event.key === 'Enter') {
         if (stepId === INTRO || stepId === DONE || !step || step.kind === 'exit') return
         if (tag === 'TEXTAREA' && !(event.metaKey || event.ctrlKey)) return
@@ -602,6 +646,16 @@ export default function QuestionnairePage() {
   const completedSteps = stepId === INTRO ? 0 : stepId === DONE ? path.length : Math.max(0, index)
   const progressTotal = Math.max(1, path.filter((id) => STEPS[id]?.kind !== 'ai').length)
   const progressValue = stepId === INTRO ? 0 : stepId === DONE ? 100 : Math.min(100, Math.round((completedSteps / progressTotal) * 100))
+  const stepNumber = Math.min(completedSteps + 1, progressTotal)
+  const progressText = stepId === INTRO ? 'Ready' : stepId === DONE ? 'Complete' : `${stepNumber} of ${progressTotal}`
+
+  // The intro panel sits beside the start screen and the first question only;
+  // every later step is a single centred column.
+  const split = stepId === INTRO || stepId === path[0]
+  const Heading = split ? 'h2' : 'h1'
+  // Option steps are sized to fit one laptop screen: less top padding and
+  // tighter spacing.
+  const fit = Boolean(step && (step.kind === 'single' || step.kind === 'multi'))
 
   const mailtoFallback = () => {
     const body = summarize(answers).map((r) => `${r.question}\n${r.answer}`).join('\n\n')
@@ -609,21 +663,29 @@ export default function QuestionnairePage() {
   }
 
   const hintLine = (s: Step): string | null => {
-    if (s.kind === 'multi') return swapHint ? 'Unselect one to swap' : s.max ? null : 'Pick as many as you like'
+    if (s.kind === 'multi') return swapHint ? 'Unselect one to swap' : s.max ? null : 'You can choose more than one.'
     // if ((s.kind === 'text' || s.kind === 'longtext') && s.optional) return 'Optional, skip it if you like'
     return null
   }
 
-  const question = (s: Step, body: ReactNode) => {
+  // A question with one field gets a real <label> as its heading; a group of
+  // options or fields is a fieldset whose legend holds the heading.
+  const question = (s: Step, body: ReactNode, inputId?: string) => {
     const hint = hintLine(s)
-    return (
-      <fieldset className="m-0 border-0 p-0">
-        <legend className="m-0 block w-full text-[28px] font-normal leading-[1.2] tracking-tight text-neutral-900 lg:text-[34px]">
-          {s.title}
-        </legend>
-        {hint && <span className="mt-2 flex items-center gap-1.5 text-[14px] italic text-neutral-500 font-normal" aria-live={s.kind === 'multi' ? 'polite' : undefined}>{hint}</span>}
+    const title = <Heading data-step-heading tabIndex={-1} className={`m-0 outline-none ${fit ? formStepHeadingCompact : formStepHeading}`}>{inputId ? <label htmlFor={inputId}>{s.title}</label> : s.title}</Heading>
+    const rest = (
+      <>
+        {hint && <p className={`m-0 mt-3 ${formHint}`} aria-live={s.kind === 'multi' ? 'polite' : undefined}>{hint}</p>}
         {s.helper && <Helper>{s.helper}</Helper>}
-        <div className="mt-6">{body}</div>
+        <div className={fit ? 'mt-6' : 'mt-8'}>{body}</div>
+        <ErrorText>{error}</ErrorText>
+      </>
+    )
+    if (inputId) return <div>{title}{rest}</div>
+    return (
+      <fieldset className="m-0 min-w-0 border-0 p-0">
+        <legend className="m-0 p-0">{title}</legend>
+        {rest}
       </fieldset>
     )
   }
@@ -634,7 +696,6 @@ export default function QuestionnairePage() {
         return question(s, (
           <BigInput
             id={`q-${s.id}`}
-            label={s.title}
             value={str(answers[s.id])}
             onChange={(v) => setAnswer(s.id, v)}
             placeholder={s.placeholder}
@@ -642,26 +703,25 @@ export default function QuestionnairePage() {
             inputMode={s.inputType === 'url' ? 'url' : 'text'}
             autoComplete={s.inputType === 'url' ? 'url' : s.id === 'brandName' ? 'organization' : 'off'}
             maxLength={s.maxLength}
-            autoFocus
+            invalid={Boolean(error)}
           />
-        ))
+        ), `q-${s.id}`)
       case 'longtext':
         return question(s, (
           <>
             <LongAnswer
               id={`q-${s.id}`}
-              label={s.title}
               value={str(answers[s.id])}
               onChange={(v) => setAnswer(s.id, v)}
               placeholder={s.placeholder}
               maxLength={s.maxLength}
               voice={s.voice}
-              autoFocus={!s.aiIntro}
+              invalid={Boolean(error)}
             />
             {s.aiSuggest && (suggestions[suggestKey]?.length ?? 0) > 0 && (
-              <div className="mt-4">
-                <span className="block text-[14px] font-normal text-black">Ideas for {workTypeLabel || 'your business'}</span>
-                <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-7">
+                <span className={`mb-4 block ${formEyebrow}`}>Ideas for {workTypeLabel || 'your business'}</span>
+                <div className="flex flex-wrap gap-2.5">
                   {suggestions[suggestKey].map((idea) => (
                     <button
                       key={idea}
@@ -671,7 +731,7 @@ export default function QuestionnairePage() {
                         const joined = current ? `${current}${/[.!?,;:]$/.test(current) ? ' ' : '. '}${idea}` : idea
                         setAnswer(s.id, s.maxLength ? joined.slice(0, s.maxLength) : joined)
                       }}
-                      className={`relative min-h-9 rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-left text-[13px] font-normal text-neutral-800 transition-colors hover:border-black ${focusRing}`}
+                      className={`${formSmallButton} h-auto min-h-9 py-1.5 text-left`}
                     >
                       + {idea}
                     </button>
@@ -680,32 +740,30 @@ export default function QuestionnairePage() {
               </div>
             )}
           </>
-        ))
+        ), `q-${s.id}`)
       case 'single': {
         const value = str(answers[s.id])
         return question(s, (
           <>
-            {s.layout === 'visual'
-              ? <VisualCards options={s.options} selected={value ? [value] : []} onToggle={pickSingle} label={s.title} />
-              : <OptionRows options={s.options} selected={value ? [value] : []} onToggle={pickSingle} label={s.title} />}
+            <OptionTiles name={`q-${s.id}`} options={s.options} selected={value ? [value] : []} onToggle={pickSingle} label={s.title} />
             {s.otherValue && value === s.otherValue && (
-              <div className="mt-5">
-                <BigInput id={`q-${s.id}Other`} label="Describe it briefly" value={str(answers[`${s.id}Other`])} onChange={(v) => setAnswer(`${s.id}Other`, v)} placeholder="Describe it briefly" maxLength={200} autoFocus />
+              <div>
+                <TextField label="Tell us briefly" name={`${s.id}Other`} id={`q-${s.id}Other`} value={str(answers[`${s.id}Other`])} onChange={(v) => setAnswer(`${s.id}Other`, v)} placeholder="Tell us briefly" maxLength={200} />
               </div>
             )}
             {s.assistValue && value === s.assistValue && (
-              <div className="mt-5">
+              <div className="mt-7">
                 <AiMessage
                   label={recommendation?.key === recKey && !recommendation.ai ? 'A common starting point' : 'BrandWorks suggests'}
                   text={recommendation?.key === recKey && recommendation.suggestion ? `${s.options.find((o) => o.value === recommendation.suggestion)?.label}. ${recommendation.message}` : null}
                   streaming={recommendation?.key === recKey ? recommendation.streaming : true}
                 />
                 {recommendation?.key === recKey && !recommendation.streaming && recommendation.suggestion && (
-                  <div className="mt-3 flex flex-wrap gap-3">
-                    <button type="button" onClick={() => { const u = { ...answers, [`${s.id}Suggested`]: recommendation.suggestion }; setAnswers(u); next(u) }} className={`min-h-11 rounded-full bg-black px-6 text-[14px] font-normal text-white ${focusRing}`}>
+                  <div className="mt-6 flex flex-wrap items-center gap-6">
+                    <PillButton onClick={() => { const u = { ...answers, [`${s.id}Suggested`]: recommendation.suggestion }; setAnswers(u); next(u) }}>
                       Sounds right
-                    </button>
-                    <button type="button" onClick={() => { const u = { ...answers }; delete u[`${s.id}Suggested`]; setAnswers(u); next(u) }} className={`min-h-11 rounded-full border border-neutral-200 px-6 text-[14px] font-normal text-black hover:border-black ${focusRing}`}>
+                    </PillButton>
+                    <button type="button" onClick={() => { const u = { ...answers }; delete u[`${s.id}Suggested`]; setAnswers(u); next(u) }} className={formTextLink}>
                       Keep it open, decide together
                     </button>
                   </div>
@@ -716,19 +774,22 @@ export default function QuestionnairePage() {
         ))
       }
       case 'multi':
-        return question(s, <OptionRows options={s.options} selected={list(answers[s.id])} onToggle={toggleMulti} multi max={s.max} label={s.title} />)
+        return question(s, <OptionTiles name={`q-${s.id}`} options={s.options} selected={list(answers[s.id])} onToggle={toggleMulti} multi label={s.title} />)
       case 'ai':
-        return <AiMessage text={aiText[uspKey]?.text || null} streaming={aiText[uspKey]?.streaming ?? true} large />
+        return (
+          <>
+            <Heading data-step-heading tabIndex={-1} className="sr-only">{s.title}</Heading>
+            <AiMessage text={aiText[uspKey]?.text || null} streaming={aiText[uspKey]?.streaming ?? true} large />
+          </>
+        )
       case 'exit':
         return (
           <div>
-            <h2 className="text-[28px] font-normal text-black lg:text-[34px]">Thanks for sharing.</h2>
-            <p className="mt-3 text-[16px] leading-[1.6] font-normal text-neutral-600">{s.body}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <TextButton onClick={back}>Change my answer</TextButton>
-              <Link to="/services" className={`inline-flex h-12 items-center rounded-full bg-black px-8 text-[15px] font-normal text-white ${focusRing}`}>
-                Explore our services
-              </Link>
+            <Heading data-step-heading tabIndex={-1} className="section-heading outline-none">Thanks for sharing.</Heading>
+            <p className={`mt-6 max-w-[46ch] ${formBody}`}>{s.body}</p>
+            <div className={formFooterPlain}>
+              <BackButton onClick={back}>Change my answer</BackButton>
+              <PillButton onClick={() => navigate('/services')}>Explore our services</PillButton>
             </div>
           </div>
         )
@@ -745,7 +806,7 @@ export default function QuestionnairePage() {
               onChange={(k, v) => setAnswer(k, v)}
               askWebsite={branchOf(answers) === 'redesign' && !str(answers.redesignUrl).trim()}
             />
-            <p className="mt-4 text-[13px] font-normal text-neutral-500">
+            <p className={`mt-6 ${formFootnote}`}>
               We only use these details to reply about your project. Your answers are summarized with AI to help our team prepare.
             </p>
           </>
@@ -763,8 +824,108 @@ export default function QuestionnairePage() {
     && !(step.kind === 'longtext' && step.aiIntro)
     && !(step.kind === 'single' && step.assistValue && answers[step.id] === step.assistValue))
 
+  const stage = (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div key={stepId} data-step={stepId} initial={stepAnimation.initial} animate={stepAnimation.animate} exit={stepAnimation.exit} transition={stepAnimation.transition}>
+
+        {stepId === INTRO && (
+          <div>
+            <h2 data-step-heading tabIndex={-1} className={`m-0 max-w-[16ch] outline-none ${formStepHeading}`}>
+              Let’s make the first conversation count.
+            </h2>
+            <p className={`mt-6 max-w-[46ch] ${formBody}`}>
+              Tell us a little about what you’re building. It takes a few minutes, saves as you go, and gives our team the context to come prepared.
+            </p>
+            <div className={formFooterPlain}>
+              {draft ? (
+                <>
+                  <BackButton onClick={() => start(false)}>Start over</BackButton>
+                  <PillButton onClick={() => start(true)}>Continue draft</PillButton>
+                </>
+              ) : (
+                <>
+                  <span />
+                  <PillButton onClick={() => start(false)}>Let’s get started</PillButton>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {stepId === DONE && (
+          <div role="status">
+            <h1 data-step-heading tabIndex={-1} className="section-heading outline-none">
+              Thanks{name ? `, ${name}` : ''}.
+            </h1>
+            <p className={`mt-6 max-w-[46ch] ${formBody}`}>
+              Your plan is with us. Someone from BrandWorks will reply to {str(answers.contactEmail) || 'your email'}, usually within one working day.
+            </p>
+            {brief && (
+              <div className="mt-10 border-t border-black/15 pt-7">
+                <AiMessage label={briefAi ? 'Here’s what we heard' : 'What happens next'} text={brief.summary} />
+                {brief.focus.length > 0 && (
+                  <div className="mt-7">
+                    <span className={`mb-4 block ${formEyebrow}`}>Where we’d start</span>
+                    <ul className="m-0 list-none border-t border-black/15 p-0 text-[14px]">
+                      {brief.focus.map((f) => (
+                        <li key={f} className="border-b border-black/10 py-3">{f}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+            {scanTarget && scanId && (
+              <div className="mt-10">
+                <SiteScanCard
+                  scan={scanView ?? { status: 'running', domain: scanTarget.domain, teaser: null, teaserAi: false, highlights: [], disclaimer: SCAN_DISCLAIMER }}
+                  timedOut={scanTimedOut}
+                />
+              </div>
+            )}
+            <div className={formFooterPlain}>
+              <Link to="/work" className={formTextLink}>See our work</Link>
+              <PillButton onClick={() => {
+                setAnswers({}); setBrief(null); setScanTarget(null); setScanChecks({}); setScanView(null); setScanTimedOut(false)
+                scanUrlRef.current = null; reactionsUsed.current = 0; go(INTRO)
+              }}>
+                Plan another project
+              </PillButton>
+            </div>
+          </div>
+        )}
+
+        {step && (
+          <div>
+            {step.kind === 'longtext' && step.aiIntro === 'greet' && (
+              <AiMessage text={aiText[greetKey]?.text || null} streaming={aiText[greetKey]?.streaming ?? true} className="mb-8" />
+            )}
+            {showReaction && reaction && <AiMessage text={reaction.text} streaming={reaction.streaming} className={fit ? 'mb-5' : 'mb-8'} />}
+            {renderStep(step)}
+          </div>
+        )}
+
+      </motion.div>
+    </AnimatePresence>
+  )
+
+  const footer = showFooter && step && (
+    <div className={fit ? formFooterCompact : formFooterPlain}>
+      <BackButton onClick={back} hidden={index <= 0} />
+      <PillButton onClick={() => { if (status !== 'sending' && !interlude) next() }} busy={status === 'sending'} labelKey={`${stepId}-${nextLabel}`}>
+        {nextLabel}
+      </PillButton>
+    </div>
+  )
+
+  const sendError = status === 'error' && (
+    <p role="alert" className="mt-6 text-[14px] leading-[1.6]">
+      Try again, or <a href={mailtoFallback()} className="underline underline-offset-4">send your answers by email instead</a>.
+    </p>
+  )
+
   return (
-    <main className="relative h-dvh w-full overflow-hidden bg-[#f6f6f2] text-neutral-900 antialiased">
+    <main className={`relative ${formPage}`}>
       {aiOff && (
         <div role="status" className="fixed inset-x-0 top-3 z-40 mx-auto flex w-[calc(100%-32px)] max-w-[520px] items-center justify-between gap-4 rounded-xl bg-black px-4 py-3 text-[13px] text-white shadow-lg">
           <span><span className="mr-2 font-normal text-[#CCFF00]">Dev</span>AI is off. Showing neutral copy.</span>
@@ -776,160 +937,96 @@ export default function QuestionnairePage() {
         <label>Leave this empty<input ref={honeypotRef} type="text" name="website_url" tabIndex={-1} autoComplete="off" /></label>
       </div>
 
-      <div className="mx-auto flex h-dvh max-w-[1500px] flex-col px-5 py-4 sm:px-7 lg:px-12 lg:py-6">
-        
-        {/* Header Navigation */}
-        <header className="flex shrink-0 items-center justify-between border-b border-neutral-200/80 pb-4">
-          <Link to="/" className={`inline-flex items-center sm:hidden ${focusRing}`} aria-label="BrandWorks home">
-            <span className="text-[15px] font-medium tracking-[-0.04em] text-black">BRANDWORKS<span className="text-[#9dc000]">.</span></span>
-          </Link>
-          <span className="hidden sm:block" aria-hidden="true" />
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button type="button" onClick={() => setConfirmOpen(true)} className={`inline-flex min-h-9 items-center rounded-full border border-neutral-200 bg-white px-3.5 text-[13px] text-neutral-700 transition-colors hover:border-black hover:text-black ${focusRing}`}>
-              Exit<span className="hidden sm:inline">&nbsp;planner</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Full-Page Split Grid Body */}
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 pt-5 lg:grid-cols-12 lg:gap-12 lg:pt-8">
-          
-          {/* LEFT SIDEBAR */}
-          <aside className="hidden flex-col justify-between border-r border-neutral-200/80 pr-10 lg:col-span-4 lg:flex">
-            <div className="max-w-[360px]">
-              <span className="text-[11px] font-medium tracking-[0.16em] text-neutral-400 uppercase">Project planner</span>
-              <h1 className="mt-3 text-[32px] font-normal leading-[1.12] tracking-tight text-neutral-900">
-                A clear brief makes better work.
-              </h1>
-              <p className="mt-4 max-w-[31ch] text-[14px] leading-[1.65] text-neutral-500">
-                Share what matters. We’ll use it to shape a focused first conversation.
-              </p>
-            </div>
-            <div className="max-w-[290px] pb-2">
-              <div className="mb-3 flex items-baseline justify-between text-[12px] text-neutral-500"><span>Your progress</span><span className="tabular-nums">{stepId === INTRO ? 'Ready' : stepId === DONE ? 'Complete' : `${Math.min(completedSteps + 1, progressTotal)} of ${progressTotal}`}</span></div>
-              <div className="h-px overflow-hidden bg-neutral-200"><div className="h-full bg-black transition-[width] duration-300" style={{ width: `${progressValue}%` }} /></div>
-            </div>
-          </aside>
-
-          {/* RIGHT MAIN SECTION */}
-          <div className="flex min-h-0 flex-1 flex-col justify-between overflow-hidden lg:col-span-8">
-            {stepId !== INTRO && stepId !== DONE && (
-              <div className="mb-4 flex items-center justify-between lg:hidden">
-                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-400">Project planner</span>
-                <span className="text-[12px] tabular-nums text-neutral-500">{Math.min(completedSteps + 1, progressTotal)} / {progressTotal}</span>
-              </div>
-            )}
-            <div ref={topRef} />
-            
-            <div ref={bodyRef} data-lenis-prevent className="flex-1 overflow-y-auto pr-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div key={stepId} initial={stepAnimation.initial} animate={stepAnimation.animate} exit={stepAnimation.exit} transition={stepAnimation.transition} className="max-w-[720px]">
-                  
-                  {stepId === INTRO && (
-                    <div className="flex flex-col justify-center py-4 sm:py-8">
-                      <span className="text-[11px] font-medium tracking-[0.16em] text-neutral-400 uppercase">Start a project</span>
-                      <h2 className="mt-3 max-w-[16ch] text-[34px] font-normal leading-[1.08] tracking-tight text-black lg:text-[46px]">
-                        Let’s make the first conversation count.
-                      </h2>
-                      <p className="mt-5 max-w-[54ch] text-[16px] leading-[1.65] text-neutral-600">
-                        Tell us a little about what you’re building. It takes a few minutes, saves as you go, and gives our team the context to come prepared.
-                      </p>
-                      <div className="mt-8 flex items-center gap-4">
-                        {draft ? (
-                          <>
-                            <PrimaryButton onClick={() => start(true)}>Continue draft</PrimaryButton>
-                            <TextButton onClick={() => start(false)}>Start over</TextButton>
-                          </>
-                        ) : (
-                          <PrimaryButton onClick={() => start(false)}>Let&apos;s get started</PrimaryButton>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {stepId === DONE && (
-                    <div className="py-4" role="status">
-                      <h1 className="text-[32px] font-normal text-black lg:text-[42px]">
-                        Thanks{name ? `, ${name}` : ''}.
-                      </h1>
-                      <p className="mt-3 text-[16px] leading-[1.6] font-normal text-neutral-600">
-                        Your plan is with us. Someone from BrandWorks will reply to {str(answers.contactEmail) || 'your email'}, usually within one working day.
-                      </p>
-                      {brief && (
-                        <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-xs">
-                          <AiMessage label={briefAi ? 'Here’s what we heard' : 'What happens next'} text={brief.summary} />
-                          {brief.focus.length > 0 && (
-                            <div className="mt-6 border-t border-neutral-100 pt-4">
-                              <span className="block text-[14px] font-normal text-black">Where we’d start</span>
-                              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-[15px] font-normal text-neutral-700">
-                                {brief.focus.map((f) => (
-                                  <li key={f}>{f}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {scanTarget && scanId && (
-                        <div className="mt-6">
-                          <SiteScanCard
-                            scan={scanView ?? { status: 'running', domain: scanTarget.domain, teaser: null, teaserAi: false, highlights: [], disclaimer: SCAN_DISCLAIMER }}
-                            timedOut={scanTimedOut}
-                          />
-                        </div>
-                      )}
-                      <div className="mt-8 flex flex-wrap items-center gap-4">
-                        <PrimaryButton onClick={() => {
-                          setAnswers({}); setBrief(null); setScanTarget(null); setScanChecks({}); setScanView(null); setScanTimedOut(false)
-                          scanUrlRef.current = null; reactionsUsed.current = 0; go(INTRO)
-                        }}>
-                          Plan another project
-                        </PrimaryButton>
-                        <Link to="/work" className={`inline-flex h-12 items-center rounded-full border border-neutral-300 bg-white px-8 text-[15px] font-normal text-black hover:bg-neutral-50 ${focusRing}`}>See our work</Link>
-                      </div>
-                    </div>
-                  )}
-
-                  {step && (
-                    <div className="py-2">
-                      {step.kind === 'longtext' && step.aiIntro === 'greet' && (
-                        <AiMessage text={aiText[greetKey]?.text || null} streaming={aiText[greetKey]?.streaming ?? true} className="mb-5" />
-                      )}
-                      {showReaction && reaction && <AiMessage text={reaction.text} streaming={reaction.streaming} className="mb-5" />}
-                      {renderStep(step)}
-                    </div>
-                  )}
-
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Bottom Navigation */}
-            {showFooter && step && (
-              <footer className="mt-6 shrink-0 border-t border-neutral-200/80 pt-4">
-                {error && (
-                  <p role="alert" className="mb-2 text-[14px] font-normal text-red-600">{error}</p>
-                )}
-                {status === 'error' && (
-                  <p className="mb-2 text-[14px] font-normal text-red-600">
-                    Try again, or <a href={mailtoFallback()} className="underline">send your answers by email instead</a>.
-                  </p>
-                )}
-                <div className="flex items-center justify-between">
-                  <TextButton onClick={back} className={index <= 0 ? 'invisible' : ''}>
-                    ← Back
-                  </TextButton>
-                  <PrimaryButton onClick={() => { if (status !== 'sending' && !interlude) next() }} busy={status === 'sending'}>
-                    {nextLabel}
-                  </PrimaryButton>
-                </div>
-              </footer>
-            )}
-          </div>
-
-        </div>
+      {/* Sits on the same line as the site logo (Header.tsx), which only shows from tablet width. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-30 mt-[18px] flex h-[64px] items-center justify-between px-[var(--hero-gutter)] lg:mt-[20px]">
+        <Link to="/" className={`pointer-events-auto inline-flex items-center sm:hidden ${focusRing}`} aria-label="BrandWorks home">
+          <span className="text-[15px] font-medium tracking-[-0.04em] text-black">BRANDWORKS<span className="text-[#9dc000]">.</span></span>
+        </Link>
+        <span className="hidden sm:block" aria-hidden="true" />
+        <button
+          type="button"
+          onClick={requestExit}
+          aria-label="Exit planner"
+          title="Exit planner"
+          className="group pointer-events-auto grid size-11 shrink-0 place-items-center rounded-full border border-[#E5E5E5] bg-transparent text-[#111] outline-none transition-[background-color,border-color,scale] duration-150 hover:border-[#111] hover:bg-[#F5F5F5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111] active:scale-[0.96]"
+        >
+          <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M14 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2" />
+            {/* The arrow nudges out of the door on hover. */}
+            <g className="transition-transform duration-150 ease-out group-hover:translate-x-[2px] motion-reduce:transition-none">
+              <path d="M9 12h12" />
+              <path d="M18 9l3 3-3 3" />
+            </g>
+          </svg>
+        </button>
       </div>
+
+      <section className={fit ? formSectionFit : formSection}>
+        {/* One persistent live region, so every step change is announced. */}
+        <p className="sr-only" role="status" aria-live="polite">
+          {stepId === INTRO ? '' : stepId === DONE ? 'Plan sent' : `Step ${stepNumber} of ${progressTotal}${step && step.kind !== 'ai' ? `: ${step.title}` : ''}`}
+        </p>
+
+        <AnimatePresence mode="wait" initial={false}>
+          {split ? (
+            <motion.div
+              key="split"
+              className="grid grid-cols-1 gap-14 md:min-h-[520px] md:grid-cols-12 md:gap-0"
+              initial={reduce ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={reduce ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ duration: reduce ? 0 : 0.2, ease: EASE }}
+            >
+              {/* Left: the intro panel, with progress pinned to its foot */}
+              <aside className="flex flex-col justify-between gap-10 md:col-span-5 md:pr-12 xl:pr-20">
+                <div>
+                  <span className={`mb-6 block ${formEyebrow}`}>Project planner</span>
+                  <h1 className={`m-0 max-w-[12ch] ${formDisplayHeading}`}>A clear brief makes better work.</h1>
+                  <p className={`mt-8 max-w-[38ch] ${formBody}`}>
+                    Share what matters. We’ll use it to shape a focused first conversation.
+                  </p>
+                </div>
+                <div className="max-w-[420px]">
+                  <div className="mb-3 flex items-baseline justify-between text-[12px]">
+                    <span className="text-black">Your progress</span>
+                    <span className="tabular-nums text-black/55">{progressText}</span>
+                  </div>
+                  <ProgressBar value={progressValue / 100} />
+                </div>
+              </aside>
+
+              {/* Right: the question */}
+              <div className="min-w-0 md:col-span-7 md:border-l md:border-black/15 md:pl-12 xl:pl-20">
+                {stage}
+                {footer}
+                {sendError}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="single"
+              className="mx-auto w-full min-w-0 max-w-[760px]"
+              initial={reduce ? false : { opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={reduce ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ duration: reduce ? 0 : 0.35, ease: EASE }}
+            >
+              {stepId !== DONE && (
+                <div className={fit ? 'mb-7' : 'mb-10'}>
+                  <ProgressBar value={progressValue / 100} />
+                  <div className="mt-3 flex items-baseline justify-between gap-4 text-[12px]">
+                    <span className="text-black">{step ? SECTION_LABELS[step.section] : ''}</span>
+                    <span className="tabular-nums text-black/55">Step {stepNumber} of {progressTotal}</span>
+                  </div>
+                </div>
+              )}
+              {stage}
+              {footer}
+              {sendError}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </section>
 
       {/* Styled Greeting Interlude Modal - Strictly NO BOLD fonts */}
       <AnimatePresence>
@@ -1016,7 +1113,7 @@ export default function QuestionnairePage() {
         scan={scanTarget ? <SiteScanChecklist domain={scanTarget.domain} checks={scanChecks} failed={scanView?.status === 'failed'} /> : null}
       />
       
-      <LeaveConfirm open={confirmOpen} onStay={() => setConfirmOpen(false)} />
+      <LeaveConfirm open={confirmOpen} onStay={() => setConfirmOpen(false)} onLeave={leave} />
     </main>
   )
 }
