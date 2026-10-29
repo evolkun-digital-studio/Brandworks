@@ -1,8 +1,9 @@
 import FormConsent from './legal/FormConsent'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from 'react'
+import type { ChangeEvent, DragEvent, FormEvent } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useNativeMetadata } from '../routing/context'
+import { BackButton, Chip, EASE, ErrorText, Label, PillButton, ProgressBar, TextField, formFooter, formPage, formSection } from '../components/ContactForm/ContactForm'
 
 /* -------------------------------------------------------------------------- */
 /*  Content                                                                   */
@@ -26,7 +27,6 @@ const timelines = ['Immediately', 'Within 1 month', '1–3 months', '3–6 month
 
 const STEPS = ['What you need', 'The project', 'About you'] as const
 const MAX_FILE_MB = 10
-const EASE = [0.22, 1, 0.36, 1] as const
 
 /* -------------------------------------------------------------------------- */
 /*  Helpers                                                                   */
@@ -52,109 +52,6 @@ function useDelhiTime() {
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim())
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Small UI pieces                                                           */
-/* -------------------------------------------------------------------------- */
-
-function Label({ children, htmlFor, hint }: { children: ReactNode; htmlFor?: string; hint?: string }) {
-  return (
-    <div className="mb-4 flex items-baseline justify-between gap-4">
-      <label htmlFor={htmlFor} className="text-[11px] font-medium uppercase tracking-[0.14em] text-black/45">
-        {children}
-      </label>
-      {hint && <span className="text-[12px] text-black/35">{hint}</span>}
-    </div>
-  )
-}
-
-function ErrorText({ children }: { children?: string }) {
-  return (
-    <AnimatePresence>
-      {children && (
-        <motion.p
-          role="alert"
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          className="mt-3 text-[12px] text-[#c4302b]"
-        >
-          {children}
-        </motion.p>
-      )}
-    </AnimatePresence>
-  )
-}
-
-function Chip({ active, onClick, children, role = 'checkbox' }: { active: boolean; onClick: () => void; children: ReactNode; role?: 'checkbox' | 'radio' }) {
-  return (
-    <button
-      type="button"
-      role={role}
-      aria-checked={active}
-      onClick={onClick}
-      className={`group relative inline-flex min-h-[46px] items-center gap-3 overflow-hidden rounded-full border px-5 text-[14px] tracking-[-0.01em] transition-colors duration-300 outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
-        active ? 'border-black text-black' : 'border-black/15 text-black/70 hover:border-black/50 hover:text-black'
-      }`}
-    >
-      <motion.span
-        aria-hidden="true"
-        className="absolute inset-0 origin-left bg-[#ccff00]"
-        initial={false}
-        animate={{ scaleX: active ? 1 : 0 }}
-        transition={{ duration: 0.45, ease: EASE }}
-      />
-      <span className="relative">{children}</span>
-      <span className="relative grid size-4 place-items-center">
-        <motion.svg viewBox="0 0 16 16" className="size-4" initial={false} animate={{ rotate: active ? 45 : 0 }} transition={{ duration: 0.35, ease: EASE }} aria-hidden="true">
-          <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.5" />
-        </motion.svg>
-      </span>
-    </button>
-  )
-}
-
-function TextField({
-  label,
-  name,
-  type = 'text',
-  placeholder,
-  autoComplete,
-  value,
-  onChange,
-  error,
-  optional,
-}: {
-  label: string
-  name: string
-  type?: string
-  placeholder?: string
-  autoComplete?: string
-  value: string
-  onChange: (v: string) => void
-  error?: string
-  optional?: boolean
-}) {
-  return (
-    <div className="group relative border-b border-black/15 pb-4 pt-7">
-      <Label htmlFor={name} hint={optional ? 'Optional' : undefined}>{label}</Label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        value={value}
-        aria-invalid={Boolean(error)}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-transparent text-[18px] tracking-[-0.015em] text-black outline-none placeholder:text-black/25"
-      />
-      {/* underline that draws in on focus */}
-      <span className="absolute inset-x-0 -bottom-px h-px origin-left scale-x-0 bg-black transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-focus-within:scale-x-100" />
-      <ErrorText>{error}</ErrorText>
-    </div>
-  )
 }
 
 /* -------------------------------------------------------------------------- */
@@ -309,8 +206,8 @@ export default function ContactPage() {
   const headline = 'Tell us what you’re building.'
 
   return (
-    <main className="min-h-screen overflow-x-clip bg-white text-[#111] antialiased">
-      <section className="mx-auto w-full max-w-[1720px] px-5 pb-20 pt-28 sm:px-8 sm:pt-32 lg:px-12 lg:pb-28 lg:pt-40 xl:px-16">
+    <main className={formPage}>
+      <section className={formSection}>
         <div className="grid grid-cols-1 gap-14 lg:grid-cols-12 lg:gap-0">
           {/* ------------------------------------------------------------ */}
           {/* Left: heading + direct contact                               */}
@@ -475,14 +372,7 @@ export default function ContactPage() {
                             aria-current={i === step ? 'step' : undefined}
                             className="group block w-full text-left disabled:cursor-default"
                           >
-                            <span className="block h-[2px] w-full overflow-hidden bg-black/10">
-                              <motion.span
-                                className="block h-full origin-left bg-black"
-                                initial={false}
-                                animate={{ scaleX: i <= step ? 1 : 0 }}
-                                transition={{ duration: 0.6, ease: EASE }}
-                              />
-                            </span>
+                            <ProgressBar value={i <= step ? 1 : 0} />
                             <span className={`mt-3 block text-[12px] transition-colors ${i === step ? 'text-black' : i < step ? 'text-black/55 group-hover:text-black' : 'text-black/30'}`}>
                               {label}
                             </span>
@@ -623,42 +513,11 @@ export default function ContactPage() {
                   </div>
 
                   {/* footer actions */}
-                  <div className="mt-10 flex items-center justify-between gap-4 border-t border-black/15 pt-8">
-                    <button
-                      type="button"
-                      onClick={() => goTo(step - 1)}
-                      className={`text-[13px] text-black/55 transition-opacity hover:text-black ${step === 0 ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
-                      tabIndex={step === 0 ? -1 : 0}
-                    >
-                      ← Back
-                    </button>
-
-                    <button
-                      type="submit"
-                      disabled={status === 'sending'}
-                      className="group relative inline-flex min-h-[60px] items-center gap-6 overflow-hidden rounded-full bg-[#111] pl-7 pr-2 text-white transition-colors duration-300 disabled:opacity-50"
-                    >
-                      <span className="absolute inset-0 origin-bottom scale-y-0 bg-[#ccff00] transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:scale-y-100" aria-hidden="true" />
-                      <span className="relative text-[14px] font-medium tracking-[-0.01em] transition-colors duration-300 group-hover:text-black">
-                        <AnimatePresence mode="wait" initial={false}>
-                          <motion.span
-                            key={`${step}-${status}`}
-                            className="block"
-                            initial={{ y: 12, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: -12, opacity: 0 }}
-                            transition={{ duration: 0.25, ease: EASE }}
-                          >
-                            {status === 'sending' ? 'Sending…' : step < STEPS.length - 1 ? 'Continue' : 'Send enquiry'}
-                          </motion.span>
-                        </AnimatePresence>
-                      </span>
-                      <span className="relative grid size-11 place-items-center rounded-full bg-white text-black transition-transform duration-500 group-hover:rotate-45">
-                        <svg viewBox="0 0 24 24" className="size-4" fill="none" aria-hidden="true">
-                          <path d="M6 18 18 6M9 6h9v9" stroke="currentColor" strokeWidth="1.8" />
-                        </svg>
-                      </span>
-                    </button>
+                  <div className={formFooter}>
+                    <BackButton onClick={() => goTo(step - 1)} hidden={step === 0} />
+                    <PillButton type="submit" disabled={status === 'sending'} labelKey={`${step}-${status}`}>
+                      {status === 'sending' ? 'Sending…' : step < STEPS.length - 1 ? 'Continue' : 'Send enquiry'}
+                    </PillButton>
                   </div>
 
                   <FormConsent className="mt-6" />

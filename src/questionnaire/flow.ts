@@ -59,7 +59,6 @@ export type LongTextStep = Base & {
 export type SingleStep = Base & {
   kind: 'single'
   options: Option[]
-  layout?: 'list' | 'visual'
   /** Choosing this value reveals a short "describe it" field stored under `${id}Other`. */
   otherValue?: string
   /** Choosing this value asks the AI for a suggestion (scratch → "Not sure yet"). */
@@ -69,7 +68,6 @@ export type MultiStep = Base & {
   kind: 'multi'
   options: Option[]
   max?: number
-  layout?: 'list' | 'visual'
   /** Values that can't be combined with anything else ("Not sure yet"). */
   exclusive?: string[]
 }
@@ -86,6 +84,12 @@ export type Step = TextStep | LongTextStep | SingleStep | MultiStep | AiStep | E
 /* -------------------------------------------------------------------------- */
 
 const opts = (...labels: string[]): Option[] => labels.map((label) => ({ value: slug(label), label }))
+/**
+ * An option whose tile label was shortened to one line: the value stays the
+ * slug of the original wording, so cheers, emoji, saved drafts and the
+ * server don't change. Extra detail goes in the hint (the tile's tooltip).
+ */
+const keep = (original: string, label: string, hint?: string): Option => ({ value: slug(original), label, ...(hint ? { hint } : {}) })
 
 export function slug(label: string): string {
   return label
@@ -97,7 +101,12 @@ export function slug(label: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
-const AUDIENCE = opts('Local customers (near me)', 'City / region', 'Nationwide', 'Global / international')
+const AUDIENCE = [
+  keep('Local customers (near me)', 'Local customers near me'),
+  keep('City / region', 'City or region'),
+  keep('Nationwide', 'Nationwide'),
+  keep('Global / international', 'Global or international'),
+]
 const TIMELINE = opts('Just exploring for now', 'In the next 1–2 months', 'Within a few weeks', 'Immediately')
 
 /* -------------------------------------------------------------------------- */
@@ -116,54 +125,58 @@ export const STEPS: Record<string, Step> = {
   workType: {
     id: 'workType', section: 'basics', kind: 'single', aiReact: true,
     title: 'What kind of work do you do?',
-    options: opts(
-      'Restaurant / Café / Food brand',
-      'Local services (salon, gym, plumbing, etc.)',
-      'Home services (cleaning, repair, maintenance)',
-      'E-commerce / Online store',
-      'Fashion / Clothing brand',
-      'Doctor / Clinic / Healthcare',
-      'Coach / Educator / Institute',
-      'Hotel / Resort / Homestay',
-      'Real estate',
-      'Legal / Financial services',
-      'Creator / Influencer / Artist',
-      'Tech startup / SaaS',
-      'Agency / Studio',
-      'NGO / Non-profit',
-      'Other',
-    ),
+    // Short one-line labels for the tile grid; the detail moves to the hint
+    // (tooltip). Values keep the original slugs so cheers, emoji, saved drafts
+    // and the server stay in step.
+    options: [
+      { value: 'restaurant-cafe-food-brand', label: 'Restaurant & Food', hint: 'Restaurant, café or food brand' },
+      { value: 'local-services-salon-gym-plumbing-etc', label: 'Local Services', hint: 'Salon, gym, plumbing and similar' },
+      { value: 'home-services-cleaning-repair-maintenance', label: 'Home Services', hint: 'Cleaning, repair, maintenance' },
+      { value: 'e-commerce-online-store', label: 'E-commerce', hint: 'Online store' },
+      { value: 'fashion-clothing-brand', label: 'Fashion & Apparel', hint: 'Fashion or clothing brand' },
+      { value: 'doctor-clinic-healthcare', label: 'Healthcare', hint: 'Doctor, clinic or healthcare' },
+      { value: 'coach-educator-institute', label: 'Education & Coaching', hint: 'Coach, educator or institute' },
+      { value: 'hotel-resort-homestay', label: 'Hospitality & Travel', hint: 'Hotel, resort or homestay' },
+      { value: 'real-estate', label: 'Real Estate' },
+      { value: 'legal-financial-services', label: 'Legal & Finance', hint: 'Legal or financial services' },
+      { value: 'creator-influencer-artist', label: 'Creator & Artist', hint: 'Creator, influencer or artist' },
+      { value: 'tech-startup-saas', label: 'Tech & SaaS', hint: 'Tech startup or SaaS' },
+      { value: 'agency-studio', label: 'Agency & Studio' },
+      { value: 'ngo-non-profit', label: 'Non-profit', hint: 'NGO or non-profit' },
+      { value: 'other', label: 'Other' },
+    ],
     otherValue: 'other',
   },
   operation: {
     id: 'operation', section: 'basics', kind: 'single', aiReact: true,
     title: 'How does your business operate today?',
-    options: opts(
-      'Fully offline (no online presence yet)',
-      'Offline business moving online',
-      'Already operating online',
-      'Early-stage idea or concept',
-    ),
+    // One-line labels for the tiles; values keep the original slugs.
+    options: [
+      { value: 'fully-offline-no-online-presence-yet', label: 'Fully offline: no online presence yet' },
+      { value: 'offline-business-moving-online', label: 'Moving from offline to online' },
+      { value: 'already-operating-online', label: 'Already operating online' },
+      { value: 'early-stage-idea-or-concept', label: 'Early-stage idea or concept' },
+    ],
   },
   projectStage: {
     id: 'projectStage', section: 'project', kind: 'single', aiReact: true,
     title: 'Where are you right now with your website project?',
     options: [
-      { value: 'scratch', label: 'I’m starting from scratch', hint: 'No website yet' },
-      { value: 'redesign', label: 'I have a website → redesign it', hint: 'New look, structure and experience' },
-      { value: 'features', label: 'I have a website → add features', hint: 'Keep the site, extend what it does' },
+      { value: 'scratch', label: 'Starting from scratch', hint: 'No website yet' },
+      { value: 'redesign', label: 'Redesign my website', hint: 'New look, structure and experience' },
+      { value: 'features', label: 'Add new features', hint: 'Keep the site, extend what it does' },
     ],
   },
 
   /* ---- Branch: starting from scratch ------------------------------------ */
   websiteType: {
-    id: 'websiteType', section: 'project', kind: 'single', layout: 'visual', aiReact: true,
+    id: 'websiteType', section: 'project', kind: 'single', aiReact: true,
     title: 'What kind of website are you building?',
     options: [
-      { value: 'business', label: 'Business website', hint: 'Services + trust + inquiry', visual: 'business' },
-      { value: 'store', label: 'Online store', hint: 'Products + payments', visual: 'store' },
-      { value: 'booking', label: 'Booking website', hint: 'Appointments / reservations', visual: 'booking' },
-      { value: 'platform', label: 'Platform / marketplace', hint: 'Multiple vendors / users', visual: 'platform' },
+      { value: 'business', label: 'Business website', hint: 'Services, trust and enquiries', visual: 'business' },
+      { value: 'store', label: 'Online store', hint: 'Products and payments', visual: 'store' },
+      { value: 'booking', label: 'Booking website', hint: 'Appointments or reservations', visual: 'booking' },
+      { value: 'platform', label: 'Marketplace', hint: 'A platform with multiple vendors or users', visual: 'platform' },
       { value: 'not-sure', label: 'Not sure yet', hint: 'Help me choose', visual: 'unsure' },
     ],
     assistValue: 'not-sure',
@@ -186,32 +199,36 @@ export const STEPS: Record<string, Step> = {
     options: AUDIENCE,
   },
   vibe: {
-    id: 'vibe', section: 'style', kind: 'single', layout: 'visual', aiReact: true,
+    id: 'vibe', section: 'style', kind: 'single', aiReact: true,
     title: 'What kind of design vibe are you going for?',
     options: [
       { value: 'clean-and-minimal', label: 'Clean & minimal', visual: 'minimal' },
       { value: 'bold-and-modern', label: 'Bold & modern', visual: 'bold' },
       { value: 'trendy-and-stylish', label: 'Trendy & stylish', visual: 'trendy' },
-      { value: 'premium-luxury', label: 'Premium / luxury', visual: 'premium' },
-      { value: 'playful-artistic', label: 'Playful / artistic', visual: 'playful' },
-      { value: 'animated-high-energy', label: 'Animated / high-energy', visual: 'animated' },
+      { value: 'premium-luxury', label: 'Premium & luxury', visual: 'premium' },
+      { value: 'playful-artistic', label: 'Playful & artistic', visual: 'playful' },
+      { value: 'animated-high-energy', label: 'Animated & high-energy', visual: 'animated' },
     ],
   },
   references: {
     id: 'references', section: 'style', kind: 'single',
     title: 'Do you have any website references or inspiration you like?',
-    options: opts('Yes (I’ll share links later)', 'I have some ideas but no links', 'No, I want you to guide me'),
+    options: [
+      keep('Yes (I’ll share links later)', 'Yes, links to follow', 'I’ll share links later'),
+      keep('I have some ideas but no links', 'Ideas, but no links'),
+      keep('No, I want you to guide me', 'No, guide me'),
+    ],
   },
   contentStatus: {
     id: 'contentStatus', section: 'details', kind: 'single',
     title: 'How are you handling the content for the website?',
-    options: opts(
-      'I already have all the content',
-      'I have rough content that needs refinement',
-      'I need help writing content',
-      'I need help with both content and visuals',
-      'I’m not sure yet',
-    ),
+    options: [
+      keep('I already have all the content', 'All content is ready'),
+      keep('I have rough content that needs refinement', 'Content needs polish', 'I have rough content that needs refinement'),
+      keep('I need help writing content', 'Help with writing'),
+      keep('I need help with both content and visuals', 'Need copy & visuals', 'I need help with both content and visuals'),
+      keep('I’m not sure yet', 'Not sure yet'),
+    ],
   },
   timeline: {
     id: 'timeline', section: 'details', kind: 'single',
@@ -222,7 +239,14 @@ export const STEPS: Record<string, Step> = {
     id: 'priorities', section: 'details', kind: 'multi', max: 2, aiReact: true,
     title: 'What matters most to you for this project?',
     helper: 'Pick up to 2.',
-    options: opts('Speed', 'Premium quality', 'Leads / conversions', 'SEO & long-term growth', 'Smooth user experience', 'Scalability for the future'),
+    options: [
+      keep('Speed', 'Speed'),
+      keep('Premium quality', 'Premium quality'),
+      keep('Leads / conversions', 'Leads & conversions'),
+      keep('SEO & long-term growth', 'SEO & long-term growth'),
+      keep('Smooth user experience', 'Smooth user experience'),
+      keep('Scalability for the future', 'Future scalability'),
+    ],
   },
   idea: {
     id: 'idea', section: 'details', kind: 'longtext', optional: true, voice: true, aiSuggest: true,
@@ -239,8 +263,15 @@ export const STEPS: Record<string, Step> = {
   sections: {
     id: 'sections', section: 'details', kind: 'multi',
     title: 'Which sections do you already know you’ll need?',
-    helper: 'Pick all that apply.',
-    options: opts('Home', 'About', 'Services / Products', 'Contact', 'Pricing', 'Blog / Updates', 'Not sure yet'),
+    options: [
+      keep('Home', 'Home'),
+      keep('About', 'About'),
+      keep('Services / Products', 'Services & products'),
+      keep('Contact', 'Contact'),
+      keep('Pricing', 'Pricing'),
+      keep('Blog / Updates', 'Blog & updates'),
+      keep('Not sure yet', 'Not sure yet'),
+    ],
     exclusive: ['not-sure-yet'],
   },
 
@@ -249,9 +280,9 @@ export const STEPS: Record<string, Step> = {
     id: 'redesignType', section: 'project', kind: 'single',
     title: 'What kind of redesign are you looking for?',
     options: [
-      { value: 'complete', label: 'Complete website redesign', hint: 'New design, new structure, improved experience' },
-      { value: 'major-upgrade', label: 'I’m not sure — but the site needs a major upgrade', hint: 'Feels outdated, doesn’t reflect the brand anymore' },
-      { value: 'small-changes', label: 'Only small changes or section updates', hint: 'UI tweaks, one page, minor fixes' },
+      { value: 'complete', label: 'Complete redesign', hint: 'New design, new structure, improved experience' },
+      { value: 'major-upgrade', label: 'Needs a major upgrade', hint: 'Not sure what exactly, but it feels outdated and off-brand' },
+      { value: 'small-changes', label: 'Small changes only', hint: 'UI tweaks, one page or section, minor fixes' },
     ],
   },
   redesignExit: {
@@ -270,68 +301,79 @@ export const STEPS: Record<string, Step> = {
   redesignWhy: {
     id: 'redesignWhy', section: 'project', kind: 'multi', aiReact: true,
     title: 'Why do you want to redesign your website now?',
-    helper: 'Pick all that apply.',
-    options: opts(
-      'The design looks outdated',
-      'The website doesn’t represent the brand anymore',
-      'Low conversions / engagement',
-      'Poor mobile experience',
-      'Business has evolved (new services, audience, positioning)',
-    ),
+    options: [
+      keep('The design looks outdated', 'Outdated design'),
+      keep('The website doesn’t represent the brand anymore', 'Doesn’t fit the brand', 'The website doesn’t represent the brand anymore'),
+      keep('Low conversions / engagement', 'Low conversions', 'Low conversions or engagement'),
+      keep('Poor mobile experience', 'Poor mobile experience'),
+      keep('Business has evolved (new services, audience, positioning)', 'Business has evolved', 'New services, audience or positioning'),
+    ],
   },
   redesignFrustration: {
     id: 'redesignFrustration', section: 'project', kind: 'multi',
     title: 'What feels most frustrating or ineffective on your current website?',
-    helper: 'Pick all that apply.',
-    options: opts(
-      'Navigation is confusing',
-      'Design feels outdated',
-      'Content is unclear',
-      'Low leads or conversions',
-      'Poor mobile experience',
-      'Slow performance',
-      'Not sure — just feels off',
-    ),
+    options: [
+      keep('Navigation is confusing', 'Confusing navigation'),
+      keep('Design feels outdated', 'Design feels outdated'),
+      keep('Content is unclear', 'Content is unclear'),
+      keep('Low leads or conversions', 'Low conversions', 'Low leads or conversions'),
+      keep('Poor mobile experience', 'Poor mobile experience'),
+      keep('Slow performance', 'Slow performance'),
+      keep('Not sure — just feels off', 'Not sure, it feels off'),
+    ],
     exclusive: ['not-sure-just-feels-off'],
   },
   redesignImprove: {
     id: 'redesignImprove', section: 'project', kind: 'multi', max: 2, aiReact: true,
     title: 'What should improve the most after the redesign?',
     helper: 'Pick up to 2.',
-    options: opts(
-      'Visual quality & brand presence',
-      'User experience & flow',
-      'Conversions (leads / sales / bookings)',
-      'Speed & performance',
-      'Clarity of messaging',
-    ),
+    options: [
+      keep('Visual quality & brand presence', 'Look & brand presence', 'Visual quality and brand presence'),
+      keep('User experience & flow', 'User experience & flow'),
+      keep('Conversions (leads / sales / bookings)', 'Conversions', 'Leads, sales or bookings'),
+      keep('Speed & performance', 'Speed & performance'),
+      keep('Clarity of messaging', 'Clearer messaging'),
+    ],
   },
   redesignDirection: {
-    id: 'redesignDirection', section: 'style', kind: 'single', layout: 'visual',
+    id: 'redesignDirection', section: 'style', kind: 'single',
     title: 'What design direction do you want to move towards?',
     options: [
       { value: 'clean-and-minimal', label: 'Clean & minimal', visual: 'minimal' },
       { value: 'bold-and-modern', label: 'Bold & modern', visual: 'bold' },
-      { value: 'premium-luxury', label: 'Premium / luxury', visual: 'premium' },
+      { value: 'premium-luxury', label: 'Premium & luxury', visual: 'premium' },
       { value: 'trendy-and-stylish', label: 'Trendy & stylish', visual: 'trendy' },
-      { value: 'creative-artistic', label: 'Creative / artistic', visual: 'creative' },
-      { value: 'animated-high-energy', label: 'Animated / high-energy', visual: 'animated' },
+      { value: 'creative-artistic', label: 'Creative & artistic', visual: 'creative' },
+      { value: 'animated-high-energy', label: 'Animated & high-energy', visual: 'animated' },
     ],
   },
   brandAssets: {
     id: 'brandAssets', section: 'style', kind: 'single',
     title: 'Do you already have brand guidelines or visual assets?',
-    options: opts('Yes (logo, colors, fonts ready)', 'Logo only (needs a system)', 'No — brand visuals need improvement'),
+    options: [
+      keep('Yes (logo, colors, fonts ready)', 'Full brand kit ready', 'Logo, colours and fonts'),
+      keep('Logo only (needs a system)', 'Logo only', 'Needs a full visual system'),
+      keep('No — brand visuals need improvement', 'Brand needs work', 'Brand visuals need improvement'),
+    ],
   },
   redesignInspiration: {
     id: 'redesignInspiration', section: 'style', kind: 'single',
     title: 'Do you have any websites you like or want inspiration from?',
-    options: opts('Yes — I’ll share references', 'I have ideas but no links', 'No — I want you to guide the design'),
+    options: [
+      keep('Yes — I’ll share references', 'Yes, I’ll share some'),
+      keep('I have ideas but no links', 'Ideas, but no links'),
+      keep('No — I want you to guide the design', 'No, guide the design'),
+    ],
   },
   redesignContent: {
     id: 'redesignContent', section: 'details', kind: 'single',
     title: 'What about your current content?',
-    options: opts('Content is good — just needs redesign', 'Content needs refinement', 'Content needs rewriting', 'Not sure yet'),
+    options: [
+      keep('Content is good — just needs redesign', 'Good, just needs a redesign'),
+      keep('Content needs refinement', 'Content needs refinement'),
+      keep('Content needs rewriting', 'Content needs rewriting'),
+      keep('Not sure yet', 'Not sure yet'),
+    ],
   },
   redesignAudience: {
     id: 'redesignAudience', section: 'details', kind: 'single',
@@ -361,7 +403,11 @@ export const STEPS: Record<string, Step> = {
   platform: {
     id: 'platform', section: 'project', kind: 'single',
     title: 'Which platform or technology is your website built on?',
-    options: opts('WordPress', 'Shopify', 'Webflow', 'Wix', 'Framer', 'Custom-built (HTML / React / Next.js etc.)', 'Not sure'),
+    options: [
+      ...opts('WordPress', 'Shopify', 'Webflow', 'Wix', 'Framer'),
+      keep('Custom-built (HTML / React / Next.js etc.)', 'Custom-built', 'HTML, React, Next.js and similar'),
+      keep('Not sure', 'Not sure'),
+    ],
   },
   featuresWanted: {
     id: 'featuresWanted', section: 'project', kind: 'longtext', voice: true, aiReact: true, aiSuggest: true,
@@ -372,24 +418,34 @@ export const STEPS: Record<string, Step> = {
   featuresHandled: {
     id: 'featuresHandled', section: 'project', kind: 'single',
     title: 'How are these tasks or features handled right now?',
-    options: opts(
-      'Manually (spreadsheets, WhatsApp, email, etc.)',
-      'Using third-party tools',
-      'Partially on the website',
-      'Not handled at all',
-      'Not sure',
-    ),
+    options: [
+      keep('Manually (spreadsheets, WhatsApp, email, etc.)', 'Manually', 'Spreadsheets, WhatsApp, email and similar'),
+      keep('Using third-party tools', 'Third-party tools'),
+      keep('Partially on the website', 'Partly on the website'),
+      keep('Not handled at all', 'Not handled at all'),
+      keep('Not sure', 'Not sure'),
+    ],
   },
   featuresWhy: {
     id: 'featuresWhy', section: 'details', kind: 'multi',
     title: 'Why do you want to add these features now?',
-    helper: 'Pick all that apply.',
-    options: opts('Business growth', 'Manual work is slowing us down', 'Customer demand', 'Scaling operations', 'Competitive pressure'),
+    options: [
+      keep('Business growth', 'Business growth'),
+      keep('Manual work is slowing us down', 'Too much manual work', 'Manual work is slowing us down'),
+      keep('Customer demand', 'Customer demand'),
+      keep('Scaling operations', 'Scaling operations'),
+      keep('Competitive pressure', 'Competitive pressure'),
+    ],
   },
   featuresCritical: {
     id: 'featuresCritical', section: 'details', kind: 'single', aiReact: true,
     title: 'How critical are these features to your business?',
-    options: opts('Core to my business', 'Very important (major improvement)', 'Useful but not urgent', 'Just experimenting'),
+    options: [
+      keep('Core to my business', 'Core to my business'),
+      keep('Very important (major improvement)', 'Very important: a major upgrade'),
+      keep('Useful but not urgent', 'Useful but not urgent'),
+      keep('Just experimenting', 'Just experimenting'),
+    ],
   },
   featuresTimeline: {
     id: 'featuresTimeline', section: 'details', kind: 'single',
