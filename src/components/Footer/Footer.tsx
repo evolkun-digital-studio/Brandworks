@@ -18,8 +18,8 @@ gsap.registerPlugin(useGSAP)
 // Shared footer film. The same adaptive MP4 is used across breakpoints so
 // every public page carries one consistent closing visual.
 const SHOWREEL = {
-  desktop: 'https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/cloudinarry%20to%20cloudflare/202606021731-e_hqa6sn.mp4',
-  mobile: 'https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/cloudinarry%20to%20cloudflare/202606021731-e_hqa6sn.mp4',
+  desktop: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/footer.mp4',
+  mobile: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/footer.mp4',
 }
 
 /** Where the fullscreen cursor follows the pointer instead of a button. */

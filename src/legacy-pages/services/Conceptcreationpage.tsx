@@ -20,7 +20,6 @@ const PHOTOS = {
   social: mediaUrl('content-still.webp'),
   window: mediaUrl('creative.jpg'),
   event: mediaUrl('campaign-action.jpg'),
-  routes: [mediaUrl('ideas.jpg'), mediaUrl('creative.jpg'), mediaUrl('movment.jpg')],
 }
 
 /* -------------------------------------------------------------------------- */
@@ -28,15 +27,21 @@ const PHOTOS = {
 /* -------------------------------------------------------------------------- */
 
 // An illustrative concept for a made-up tea brand, used in the scroll scene.
-const IDEA = 'Ten minutes of mountains.'
+const IDEA = 'The beginning of something.'
 
 const EXECUTIONS = [
   { key: 'billboard', photo: PHOTOS.billboard, where: 'On a billboard above morning traffic', line: 'Stuck on the flyover? Ten minutes of mountains.', pos: 'left-[3%] top-[8%] w-[27%] aspect-[16/10]', from: { x: -260, y: -60, rotate: -8 } },
   { key: 'pack', photo: PHOTOS.pack, where: 'On the pack', line: 'Brew for ten. Leave for the hills.', pos: 'left-[6%] bottom-[7%] w-[17%] aspect-[4/5]', from: { x: -200, y: 220, rotate: 6 } },
   { key: 'film', photo: PHOTOS.film, where: 'In a thirty-second film', line: 'A ten-minute timer, one long shot of a hillside.', pos: 'right-[3%] top-[6%] w-[29%] aspect-[16/9]', from: { x: 280, y: -80, rotate: 7 } },
   { key: 'social', photo: PHOTOS.social, where: 'On a phone', line: 'Ten-minute mountain livestreams at 7am.', pos: 'right-[7%] bottom-[6%] w-[15%] aspect-[9/16]', from: { x: 220, y: 240, rotate: -6 } },
-  { key: 'window', photo: PHOTOS.window, where: 'In a shop window', line: 'A window you can step into, ten minutes at a time.', pos: 'left-[25%] bottom-[3%] w-[20%] aspect-[5/4]', from: { x: -40, y: 320, rotate: -4 } },
-  { key: 'event', photo: PHOTOS.event, where: 'At a launch', line: 'A pop-up tea room on a city rooftop.', pos: 'right-[25%] bottom-[4%] w-[19%] aspect-[4/3]', from: { x: 60, y: 320, rotate: 5 } },
+  { key: 'window', photo: PHOTOS.window, where: 'In a shop window', line: 'A window you can step into, ten minutes at a time.', pos: 'left-[25%] bottom-[5%] w-[19%] aspect-[4/3]', from: { x: -80, y: 260, rotate: -4 } },
+  { key: 'event', photo: PHOTOS.event, where: 'At a launch', line: 'A pop-up tea room on a city rooftop.', pos: 'right-[25%] bottom-[5%] w-[19%] aspect-[4/3]', from: { x: 80, y: 260, rotate: 4 } },
+]
+
+const EXECUTION_STAGES = [
+  [EXECUTIONS[0], EXECUTIONS[2]],
+  [EXECUTIONS[1], EXECUTIONS[3]],
+  [EXECUTIONS[4], EXECUTIONS[5]],
 ]
 
 const DELIVERABLES = [
@@ -112,12 +117,11 @@ function Hero() {
       <div className="pb-2">
         <h1 className="m-0">
           <span className="block overflow-hidden text-[clamp(18px,1.6vw,22px)] font-normal tracking-[-0.01em] text-[#6b6b6b]">
-            <span data-hero-line className="block">Concept creation</span>
+            {/* <span data-hero-line className="block"></span> */}
           </span>
           <span className={`${display} mt-5 block text-[72px] leading-[0.9] text-[#0d0d0d]`}>
-            <span className="block overflow-hidden pb-[0.04em]"><span data-hero-line className="block">One idea,</span></span>
-            <span className="block overflow-hidden pb-[0.04em]"><span data-hero-line className="block">everywhere it</span></span>
-            <span className="block overflow-hidden pb-[0.04em]"><span data-hero-line className="block">needs to go.</span></span>
+            <span className="block overflow-hidden pb-[0.04em]"><span data-hero-line className="block">Concept creation</span></span>
+            {/* <span className="block overflow-hidden pb-[0.04em]"><span data-hero-line className="block">it needs to go.</span></span> */}
           </span>
         </h1>
         <p data-hero-copy className="mt-10 max-w-[44ch] text-[17px] leading-[1.65] text-[#3d3d3d]">
@@ -133,11 +137,11 @@ function Hero() {
         </div>
       </div>
 
-      <figure className="m-0">
+      <figure className="m-0 lg:w-[86%] lg:justify-self-end">
         <div data-hero-photo className="relative aspect-[4/5] w-full overflow-hidden bg-[#e6e6e6] lg:aspect-[3/4]">
           <img src={PHOTOS.hero} alt="A studio wall covered in sketches, notes and printed references" className="absolute inset-x-0 -top-[6%] h-[112%] w-full object-cover" />
         </div>
-        <figcaption data-hero-copy className="mt-3 text-[13px] text-[#6b6b6b]">Most concepts start on a wall like this, long before they reach a screen.</figcaption>
+        {/* <figcaption data-hero-copy className="mt-3 text-[13px] text-[#6b6b6b]">Most concepts start on a wall like this, long before they reach a screen.</figcaption> */}
       </figure>
     </section>
   )
@@ -155,27 +159,31 @@ function IdeaTravels() {
     mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
       const stage = ref.current?.querySelector<HTMLElement>('[data-stage]')
       const cards = gsap.utils.toArray<HTMLElement>('[data-exec]')
-      const captions = gsap.utils.toArray<HTMLElement>('[data-caption]')
+      const cardsByKey = new Map(
+        cards.map((card) => [card.dataset.exec, card]),
+      )
       const idea = ref.current?.querySelector<HTMLElement>('[data-idea]')
       if (!stage || !idea) return
 
       gsap.set(cards, { autoAlpha: 0 })
-      gsap.set(captions, { autoAlpha: 0, y: 12 })
       gsap.set(idea, { scale: 1.15 })
 
       const tl = gsap.timeline({
         defaults: { ease: 'power3.out' },
-        scrollTrigger: { trigger: ref.current, start: 'top top', end: () => `+=${window.innerHeight * (EXECUTIONS.length + 1)}`, pin: stage, scrub: 0.8, anticipatePin: 1, invalidateOnRefresh: true },
+        scrollTrigger: { trigger: ref.current, start: 'top top', end: () => `+=${window.innerHeight * EXECUTION_STAGES.length}`, pin: stage, scrub: 0.8, anticipatePin: 1, invalidateOnRefresh: true },
       })
 
-      tl.to(idea, { scale: 1, duration: 1 })
-      EXECUTIONS.forEach((ex, i) => {
-        const at = 1 + i
-        tl.fromTo(cards[i], { autoAlpha: 0, x: ex.from.x, y: ex.from.y, rotate: ex.from.rotate, scale: 0.85 }, { autoAlpha: 1, x: 0, y: 0, rotate: 0, scale: 1, duration: 0.9 }, at)
-        tl.to(captions[i], { autoAlpha: 1, y: 0, duration: 0.4 }, at + 0.2)
-        if (i < EXECUTIONS.length - 1) tl.to(captions[i], { autoAlpha: 0, y: -12, duration: 0.3 }, at + 0.85)
+      tl.to(idea, { scale: 1, duration: 0.8 }, 0)
+      EXECUTION_STAGES.forEach((executions, i) => {
+        const at = i
+        executions.forEach((ex) => {
+          const card = cardsByKey.get(ex.key)
+          if (!card) return
+
+          tl.fromTo(card, { autoAlpha: 0, x: ex.from.x, y: ex.from.y, rotate: ex.from.rotate, scale: 0.85 }, { autoAlpha: 1, x: 0, y: 0, rotate: 0, scale: 1, duration: 0.9 }, at)
+        })
       })
-      tl.to({}, { duration: 0.6 })
+      tl.to({}, { duration: 0.4 })
     })
     return () => mm.revert()
   }, { scope: ref })
@@ -187,27 +195,19 @@ function IdeaTravels() {
         <div className={`${shell} relative h-full`}>
           <div className="absolute inset-x-5 inset-y-0 sm:inset-x-8 lg:inset-x-14">
             {EXECUTIONS.map((ex) => (
-              <figure key={ex.key} data-exec className={`absolute m-0 ${ex.pos}`}>
+              <figure key={ex.key} data-exec={ex.key} className={`absolute m-0 ${ex.pos}`}>
                 <div className="relative h-full w-full overflow-hidden bg-[#e6e6e6] shadow-[0_18px_50px_-20px_rgba(0,0,0,0.35)]">
                   <img src={ex.photo} alt="" loading="lazy" className="h-full w-full object-cover" />
-                  <p className="absolute inset-x-0 bottom-0 m-0 bg-gradient-to-t from-black/60 to-transparent p-[6%] text-[clamp(11px,0.9vw,14px)] leading-[1.35] text-white">{ex.line}</p>
                 </div>
               </figure>
             ))}
 
             {/* the idea */}
             <div data-idea className="absolute left-1/2 top-[42%] w-[min(34vw,520px)] -translate-x-1/2 -translate-y-1/2 bg-[#ccff00] px-[2.4vw] py-[2.2vw] text-[#0d0d0d]">
-              <p className="m-0 text-[13px] text-[#0d0d0d]/60">The idea</p>
-              <p className={`${display} m-0 mt-3 text-[clamp(34px,3.4vw,58px)] leading-[0.95] [font-family:Grimblade,ui-sans-serif,system-ui,-apple-system,sans-serif]`}>{IDEA}</p>
+              <p className="m-0 text-[13px] text-[#0d0d0d]/60">THE IDEA</p>
+              <p className={`${display} m-0 mt-3 text-[clamp(34px,3.4vw,58px)] leading-[0.95]`}>{IDEA}</p>
               {/* <p className="m-0 mt-5 text-[13px] leading-[1.5] text-[#0d0d0d]/70">An example for a made-up city tea brand whose customers have no time and miss the hills.</p> */}
             </div>
-          </div>
-
-          {/* caption that changes with each execution */}
-          <div className="pointer-events-none absolute left-1/2 top-[64%] w-[min(34vw,520px)] -translate-x-1/2">
-            {EXECUTIONS.map((ex) => (
-              <p key={ex.key} data-caption className="absolute inset-x-0 m-0 text-center text-[15px] text-[#3d3d3d]">{ex.where}</p>
-            ))}
           </div>
 
         </div>
@@ -216,19 +216,17 @@ function IdeaTravels() {
       {/* mobile / reduced motion: simple stack */}
       <div className={`${shell} py-20 lg:hidden`}>
         <div className="bg-[#ccff00] p-7">
-          <p className="m-0 text-[13px] text-[#0d0d0d]/60">The idea</p>
-          <p className={`${display} m-0 mt-3 text-[40px] leading-[0.95] [font-family:Grimblade,ui-sans-serif,system-ui,-apple-system,sans-serif]`}>{IDEA}</p>
+          <p className="m-0 text-[13px] text-[#0d0d0d]/60">THE IDEA</p>
+          <p className={`${display} m-0 mt-3 text-[40px] leading-[0.95]`}>{IDEA}</p>
           <p className="m-0 mt-4 text-[13px] leading-[1.5] text-[#0d0d0d]/70">For a city tea brand whose customers have no time and miss the hills.</p>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3">
           {EXECUTIONS.map((ex) => (
             <figure key={ex.key} className="m-0">
               <img src={ex.photo} alt="" loading="lazy" className="aspect-[4/5] w-full object-cover" />
-              <figcaption className="mt-2 text-[12px] leading-[1.4] text-[#3d3d3d]">{ex.where}</figcaption>
             </figure>
           ))}
         </div>
-        <p className="mt-6 text-[12px] text-[#6b6b6b]">An example concept for a made-up brand.</p>
       </div>
     </section>
   )
@@ -275,40 +273,6 @@ function Deliverables() {
           </div>
         ))}
       </dl>
-    </Section>
-  )
-}
-
-const ROUTES = [
-  { name: 'The ten-minute escape', note: 'Tea as a short holiday from the city. Warm, cinematic, slightly wistful.' },
-  { name: 'Hill-grown, city-brewed', note: 'Pride in where the leaves come from. Documentary, people-first, rooted in place.' },
-  { name: 'The slow cup', note: 'A small protest against hurry. Quiet, typographic, a little cheeky.' },
-]
-
-function Routes() {
-  return (
-    <Section className="border-t border-[#e6e6e6] py-24 lg:py-36">
-      <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-20">
-        <h2 className="section-heading m-0 max-w-[13ch]">Three routes, side by side</h2>
-        <p className="m-0 max-w-[50ch] text-[17px] leading-[1.7] text-[#3d3d3d] lg:pt-3">
-          Before anything is polished, we show you three genuinely different answers to the same brief. Choosing between real options is faster and more honest than reacting to one.
-        </p>
-      </div>
-      <div className="mt-16 grid gap-6 md:grid-cols-3 lg:mt-24 lg:gap-8">
-        {ROUTES.map((route, i) => (
-          <figure key={route.name} className={`group m-0 ${i === 1 ? 'md:mt-16' : ''}`}>
-            <div className="aspect-[4/5] overflow-hidden bg-[#e6e6e6]">
-              <img src={PHOTOS.routes[i]} alt={`Mood board for the route “${route.name}”`} loading="lazy" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]" />
-            </div>
-            <figcaption className="mt-5">
-              <p className="m-0 text-[13px] text-[#6b6b6b]">Route {i + 1}</p>
-              <p className="m-0 mt-1 text-[clamp(20px,1.7vw,26px)] tracking-[-0.015em] text-[#0d0d0d]">{route.name}</p>
-              <p className="m-0 mt-2 max-w-[38ch] text-[15px] leading-[1.6] text-[#5a5a5a]">{route.note}</p>
-            </figcaption>
-          </figure>
-        ))}
-      </div>
-      <p className="mt-10 text-[12px] text-[#6b6b6b]">Routes for the same made-up tea brand as above. The middle one became “{IDEA.replace('.', '')}”.</p>
     </Section>
   )
 }
@@ -472,12 +436,11 @@ export default function ConceptCreationPage({ siteUrl }: { siteUrl?: string }) {
   }, [])
 
   return (
-    <main className="w-full overflow-x-clip bg-white text-[#0d0d0d]">
+    <main className="w-full overflow-x-clip bg-white text-[#0d0d0d] font-(--font-secondary) [--font-primary:var(--section-title-font)]">
       <Hero />
       <IdeaTravels />
       {/* <WhyItMatters /> */}
       <Deliverables />
-      <Routes />
       <Process />
       <Faq />
       <Closing />

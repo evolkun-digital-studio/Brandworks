@@ -998,14 +998,14 @@ export default function SEOPage({ siteUrl }: { siteUrl?: string }) {
   return (
     <main className="w-full overflow-x-clip bg-white text-neutral-950">
       <Hero />
-      <Problem />
+      {/* <Problem /> */}
       <SerpCompare />
-      <Services />
-      <AiSearch />
+      {/* <Services /> */}
+      {/* <AiSearch /> */}
       <Process />
       <Guarantee />
       <Faq />
-      <Sources />
+      {/* <Sources /> */}
       <FinalCta />
     </main>
   )
