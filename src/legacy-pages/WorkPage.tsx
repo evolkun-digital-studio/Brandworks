@@ -173,7 +173,7 @@ function Curtain() {
       onAnimationComplete={() => setDone(true)}
     >
       <motion.span
-        className="font-(--font-primary) text-[clamp(40px,6vw,96px)] leading-none tracking-[-0.04em] text-[#CCFF00]"
+        className="font-(--font-primary) text-[48px] leading-none tracking-[-0.04em] text-[#CCFF00]"
         initial={{ y: '100%', opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE_OUT }}

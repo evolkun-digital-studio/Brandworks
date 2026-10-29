@@ -200,7 +200,7 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
           </Suspense>
           <div className="bwp-hero-edge" aria-hidden="true" />
           <div className="bwp-hero-ui">
-            <h1 id="bwp-title">Images that make<br /> people stop.</h1>
+            <h1 id="bwp-title" className="sr-only">Images that make people stop.</h1>
             {/* <p className="bwp-hint" aria-hidden="true"><span></span><span>Scroll to continue</span></p> */}
           </div>
           {/* The sphere's photographs for screen readers and keyboard; focusing
@@ -222,7 +222,7 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
           <div className="bwp-wall">
             <header className="bwp-intro" style={{ '--c': ic, '--cs': ics, '--r': ir, '--rs': irs } as CSSProperties}>
               {/* <p className="bwp-label">Photography</p> */}
-              <h1 id="bwp-title">Images that make<br /> people stop.</h1>
+              <h1 id="bwp-title" className="sr-only">Images that make people stop.</h1>
             </header>
             {wall.map(({ key, at: [c, cs, r, rs], depth, drift, wide }) => {
               // Tablet keeps the mixed sizes on a 12-column grid, at a readable scale.
