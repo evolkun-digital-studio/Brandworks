@@ -24,6 +24,7 @@ import WorkPage from "./legacy-pages/WorkPage";
 // import SocialaPage from "./legacy-pages/social/SocialMediaPage";
 import PRFounderReputationPage from './legacy-pages/PRFounderReputationPage'
 import ConceptCreationPage from './legacy-pages/services/Conceptcreationpage'
+import BrandPositioningStrategyPage from './legacy-pages/BrandPositioningStrategyPage'
 // Route-level code splitting (Phase 10, Part 13: AdminRoutes pulls in
 // as before) and no route path or admin behavior changes.
 const AdminRoutes = lazy(() => import("./admin/AdminRoutes"));
@@ -38,6 +39,7 @@ function App() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/work" element={<WorkPage />} /> 
+        <Route path="/services/brand-positioning-strategy" element={<BrandPositioningStrategyPage />} />
         <Route path="/services/videography" element={<CinematographyPage />} />
         <Route path="/services/technology" element={<TechnologyPage />} />
         <Route path="/services/photography" element={<PhotographyPage />} />

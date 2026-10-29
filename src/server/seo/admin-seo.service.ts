@@ -9,6 +9,7 @@ import type { AdminBlogDocument } from '../admin/blog-types'
 
 const STATIC_PATHS = new Set([
   '/', '/about', '/services', '/work', '/blog', '/contact', '/news', '/privacy-policy', '/terms-of-use', '/cookie-policy',
+  '/services/brand-positioning-strategy',
   '/services/concept-creation', '/services/graphic-design', '/services/performance-marketing', '/services/photography',
   '/services/pr-founder-reputation', '/services/seo', '/services/social-club', '/services/social-media', '/services/technology', '/services/videography',
 ])

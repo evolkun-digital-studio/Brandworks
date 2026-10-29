@@ -225,7 +225,6 @@ function AboutStatement() {
         heading={ABOUT_STATEMENT.heading}
         image={ABOUT_STATEMENT.image}
         mediaSide="end"
-        footer={<p className="section-label about-signature">{ABOUT_STATEMENT.signature}</p>}
       >
         <p className="about-feature__lead">{ABOUT_STATEMENT.text}</p>
       </Feature>

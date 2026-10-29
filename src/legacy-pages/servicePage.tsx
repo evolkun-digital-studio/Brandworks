@@ -40,7 +40,7 @@ type Project = {
 const services: Service[] = [
   {
     number: '01',
-    slug: 'strategy',
+    slug: 'brand-positioning-strategy',
     title: 'Strategy',
     group: 'Direction',
     description:
