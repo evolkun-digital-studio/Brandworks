@@ -171,6 +171,8 @@ function Hero() {
 
     let width = 0;
 
+    let viewportHeight = 0;
+
     let reserve = 0;
 
     const observer = new ResizeObserver(() => {
@@ -178,8 +180,10 @@ function Hero() {
 
       const height = rect.height;
 
-      if (rect.width !== width) {
+      if (rect.width !== width || window.innerHeight !== viewportHeight) {
         width = rect.width;
+
+        viewportHeight = window.innerHeight;
 
         reserve = 0;
       }

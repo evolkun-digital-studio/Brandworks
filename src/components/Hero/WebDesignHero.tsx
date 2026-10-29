@@ -3,7 +3,7 @@ import './WebDesignHero.css'
 /*
  * Web Design & Development: a light, interactive studio scene.
  *
- * A browser (hero columns 2–7) shows a finished mock client site; its top
+ * A browser (hero columns 1–7) shows a finished mock client site; its top
  * bar holds the site switcher and three device icons (desktop / tablet /
  * phone) that resize the browser so the site reflows. Two live panels
  * overlap it: Interface (the H1's size and typeface) on its right edge and
@@ -219,7 +219,7 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
         return !hits && l >= 0 && r <= hero.offsetWidth
       }) && origin.t + codeB * s <= hero.offsetHeight - BOTTOM_GAP
       let s = base
-      while (s > 0.5 && !clear(s)) s = Math.round((s - 0.01) * 100) / 100
+      while (s > 0.1 && !clear(s)) s = Math.round((s - 0.01) * 100) / 100
       if (!clear(s)) console.warn('[WebDesignHero] the visual zone cannot clear the hero copy at this size')
       stage.style.setProperty('--wd-fit', String(s))
     }
