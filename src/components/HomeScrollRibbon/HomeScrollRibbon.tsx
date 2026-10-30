@@ -30,6 +30,7 @@ const TABLE_STEPS = 200
 // The drawing tip runs this far above the bottom of the viewport.
 const TIP_LEAD_RATIO = 0.25
 
+// Scale the ribbon's stroke width with the container width.
 function strokeFor(width: number) {
   if (width < 768) return 24
   if (width < 1024) return 38
