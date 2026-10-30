@@ -330,14 +330,14 @@ export default function RibbonTrace({ reducedMotion }: RibbonTraceProps) {
 
   return (
     <>
-      <svg ref={backRef} className="bwt-ribbon bwt-ribbon--back" aria-hidden="true" focusable="false">
-        <path className="bwt-ribbon__path" />
+      <svg ref={backRef} className="bwt-ribbon bwt-ribbon--back pointer-events-none absolute top-0 left-0 block size-full overflow-hidden z-0" aria-hidden="true" focusable="false">
+        <path className="bwt-ribbon__path invisible fill-none stroke-bw-lime stroke-[clamp(22px,2.8vw,46px)] [stroke-linecap:round] [stroke-linejoin:round] max-lg:stroke-[clamp(19px,3.2vw,34px)] max-md:stroke-[clamp(14px,4.8vw,24px)]" />
       </svg>
-      <svg ref={frontRef} className="bwt-ribbon bwt-ribbon--front" aria-hidden="true" focusable="false">
+      <svg ref={frontRef} className="bwt-ribbon bwt-ribbon--front pointer-events-none absolute top-0 left-0 block size-full overflow-hidden z-2" aria-hidden="true" focusable="false">
         <defs>
           <clipPath id={clipId} clipPathUnits="userSpaceOnUse" />
         </defs>
-        <path className="bwt-ribbon__path" clipPath={`url(#${clipId})`} />
+        <path className="bwt-ribbon__path invisible fill-none stroke-bw-lime stroke-[clamp(22px,2.8vw,46px)] [stroke-linecap:round] [stroke-linejoin:round] max-lg:stroke-[clamp(19px,3.2vw,34px)] max-md:stroke-[clamp(14px,4.8vw,24px)]" clipPath={`url(#${clipId})`} />
       </svg>
     </>
   )

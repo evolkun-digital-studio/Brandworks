@@ -262,6 +262,18 @@ export const ABOUT_TEAM = {
         position: '50% 35%',
       },
     },
+    {
+      name: 'Yug',
+      role: 'Office Boy',
+      speciality: 'Office support and daily operations',
+      ratio: '4/5',
+      image: {
+        src: mediaUrl("yug 1.png"),
+        width: 904,
+        height: 1200,
+        alt: 'Portrait of Yug',
+      },
+    },
   ] satisfies TeamMember[],
 }
 
