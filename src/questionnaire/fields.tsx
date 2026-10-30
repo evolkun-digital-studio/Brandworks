@@ -22,11 +22,11 @@ function CheckIcon() {
   )
 }
 
-// Selected: brand lime with a single 1px #111 edge. The focus outline shows
+// Selected: a neon lime edge over a light tint of the same lime. The focus outline shows
 // for keyboard users only (:focus-visible), never after a mouse click.
 const tile = 'relative flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-[12px] border px-4 py-2 text-left text-[14px] font-medium leading-[1.25] text-[#111] outline-none transition-[background-color,border-color] duration-150 sm:min-h-12 sm:px-5 sm:text-[15px]'
 const tileIdle = 'border-[#E5E5E5] bg-white hover:border-[#111] hover:bg-[#FAFAFA]'
-const tileActive = 'border-[#111] bg-(--color-bw-lime)'
+const tileActive = 'border-(--color-bw-lime) bg-(--color-bw-lime)/20'
 const tileFocus = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111]'
 const tileFocusWithin = 'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[#111]'
 

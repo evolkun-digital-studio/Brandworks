@@ -196,7 +196,7 @@ export function PillButton({
       onClick={onClick}
       disabled={disabled}
       aria-busy={busy || undefined}
-      className="group relative inline-flex min-h-[60px] items-center gap-6 overflow-hidden rounded-full bg-[#111] pl-7 pr-2 text-white transition-colors duration-300 disabled:opacity-50"
+      className="group relative inline-flex min-h-10 items-center gap-4 overflow-hidden rounded-full bg-[#111] pl-5 pr-1 text-white transition-colors duration-300 disabled:opacity-50"
     >
       <span className="absolute inset-0 origin-bottom scale-y-0 bg-[#ccff00] transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:scale-y-100" aria-hidden="true" />
       <span className="relative text-[14px] font-medium tracking-[-0.01em] transition-colors duration-300 group-hover:text-black">
@@ -213,7 +213,7 @@ export function PillButton({
           </motion.span>
         </AnimatePresence>
       </span>
-      <span className="relative grid size-11 place-items-center rounded-full bg-white text-black transition-transform duration-500 group-hover:rotate-45">
+      <span className="relative grid size-8 place-items-center rounded-full bg-white text-black transition-transform duration-500 group-hover:rotate-45">
         <svg viewBox="0 0 24 24" className="size-4" fill="none" aria-hidden="true">
           <path d="M6 18 18 6M9 6h9v9" stroke="currentColor" strokeWidth="1.8" />
         </svg>

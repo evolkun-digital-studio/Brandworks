@@ -6,8 +6,6 @@ import luxuryDuffle from '../assets/photography/hero-luxury-duffle-full.webp'
 import luxuryDuffleSmall from '../assets/photography/hero-luxury-duffle-480.webp'
 import redCocktail from '../assets/photography/hero-red-cocktail-1200.webp'
 import redCocktailSmall from '../assets/photography/hero-red-cocktail-480.webp'
-import gourmetBiryani from '../assets/photography/hero-gourmet-biryani-1200.webp'
-import gourmetBiryaniSmall from '../assets/photography/hero-gourmet-biryani-480.webp'
 import azzaroNoir from '../assets/photography/hero-azzaro-noir-1200.webp'
 import azzaroNoirSmall from '../assets/photography/hero-azzaro-noir-480.webp'
 import goldenSocks from '../assets/photography/hero-golden-socks-1600.webp'
@@ -179,12 +177,11 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
           alt: 'Red cocktail garnished with lime and herbs in warm cinematic light',
         },
         {
-          id: 'hero-gourmet-biryani',
-          src: assetUrl(gourmetBiryani),
-          srcSet: `${assetUrl(gourmetBiryaniSmall)} 480w, ${assetUrl(gourmetBiryani)} 1024w`,
+          id: 'hero-red-streetwear',
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_38_07%20PM.png',
           width: 1024,
           height: 1536,
-          alt: 'Gourmet biryani on a white plate against a moody red fabric backdrop',
+          alt: 'Model in a red sweatshirt and sunglasses posing with outstretched hands against a red studio backdrop',
         },
         {
           id: 'hero-azzaro-noir',
