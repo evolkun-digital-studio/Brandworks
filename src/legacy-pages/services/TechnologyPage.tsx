@@ -25,20 +25,32 @@ import {
   technologySeo,
   workflowExample,
 } from '../../data/technology'
-import './TechnologyPage.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const pad = (index: number) => String(index + 1).padStart(2, '0')
 
+// Shared type and link patterns; individual layout utilities stay on the elements.
+const sectionHeadingClasses = `
+  font-[family-name:var(--section-title-font)] text-(length:--section-title-size)
+  font-(--section-title-weight) leading-none tracking-(--section-title-tracking) text-balance
+`
+const textLinkClasses = `
+  group/link relative z-0 inline-flex min-h-11 items-center gap-2.5 no-underline transition-colors duration-300
+  focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111]
+  after:absolute after:right-0 after:bottom-2.5 after:left-0 after:-z-1 after:h-px after:bg-current after:opacity-35 after:transition-[height,background-color,opacity] after:duration-300
+  hover:text-[#111] hover:after:h-2 hover:after:bg-bw-lime hover:after:opacity-100 focus-visible:after:h-2 focus-visible:after:bg-bw-lime focus-visible:after:opacity-100
+  data-[unlinked=true]:cursor-default data-[unlinked=true]:after:hidden
+`
 
 /*                                  Shared                                    */
-/* ----------------------------------------jjj---------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 /** ↗ for links that leave the site, → for everything else. */
 function ArrowIcon({ external = false }: { external?: boolean }) {
   return (
     <svg
+      className="size-full"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -67,8 +79,8 @@ function MaskedLines({ lines }: { lines: string[] }) {
   return (
     <>
       {lines.map((line) => (
-        <span key={line} className="bwt-mask">
-          <span data-reveal>{line}</span>
+        <span key={line} className="bwt-mask block overflow-hidden pb-[0.1em] -mb-[0.1em]">
+          <span className="block" data-reveal>{line}</span>
         </span>
       ))}
     </>
@@ -81,14 +93,21 @@ function MaskedLines({ lines }: { lines: string[] }) {
  * link to a guessed address.
  */
 function EvolkunLink({ className, children }: { className: string; children: ReactNode }) {
-  if (!EVOLKUN_URL) return <span className={`${className} is-unlinked`}>{children}</span>
+  if (!EVOLKUN_URL) return <span className={className} data-unlinked="true">{children}</span>
   return (
     <a className={className} href={EVOLKUN_URL} target="_blank" rel="noopener noreferrer">
       {children}
-      <span className="bwt-arrow">
+      <span className="
+        bwt-arrow inline-flex size-3.5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
+        group-hover/link:translate-x-[3px]
+        group-focus-visible/link:translate-x-[3px]
+        group-hover/link:-translate-y-[3px]
+        group-focus-visible/link:-translate-y-[3px]
+        motion-reduce:duration-10
+      ">
         <ArrowIcon external />
       </span>
-      <span className="bwt-sr-only"> (opens in a new tab)</span>
+      <span className="bwt-sr-only sr-only"> (opens in a new tab)</span>
     </a>
   )
 }
@@ -142,26 +161,43 @@ function Hero({ reduced }: { reduced: boolean }) {
   )
 
   return (
-    <section ref={sectionRef} className="bwt-hero" aria-labelledby="bwt-hero-title">
-      <div className="bwt-hero__stage">
-        <div className="bwt-container bwt-hero__inner" data-hero>
-          <p className="bwt-label" data-hero-fade>
+    <section ref={sectionRef} className="bwt-hero relative z-1 motion-safe:h-[260svh] motion-safe:max-[761px]:h-[190svh]" aria-labelledby="bwt-hero-title">
+      <div className="
+        bwt-hero__stage sticky top-0 flex h-svh items-center overflow-hidden
+        max-[761px]:items-start
+        motion-reduce:relative motion-reduce:h-auto motion-reduce:min-h-svh
+      ">
+        <div className="
+          bwt-container bwt-hero__inner mx-auto w-full
+          max-w-[1440px] px-[clamp(24px,5vw,80px)] relative z-1 pt-16
+          max-[761px]:pt-[clamp(112px,16svh,150px)]
+        " data-hero>
+          {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-hero-fade>
             {technologyHero.label}
-          </p>
-          <h1 id="bwt-hero-title" className="bwt-hero__title">
+          </p> */}
+          <h1 id="bwt-hero-title" className="
+            bwt-hero__title mt-[26px]
+            max-w-[11.5em] text-[clamp(48px,6vw,4rem)] font-normal leading-[0.96] tracking-[-0.045em] text-balance
+            max-[761px]:text-[clamp(40px,11vw,4rem)]
+          ">
             <MaskedLines lines={technologyHero.heading} />
           </h1>
-          <p className="bwt-hero__copy" data-hero-fade>
+          <p className="bwt-hero__copy mt-[clamp(24px,2.6vw,36px)] max-w-[32em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]" data-hero-fade>
             {technologyHero.copy}
           </p>
-          <div className="bwt-hero__actions" data-hero-fade>
-            <a href="#capabilities" className="bwt-text-link bwt-text-link--primary">
+          <div className="bwt-hero__actions mt-[clamp(32px,3.4vw,48px)] flex flex-wrap items-center gap-x-8 gap-y-[18px]" data-hero-fade>
+            <a href="#capabilities" className={`${textLinkClasses} text-[clamp(16px,1.2vw,18px)] text-[#111]`}>
               {technologyHero.cta}
-              <span className="bwt-arrow">
+              <span className="
+                bwt-arrow inline-flex size-3.5 shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
+                group-hover/link:translate-x-[3px]
+                group-focus-visible/link:translate-x-[3px]
+                motion-reduce:duration-10
+              ">
                 <ArrowIcon />
               </span>
             </a>
-            <EvolkunLink className="bwt-text-link">{technologyHero.partnerLink}</EvolkunLink>
+            <EvolkunLink className={`${textLinkClasses} text-[15px] text-[#111]/66`}>{technologyHero.partnerLink}</EvolkunLink>
           </div>
         </div>
       </div>
@@ -175,16 +211,16 @@ function Hero({ reduced }: { reduced: boolean }) {
 
 function Intro() {
   return (
-    <section className="bwt-intro" aria-labelledby="bwt-intro-title">
-      <div className="bwt-container bwt-intro__grid" data-reveal-group>
-        <p className="bwt-label" data-reveal>
+    <section className="bwt-intro relative z-1 pt-[clamp(96px,11vw,170px)] pb-[clamp(80px,8vw,130px)]" aria-labelledby="bwt-intro-title">
+      <div className="bwt-container bwt-intro__grid mx-auto w-full max-w-[1440px] px-[clamp(24px,5vw,80px)] grid grid-cols-12 gap-(--grid-gap)" data-reveal-group>
+        <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52 col-span-full lg:col-span-3 lg:pt-[0.9em]" data-reveal>
           {technologyIntro.label}
         </p>
-        <div className="bwt-intro__body">
-          <h2 id="bwt-intro-title" className="bwt-intro__statement" data-reveal>
+        <div className="bwt-intro__body col-span-full lg:col-start-4">
+          <h2 id="bwt-intro-title" className={`bwt-intro__statement max-w-[18em] ${sectionHeadingClasses}`} data-reveal>
             {technologyIntro.statement}
           </h2>
-          <p className="bwt-intro__copy" data-reveal>
+          <p className="bwt-intro__copy mt-[clamp(32px,3.6vw,52px)] ml-auto max-w-[36em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.65]" data-reveal>
             {technologyIntro.copy}
           </p>
         </div>
@@ -224,38 +260,56 @@ function Capabilities() {
     <section
       ref={sectionRef}
       id="capabilities"
-      className="bwt-caps"
+      className="bwt-caps relative z-1 scroll-mt-6 pt-[clamp(88px,9vw,140px)] pb-[clamp(110px,11vw,170px)]"
       aria-labelledby="bwt-caps-title"
     >
-      <div className="bwt-container">
-        <div className="bwt-caps__head" data-reveal-group>
-          <h2 id="bwt-caps-title" className="bwt-label" data-reveal>
+      <div className="bwt-container mx-auto w-full max-w-[1440px] px-[clamp(24px,5vw,80px)]">
+        <div className="bwt-caps__head mb-[clamp(40px,5vw,72px)] flex items-baseline justify-between gap-6" data-reveal-group>
+          <h2 id="bwt-caps-title" className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
             Capabilities
           </h2>
         </div>
 
-        <div className="bwt-caps__grid">
+        <div className="bwt-caps__grid grid grid-cols-1 items-start gap-[clamp(48px,7vw,120px)] lg:grid-cols-[1fr_0.9fr]">
           <ol className="bwt-caps__list">
             {capabilities.map((capability, index) => (
               <li
                 key={capability.id}
-                className={`bwt-cap${index === active ? ' is-active' : ''}`}
+                data-active={index === active}
+                className="
+                  bwt-cap group/cap relative grid grid-cols-[clamp(44px,5vw,72px)_minmax(0,1fr)] items-baseline border-t border-[#111]/10
+                  py-[clamp(26px,2.6vw,38px)] last:border-b before:absolute before:-top-px before:left-0 before:h-px before:w-full before:origin-left
+                  before:scale-x-0 before:bg-[#111] before:transition-transform before:duration-700 before:ease-[cubic-bezier(0.22,1,0.36,1)] data-[active=true]:before:scale-x-100 motion-reduce:before:duration-10
+                "
                 onPointerEnter={() => setActive(index)}
               >
-                <span className="bwt-cap__num">{pad(index)}</span>
+                <span className="bwt-cap__num text-[13px] text-[#111]/52 tabular-nums transition-colors duration-500 group-data-[active=true]/cap:text-[#111]"></span>
                 <div className="bwt-cap__text">
-                  <h3>{capability.title}</h3>
-                  <p>{capability.description}</p>
+                  <h3 className="
+                    text-[clamp(22px,2vw,30px)] font-normal leading-[1.12] tracking-[-0.03em] text-balance text-[#111]/36
+                    transition-colors duration-500
+                    group-data-[active=true]/cap:text-[#111]
+                  ">{capability.title}</h3>
+                  <p className="
+                    mt-3
+                    max-w-[34em] text-[15px] leading-[1.6] text-pretty text-[#111]/52 transition-colors duration-500
+                    group-data-[active=true]/cap:text-[#111]/66
+                  ">{capability.description}</p>
                 </div>
               </li>
             ))}
           </ol>
 
-          <div className="bwt-caps__visual" aria-hidden="true">
+          <div className="bwt-caps__visual sticky top-[14svh] hidden h-[min(72svh,640px)] rounded bg-[#f4f4f1] lg:block" aria-hidden="true">
             {capabilities.map((capability, index) => (
               <div
                 key={capability.id}
-                className={`bwt-cap-visual${index === active ? ' is-active is-live' : ''}`}
+                data-active={index === active}
+                data-live={index === active}
+                className="
+                  bwt-cap-visual group/visual absolute inset-[clamp(28px,3.4vw,52px)] translate-y-[18px] opacity-0 [clip-path:inset(0_0_14%_0)] transition-[opacity,translate,clip-path]
+                  duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] data-[active=true]:translate-y-0 data-[active=true]:opacity-100 data-[active=true]:[clip-path:inset(0)] motion-reduce:duration-10
+                "
               >
                 <CapabilityVisual kind={capability.visual} />
               </div>
@@ -280,26 +334,31 @@ const STORY = {
 function StoryDiagram() {
   const { core, triggerY, actionY } = STORY
   return (
-    <svg className="bwt-story__diagram" viewBox="0 0 640 420" aria-hidden="true" focusable="false">
+    <svg className="
+      bwt-story__diagram block h-auto
+      max-h-[78svh] w-full overflow-visible
+      max-[761px]:-mx-[clamp(14.4px,3vw,48px)] max-[761px]:w-[calc(100%+clamp(28.8px,6vw,96px))] max-[761px]:max-w-none
+      motion-safe:max-lg:max-h-[44svh]
+    " viewBox="0 0 640 420" aria-hidden="true" focusable="false">
       {automationStory.triggers.map((name, i) => {
         const y = triggerY[i]
         const d = `M166 ${y} C222 ${y} 222 ${core.y} ${core.x - 48} ${core.y}`
         return (
           <g key={name} className="bwt-story__in">
-            <text className="bwt-v-label bwt-story__label" x={0} y={y + 4}>
+            <text className="bwt-v-label bwt-story__label fill-[#111]/66 font-secondary text-[12px] max-[761px]:text-[17px]" x={0} y={y + 4}>
               {name}
             </text>
-            <path className="bwt-v-line bwt-story__path" d={d} pathLength={1} />
-            <path className="bwt-story__signal" d={d} pathLength={1} />
+            <path className="bwt-v-line bwt-story__path fill-none stroke-[#111]/24 stroke-1 [vector-effect:none] [stroke-dasharray:1_2] [stroke-dashoffset:0]" d={d} pathLength={1} />
+            <path className="bwt-story__signal fill-none stroke-[#111] stroke-2 [stroke-linecap:round] [stroke-dasharray:0.08_1.4] [stroke-dashoffset:-1.2] opacity-0" d={d} pathLength={1} />
           </g>
         )
       })}
 
       <g className="bwt-story__core">
-        <circle className="bwt-v-node" cx={core.x} cy={core.y} r={46} />
-        <circle className="bwt-story__ring" cx={core.x} cy={core.y} r={32} pathLength={60} />
-        <circle className="bwt-v-dot bwt-story__heart" cx={core.x} cy={core.y} r={5} />
-        <text className="bwt-v-label bwt-story__think" x={core.x} y={core.y + 78} textAnchor="middle">
+        <circle className="bwt-v-node fill-white stroke-[#111]/60 stroke-1 [vector-effect:non-scaling-stroke]" cx={core.x} cy={core.y} r={46} />
+        <circle className="bwt-story__ring fill-none stroke-[#111]/40 stroke-1 [stroke-dasharray:1_2] [vector-effect:non-scaling-stroke]" cx={core.x} cy={core.y} r={32} pathLength={60} />
+        <circle className="bwt-v-dot bwt-story__heart fill-[#111]" cx={core.x} cy={core.y} r={5} />
+        <text className="bwt-v-label bwt-story__think fill-[#111] font-secondary text-[12px] max-[761px]:text-[17px]" x={core.x} y={core.y + 78} textAnchor="middle">
           Rules · Data · AI
         </text>
       </g>
@@ -309,9 +368,9 @@ function StoryDiagram() {
         const d = `M${core.x + 48} ${core.y} C425 ${core.y} 425 ${y} 488 ${y}`
         return (
           <g key={name} className="bwt-story__out">
-            <path className="bwt-v-line bwt-story__path" d={d} pathLength={1} />
-            <path className="bwt-story__signal" d={d} pathLength={1} />
-            <text className="bwt-v-label bwt-story__label" x={500} y={y + 4}>
+            <path className="bwt-v-line bwt-story__path fill-none stroke-[#111]/24 stroke-1 [vector-effect:none] [stroke-dasharray:1_2] [stroke-dashoffset:0]" d={d} pathLength={1} />
+            <path className="bwt-story__signal fill-none stroke-[#111] stroke-2 [stroke-linecap:round] [stroke-dasharray:0.08_1.4] [stroke-dashoffset:-1.2] opacity-0" d={d} pathLength={1} />
+            <text className="bwt-v-label bwt-story__label fill-[#111]/66 font-secondary text-[12px] max-[761px]:text-[17px]" x={500} y={y + 4}>
               {name}
             </text>
           </g>
@@ -333,7 +392,7 @@ function AutomationStory({ reduced }: { reduced: boolean }) {
       const lines = q('.bwt-story__line')
       const groups = [q('.bwt-story__in'), [], q('.bwt-story__out')]
 
-      section.classList.add('is-animated')
+      section.dataset.animated = 'true'
       gsap.set(words, { opacity: 0.14 })
       gsap.set(lines, { autoAlpha: 0, y: 16 })
       gsap.set(q('.bwt-story__path'), { strokeDashoffset: 1 })
@@ -392,27 +451,41 @@ function AutomationStory({ reduced }: { reduced: boolean }) {
       )
       tl.to({}, { duration: 0.3 }, 3)
 
-      return () => section.classList.remove('is-animated')
+      return () => {
+        delete section.dataset.animated
+      }
     },
     { scope: sectionRef, dependencies: [reduced], revertOnUpdate: true },
   )
 
   return (
-    <section ref={sectionRef} className="bwt-story" aria-labelledby="bwt-story-title">
-      <div className="bwt-story__stage">
-        <div className="bwt-container bwt-story__grid">
+    <section ref={sectionRef} className="bwt-story group/story relative z-1 motion-safe:h-[320svh] motion-safe:max-lg:h-[280svh]" aria-labelledby="bwt-story-title">
+      <div className="
+        bwt-story__stage sticky top-0 flex h-svh items-center overflow-hidden
+        motion-reduce:relative motion-reduce:h-auto motion-reduce:py-[clamp(110px,12vw,170px)]
+      ">
+        <div className="
+          bwt-container bwt-story__grid mx-auto w-full
+          max-w-[1440px] px-[clamp(24px,5vw,80px)] grid grid-cols-1 items-center gap-[clamp(40px,6vw,110px)]
+          lg:grid-cols-[0.8fr_1.2fr]
+          motion-safe:max-lg:gap-7
+        ">
           <div className="bwt-story__copy">
-            <p className="bwt-label">Automation</p>
-            <h2 id="bwt-story-title" className="bwt-story__title">
+            <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52">Automation</p>
+            <h2 id="bwt-story-title" className={`bwt-story__title mt-[22px] grid ${sectionHeadingClasses}`}>
               {automationStory.stages.map((stage) => (
-                <span key={stage.word} className="bwt-story__word">
+                <span key={stage.word} className="bwt-story__word block">
                   {stage.word}.
                 </span>
               ))}
             </h2>
-            <div className="bwt-story__lines">
+            <div className="bwt-story__lines mt-[clamp(28px,3vw,44px)] grid gap-2.5 group-data-[animated=true]/story:gap-0">
               {automationStory.stages.map((stage) => (
-                <p key={stage.word} className="bwt-story__line">
+                <p key={stage.word} className="
+                  bwt-story__line
+                  max-w-[26em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]
+                  group-data-[animated=true]/story:col-start-1 group-data-[animated=true]/story:row-start-1
+                ">
                   {stage.line}
                 </p>
               ))}
@@ -472,33 +545,49 @@ function WorkflowExample({ reduced }: { reduced: boolean }) {
   )
 
   return (
-    <section ref={sectionRef} className="bwt-flow" aria-labelledby="bwt-flow-title">
-      <div className="bwt-container">
-        <div className="bwt-flow__head" data-reveal-group>
-          <p className="bwt-label" data-reveal>
+    <section ref={sectionRef} className="bwt-flow relative z-1 pt-[clamp(96px,11vw,170px)] pb-[clamp(96px,10vw,150px)]" aria-labelledby="bwt-flow-title">
+      <div className="bwt-container mx-auto w-full max-w-[1440px] px-[clamp(24px,5vw,80px)]">
+        <div className="bwt-flow__head " data-reveal-group>
+          {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
             Business automation
-          </p>
-          <h2 id="bwt-flow-title">
+          </p> */}
+          <h2 id="bwt-flow-title" className={`mt-[22px] ${sectionHeadingClasses}`}>
             <MaskedLines lines={workflowExample.heading} />
           </h2>
         </div>
 
-        <div ref={trackRef} className="bwt-flow__track">
-          <svg className="bwt-flow__line is-horizontal" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
-            <line className="bwt-flow__base" x1={0} y1={1} x2={100} y2={1} />
-            <line className="bwt-flow__progress" x1={0} y1={1} x2={100} y2={1} pathLength={1} />
+        <div ref={trackRef} className="bwt-flow__track relative mt-[clamp(72px,8vw,120px)] [--p:1]">
+          <svg className="
+            bwt-flow__line is-horizontal absolute overflow-visible top-1.5 right-[calc(100%/12)] left-[calc(100%/12)] block
+            h-0.5 w-[calc(100%-100%/6)]
+            max-[761px]:hidden
+          " viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
+            <line className="bwt-flow__base stroke-[#111]/14 stroke-1" x1={0} y1={1} x2={100} y2={1} />
+            <line className="bwt-flow__progress stroke-[#111] stroke-1 [stroke-dasharray:1_2] [stroke-dashoffset:0]" x1={0} y1={1} x2={100} y2={1} pathLength={1} />
           </svg>
-          <svg className="bwt-flow__line is-vertical" viewBox="0 0 2 100" preserveAspectRatio="none" aria-hidden="true">
-            <line className="bwt-flow__base" x1={1} y1={0} x2={1} y2={100} />
-            <line className="bwt-flow__progress" x1={1} y1={0} x2={1} y2={100} pathLength={1} />
+          <svg className="
+            bwt-flow__line is-vertical absolute overflow-visible hidden
+            max-[761px]:top-[7px] max-[761px]:bottom-[7px] max-[761px]:left-1.5 max-[761px]:block
+            max-[761px]:h-[calc(100%-14px)] max-[761px]:w-0.5
+          " viewBox="0 0 2 100" preserveAspectRatio="none" aria-hidden="true">
+            <line className="bwt-flow__base stroke-[#111]/14 stroke-1" x1={1} y1={0} x2={1} y2={100} />
+            <line className="bwt-flow__progress stroke-[#111] stroke-1 [stroke-dasharray:1_2] [stroke-dashoffset:0]" x1={1} y1={0} x2={1} y2={100} pathLength={1} />
           </svg>
-          <span className="bwt-flow__signal" aria-hidden="true" />
-          <ol className="bwt-flow__steps">
+          <span className="
+            bwt-flow__signal absolute z-2 top-[7px] left-[calc(100%/12+var(--p)*(100%-100%/6))] size-2 -translate-1/2
+            rounded-full bg-[#111]
+            max-[761px]:top-[calc(7px+var(--p)*(100%-14px))] max-[761px]:left-[7px]
+          " aria-hidden="true" />
+          <ol className="bwt-flow__steps grid grid-cols-6 max-[761px]:grid-cols-1 max-[761px]:gap-[34px]">
             {workflowExample.steps.map((step, index) => (
-              <li key={step} className="bwt-step">
-                <span className="bwt-step__node" aria-hidden="true" />
-                <span className="bwt-step__num">{pad(index)}</span>
-                <span className="bwt-step__label">{step}</span>
+              <li key={step} className="
+                bwt-step grid justify-items-center gap-3.5 text-center
+                max-[761px]:grid-cols-[14px_auto_minmax(0,1fr)] max-[761px]:items-center max-[761px]:justify-items-start
+                max-[761px]:gap-[18px] max-[761px]:text-left
+              ">
+                <span className="bwt-step__node relative z-1 size-3.5 rounded-full border border-[#111] bg-bw-lime" aria-hidden="true" />
+                <span className="bwt-step__num mt-2.5 text-[13px] text-[#111]/52 tabular-nums max-[761px]:mt-0">{pad(index)}</span>
+                <span className="bwt-step__label max-w-[10em] text-[clamp(14px,1.1vw,16px)] leading-[1.4] text-[#111] max-[761px]:max-w-none">{step}</span>
               </li>
             ))}
           </ol>
@@ -568,50 +657,54 @@ function DataSection({ reduced }: { reduced: boolean }) {
   )
 
   return (
-    <section ref={sectionRef} className="bwt-data" aria-labelledby="bwt-data-title">
-      <div className="bwt-container bwt-data__grid">
-        <div className="bwt-data__head" data-reveal-group>
-          <p className="bwt-label" data-reveal>
+    <section ref={sectionRef} className="bwt-data relative z-1 py-[clamp(96px,10vw,160px)]" aria-labelledby="bwt-data-title">
+      <div className="
+        bwt-container bwt-data__grid mx-auto w-full
+        max-w-[1440px] px-[clamp(24px,5vw,80px)] grid grid-cols-1 items-center gap-[clamp(48px,7vw,120px)]
+        lg:grid-cols-2
+      ">
+        <div className="bwt-data__head " data-reveal-group>
+          {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
             {dataSection.label}
-          </p>
-          <h2 id="bwt-data-title">
+          </p> */}
+          <h2 id="bwt-data-title" className={`mt-[22px] ${sectionHeadingClasses}`}>
             <MaskedLines lines={dataSection.heading} />
           </h2>
-          <p className="bwt-data__copy" data-reveal>
+          <p className="bwt-data__copy mt-[clamp(24px,2.6vw,36px)] max-w-[30em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]" data-reveal>
             {dataSection.copy}
           </p>
         </div>
 
-        <figure className="bwt-dash" aria-label="Illustrative dashboard with sample data">
-          <figcaption className="bwt-dash__caption">Sample data</figcaption>
+        <figure className="bwt-dash rounded bg-[#f4f4f1] px-[clamp(22px,2.6vw,40px)] pt-[clamp(22px,2.4vw,34px)] pb-[clamp(8px,1vw,14px)]" aria-label="Illustrative dashboard with sample data">
+          <figcaption className="bwt-dash__caption text-[13px] text-[#111]/52">Sample data</figcaption>
 
-          <div className="bwt-dash__revenue">
-            <p className="bwt-dash__label">{revenue.label}</p>
-            <p className="bwt-dash__big">
+          <div className="bwt-dash__revenue pt-[clamp(32px,4vw,52px)] pb-[clamp(20px,2.4vw,30px)]">
+            <p className="bwt-dash__label text-[12px] font-semibold tracking-[0.08em] text-[#111]/52 uppercase">{revenue.label}</p>
+            <p className="bwt-dash__big mt-2.5 flex items-baseline gap-4 text-[clamp(44px,5vw,72px)] leading-none tracking-[-0.04em] tabular-nums">
               <span data-count={revenue.value}>{formatNumber(revenue.value)}</span>
-              <span className="bwt-dash__change">{revenue.change}</span>
+              <span className="bwt-dash__change rounded-full bg-bw-lime px-2.5 py-[3px] text-[14px] tracking-normal text-[#111]">{revenue.change}</span>
             </p>
-            <svg className="bwt-dash__spark" viewBox="0 0 400 80" preserveAspectRatio="none" aria-hidden="true">
+            <svg className="bwt-dash__spark mt-[clamp(20px,2.4vw,32px)] block h-[clamp(56px,6vw,84px)] w-full overflow-visible" viewBox="0 0 400 80" preserveAspectRatio="none" aria-hidden="true">
               <path
-                className="bwt-dash__spark-line"
+                className="bwt-dash__spark-line fill-none stroke-[#111] stroke-[1.5] [stroke-dasharray:1_2] [stroke-dashoffset:0]"
                 d="M0 66 C30 62 48 52 70 56 S118 40 142 44 S190 30 214 36 S262 18 290 24 S346 10 372 12 L400 8"
                 pathLength={1}
               />
             </svg>
           </div>
 
-          <dl className="bwt-dash__metrics">
+          <dl className="bwt-dash__metrics grid grid-cols-2 border-t border-[#111]/10">
             {others.map((metric, index) => (
-              <div key={metric.label} className="bwt-dash__metric">
-                <dt className="bwt-dash__label">{metric.label}</dt>
-                <dd className="bwt-dash__value">
+              <div key={metric.label} className="bwt-dash__metric grid gap-2.5 border-b border-[#111]/10 py-[22px] odd:pr-6 even:border-l even:pl-6 max-[761px]:odd:pr-4 max-[761px]:even:pl-4">
+                <dt className="bwt-dash__label text-[12px] font-semibold tracking-[0.08em] text-[#111]/52 uppercase">{metric.label}</dt>
+                <dd className="bwt-dash__value text-[clamp(24px,2.2vw,32px)] leading-[1.1] tracking-[-0.03em] tabular-nums">
                   <span data-count={metric.value} data-decimals={metric.decimals ?? 0}>
                     {formatNumber(metric.value, metric.decimals ?? 0)}
                   </span>
                   {metric.suffix}
                 </dd>
-                <span className="bwt-dash__track" aria-hidden="true">
-                  <span className="bwt-dash__fill" style={{ transform: `scaleX(${METRIC_FILL[index]})` }} />
+                <span className="bwt-dash__track block h-0.5 bg-[#111]/10" aria-hidden="true">
+                  <span className="bwt-dash__fill block h-full origin-left bg-[#111]" style={{ transform: `scaleX(${METRIC_FILL[index]})` }} />
                 </span>
               </div>
             ))}
@@ -630,8 +723,8 @@ function ErpDiagram() {
   const cx = 260
   const cy = 220
   return (
-    <svg className="bwt-erp__diagram" viewBox="0 0 520 440" aria-hidden="true" focusable="false">
-      <circle className="bwt-v-faint" cx={cx} cy={cy} r={165} />
+    <svg className="bwt-erp__diagram ml-auto block h-auto w-full max-w-[640px] overflow-visible max-lg:mr-auto" viewBox="0 0 520 440" aria-hidden="true" focusable="false">
+      <circle className="bwt-v-faint fill-none stroke-1 [vector-effect:non-scaling-stroke] stroke-[#111]/10" cx={cx} cy={cy} r={165} />
       {erpSection.departments.map((name, i) => {
         const a = (i / erpSection.departments.length) * Math.PI * 2 - Math.PI / 2
         const x = cx + Math.cos(a) * 165
@@ -639,11 +732,16 @@ function ErpDiagram() {
         const d = `M${x.toFixed(1)} ${y.toFixed(1)} L${cx} ${cy}`
         return (
           <g key={name}>
-            <path className="bwt-v-line bwt-erp__path" d={d} pathLength={1} />
-            <path className="bwt-v-signal" d={d} pathLength={1} style={{ animationDelay: `${i * 0.45}s` }} />
-            <circle className="bwt-v-node" cx={x} cy={y} r={6} />
+            <path className="bwt-v-line bwt-erp__path fill-none stroke-[#111]/24 stroke-1 [vector-effect:none] [stroke-dasharray:1_2] [stroke-dashoffset:0]" d={d} pathLength={1} />
+            <path className="
+              bwt-v-signal fill-none stroke-[#111] stroke-2 [stroke-linecap:round] [stroke-dasharray:0.07_1.4]
+              [stroke-dashoffset:0.12] opacity-0 animate-bwt-signal [animation-play-state:paused]
+              group-data-[live=true]/visual:opacity-100 group-data-[live=true]/visual:[animation-play-state:running]
+              motion-reduce:animate-none
+            " d={d} pathLength={1} style={{ animationDelay: `${i * 0.45}s` }} />
+            <circle className="bwt-v-node fill-white stroke-[#111]/60 stroke-1 [vector-effect:non-scaling-stroke]" cx={x} cy={y} r={6} />
             <text
-              className="bwt-v-label"
+              className="bwt-v-label fill-[#111]/66 font-secondary text-[12px] max-[761px]:text-base"
               x={cx + Math.cos(a) * 192}
               y={cy + Math.sin(a) * 192 + 5}
               textAnchor={Math.abs(Math.cos(a)) < 0.3 ? 'middle' : Math.cos(a) > 0 ? 'start' : 'end'}
@@ -653,8 +751,8 @@ function ErpDiagram() {
           </g>
         )
       })}
-      <circle className="bwt-v-accent" cx={cx} cy={cy} r={50} />
-      <text className="bwt-v-label bwt-erp__core" x={cx} y={cy + 5} textAnchor="middle">
+      <circle className="bwt-v-accent fill-bw-lime stroke-[#111] stroke-1 [vector-effect:non-scaling-stroke]" cx={cx} cy={cy} r={50} />
+      <text className="bwt-v-label bwt-erp__core fill-[#111] font-secondary text-[14px] max-[761px]:text-base" x={cx} y={cy + 5} textAnchor="middle">
         {erpSection.core}
       </text>
     </svg>
@@ -670,7 +768,14 @@ function ErpSection({ reduced }: { reduced: boolean }) {
       if (!section) return
       const diagram = section.querySelector('.bwt-erp__visual')
       // Signals only run while the diagram is on screen.
-      ScrollTrigger.create({ trigger: diagram, start: 'top bottom', end: 'bottom top', toggleClass: 'is-live' })
+      ScrollTrigger.create({
+        trigger: diagram,
+        start: 'top bottom',
+        end: 'bottom top',
+        onToggle: (self) => {
+          if (diagram instanceof HTMLElement) diagram.dataset.live = String(self.isActive)
+        },
+      })
       if (reduced) return
       gsap.from(section.querySelectorAll('.bwt-erp__path'), {
         strokeDashoffset: 1,
@@ -683,20 +788,24 @@ function ErpSection({ reduced }: { reduced: boolean }) {
   )
 
   return (
-    <section ref={sectionRef} className="bwt-erp" aria-labelledby="bwt-erp-title">
-      <div className="bwt-container bwt-erp__grid">
-        <div className="bwt-erp__text" data-reveal-group>
-          <p className="bwt-label" data-reveal>
+    <section ref={sectionRef} className="bwt-erp relative z-1 pt-[clamp(110px,12vw,180px)] pb-[clamp(96px,10vw,150px)]" aria-labelledby="bwt-erp-title">
+      <div className="
+        bwt-container bwt-erp__grid mx-auto w-full
+        max-w-[1440px] px-[clamp(24px,5vw,80px)] grid grid-cols-1 items-center gap-[clamp(48px,7vw,120px)]
+        lg:grid-cols-[0.85fr_1.15fr]
+      ">
+        <div className="bwt-erp__text " data-reveal-group>
+          {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
             ERP / Custom systems
-          </p>
-          <h2 id="bwt-erp-title" data-reveal>
+          </p> */}
+          <h2 id="bwt-erp-title" data-reveal className={`max-w-[11em] mt-[22px] ${sectionHeadingClasses}`}>
             {erpSection.heading}
           </h2>
-          <p className="bwt-erp__copy" data-reveal>
+          <p className="bwt-erp__copy mt-[clamp(24px,2.6vw,36px)] max-w-[30em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]" data-reveal>
             {erpSection.copy}
           </p>
         </div>
-        <div className="bwt-erp__visual">
+        <div className="bwt-erp__visual group/visual">
           <ErpDiagram />
         </div>
       </div>
@@ -710,21 +819,24 @@ function ErpSection({ reduced }: { reduced: boolean }) {
 
 function EvolkunSection() {
   return (
-    <section className="bwt-partner" aria-labelledby="bwt-partner-title">
-      <div className="bwt-container bwt-partner__inner" data-reveal-group>
-        <span className="bwt-partner__rule" data-reveal aria-hidden="true" />
-        <p className="bwt-label" data-reveal>
+    <section className="bwt-partner relative z-1 pt-[clamp(110px,12vw,180px)] pb-[clamp(120px,13vw,200px)]" aria-labelledby="bwt-partner-title">
+      <div className="bwt-container bwt-partner__inner mx-auto w-full max-w-[1440px] px-[clamp(24px,5vw,80px)]" data-reveal-group>
+        {/* <span className="bwt-partner__rule mb-8 block h-px w-[72px] bg-[#111]" data-reveal aria-hidden="true" /> */}
+        {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
           {evolkunSection.label}
-        </p>
-        <h2 id="bwt-partner-title" className="bwt-partner__title" data-reveal>
+        </p> */}
+        <h2 id="bwt-partner-title" className={`bwt-partner__title mt-5 max-w-[14em] ${sectionHeadingClasses}`} data-reveal>
           {evolkunSection.heading}
         </h2>
-        <div className="bwt-partner__foot">
-          <p className="bwt-partner__copy" data-reveal>
+        <div className="
+          bwt-partner__foot mt-[clamp(40px,5vw,72px)] flex items-end justify-between gap-8 border-t border-[#111]/10 pt-7
+          max-[761px]:flex-col max-[761px]:items-start
+        ">
+          <p className="bwt-partner__copy max-w-[34em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]" data-reveal>
             {evolkunSection.copy}
           </p>
           <div data-reveal>
-            <EvolkunLink className="bwt-text-link bwt-text-link--primary">{evolkunSection.cta}</EvolkunLink>
+            <EvolkunLink className={`${textLinkClasses} text-[clamp(16px,1.2vw,18px)] text-[#111]`}>{evolkunSection.cta}</EvolkunLink>
           </div>
         </div>
       </div>
@@ -763,7 +875,7 @@ export default function TechnologyPage() {
   )
 
   return (
-    <main ref={pageRef} className="bwt-page">
+    <main ref={pageRef} className="bwt-page relative isolate overflow-x-clip bg-white font-secondary text-[#111] antialiased selection:bg-bw-lime selection:text-[#111]">
       <RibbonTrace reducedMotion={reduced} />
       <Hero reduced={reduced} />
       <Intro />

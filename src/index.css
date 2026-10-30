@@ -17,6 +17,20 @@
      is the same colour as the one printed inside it. Used sparingly, and
      never as text or as the only carrier of meaning. */
   --color-bw-lime: #cefd10;
+
+  --animate-bwt-signal: bwt-signal 2.8s linear infinite;
+  --animate-bwt-bar: bwt-bar 3.2s ease-in-out infinite alternate;
+
+  @keyframes bwt-signal {
+    from { stroke-dashoffset: 0.12; }
+    to { stroke-dashoffset: -1.15; }
+  }
+
+  @keyframes bwt-bar {
+    from { transform: scaleY(0.72); }
+    to { transform: scaleY(1); }
+  }
+
 }
 
 /* Admin design tokens as Tailwind theme values. They point at CSS variables
