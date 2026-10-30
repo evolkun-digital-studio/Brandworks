@@ -602,11 +602,11 @@ export default function ServicesPage() {
       <section className="border-t border-neutral-200 bg-neutral-950 text-white">
         <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-5 py-16 sm:px-7 sm:py-20 md:grid-cols-[0.8fr_1.2fr] lg:px-10 lg:py-24">
           <SectionLabel>
-            One creative direction
+           <span className='text-white/80'>One creative direction</span> 
           </SectionLabel>
 
           <div className="max-w-[720px]">
-            <h2 className="section-heading">
+            <h2 className="text-[2rem] text-white">
               The work rarely belongs to one discipline.
             </h2>
 
@@ -635,9 +635,9 @@ export default function ServicesPage() {
         <div className="mx-auto w-full max-w-[1280px] px-5 py-14 sm:px-7 sm:py-16 lg:px-10">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-[650px]">
-              <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
+              {/* <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
                 Explore BrandWorks
-              </p>
+              </p> */}
 
               <p className="mt-4 text-[24px] font-medium leading-tight tracking-[-0.03em] sm:text-[28px]">
                 Explore the discipline that matters most to
