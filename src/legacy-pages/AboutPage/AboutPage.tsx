@@ -404,12 +404,10 @@ function AboutPage() {
       })
 
 
-      // Not motion, so it runs with reduced motion too. The header logo is ink
-      // by default (the page opens on the green hero, so first paint is right
-      // before this runs) and returns to its brand colours, by class, while
-      // the header sits over an off-white section (via the header’s Tailwind variants).
-      // Declared first: a trigger already active fires onToggle while it is
-      // still being created.
+      // Not motion, so it runs with reduced motion too. The header capsules
+      // follow the section under them, by class (via the header’s Tailwind
+      // variants). Declared first: a trigger already active fires onToggle
+      // while it is still being created.
       let onGreen: ScrollTrigger[] = []
       const sync = () =>
         document.body.classList.toggle('about-logo-on-light', !onGreen.some((trigger) => trigger.isActive))
@@ -418,10 +416,21 @@ function AboutPage() {
       )
       sync()
 
+      // The header logo is the one-colour version on this page's green and
+      // off-white sections, and the brand colours over the dark footer.
+      const footer = document.getElementById('footer')
+      const overFooter = footer && ScrollTrigger.create({
+        trigger: footer,
+        start: 'top 48px',
+        end: 'bottom 48px',
+        toggleClass: { targets: document.body, className: 'about-logo-on-dark' },
+      })
+
       return () => {
         mm.revert()
         onGreen.forEach((trigger) => trigger.kill())
-        document.body.classList.remove('about-logo-on-light')
+        overFooter?.kill()
+        document.body.classList.remove('about-logo-on-light', 'about-logo-on-dark')
       }
     },
     { scope: rootRef },
