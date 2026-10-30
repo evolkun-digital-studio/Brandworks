@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Link, useNavigate } from '../routing'
 import { trackEvent } from '../analytics/analytics'
@@ -27,7 +27,7 @@ import {
   type SiteScanView,
 } from './api'
 import AiMessage from './AiMessage'
-import { cheerFor } from './cheers'
+import { cheerFor, headlineFor } from './cheers'
 import { SiteScanCard, SiteScanChecklist, type ScanChecks } from './SiteScanCard'
 import { BigInput, ContactFields, EASE, Helper, KEYS, LongAnswer, OptionTiles, focusRing } from './fields'
 import {
@@ -57,23 +57,6 @@ const DRAFT_KEY = 'bw-project-planner:v1'
 const EMAIL = 'hello@brandworks.me'
 const INTRO = 'intro'
 
-// A small, one-shot burst of sparkles and confetti for the greeting pop-up.
-const CONFETTI = [
-  { x: -110, y: -18, rotate: -40, color: '#D4AF37', shape: 'spark' },
-  { x: -78, y: -40, rotate: 120, color: '#E8B4B8', shape: 'bit' },
-  { x: -44, y: -54, rotate: -80, color: '#A3B18A', shape: 'bit' },
-  { x: -14, y: -62, rotate: 30, color: '#D4AF37', shape: 'spark' },
-  { x: 18, y: -60, rotate: 160, color: '#B8C4E0', shape: 'bit' },
-  { x: 50, y: -50, rotate: -120, color: '#E8B4B8', shape: 'bit' },
-  { x: 82, y: -36, rotate: 60, color: '#D4AF37', shape: 'spark' },
-  { x: 112, y: -14, rotate: -150, color: '#A3B18A', shape: 'bit' },
-  { x: -132, y: 8, rotate: 90, color: '#B8C4E0', shape: 'bit' },
-  { x: -96, y: -66, rotate: -20, color: '#D4AF37', shape: 'spark' },
-  { x: -30, y: -84, rotate: 140, color: '#E8B4B8', shape: 'bit' },
-  { x: 34, y: -82, rotate: -60, color: '#A3B18A', shape: 'bit' },
-  { x: 96, y: -68, rotate: 20, color: '#D4AF37', shape: 'spark' },
-  { x: 134, y: 6, rotate: -100, color: '#E8B4B8', shape: 'bit' },
-] as const
 const DONE = 'done'
 const URL_STEPS = new Set(['currentUrl', 'redesignUrl'])
 const SCAN_DONE_WAIT_MS = 60_000
@@ -110,8 +93,11 @@ const str = (v: Answer | undefined) => (typeof v === 'string' ? v : '')
 const list = (v: Answer | undefined) => (Array.isArray(v) ? v : [])
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? ''
 
-const INTERLUDE_MS = 2500
-type Interlude = { target: string; title?: string; message: string; pick?: string }
+type StepPopup = { target: string; eyebrow: string; title: string; body: string }
+
+const popupButton = 'group inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-[999px] px-[22px] text-[15px]! font-semibold! transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111111] max-[480px]:w-full'
+const popupPrimary = `${popupButton} border-none bg-[#111111] text-white hover:bg-[#333333]`
+const popupSecondary = `${popupButton} border border-[#E2E2E2] bg-white text-[#111111] hover:bg-[#FAFAFA]`
 
 // Where focus lands when a step opens: its field, else its chosen or first option, else its heading.
 const FOCUS_TARGETS = ['input[type="radio"]:checked', 'input:not([type="radio"]), textarea, input[type="radio"]', '[role="radio"][aria-checked="true"]', '[role="radio"], [role="checkbox"]', '[data-step-heading]']
@@ -141,6 +127,8 @@ function useFocusTrap(ref: RefObject<HTMLElement | null>, open: boolean, onClose
       if (items.length === 0) return
       const first = items[0]
       const last = items[items.length - 1]
+      // A click on the backdrop drops focus to the page; Tab must bring it back, not move behind.
+      if (!root?.contains(document.activeElement)) { event.preventDefault(); first.focus(); return }
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
     }
@@ -202,28 +190,110 @@ function AnswersDrawer({ open, onClose, answers, upTo, onEdit, scan }: { open: b
   )
 }
 
-function LeaveConfirm({ open, onStay, onLeave }: { open: boolean; onStay: () => void; onLeave: () => void }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useFocusTrap(ref, open, onStay)
-  if (!open) return null
+function PopupArrow() {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-      <div
-        ref={ref}
-        role="alertdialog"
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="transition-transform duration-150 group-hover:translate-x-[2px] motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  )
+}
+
+// The one pop-up look for the planner: backdrop, card, eyebrow, heading, line of context, footer row.
+function PopupCard({ role = 'dialog', cardRef, eyebrow, title, body, footer }: { role?: 'dialog' | 'alertdialog'; cardRef?: RefObject<HTMLDivElement | null>; eyebrow: string; title: string; body: string; footer: ReactNode }) {
+  const reduce = useReducedMotion()
+  const id = useId()
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <motion.div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[rgba(17,17,17,0.40)]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
+      />
+      <motion.div
+        ref={cardRef}
+        role={role}
         aria-modal="true"
-        aria-labelledby="q-leave-title"
-        aria-describedby="q-leave-body"
-        className="w-full max-w-[420px] bg-white p-8 shadow-xl"
+        aria-labelledby={`${id}-title`}
+        aria-describedby={`${id}-body`}
+        className="relative w-[440px] max-w-[calc(100%-32px)] rounded-[16px] border border-[#EAEAEA] bg-white p-8 text-left shadow-[0_12px_40px_rgba(0,0,0,0.10)] max-[480px]:p-6"
+        initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' } }}
+        exit={{ opacity: 0, y: reduce ? 0 : 8, transition: { duration: 0.15, ease: 'easeIn' } }}
       >
-        <h3 id="q-leave-title" className={`m-0 ${formStepHeadingCompact}`}>Leave the planner?</h3>
-        <p id="q-leave-body" className={`mt-4 ${formBody}`}>Your answers won’t be saved.</p>
-        <div className={formFooterCompact}>
-          <BackButton onClick={onStay}>Stay</BackButton>
-          <PillButton onClick={onLeave}>Leave</PillButton>
-        </div>
-      </div>
+        <p className="m-0 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#666666]">{eyebrow}</p>
+        <h2 id={`${id}-title`} className="m-0 mt-3 text-[26px] font-semibold leading-[1.2] tracking-[-0.02em] text-[#111111] wrap-anywhere max-[480px]:text-[22px]">
+          {title}
+        </h2>
+        <p id={`${id}-body`} className="m-0 mt-[10px] text-[16px] leading-[1.5] text-[#555555]">{body}</p>
+        <div className="mt-7 flex items-center justify-between gap-3">{footer}</div>
+      </motion.div>
     </div>
+  )
+}
+
+function LeaveConfirm({ onStay, onLeave }: { onStay: () => void; onLeave: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useFocusTrap(ref, true, onStay)
+  return (
+    <PopupCard
+      role="alertdialog"
+      cardRef={ref}
+      eyebrow="Project planner"
+      title="Leave the planner?"
+      body="Your answers won’t be saved."
+      footer={
+        <>
+          <button type="button" onClick={onStay} className={popupSecondary}>Stay</button>
+          <button type="button" onClick={onLeave} className={popupPrimary}>Leave<PopupArrow /></button>
+        </>
+      }
+    />
+  )
+}
+
+function StepPopupDialog({ popup, onContinue }: { popup: StepPopup; onContinue: () => void }) {
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const continueRef = useRef(onContinue)
+  useEffect(() => { continueRef.current = onContinue })
+  // The dialog stays mounted while it fades out, so a second key press or click must not advance again.
+  const closed = useRef(false)
+  const close = useCallback(() => {
+    if (closed.current) return
+    closed.current = true
+    continueRef.current()
+  }, [])
+  useEffect(() => {
+    buttonRef.current?.focus({ preventScroll: true })
+    const onKey = (event: KeyboardEvent) => {
+      // Continue is the only control, so trapping focus means keeping it there.
+      if (event.key === 'Tab') { event.preventDefault(); if (!closed.current) buttonRef.current?.focus(); return }
+      if (event.key !== 'Enter' && event.key !== 'Escape') return
+      event.preventDefault()
+      event.stopPropagation()
+      // Holding Enter from the previous step shouldn't dismiss the dialog as it opens.
+      if (!event.repeat) close()
+    }
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+  }, [close])
+  return (
+    <PopupCard
+      eyebrow={popup.eyebrow}
+      title={popup.title}
+      body={popup.body}
+      footer={
+        <>
+          <span className="inline-flex items-center gap-1.5 text-[13px] text-[#888888] max-[480px]:hidden">
+            Press
+            <kbd className="rounded-[6px] border border-[#E2E2E2] bg-[#FAFAFA] px-[7px] py-[2px] text-[12px] text-[#555555] font-[inherit]">Enter</kbd>
+          </span>
+          <button ref={buttonRef} type="button" onClick={close} className={popupPrimary}>Continue<PopupArrow /></button>
+        </>
+      }
+    />
   )
 }
 
@@ -254,8 +324,7 @@ export default function QuestionnairePage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [swapHint, setSwapHint] = useState(false)
-  const [interlude, setInterlude] = useState<Interlude | null>(null)
-  const interludeTimer = useRef<number | undefined>(undefined)
+  const [popup, setPopup] = useState<StepPopup | null>(null)
   const swapTimer = useRef<number | undefined>(undefined)
 
   const path = useMemo(() => buildPath(answers), [answers])
@@ -408,13 +477,12 @@ export default function QuestionnairePage() {
     if (here.id === 'brandName') {
       const name = str(current.brandName).trim()
       if (name) {
-        setInterlude({ 
-          target, 
-          title: 'WELCOME TO BRANDWORKS',
-          message: `Nice to meet you, ${name}. Let’s build something extraordinary together.` 
+        setPopup({
+          target,
+          eyebrow: 'Welcome to BrandWorks',
+          title: `Nice to meet you, ${name}.`,
+          body: 'A few quick questions and we’ll have everything we need for a focused first conversation.',
         })
-        window.clearTimeout(interludeTimer.current)
-        interludeTimer.current = window.setTimeout(() => { setInterlude(null); go(target) }, INTERLUDE_MS)
         return
       }
     }
@@ -424,14 +492,12 @@ export default function QuestionnairePage() {
       const value = str(current.workType)
       const option = here.options.find((o) => o.value === value)
       if (option) {
-        const personalizedCheer = cheerFor(option.value) || `Designing high-impact digital solutions for ${option.label}.`
-        setInterlude({
+        setPopup({
           target,
-          pick: option.label,
-          message: personalizedCheer
+          eyebrow: option.label,
+          title: headlineFor(option.value),
+          body: cheerFor(option.value),
         })
-        window.clearTimeout(interludeTimer.current)
-        interludeTimer.current = window.setTimeout(() => { setInterlude(null); go(target) }, INTERLUDE_MS)
         return
       }
     }
@@ -439,12 +505,11 @@ export default function QuestionnairePage() {
     go(target)
   }, [answers, stepId, go, submit, startScan, startReaction])
 
-  const finishInterlude = useCallback(() => {
-    if (!interlude) return
-    window.clearTimeout(interludeTimer.current)
-    setInterlude(null)
-    go(interlude.target)
-  }, [interlude, go])
+  const finishPopup = useCallback(() => {
+    if (!popup) return
+    setPopup(null)
+    go(popup.target)
+  }, [popup, go])
 
   const back = useCallback(() => {
     if (stepId === DONE) return
@@ -603,11 +668,7 @@ export default function QuestionnairePage() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (interlude) {
-        if (event.key === 'Enter' || event.key === 'Escape' || event.key === ' ') { event.preventDefault(); finishInterlude() }
-        return
-      }
-      if (drawerOpen || confirmOpen) return
+      if (popup || drawerOpen || confirmOpen) return
       if (event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); requestExit(); return }
       if (event.defaultPrevented || event.altKey || (event.metaKey && event.key !== 'Enter')) return
       const target = event.target as HTMLElement | null
@@ -912,7 +973,7 @@ export default function QuestionnairePage() {
   const footer = showFooter && step && (
     <div className={fit ? formFooterCompact : formFooterPlain}>
       <BackButton onClick={back} hidden={index <= 0} />
-      <PillButton onClick={() => { if (status !== 'sending' && !interlude) next() }} busy={status === 'sending'} labelKey={`${stepId}-${nextLabel}`}>
+      <PillButton onClick={() => { if (status !== 'sending' && !popup) next() }} busy={status === 'sending'} labelKey={`${stepId}-${nextLabel}`}>
         {nextLabel}
       </PillButton>
     </div>
@@ -1028,80 +1089,8 @@ export default function QuestionnairePage() {
         </AnimatePresence>
       </section>
 
-      {/* Styled Greeting Interlude Modal - Strictly NO BOLD fonts */}
       <AnimatePresence>
-        {interlude && (
-          <motion.div
-            key="interlude"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/40 p-6 backdrop-blur-lg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduce ? 0 : 0.2 }}
-            onClick={finishInterlude}
-          >
-            <motion.div
-              role="status"
-              aria-live="polite"
-              className="relative w-full max-w-[480px] rounded-[28px] bg-[#FAF8F3] px-8 py-12 text-center shadow-[0_1px_0_rgba(0,0,0,0.04),0_30px_80px_-20px_rgba(0,0,0,0.35)] ring-1 ring-black/5 sm:px-12"
-              initial={reduce ? false : { opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: -8 }}
-              transition={{ duration: reduce ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {!reduce && (
-                <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-10 flex justify-center">
-                  {CONFETTI.map((c, i) => (
-                    <motion.span
-                      key={i}
-                      className="absolute"
-                      style={{ color: c.color }}
-                      initial={{ opacity: 0, x: 0, y: 0, scale: 0.4, rotate: 0 }}
-                      animate={{ opacity: [0, 1, 0], x: c.x, y: c.y, scale: 1, rotate: c.rotate }}
-                      transition={{ duration: 1.4, delay: 0.15 + i * 0.03, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                      {c.shape === 'spark' ? (
-                        <svg viewBox="0 0 10 10" className="size-3" fill="currentColor"><path d="M5 0l1.2 3.8L10 5 6.2 6.2 5 10 3.8 6.2 0 5l3.8-1.2z" /></svg>
-                      ) : (
-                        <span className="block h-2 w-[3px] rounded-full bg-current" />
-                      )}
-                    </motion.span>
-                  ))}
-                </div>
-              )}
-
-              {(interlude.pick || interlude.title) && (
-                <div className="mb-6 flex items-center justify-center gap-3">
-                  <span className="h-px w-8 bg-neutral-200" />
-                  <span className="text-[11px] font-normal tracking-[0.25em] text-neutral-500 uppercase">
-                    {interlude.pick || interlude.title}
-                  </span>
-                  <span className="h-px w-8 bg-neutral-200" />
-                </div>
-              )}
-
-              <motion.p
-                className="mx-auto max-w-[360px] text-[24px] font-normal leading-[1.35] tracking-tight text-neutral-900"
-                initial={reduce ? false : { opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : 0.1, ease: [0.16, 1, 0.3, 1] }}
-              >
-                {interlude.message}
-              </motion.p>
-
-              <div className="mx-auto mt-10 h-px w-24 overflow-hidden bg-neutral-100">
-                <motion.div
-                  className="h-full bg-neutral-900"
-                  initial={{ width: '0%' }}
-                  animate={{ width: '100%' }}
-                  transition={{ duration: INTERLUDE_MS / 1000, ease: 'linear' }}
-                />
-              </div>
-
-              <span className="mt-4 block text-[11px] font-normal tracking-wide text-neutral-400">Tap anywhere to continue</span>
-            </motion.div>
-          </motion.div>
-        )}
+        {popup && <StepPopupDialog key={popup.target} popup={popup} onContinue={finishPopup} />}
       </AnimatePresence>
 
       <AnswersDrawer
@@ -1113,7 +1102,9 @@ export default function QuestionnairePage() {
         scan={scanTarget ? <SiteScanChecklist domain={scanTarget.domain} checks={scanChecks} failed={scanView?.status === 'failed'} /> : null}
       />
       
-      <LeaveConfirm open={confirmOpen} onStay={() => setConfirmOpen(false)} onLeave={leave} />
+      <AnimatePresence>
+        {confirmOpen && <LeaveConfirm key="leave" onStay={() => setConfirmOpen(false)} onLeave={leave} />}
+      </AnimatePresence>
     </main>
   )
 }

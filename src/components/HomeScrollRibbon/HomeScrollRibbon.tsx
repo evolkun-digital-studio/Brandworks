@@ -201,5 +201,6 @@ export function HomeScrollRibbon({ containerRef }: { containerRef: RefObject<HTM
         </svg>
       ) : null}
     </motion.div>
-  )
+
+)
 }
