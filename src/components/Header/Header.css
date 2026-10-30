@@ -56,7 +56,7 @@
 }
 
 /* The homepage hero's Web Design & Dev slide is light: while it is up the
-   header takes the light tone (dark ink and borders) and the dark logo. */
+   header takes the light tone (dark ink and borders); the logo stays as is. */
 body:has(.hero[data-service='web']) .site-header__surface.is-on-dark {
   --pill-ink: #0E0E10;
   --pill-bg: rgba(255, 255, 255, 0.4);
@@ -90,14 +90,6 @@ body .site-header.is-scrolled .site-header__surface:is(.is-on-dark, .is-on-light
 
 .site-header__logo--dark {
   display: none;
-}
-
-body:has(.hero[data-service='web']) .site-header__logo--light {
-  display: none;
-}
-
-body:has(.hero[data-service='web']) .site-header__logo--dark {
-  display: block;
 }
 
 .nav-pill {

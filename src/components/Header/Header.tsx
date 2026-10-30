@@ -104,7 +104,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               height={30}
               className="site-header__logo site-header__logo--light [body:has(.about-page)_&]:hidden! block h-auto w-[175px] object-contain"
             />
-            {/* Shown instead while the hero's light Web Design & Dev slide is up (Header.css). */}
+            {/* Shown instead on the About page (the classes below). */}
             <Image
               src={logoDarkSrc}
               alt=""
@@ -158,7 +158,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               height={25}
               className="site-header__logo site-header__logo--light [body:has(.about-page)_&]:hidden! block h-auto w-[145px] object-contain"
             />
-            {/* Shown instead while the hero's light Web Design & Dev slide is up (Header.css). */}
+            {/* Shown instead on the About page (the classes below). */}
             <Image
               src={logoDarkSrc}
               alt=""
