@@ -32,9 +32,9 @@ export const formFooter = 'mt-10 flex items-center justify-between gap-4 border-
 export const formFooterPlain = 'mt-10 flex items-center justify-between gap-4 pt-8'
 // One-screen variants for long option steps: header clearance only (the
 // header is 64px at an 18/20px offset), a smaller heading, tighter footer.
-export const formSectionFit = 'mx-auto flex min-h-dvh w-full max-w-[1720px] flex-col px-5 pb-8 pt-28 sm:px-8 sm:pt-[104px] lg:px-12 xl:px-16'
+export const formSectionFit = 'mx-auto flex min-h-dvh w-full max-w-[1720px] flex-col px-5 pb-4 pt-[88px] sm:px-8 sm:pb-8 sm:pt-[104px] lg:px-12 xl:px-16'
 export const formStepHeadingCompact = 'font-(--font-primary) text-[clamp(28px,3vw,40px)] leading-[1] tracking-[-0.03em]'
-export const formFooterCompact = 'mt-7 flex items-center justify-between gap-4 pt-6'
+export const formFooterCompact = 'mt-2 flex items-center justify-between gap-4 pt-3 sm:mt-7 sm:pt-6'
 export const formSmallButton = 'relative h-9 shrink-0 overflow-hidden rounded-full border border-black/15 px-4 text-[12px] transition-colors hover:border-black'
 export const formTextLink = 'border-b border-black/40 pb-1 text-[13px] transition-colors hover:border-black'
 export const formChipFocus = 'outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2'
