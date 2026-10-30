@@ -1,55 +1,19 @@
-import { mediaUrl } from '../../lib/media'
-import { useCallback, useEffect, useRef } from 'react'
-import type { PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link } from '../../routing'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { useReducedMotion } from 'motion/react'
-const showreelPoster = mediaUrl("footer-showreel-poster.webp")
-import { matches } from '../../lib/scrollMotion'
 import './Footer.css'
 import LegalLinks from '../../legacy-pages/legal/LegalLinks'
 import type { SiteSocialLink } from '../../server/site-settings/types'
+import { CONFIG, createFooterPhysics } from './footerPhysics'
 
 const LOGO_SRC = '/BWorksLogo-01.svg'
 
 gsap.registerPlugin(useGSAP)
 
-// Shared footer film. The same adaptive MP4 is used across breakpoints so
-// every public page carries one consistent closing visual.
-const SHOWREEL = {
-  desktop: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/footer.mp4',
-  mobile: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/footer.mp4',
-}
-
-/** Where the fullscreen cursor follows the pointer instead of a button. */
-const CURSOR_QUERY =
-  '(hover: hover) and (pointer: fine) and (min-width: 1024px)'
-
-type FullscreenVideo = HTMLVideoElement & {
-  webkitEnterFullscreen?: () => void
-  webkitRequestFullscreen?: () => Promise<void> | void
-}
-
-type FullscreenShell = HTMLDivElement & {
-  webkitRequestFullscreen?: () => Promise<void> | void
-}
-
-const VIDEO_FPS = 30
-
-const mainLinks = [
-  { label: 'Home', href: '/' },
-  { label: 'Work', href: '#work' },
-  { label: 'Services', href: '#services' },
-  { label: 'About', href: '/about' },
-  { label: 'Insights', href: '/blog' },
-]
-
-const socials = [
-  { label: 'Instagram', href: '#' },
-  { label: 'LinkedIn', href: '#' },
-  { label: 'X', href: '#' },
-]
+const mainLinks = CONFIG.links
+const socials = CONFIG.socials
 
 function Arrow() {
   return (
@@ -71,307 +35,21 @@ function Arrow() {
 
 function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based in India, working worldwide.', socialLinks = socials }: { contactEmail?: string; footerTagline?: string; socialLinks?: Array<SiteSocialLink | { label: string; href: string }> }) {
   const rootRef = useRef<HTMLElement>(null)
-  const videoRef = useRef<FullscreenVideo>(null)
-  const cursorRef = useRef<HTMLDivElement>(null)
-
-  const cursorApiRef = useRef<{
-    move: (x: number, y: number) => void
-    show: (
-      next: boolean,
-      x?: number,
-      y?: number,
-    ) => void
-  } | null>(null)
-
-  const inViewRef = useRef(false)
-  const fullscreenRef = useRef(false)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const blobRef = useRef<HTMLDivElement>(null)
 
   const reducedMotion = useReducedMotion() ?? false
 
-  /**
-   * The silent background loop:
-   * muted, no controls, playing only while on screen.
-   */
-  const resumeBackground = useCallback(() => {
-    const video = videoRef.current
+  useEffect(() => {
+    const stage = stageRef.current
+    const canvas = canvasRef.current
+    const blob = blobRef.current
 
-    if (!video) return
+    if (!stage || !canvas || !blob) return
 
-    video.controls = false
-    video.muted = true
-
-    if (inViewRef.current && !reducedMotion) {
-      void video.play().catch(() => undefined)
-    } else {
-      video.pause()
-    }
+    return createFooterPhysics(stage, canvas, blob, reducedMotion)
   }, [reducedMotion])
-
-  /**
-   * Start buffering the compact showreel well before the footer enters view,
-   * so its first frame is ready when the visitor arrives.
-   */
-  useEffect(() => {
-    const root = rootRef.current
-    const video = videoRef.current
-
-    if (!root || !video) return
-
-    const attach = () => {
-      if (video.getAttribute('src')) return
-
-      video.src = matches('(max-width: 767px)')
-        ? SHOWREEL.mobile
-        : SHOWREEL.desktop
-      video.load()
-    }
-
-    if (typeof IntersectionObserver === 'undefined') {
-      attach()
-      return
-    }
-
-    const nearby = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-
-        attach()
-        nearby.disconnect()
-      },
-      {
-        rootMargin: '1600px 0px',
-      },
-    )
-
-    const visible = new IntersectionObserver(([entry]) => {
-      inViewRef.current = entry.isIntersecting
-
-      if (!fullscreenRef.current) {
-        resumeBackground()
-      }
-    })
-
-    nearby.observe(root)
-    visible.observe(root)
-
-    return () => {
-      nearby.disconnect()
-      visible.disconnect()
-    }
-  }, [resumeBackground])
-
-  /**
-   * Leaving fullscreen hands the same element
-   * back to the silent background loop.
-   */
-  useEffect(() => {
-    const video = videoRef.current
-
-    if (!video) return
-
-    const onExit = () => {
-      fullscreenRef.current = false
-      resumeBackground()
-    }
-
-    const onFullscreenChange = () => {
-      if (
-        document.fullscreenElement !== video &&
-        fullscreenRef.current
-      ) {
-        onExit()
-      }
-    }
-
-    document.addEventListener(
-      'fullscreenchange',
-      onFullscreenChange,
-    )
-
-    document.addEventListener(
-      'webkitfullscreenchange',
-      onFullscreenChange,
-    )
-
-    video.addEventListener(
-      'webkitendfullscreen',
-      onExit,
-    )
-
-    return () => {
-      document.removeEventListener(
-        'fullscreenchange',
-        onFullscreenChange,
-      )
-
-      document.removeEventListener(
-        'webkitfullscreenchange',
-        onFullscreenChange,
-      )
-
-      video.removeEventListener(
-        'webkitendfullscreen',
-        onExit,
-      )
-    }
-  }, [resumeBackground])
-
-  /**
-   * Same video element, same playback position:
-   * controls on, sound allowed, fullscreen.
-   */
-  const openFullscreen = useCallback(async () => {
-    const video = videoRef.current
-
-    if (!video) return
-
-    if (!video.getAttribute('src')) {
-      video.src = matches('(max-width: 767px)')
-        ? SHOWREEL.mobile
-        : SHOWREEL.desktop
-    }
-
-    fullscreenRef.current = true
-
-    video.controls = true
-    video.muted = false
-
-    void video.play().catch(() => undefined)
-
-    try {
-      if (video.requestFullscreen) {
-        await video.requestFullscreen()
-      } else if (video.webkitRequestFullscreen) {
-        await video.webkitRequestFullscreen()
-      } else if (video.webkitEnterFullscreen) {
-        video.webkitEnterFullscreen()
-      } else {
-        throw new Error('Fullscreen unavailable')
-      }
-    } catch {
-      fullscreenRef.current = false
-      resumeBackground()
-    }
-  }, [resumeBackground])
-
-  /**
-   * "Play fullscreen" cursor —
-   * desktop pointer devices only.
-   */
-  useEffect(() => {
-    const cursor = cursorRef.current
-
-    if (!cursor || !matches(CURSOR_QUERY)) return
-
-    const follow = reducedMotion ? 0.01 : 0.28
-
-    const toX = gsap.quickTo(cursor, 'x', {
-      duration: follow,
-      ease: 'power3.out',
-    })
-
-    const toY = gsap.quickTo(cursor, 'y', {
-      duration: follow,
-      ease: 'power3.out',
-    })
-
-    let shown = false
-
-    gsap.set(cursor, {
-      autoAlpha: 0,
-      scale: 0.8,
-    })
-
-    cursorApiRef.current = {
-      move: (x, y) => {
-        toX(x)
-        toY(y)
-      },
-
-      show: (next, x, y) => {
-        if (next === shown) return
-
-        shown = next
-
-        if (
-          next &&
-          x !== undefined &&
-          y !== undefined
-        ) {
-          gsap.set(cursor, {
-            x,
-            y,
-          })
-        }
-
-        gsap.to(cursor, {
-          autoAlpha: next ? 1 : 0,
-          scale: next ? 1 : 0.8,
-          duration: next ? 0.35 : 0.2,
-          ease: 'power3.out',
-          overwrite: 'auto',
-        })
-      },
-    }
-
-    const hide = () => {
-      cursorApiRef.current?.show(false)
-    }
-
-    window.addEventListener(
-      'scroll',
-      hide,
-      { passive: true },
-    )
-
-    return () => {
-      window.removeEventListener(
-        'scroll',
-        hide,
-      )
-
-      cursorApiRef.current = null
-    }
-  }, [reducedMotion])
-
-  const onZoneEnter = (
-    event: ReactPointerEvent<HTMLDivElement>,
-  ) => {
-    if (event.pointerType === 'mouse') {
-      cursorApiRef.current?.show(
-        true,
-        event.clientX,
-        event.clientY,
-      )
-    }
-  }
-
-  const onZoneMove = (
-    event: ReactPointerEvent<HTMLDivElement>,
-  ) => {
-    if (event.pointerType !== 'mouse') return
-
-    cursorApiRef.current?.show(
-      true,
-      event.clientX,
-      event.clientY,
-    )
-
-    cursorApiRef.current?.move(
-      event.clientX,
-      event.clientY,
-    )
-  }
-
-  const onZoneLeave = () => {
-    cursorApiRef.current?.show(false)
-  }
-
-  const onZoneClick = () => {
-    if (matches(CURSOR_QUERY)) {
-      void openFullscreen()
-    }
-  }
 
   useGSAP(
     () => {
@@ -407,18 +85,6 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
 
       timeline
         .fromTo(
-          '.footer-background',
-          {
-            scale: 1.08,
-          },
-          {
-            scale: 1,
-            duration: 1.3,
-            ease: 'power3.out',
-          },
-          0,
-        )
-        .fromTo(
           '.footer-brand-strip',
           {
             scaleX: 0,
@@ -448,7 +114,7 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
           0.38,
         )
         .fromTo(
-          '.footer-content',
+          '.footer-main-nav, .footer-contact',
           {
             autoAlpha: 0,
             y: 24,
@@ -494,143 +160,108 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
       ref={rootRef}
       className="brandworks-footer"
     >
-      {/* BACKGROUND SHOWREEL */}
+      {/* PHYSICS STAGE */}
       <div
-        className="footer-background"
-        aria-hidden="true"
+        ref={stageRef}
+        className="footer-stage"
       >
-        <video
-          ref={videoRef}
-          className="footer-video"
-          poster={showreelPoster}
-          muted
-          loop
-          playsInline
-          preload="auto"
-          disablePictureInPicture
+        <canvas
+          ref={canvasRef}
+          className="footer-canvas"
+          aria-hidden="true"
         />
 
-        <div className="footer-video-overlay" />
-      </div>
+        <div
+          ref={blobRef}
+          className="footer-blob"
+          aria-hidden="true"
+        />
 
-      {/* FULLSCREEN INTERACTION AREA */}
-      <div
-        className="footer-video-zone"
-        aria-hidden="true"
-        onPointerEnter={
-          onZoneEnter
-        }
-        onPointerMove={
-          onZoneMove
-        }
-        onPointerLeave={
-          onZoneLeave
-        }
-        onClick={
-          onZoneClick
-        }
-      />
+        {/* BRAND STRIP */}
+        <div className="footer-brand-strip">
+          <Link
+            to="/"
+            className="footer-logo"
+            aria-label="BrandWorks home"
+          >
+            <img
+              src={LOGO_SRC}
+              alt="BrandWorks"
+            />
+          </Link>
 
-      <button
-        type="button"
-        className="footer-fullscreen-button"
-        onClick={() =>
-          void openFullscreen()
-        }
-      >
-        View fullscreen{' '}
-        <span aria-hidden="true">
-          ↗
-        </span>
-      </button>
+          <nav
+            className="footer-main-nav"
+            aria-label="Footer navigation"
+          >
+            <ul>
+              {mainLinks.map(
+                (link) => (
+                  <li key={link.label}>
+                    {link.href.startsWith(
+                      '/',
+                    ) ? (
+                      <Link
+                        to={link.href}
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={
+                          link.href
+                        }
+                      >
+                        {link.label}
+                      </a>
+                    )}
+                  </li>
+                ),
+              )}
+            </ul>
+          </nav>
 
-      {/* BRAND STRIP */}
-      <div className="footer-brand-strip">
-        <Link
-          to="/"
-          className="footer-logo"
-          aria-label="BrandWorks home"
-        >
-          <img
-            src={LOGO_SRC}
-            alt="BrandWorks"
-          />
-        </Link>
-
-        <a
-          href={`mailto:${contactEmail}`}
-          className="footer-cta"
-        >
-          <span>
-            Start a conversation
-          </span>
-
-          <Arrow />
-        </a>
-      </div>
-
-      {/* FOOTER CONTENT */}
-      <div className="footer-content">
-        <nav
-          className="footer-main-nav"
-          aria-label="Footer navigation"
-        >
-          <ul>
-            {mainLinks.map(
-              (link) => (
-                <li key={link.label}>
-                  {link.href.startsWith(
-                    '/',
-                  ) ? (
-                    <Link
-                      to={link.href}
-                    >
-                      {link.label}
-                    </Link>
-                  ) : (
+          <div className="footer-contact">
+            <ul className="footer-socials">
+              {socialLinks.map(
+                (social) => (
+                  <li
+                    key={social.label}
+                  >
                     <a
                       href={
-                        link.href
+                        'url' in social ? social.url : social.href
                       }
                     >
-                      {link.label}
+                      {social.label}{' '}
+                      <span
+                        aria-hidden="true"
+                      >
+                        ↗
+                      </span>
                     </a>
-                  )}
-                </li>
-              ),
-            )}
-          </ul>
-        </nav>
+                  </li>
+                ),
+              )}
+            </ul>
 
-        <div className="footer-contact">
-          <ul className="footer-socials">
-            {socialLinks.map(
-              (social) => (
-                <li
-                  key={social.label}
-                >
-                  <a
-                    href={
-                      'url' in social ? social.url : social.href
-                    }
-                  >
-                    {social.label}{' '}
-                    <span
-                      aria-hidden="true"
-                    >
-                      ↗
-                    </span>
-                  </a>
-                </li>
-              ),
-            )}
-          </ul>
+            <a
+              className="footer-email"
+              href={`mailto:${contactEmail}`}
+            >
+              {contactEmail}
+            </a>
+          </div>
 
           <a
-            className="footer-email"
             href={`mailto:${contactEmail}`}
+            className="footer-cta"
           >
-            {contactEmail}
+            <span>
+              Start a conversation
+            </span>
+
+            <Arrow />
           </a>
         </div>
       </div>
@@ -651,20 +282,6 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
 
         <span className="footer-meta__right">
           India / Worldwide
-        </span>
-      </div>
-
-      {/* DESKTOP FOLLOW CURSOR */}
-      <div
-        ref={cursorRef}
-        className="footer-cursor"
-        aria-hidden="true"
-      >
-        <span>
-          Play fullscreen{' '}
-          <span className="footer-cursor__arrow">
-            ↗
-          </span>
         </span>
       </div>
     </footer>

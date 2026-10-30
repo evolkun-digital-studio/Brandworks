@@ -304,7 +304,8 @@ export default function ServicesPage() {
         <div className="mx-auto max-w-[880px] text-center"> 
 
           <h1 className="mx-auto mt-5 max-w-[820pUNx] text-[clamp(2.25rem,4.4vw,3rem)] font-medium leading-[0.98] tracking-[-0.045em]">
-            From how a brand thinks to how the world sees it.
+            <span className="block">From how a brand thinks to how</span>
+            <span className="block">the world sees it.</span>
           </h1>
 
           <p className="mx-auto mt-7 max-w-[670px] text-[16px] leading-[1.65] text-neutral-600 sm:text-[17px]">
