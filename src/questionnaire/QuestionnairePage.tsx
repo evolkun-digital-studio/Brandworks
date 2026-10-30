@@ -910,7 +910,7 @@ export default function QuestionnairePage() {
   )
 
   const footer = step && (
-    <div className={fit || framed ? formFooterCompact : formFooterPlain}>
+    <div className={fit || framed ? formFooterCompact : 'mt-6 flex items-center justify-between gap-4'}>
       {step.kind === 'exit' ? (
         <>
           <BackButton onClick={back}>Change my answer</BackButton>
@@ -989,7 +989,7 @@ export default function QuestionnairePage() {
               {/* Left: the intro panel, with progress pinned to its foot */}
               <aside className="flex flex-col justify-between gap-10 md:col-span-5 md:pr-12 xl:pr-20">
                 <div>
-                  <span className={`mb-6 block ${formEyebrow}`}>Project planner</span>
+                  {/* <span className={`mb-6 block ${formEyebrow}`}>Project planner</span> */}
                   <h1 className="m-0 font-(--font-primary) text-[clamp(36px,10vw,48px)] md:text-[clamp(28px,3.6vw,48px)] xl:text-[48px] font-normal leading-[1.05] tracking-[-0.03em]">
                     <span className="block">A clear brief</span>
                     <span className="block">makes better work.</span>
