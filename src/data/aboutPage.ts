@@ -11,14 +11,7 @@ const technologyStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Pho
 const websiteDevStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website_dev.jpg"
 const bottleStill = mediaUrl("photo-04.webp")
 const bottleStillSmall = mediaUrl("photo-04-640.webp")
-const portrait01 = mediaUrl("photo-01.webp")
-const portrait01Small = mediaUrl("photo-01-640.webp")
-const portrait02 = mediaUrl("gm-03.webp")
-const portrait02Small = mediaUrl("gm-03-560.webp")
-const portrait03 = mediaUrl("gm-05.webp")
-const portrait03Small = mediaUrl("gm-05-560.webp")
-const portrait04 = mediaUrl("team-04.webp")
-const portrait04Small = mediaUrl("team-04-560.webp")
+
 
 export type AboutImage = {
   src: string
@@ -148,7 +141,7 @@ export const ABOUT_PRINCIPLES = {
   items: [
     { number: '01', title: 'Clarity', text: 'Make the idea easy to understand.' },
     { number: '02', title: 'Consistency', text: 'Build recognizable brand behaviour across every touchpoint.' },
-    { number: '03', title: 'Craft', text: 'Details matter — from strategy to the final frame.' },
+    { number: '03', title: 'Craft', text: 'Details matter from strategy to the final frame.' },
     { number: '04', title: 'Purpose', text: 'Creative work should contribute to something bigger than attention.' },
   ],
 }
@@ -162,10 +155,6 @@ export type TeamMember = {
   ratio: '3/4' | '4/5' | '2/3'
 }
 
-// PLACEHOLDER TEAM — replace before launch. The names below are stand-ins
-// and the portraits are BrandWorks campaign photography, not the team.
-// Swap in real names, roles and portraits (portrait orientation, at least
-// ~900px wide) and keep the four `ratio` values varied.
 export const ABOUT_TEAM = {
   label: 'The Studio',
   heading: 'Meet the Team',
@@ -177,21 +166,19 @@ export const ABOUT_TEAM = {
       speciality: 'Brand direction and creative concepts',
       ratio: '4/5',
       image: {
-        src: portrait01,
-        srcSet: `${portrait01Small} 640w, ${portrait01} 960w`,
+        src: mediaUrl("Yuvraj.png"),
         width: 960,
         height: 1200,
-        alt: 'Portrait of Yuvraj Thapa',
+        alt: 'Portrait of Yuvraj Singh Thapa',
       },
     },
     {
       name: 'Md Hasnain',
-      role: 'UI/UX Designer & SEO specialist',
+      role: 'SEO specialist',
       speciality: 'Positioning, reputation and growth',
       ratio: '2/3',
       image: {
-        src: portrait02,
-        srcSet: `${portrait02Small} 560w, ${portrait02} 904w`,
+        src: mediaUrl("Hasnain.jpeg"),
         width: 904,
         height: 1200,
         alt: 'Portrait of Md Hasnain',
@@ -203,11 +190,10 @@ export const ABOUT_TEAM = {
       speciality: 'Campaign stills and brand films',
       ratio: '3/4',
       image: {
-        src: portrait03,
-        srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
+        src: mediaUrl("rahul-uniyal.jpeg"),
         width: 904,
         height: 1200,
-        alt: 'Portrait of Rahul',
+        alt: 'Portrait of Rahul Uniyal',
         position: '50% 30%',
       },
     },
@@ -217,11 +203,10 @@ export const ABOUT_TEAM = {
       speciality: 'Campaign stills and brand films',
       ratio: '3/4',
       image: {
-        src: portrait03,
-        srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
+        src: mediaUrl("Rahul1.png"),
         width: 904,
         height: 1200,
-        alt: 'Portrait of Rahul',
+        alt: 'Portrait of Rahul Koli',
         position: '50% 30%',
       },
     },
@@ -231,50 +216,46 @@ export const ABOUT_TEAM = {
       speciality: 'Campaign stills and brand films',
       ratio: '3/4',
       image: {
-        src: portrait03,
-        srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
+        src: mediaUrl("Navneet.png"),
         width: 904,
         height: 1200,
-        alt: 'Portrait of Rahul',
+        alt: 'Portrait of Navneet',
         position: '50% 30%',
       },
     },
     {
-      name: 'Shreeya',
-      role: 'Graphic designer',
+      name: 'Shreya',
+      role: 'Art Director',
       speciality: 'Campaign stills and brand films',
       ratio: '3/4',
       image: {
-        src: portrait03,
-        srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
+        src: mediaUrl("Shreya.png"),
         width: 904,
         height: 1200,
-        alt: 'Portrait of Rahul',
+        alt: 'Portrait of Shreya',
         position: '50% 30%',
       },
     },
     {
       name: 'Vidhi',
-      role: 'Graphic Designer',
+      role: 'Creative Director',
       speciality: 'Campaign stills and brand films',
       ratio: '3/4',
       image: {
-        src: portrait03,
-        srcSet: `${portrait03Small} 560w, ${portrait03} 904w`,
+        src: mediaUrl("Vidhi.png"),
         width: 904,
         height: 1200,
-        alt: 'Portrait of Rahul',
+        alt: 'Portrait of Vidhi',
         position: '50% 30%',
       },
     },
     {
       name: 'Ujjwal',
-      role: 'Video Editor',
+      role: 'Motion Graphics Designer',
       speciality: 'Identity systems and animation',
       ratio: '4/5',
       image: {
-        src: portrait04,
-        srcSet: `${portrait04Small} 560w, ${portrait04} 904w`,
+        src: mediaUrl("UJJWAL.png"),
         width: 904,
         height: 1200,
         alt: 'Portrait of Ujjwal',

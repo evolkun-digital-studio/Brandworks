@@ -143,27 +143,33 @@ function Feature({
 
 function AboutHero() {
   return (
-    <section className="pt-[max(104px,calc(80px+env(safe-area-inset-top)))] md:pt-[clamp(96px,7.5vw,116px)] pb-(--about-space) about-green bg-[#dcff52] text-(--ink) [--about-rule:rgba(17,17,17,0.16)] [--about-rule-strong:rgba(17,17,17,0.32)] [--about-copy:var(--ink)]" aria-labelledby="about-hero-heading">
-      <Feature
-        id="about-hero-heading"
-        as="h1"
-        heading={ABOUT_HERO.heading}
-        image={ABOUT_HERO.image}
-        mediaSide="end"
-        eager
-      >
-        <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-(--ink)!">{ABOUT_HERO.description}</p>
-        {ABOUT_HERO.body.map((line) => (
-          <p key={line} className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px]">{line}</p>
-        ))}
-      </Feature>
+    <section className="about-green box-border h-svh pt-[max(104px,calc(88px+env(safe-area-inset-top)))] pb-[max(16px,3svh,env(safe-area-inset-bottom))] bg-[#dcff52] text-(--ink)" aria-labelledby="about-hero-heading">
+      <div className="mx-auto grid h-full w-full max-w-(--page-max-width) grid-rows-[auto_minmax(0,1fr)] gap-[clamp(16px,3svh,32px)] px-(--page-gutter) md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:items-center md:gap-x-(--grid-gap) min-[480px]:landscape:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] min-[480px]:landscape:grid-rows-[minmax(0,1fr)] min-[480px]:landscape:items-center min-[480px]:landscape:gap-x-(--grid-gap)" data-reveal-group>
+        <div className="grid min-w-0 content-center gap-[clamp(12px,2svh,24px)]">
+          <h1 id="about-hero-heading" className="m-0 font-[family-name:var(--section-title-font)] text-[clamp(28px,5svh,var(--section-title-size))] font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance">
+            <MaskLine>{ABOUT_HERO.heading}</MaskLine>
+          </h1>
+          <div data-reveal="fade" className="grid gap-[clamp(8px,1.6svh,16px)] font-secondary text-[clamp(14px,2.2svh,18px)] font-normal leading-[1.5] text-pretty [&_p]:m-0 [&_p]:max-w-[58ch]">
+            <p>{ABOUT_HERO.description}</p>
+            {ABOUT_HERO.body.map((line) => <p key={line}>{line}</p>)}
+          </div>
+        </div>
+        <div className="group/visual h-full min-h-0 min-w-0 md:aspect-[4/5] md:h-auto md:w-[min(100%,calc((100svh_-_104px_-_max(16px,3svh,env(safe-area-inset-bottom)))*0.8))] md:justify-self-end min-[480px]:landscape:aspect-[4/5] min-[480px]:landscape:h-auto min-[480px]:landscape:w-[min(100%,calc((100svh_-_104px_-_max(16px,3svh,env(safe-area-inset-bottom)))*0.8))] min-[480px]:landscape:justify-self-end">
+          <Media
+            image={ABOUT_HERO.image}
+            className="h-full w-full"
+            sizes="(min-width: 768px) 40vw, (orientation: landscape) 44vw, 100vw"
+            eager
+          />
+        </div>
+      </div>
     </section>
   )
 }
 
 function AboutIntro() {
   return (
-    <section className="py-(--about-space) bg-[#f5f5f0]" aria-labelledby="about-intro-heading">
+    <section className="py-(--about-space) bg-white" aria-labelledby="about-intro-heading">
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
         <div data-reveal-group>
           <h2 id="about-intro-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) max-w-[22em]">
@@ -194,7 +200,7 @@ function AboutJourney() {
   const [beginning] = ABOUT_JOURNEY.stages
 
   return (
-    <section className="pb-(--about-space) bg-[#f5f5f0]" aria-labelledby="about-journey-heading">
+    <section className="pb-(--about-space) bg-white" aria-labelledby="about-journey-heading">
       <Feature
         id="about-journey-heading"
         heading={ABOUT_JOURNEY.heading}
@@ -219,7 +225,7 @@ function AboutJourney() {
 
 function AboutStatement() {
   return (
-    <section className="pb-(--about-space) bg-[#f5f5f0]" aria-labelledby="about-brand-heading">
+    <section className="pb-(--about-space) bg-white" aria-labelledby="about-brand-heading">
       <Feature
         id="about-brand-heading"
         heading={ABOUT_STATEMENT.heading}
@@ -322,7 +328,7 @@ function AboutClosing() {
   const [first, second] = ABOUT_CLOSING.lines
 
   return (
-    <section className="py-(--about-space) bg-[#f5f5f0]" aria-labelledby="about-closing-heading" data-reveal-group>
+    <section className="py-(--about-space) bg-white" aria-labelledby="about-closing-heading" data-reveal-group>
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter) grid justify-items-center gap-(--content-gap) text-center">
         <h2 id="about-closing-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) text-center">
           <MaskLine className="text-[rgba(17,17,17,0.64)]">{first}</MaskLine> <MaskLine>{second}</MaskLine>

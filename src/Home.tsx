@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useLocation } from './routing'
 import {
   removeLinkTag,
@@ -29,7 +29,6 @@ import { onIntroSettled } from './lib/introGate'
 import './Home.css'
 import PhotographyEditorial from './components/Photography/PhotographyEditorial'
 import SocialContentSection from './components/SocialContent/SocialContentSection'
-import { HomeScrollRibbon } from './components/HomeScrollRibbon/HomeScrollRibbon'
 // Kept section-for-section from the Vite homepage so both routers render
 // the same page composition and route-specific effects.
 const HOME_DESCRIPTION =
@@ -49,7 +48,6 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
     }
   }, [manageDocumentHead])
 
-  const pageRef = useRef<HTMLElement>(null)
   const { hash } = useLocation()
   useEffect(() => {
     // The compatibility router's external-store snapshot can initially be
@@ -72,7 +70,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
   }, [hash])
 
   return (
-    <main ref={pageRef} className="home-page">
+    <main className="home-page">
       <Hero />
       <HomeIntroStatement />
       {/* <BrandStatement /> */}
@@ -96,7 +94,6 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       {/* <div className="home-section"><Industries /></div> */}
         {/* <Blog /> */}
 
-      <HomeScrollRibbon containerRef={pageRef} />
     </main>
   )
 }

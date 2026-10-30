@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "grimblade",
+        "createdAt": "2026-10-30T05:28:40.676Z",
+        "reason": "Agent verified: DESIGN.md explicitly covers only the Concept Creation route and preserves existing runtime tokens in src/index.css; Grimblade is an existing shared font, and Home.css overrides homepage headings with Google Sans Flex."
+      },
+      {
+        "rule": "overused-font",
+        "value": "open sans",
+        "createdAt": "2026-10-30T05:28:52.937Z",
+        "reason": "Agent verified: project DESIGN.md explicitly specifies Open Sans as the existing body font, backed by font-face declarations in src/index.css. Preserving established typography for the requested ribbon relocation."
+      }
+    ]
+  }
+}

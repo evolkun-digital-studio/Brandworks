@@ -10,6 +10,14 @@ export const MEDIA_BASE_URL = (MEDIA_BASE_URL_OVERRIDE ||
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography').replace(/\/+$/, '')
 
 export const MEDIA_FILES = {
+  "UJJWAL.png": "UJJWAL.png",
+  "Vidhi.png": "Vidhi.png",
+  "Shreya.png": "Shreya.png",
+  "Yuvraj.png": "Yuvraj.png",
+  "Rahul1.png": "Rahul1.png",
+  "Hasnain.jpeg": "Hasnain.jpeg",
+  "rahul-uniyal.jpeg": "rahul-uniyal.jpeg",
+  "Navneet.png": "Navneet.png",
   "vcvcvcvcv.jpg": "vcvcvcvcv.jpg",
   "videography.jpg": "videography.jpg",
   "moisturizer mock up.png": "moisturizer mock up.png",

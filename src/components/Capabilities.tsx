@@ -10,6 +10,7 @@ import {
 } from "motion/react";
 import type { MotionValue } from "motion/react";
 
+import { HomeScrollRibbon } from "./HomeScrollRibbon/HomeScrollRibbon";
 const services = [
   {
     name: "CINEMATOGRAPHY",
@@ -137,16 +138,22 @@ function useMode() {
 }
 
 function Capabilities() {
+  const sectionRef = useRef<HTMLElement>(null);
   const mode = useMode();
   const animated = mode !== "static";
 
   return (
-    <section aria-labelledby="our-services-heading" className="bg-white">
+    <section
+      ref={sectionRef}
+      aria-labelledby="our-services-heading"
+      className="relative isolate overflow-clip bg-white"
+    >
       {mode === "scroll" ? (
         <ServiceScrollIndex />
       ) : (
         <ServiceStack animated={animated} />
       )}
+      <HomeScrollRibbon containerRef={sectionRef} />
     </section>
   );
 }

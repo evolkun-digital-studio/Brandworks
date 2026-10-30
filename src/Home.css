@@ -1,7 +1,4 @@
 .home-page {
-  /* The scroll ribbon sits at z-index -1 inside this stacking context:
-     above the page's own white background, below every section, photo,
-     card and line of text, whatever stacking contexts those create. */
   position: relative;
   isolation: isolate;
   overflow-x: clip;
@@ -77,12 +74,7 @@
   background: white;
 }
 
-/* Full-width section layers let the page's white show through, so the
-   ribbon beneath stays visible in open space. Photos and cards keep their
-   own solid backgrounds and hide it where it passes under them. */
-.home-page > .home-section,
-.home-page > section:not(.hero),
-.home-page > .home-section > section,
+/* Only the Capabilities stage lets its section-local ribbon show through. */
 .home-page .home-section--capabilities .sticky {
   background-color: transparent;
 }
