@@ -53,8 +53,6 @@ export type LongTextStep = Base & {
   placeholder?: string
   voice?: boolean
   maxLength?: number
-  /** An AI message rendered above the question (the flowchart's GREET). */
-  aiIntro?: 'greet'
 }
 export type SingleStep = Base & {
   kind: 'single'
@@ -182,7 +180,7 @@ export const STEPS: Record<string, Step> = {
     assistValue: 'not-sure',
   },
   usp: {
-    id: 'usp', section: 'project', kind: 'longtext', aiIntro: 'greet', optional: true, voice: true, aiSuggest: true,
+    id: 'usp', section: 'project', kind: 'longtext', optional: true, voice: true, aiSuggest: true,
     title: 'Is there any unique USP or feature idea you have?',
     helper: 'What makes you different, or something you’d love the website to do.',
     placeholder: 'e.g. Customers can build their own gift box and see it before they pay.',

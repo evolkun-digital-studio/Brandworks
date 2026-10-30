@@ -37,7 +37,6 @@ import {
   ProgressBar,
   TextField,
   formBody,
-  formDisplayHeading,
   formEyebrow,
   formFooterPlain,
   formFooterCompact,
@@ -61,11 +60,8 @@ const DONE = 'done'
 const URL_STEPS = new Set(['currentUrl', 'redesignUrl'])
 const SCAN_DONE_WAIT_MS = 60_000
 const SCAN_FLOW_WAIT_MS = 5 * 60_000
-const REACT_FIRST_TOKEN_MS = 3_000
-const MAX_REACTIONS = 6
 
 type Live = { text: string; streaming: boolean; ai: boolean }
-type Reaction = { from: string; forStep: string; text: string; streaming: boolean }
 type Draft = { answers: Answers; stepId: string }
 
 function readDraft(): Draft | null {
@@ -306,7 +302,6 @@ export default function QuestionnairePage() {
   const [draft, setDraft] = useState<Draft | null>(null)
   const [aiText, setAiText] = useState<Record<string, Live>>({})
   const [recommendation, setRecommendation] = useState<{ key: string; suggestion: string | null; message: string; streaming: boolean; ai: boolean } | null>(null)
-  const [reaction, setReaction] = useState<Reaction | null>(null)
   const [suggestions, setSuggestions] = useState<Record<string, string[]>>({})
   const [status, setStatus] = useState<'idle' | 'sending' | 'error'>('idle')
   const [brief, setBrief] = useState<Brief | null>(null)
@@ -318,8 +313,6 @@ export default function QuestionnairePage() {
   const [aiOff, setAiOff] = useState(false)
   const scanUrlRef = useRef<string | null>(null)
   const doneAtRef = useRef<number | null>(null)
-  const reactionRef = useRef<{ forStep: string; controller: AbortController } | null>(null)
-  const reactionsUsed = useRef(0)
   const honeypotRef = useRef<HTMLInputElement>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -365,53 +358,14 @@ export default function QuestionnairePage() {
     return () => window.cancelAnimationFrame(frame)
   }, [stepId])
 
-  const cancelReaction = useCallback(() => {
-    reactionRef.current?.controller.abort()
-    reactionRef.current = null
-    setReaction(null)
-  }, [])
-
   const go = useCallback((target: string) => {
     window.clearTimeout(swapTimer.current)
     setSwapHint(false)
-    if (reactionRef.current && reactionRef.current.forStep !== target) cancelReaction()
     setError(null)
     focusPending.current = true
     setStepId(target)
     scrollTop()
-  }, [scrollTop, cancelReaction])
-
-  const startReaction = useCallback((from: string, forStep: string, current: Answers) => {
-    const target = STEPS[forStep]
-    if (!STEPS[from]?.aiReact || !target || reactionsUsed.current >= MAX_REACTIONS) return
-    if (target.kind === 'ai' || target.kind === 'contact' || target.kind === 'exit' || (target.kind === 'longtext' && target.aiIntro)) return
-    reactionRef.current?.controller.abort()
-    const controller = new AbortController()
-    reactionRef.current = { forStep, controller }
-    reactionsUsed.current += 1
-    setReaction({ from, forStep, text: '', streaming: true })
-    let gotToken = false
-    const timer = window.setTimeout(() => { if (!gotToken) { controller.abort(); setReaction((r) => (r?.forStep === forStep ? null : r)) } }, REACT_FIRST_TOKEN_MS)
-    streamAssist('react', current, {
-      stepId: from,
-      signal: controller.signal,
-      onToken: (text) => {
-        gotToken = true
-        setReaction((r) => (r?.forStep === forStep ? { ...r, text } : r))
-      },
-    })
-      .then((r) => {
-        window.clearTimeout(timer)
-        if (controller.signal.aborted) return
-        if (!r.ai || !r.message) { setReaction((x) => (x?.forStep === forStep ? null : x)); return }
-        setReaction((x) => (x?.forStep === forStep ? { ...x, text: r.message, streaming: false } : x))
-        setAnswers((a) => ({ ...a, aiNotes: [...(Array.isArray(a.aiNotes) ? a.aiNotes : []), r.message].slice(-MAX_REACTIONS) }))
-      })
-      .catch(() => {
-        window.clearTimeout(timer)
-        setReaction((x) => (x?.forStep === forStep ? null : x))
-      })
-  }, [])
+  }, [scrollTop])
 
   const submit = useCallback(async (final: Answers) => {
     setStatus('sending')
@@ -471,7 +425,6 @@ export default function QuestionnairePage() {
     const route = buildPath(current)
     const target = route[route.indexOf(stepId) + 1]
     if (!target) return
-    if (here.aiReact) startReaction(here.id, target, current)
 
     // Dedicated welcome greeting pop-up when brand name is entered
     if (here.id === 'brandName') {
@@ -503,7 +456,7 @@ export default function QuestionnairePage() {
     }
 
     go(target)
-  }, [answers, stepId, go, submit, startScan, startReaction])
+  }, [answers, stepId, go, submit, startScan])
 
   const finishPopup = useCallback(() => {
     if (!popup) return
@@ -577,28 +530,26 @@ export default function QuestionnairePage() {
     setAnswer(step.id, updated)
   }
 
-  const greetKey = ['greet', answers.brandName, answers.workType, answers.workTypeOther, answers.operation, answers.websiteType].join('|')
   const uspKey = ['usp', answers.brandName, answers.usp].join('|')
   const recKey = ['rec', answers.brandName, answers.workType, answers.workTypeOther, answers.operation].join('|')
 
   useEffect(() => {
-    const task = stepId === 'usp' ? 'greet' : stepId === 'uspReply' ? 'usp-reply' : null
-    if (!task) return
-    const key = task === 'greet' ? greetKey : uspKey
+    if (stepId !== 'uspReply') return
+    const key = uspKey
     if (aiText[key] && !aiText[key].streaming) return
     const controller = new AbortController()
     setAiText((t) => ({ ...t, [key]: { text: '', streaming: true, ai: true } }))
-    streamAssist(task, answers, {
+    streamAssist('usp-reply', answers, {
       signal: controller.signal,
       onToken: (text) => setAiText((t) => ({ ...t, [key]: { text, streaming: true, ai: true } })),
     })
       .then((r) => setAiText((t) => ({ ...t, [key]: { text: r.message, streaming: false, ai: r.ai } })))
       .catch((e: unknown) => {
         if (e instanceof DOMException && e.name === 'AbortError') return
-        setAiText((t) => ({ ...t, [key]: { text: task === 'greet' ? 'Thanks, that’s the basics covered.' : 'Thanks, noted.', streaming: false, ai: false } }))
+        setAiText((t) => ({ ...t, [key]: { text: 'Thanks, noted.', streaming: false, ai: false } }))
       })
     return () => controller.abort()
-  }, [stepId, greetKey, uspKey])
+  }, [stepId, uspKey])
 
   const wantsRecommendation = stepId === 'websiteType' && answers.websiteType === 'not-sure'
   useEffect(() => {
@@ -708,7 +659,6 @@ export default function QuestionnairePage() {
   const progressTotal = Math.max(1, path.filter((id) => STEPS[id]?.kind !== 'ai').length)
   const progressValue = stepId === INTRO ? 0 : stepId === DONE ? 100 : Math.min(100, Math.round((completedSteps / progressTotal) * 100))
   const stepNumber = Math.min(completedSteps + 1, progressTotal)
-  const progressText = stepId === INTRO ? 'Ready' : stepId === DONE ? 'Complete' : `${stepNumber} of ${progressTotal}`
 
   // The intro panel sits beside the start screen and the first question only;
   // every later step is a single centred column.
@@ -717,6 +667,8 @@ export default function QuestionnairePage() {
   // Option steps are sized to fit one laptop screen: less top padding and
   // tighter spacing.
   const fit = Boolean(step && (step.kind === 'single' || step.kind === 'multi'))
+  // Every step in the single column shares one frame, so Back and Next never move.
+  const framed = Boolean(step) && !split
 
   const mailtoFallback = () => {
     const body = summarize(answers).map((r) => `${r.question}\n${r.answer}`).join('\n\n')
@@ -733,12 +685,12 @@ export default function QuestionnairePage() {
   // options or fields is a fieldset whose legend holds the heading.
   const question = (s: Step, body: ReactNode, inputId?: string) => {
     const hint = hintLine(s)
-    const title = <Heading data-step-heading tabIndex={-1} className={`m-0 outline-none ${fit ? formStepHeadingCompact : formStepHeading}`}>{inputId ? <label htmlFor={inputId}>{s.title}</label> : s.title}</Heading>
+    const title = <Heading data-step-heading tabIndex={-1} className={`m-0 outline-none ${framed ? 'min-h-[2em]' : ''} ${fit ? formStepHeadingCompact : formStepHeading}`}>{inputId ? <label htmlFor={inputId}>{s.title}</label> : s.title}</Heading>
     const rest = (
       <>
         {hint && <p className={`m-0 mt-3 ${formHint}`} aria-live={s.kind === 'multi' ? 'polite' : undefined}>{hint}</p>}
         {s.helper && <Helper>{s.helper}</Helper>}
-        <div className={fit ? 'mt-6' : 'mt-8'}>{body}</div>
+        <div className={fit || framed ? 'mt-6' : 'mt-8'}>{body}</div>
         <ErrorText>{error}</ErrorText>
       </>
     )
@@ -848,10 +800,6 @@ export default function QuestionnairePage() {
           <div>
             <Heading data-step-heading tabIndex={-1} className="section-heading outline-none">Thanks for sharing.</Heading>
             <p className={`mt-6 max-w-[46ch] ${formBody}`}>{s.body}</p>
-            <div className={formFooterPlain}>
-              <BackButton onClick={back}>Change my answer</BackButton>
-              <PillButton onClick={() => navigate('/services')}>Explore our services</PillButton>
-            </div>
           </div>
         )
       case 'contact':
@@ -867,7 +815,7 @@ export default function QuestionnairePage() {
               onChange={(k, v) => setAnswer(k, v)}
               askWebsite={branchOf(answers) === 'redesign' && !str(answers.redesignUrl).trim()}
             />
-            <p className={`mt-6 ${formFootnote}`}>
+            <p className={`mt-3 ${formFootnote}`}>
               We only use these details to reply about your project. Your answers are summarized with AI to help our team prepare.
             </p>
           </>
@@ -875,16 +823,11 @@ export default function QuestionnairePage() {
     }
   }
 
-  const showFooter = step && step.kind !== 'exit'
   const nextLabel = !step ? 'Next'
     : step.kind === 'ai' ? step.cta
     : step.kind === 'contact' ? (status === 'sending' ? 'Sending…' : 'Send my plan')
     : (step.kind === 'longtext' || step.kind === 'text') && step.optional && !str(answers[step.id]).trim() ? 'Skip'
     : 'Next'
-  const showReaction = Boolean(step && reaction?.forStep === stepId && reaction.text && step.kind !== 'ai'
-    && !(step.kind === 'longtext' && step.aiIntro)
-    && !(step.kind === 'single' && step.assistValue && answers[step.id] === step.assistValue))
-
   const stage = (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div key={stepId} data-step={stepId} initial={stepAnimation.initial} animate={stepAnimation.animate} exit={stepAnimation.exit} transition={stepAnimation.transition}>
@@ -948,7 +891,7 @@ export default function QuestionnairePage() {
               <Link to="/work" className={formTextLink}>See our work</Link>
               <PillButton onClick={() => {
                 setAnswers({}); setBrief(null); setScanTarget(null); setScanChecks({}); setScanView(null); setScanTimedOut(false)
-                scanUrlRef.current = null; reactionsUsed.current = 0; go(INTRO)
+                scanUrlRef.current = null; go(INTRO)
               }}>
                 Plan another project
               </PillButton>
@@ -958,10 +901,6 @@ export default function QuestionnairePage() {
 
         {step && (
           <div>
-            {step.kind === 'longtext' && step.aiIntro === 'greet' && (
-              <AiMessage text={aiText[greetKey]?.text || null} streaming={aiText[greetKey]?.streaming ?? true} className="mb-8" />
-            )}
-            {showReaction && reaction && <AiMessage text={reaction.text} streaming={reaction.streaming} className={fit ? 'mb-5' : 'mb-8'} />}
             {renderStep(step)}
           </div>
         )}
@@ -970,12 +909,21 @@ export default function QuestionnairePage() {
     </AnimatePresence>
   )
 
-  const footer = showFooter && step && (
-    <div className={fit ? formFooterCompact : formFooterPlain}>
-      <BackButton onClick={back} hidden={index <= 0} />
-      <PillButton onClick={() => { if (status !== 'sending' && !popup) next() }} busy={status === 'sending'} labelKey={`${stepId}-${nextLabel}`}>
-        {nextLabel}
-      </PillButton>
+  const footer = step && (
+    <div className={fit || framed ? formFooterCompact : formFooterPlain}>
+      {step.kind === 'exit' ? (
+        <>
+          <BackButton onClick={back}>Change my answer</BackButton>
+          <PillButton onClick={() => navigate('/services')} labelKey="exit">Explore our services</PillButton>
+        </>
+      ) : (
+        <>
+          <BackButton onClick={back} hidden={index <= 0} />
+          <PillButton onClick={() => { if (status !== 'sending' && !popup) next() }} disabled={fit && validateStep(step, answers) !== null} busy={status === 'sending'} labelKey={`${stepId}-${nextLabel}`}>
+            {nextLabel}
+          </PillButton>
+        </>
+      )}
     </div>
   )
 
@@ -1022,7 +970,7 @@ export default function QuestionnairePage() {
         </button>
       </div>
 
-      <section className={fit ? formSectionFit : formSection}>
+      <section className={fit || framed ? formSectionFit : formSection}>
         {/* One persistent live region, so every step change is announced. */}
         <p className="sr-only" role="status" aria-live="polite">
           {stepId === INTRO ? '' : stepId === DONE ? 'Plan sent' : `Step ${stepNumber} of ${progressTotal}${step && step.kind !== 'ai' ? `: ${step.title}` : ''}`}
@@ -1042,17 +990,13 @@ export default function QuestionnairePage() {
               <aside className="flex flex-col justify-between gap-10 md:col-span-5 md:pr-12 xl:pr-20">
                 <div>
                   <span className={`mb-6 block ${formEyebrow}`}>Project planner</span>
-                  <h1 className={`m-0 max-w-[12ch] ${formDisplayHeading}`}>A clear brief makes better work.</h1>
+                  <h1 className="m-0 font-(--font-primary) text-[clamp(36px,10vw,48px)] md:text-[clamp(28px,3.6vw,48px)] xl:text-[48px] font-normal leading-[1.05] tracking-[-0.03em]">
+                    <span className="block">A clear brief</span>
+                    <span className="block">makes better work.</span>
+                  </h1>
                   <p className={`mt-8 max-w-[38ch] ${formBody}`}>
                     Share what matters. We’ll use it to shape a focused first conversation.
                   </p>
-                </div>
-                <div className="max-w-[420px]">
-                  <div className="mb-3 flex items-baseline justify-between text-[12px]">
-                    <span className="text-black">Your progress</span>
-                    <span className="tabular-nums text-black/55">{progressText}</span>
-                  </div>
-                  <ProgressBar value={progressValue / 100} />
                 </div>
               </aside>
 
@@ -1073,7 +1017,7 @@ export default function QuestionnairePage() {
               transition={{ duration: reduce ? 0 : 0.35, ease: EASE }}
             >
               {stepId !== DONE && (
-                <div className={fit ? 'mb-7' : 'mb-10'}>
+                <div className={fit || framed ? 'mb-7' : 'mb-10'}>
                   <ProgressBar value={progressValue / 100} />
                   <div className="mt-3 flex items-baseline justify-between gap-4 text-[12px]">
                     <span className="text-black">{step ? SECTION_LABELS[step.section] : ''}</span>
@@ -1081,7 +1025,20 @@ export default function QuestionnairePage() {
                   </div>
                 </div>
               )}
-              {stage}
+              {framed ? (
+                <div className="grid *:col-start-1 *:row-start-1">
+                  {/* An invisible copy of the tallest step sets the height at every width. */}
+                  <div aria-hidden="true" inert className="invisible">
+                    <p className={`m-0 min-h-[2em] ${formStepHeadingCompact}`}>{workTypeStep.title}</p>
+                    {workTypeStep.kind === 'single' && (
+                      <div className="mt-6">
+                        <OptionTiles name="q-frame" options={workTypeStep.options} selected={[]} onToggle={() => undefined} label={workTypeStep.title} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">{stage}</div>
+                </div>
+              ) : stage}
               {footer}
               {sendError}
             </motion.div>

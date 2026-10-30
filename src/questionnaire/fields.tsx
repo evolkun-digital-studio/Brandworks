@@ -195,10 +195,10 @@ export function LongAnswer({
   const count = value.length > maxLength * 0.7 ? `${value.length} / ${maxLength}` : ''
 
   return (
-    <FieldLine className="pb-7">
+    <FieldLine className="pb-4">
       <textarea
         id={id}
-        rows={5}
+        rows={3}
         value={speech.listening && speech.interim ? `${value}${value ? ' ' : ''}${speech.interim}` : value}
         maxLength={maxLength}
         placeholder={placeholder}
