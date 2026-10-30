@@ -343,10 +343,10 @@ export default function CinematographyShowcase() {
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div key={current.id} {...textMotion}>
                   <div className="min-w-0">
-                    <h3 className="mb-1 font-secondary text-sm  leading-5 tracking-normal text-white sm:text-base">
+                    <h3 className="mb-2 font-secondary text-sm  leading-5 tracking-normal text-white sm:text-base">
                       {current.title}
                     </h3>
-                    <p className="m-0 line-clamp-2 max-w-[46ch] text-xs leading-5 text-white/75 sm:text-[15px] sm:leading-[1.5]">
+                    <p className="m-0 line-clamp-2 max-w-[46ch] text-xs leading-5 text-white/80 sm:text-[15px] sm:leading-[1.5]">
                       {current.description}
                     </p>
                   </div>

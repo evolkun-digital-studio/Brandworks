@@ -14,8 +14,8 @@
   flex-direction: column;
   justify-content: flex-end;
   height: 100vh;
-  height: 100svh;
-  min-height: 640px;
+  height: 100dvh;
+  min-height: 0;
   overflow: hidden;
   background: #0c0c0c;
   color: #fff;
@@ -491,7 +491,7 @@
     --hero-grid-gap: clamp(20px, 2.2vw, 32px);
     --hero-col: calc((100cqw - var(--hero-gutter) * 2 - var(--hero-grid-gap) * 11) / 12);
     container-type: inline-size;
-    min-height: 800px;
+    min-height: 0;
   }
 
   .hero-content {
@@ -823,58 +823,44 @@
   }
 }
 
-/* Single-column copy: the pair sits above it. The hero grows past the fold
-   for this one service rather than shrinking the cards to thumbnails. */
+/* Single-column copy: scale the previews to the space above the text. */
 @media (max-width: 1023px) {
   .hero {
     --social-card-w: min(40vw, 300px);
-    --social-pair-h: calc(var(--social-card-w) * 4 / 3 + 32px);
     --social-sheet-w: min(64vw, 540px);
-    --social-sheet-h: calc(var(--social-sheet-w) * 3 / 5);
-    --social-stage-h: calc(var(--social-pair-h) + var(--social-sheet-h) + 20px);
-    /* Web: room for the browser at full width (16 / 10) above the copy. */
-    --web-stage-min: calc((100vw - var(--hero-gutter) * 2) * 0.625 + 32px);
-  }
-
-  .hero[data-service='social'] {
-    min-height: max(100svh, calc(96px + var(--social-stage-h) + 28px + var(--hero-content-h, 480px)));
-  }
-
-  /* Web: never squeeze the browser below a readable size. */
-  .hero[data-service='web'] {
-    min-height: max(100svh, calc(var(--web-stage-top, 124px) + var(--web-stage-min, 400px) + var(--hero-content-h, 480px)));
   }
 
   .social-showcase__stage {
-    top: auto;
+    top: 96px;
     right: 0;
     left: 0;
     bottom: calc(var(--hero-content-h, 480px) + 28px);
-    height: var(--social-stage-h);
-    container-type: normal;
+    height: auto;
+    min-height: 0;
+    container-type: size;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    gap: 20px;
+    gap: 12px;
   }
 
   .media-showcase {
     order: 1;
     flex: none;
-    height: var(--social-pair-h);
+    height: calc(56cqh - 12px);
     justify-content: safe center;
     padding-inline: var(--hero-gutter);
   }
 
   .social-contact-sheet {
     order: 2;
-    width: var(--social-sheet-w);
-    height: var(--social-sheet-h);
+    width: min(var(--social-sheet-w), 70cqh);
+    height: 40cqh;
     aspect-ratio: auto;
   }
 
   .social-card {
-    width: var(--social-card-w);
+    width: min(var(--social-card-w), calc((56cqh - 44px) * 0.75));
   }
 }
 
@@ -910,10 +896,8 @@
 
 @media (max-width: 767px) {
   .hero {
-    --web-stage-top: 124px;
     --social-card-w: min(60vw, 300px);
     --social-sheet-w: calc(100vw - var(--hero-gutter) * 2);
-    --social-sheet-h: calc(var(--social-sheet-w) * 9 / 8);
   }
 
   .social-showcase__stage {
@@ -951,13 +935,11 @@
 }
 
 @media (max-width: 639px) {
-  /* Grows past the fold rather than squeezing the copy. */
+  /* Keep every slide within the current visible viewport. */
   .hero {
-    --web-stage-min: calc((100vw - var(--hero-gutter) * 2) / 1.3 + 4px);
-    height: auto;
-    min-height: 100vh;
-    min-height: 100svh;
-    padding-top: 112px;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
   }
 
   .hero-overlay {
@@ -1018,6 +1000,23 @@
     padding: 10px 12px;
     font-size: 13px;
   }
+}
+
+/* Short phones and landscape windows still use one screen. */
+@media (max-height: 600px) {
+  .hero-content { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+  .hero-aside { gap: 10px; }
+  .hero-caption__pane { gap: 8px; }
+  .hero-mask--title { font-size: clamp(22px, 3vw, 32px); }
+  .hero-description { font-size: 12px; line-height: 1.35; }
+  .hero-capsule { min-height: 32px; padding: 8px 10px; font-size: 11px; }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) and (max-height: 600px) {
+  .hero-aside { width: 44%; justify-self: end; }
+  .hero[data-service='web'] .hero-title { white-space: normal; }
+  .hero .web-hero__stage { top: 96px; right: 52%; bottom: 24px; }
+  .hero .social-showcase__stage { right: 52%; bottom: 24px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

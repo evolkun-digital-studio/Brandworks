@@ -15,7 +15,6 @@ import {
   ABOUT_TEAM,
 } from '../../data/aboutPage'
 import type { AboutImage, TeamMember } from '../../data/aboutPage'
-import './AboutPage.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -26,7 +25,7 @@ const ABOUT_DESCRIPTION =
  * Motion vocabulary. Markup opts in with data attributes and the single
  * effect below turns each `[data-reveal-group]` into one short, once-only
  * timeline — its `[data-reveal]` children play in DOM order:
- *   line   rises through its `.about-mask` parent (masked text reveal)
+ *   line   rises through its clipping parent (masked text reveal)
  *   fade   fades up a few pixels
  *   rise   a team portrait's entrance, a little further
  *   media  a frame uncovered from the bottom edge, its photograph settling
@@ -47,6 +46,7 @@ function Media({
 }) {
   const img = (
     <img
+      className="block size-full object-cover [@media(hover:hover)_and_(pointer:fine)]:transition-transform [@media(hover:hover)_and_(pointer:fine)]:duration-900 [@media(hover:hover)_and_(pointer:fine)]:ease-[cubic-bezier(0.22,1,0.36,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/visual:scale-[1.025]"
       src={image.src}
       srcSet={image.srcSet}
       sizes={sizes}
@@ -61,7 +61,7 @@ function Media({
   )
 
   return (
-    <figure data-reveal="media" className={`about-media ${className ?? ''}`}>
+    <figure data-reveal="media" className={`relative m-0 min-w-0 max-w-full overflow-hidden bg-[rgba(17,17,17,0.06)] ${className ?? ''}`}>
       {img}
     </figure>
   )
@@ -70,8 +70,8 @@ function Media({
 /** One masked line (or phrase) of display type. */
 function MaskLine({ children, className }: { children: string; className?: string }) {
   return (
-    <span className="about-mask">
-      <span data-reveal="line" className={`about-mask__line ${className ?? ''}`}>
+    <span className="block overflow-hidden pt-[0.04em] px-[0.08em] pb-[0.1em] -mt-[0.04em] -mx-[0.08em] -mb-[0.1em]">
+      <span data-reveal="line" className={`block ${className ?? ''}`}>
         {children}
       </span>
     </span>
@@ -108,30 +108,30 @@ function Feature({
   children: ReactNode
 }) {
   return (
-    <div className={`section-container about-feature about-feature--media-${mediaSide}`}>
-      <div className="section-grid about-feature__grid" data-reveal-group>
-        <div className="about-feature__copy">
-          <Heading id={id} className="section-heading about-feature__heading">
+    <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
+      <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch items-center md:gap-y-(--content-gap)" data-reveal-group>
+        <div className={`grid content-start gap-(--text-gap) ${mediaSide === 'end' ? 'md:col-start-1 md:col-end-5 lg:col-end-7' : 'md:col-start-5 md:col-end-9 md:row-start-1 lg:col-start-7 lg:col-end-13 border-t border-(--about-rule) pt-(--text-gap)'}`}>
+          <Heading id={id} className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
             <MaskLine>{heading}</MaskLine>
           </Heading>
-          <div data-reveal="fade" className="about-feature__text">
+          <div data-reveal="fade" className="grid gap-4">
             {children}
           </div>
           {footer && (
-            <div data-reveal="fade" className="about-feature__footer">
+            <div data-reveal="fade" className="mt-2">
               {footer}
             </div>
           )}
         </div>
-        <div className="about-feature__visual">
+        <div className={`group/visual grid gap-3 max-md:order-1 max-md:w-full ${mediaSide === 'start' ? 'md:col-start-1 md:col-end-5 md:row-start-1 md:w-[min(100%,calc(64svh*0.8))]' : eager ? 'md:col-start-5 md:col-end-9 lg:col-start-8 lg:col-end-13 md:w-[min(100%,calc(66svh*0.8))] justify-self-end' : 'md:col-start-5 md:col-end-9 lg:col-start-9 lg:col-end-13 md:w-[min(100%,calc(64svh*0.8))] justify-self-end'}`}>
           <Media
             image={image}
-            className="about-feature__media"
+            className="aspect-[4/5]"
             sizes="(min-width: 1440px) 420px, (min-width: 768px) 34vw, 100vw"
             eager={eager}
           />
           {caption && (
-            <p data-reveal="fade" className="section-label about-caption">
+            <p data-reveal="fade" className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] max-w-none! font-secondary text-[11px]! font-medium! leading-[1.2]! tracking-[0.14em] uppercase text-(--about-copy) flex justify-between">
               {caption}
             </p>
           )}
@@ -143,7 +143,7 @@ function Feature({
 
 function AboutHero() {
   return (
-    <section className="about-hero about-green" aria-labelledby="about-hero-heading">
+    <section className="pt-[max(104px,calc(80px+env(safe-area-inset-top)))] md:pt-[clamp(96px,7.5vw,116px)] pb-(--about-space) about-green bg-[#dcff52] text-(--ink) [--about-rule:rgba(17,17,17,0.16)] [--about-rule-strong:rgba(17,17,17,0.32)] [--about-copy:var(--ink)]" aria-labelledby="about-hero-heading">
       <Feature
         id="about-hero-heading"
         as="h1"
@@ -152,9 +152,9 @@ function AboutHero() {
         mediaSide="end"
         eager
       >
-        <p className="about-feature__lead">{ABOUT_HERO.description}</p>
+        <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-(--ink)!">{ABOUT_HERO.description}</p>
         {ABOUT_HERO.body.map((line) => (
-          <p key={line}>{line}</p>
+          <p key={line} className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px]">{line}</p>
         ))}
       </Feature>
     </section>
@@ -163,26 +163,26 @@ function AboutHero() {
 
 function AboutIntro() {
   return (
-    <section className="about-intro about-surface" aria-labelledby="about-intro-heading">
-      <div className="section-container">
-        <div className="about-intro__head" data-reveal-group>
-          <h2 id="about-intro-heading" className="section-heading about-statement">
+    <section className="py-(--about-space) bg-[#f5f5f0]" aria-labelledby="about-intro-heading">
+      <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
+        <div data-reveal-group>
+          <h2 id="about-intro-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) max-w-[22em]">
             <MaskLine>{ABOUT_INTRO.statement.lead}</MaskLine>
           </h2>
         </div>
 
-        <div className="section-grid about-intro__columns" data-reveal-group>
-          <div data-reveal="fade" className="about-intro__studio">
-            <p>{ABOUT_INTRO.studio}</p>
-            <ul className="about-disciplines" aria-label="Disciplines">
+        <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch mt-(--content-gap) md:gap-y-(--content-gap)" data-reveal-group>
+          <div data-reveal="fade" className="grid content-start gap-(--text-gap) md:col-span-4 lg:col-start-1 lg:col-end-7">
+            <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px]">{ABOUT_INTRO.studio}</p>
+            <ul className="m-0 grid list-none grid-cols-2 gap-x-(--grid-gap) p-0 max-[380px]:grid-cols-1 [&_li]:border-t [&_li]:border-(--about-rule) [&_li]:py-2.5 [&_li]:font-secondary [&_li]:text-[15px] [&_li]:leading-[1.35] [&_li]:text-(--ink)" aria-label="Disciplines">
               {ABOUT_INTRO.disciplines.map((discipline) => (
                 <li key={discipline}>{discipline}</li>
               ))}
             </ul>
           </div>
 
-          <div data-reveal="fade" className="about-intro__approach">
-            <p className="about-intro__lead">{ABOUT_INTRO.approach[0]}</p>
+          <div data-reveal="fade" className="grid content-start gap-4 md:col-span-4 lg:col-start-8 lg:col-end-13">
+            <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-(--ink)!">{ABOUT_INTRO.approach[0]}</p>
           </div>
         </div>
       </div>
@@ -194,7 +194,7 @@ function AboutJourney() {
   const [beginning] = ABOUT_JOURNEY.stages
 
   return (
-    <section className="about-journey about-surface" aria-labelledby="about-journey-heading">
+    <section className="pb-(--about-space) bg-[#f5f5f0]" aria-labelledby="about-journey-heading">
       <Feature
         id="about-journey-heading"
         heading={ABOUT_JOURNEY.heading}
@@ -203,15 +203,15 @@ function AboutJourney() {
         footer={
           // The path the story takes, by its stage names: an index, not
           // more copy.
-          <ol className="about-path" aria-label="Stages of the journey">
+          <ol className="m-0 grid max-w-[32ch] list-none justify-items-start p-0 [&_li]:w-full [&_li]:border-t [&_li]:border-(--about-rule) [&_li]:py-2.5 [&_li]:text-left [&_li]:font-secondary [&_li]:text-[15px] [&_li]:leading-[1.35] [&_li]:text-[rgba(17,17,17,0.64)]" aria-label="Stages of the journey">
             {ABOUT_JOURNEY.stages.map((stage) => (
               <li key={stage.title}>{stage.title}</li>
             ))}
           </ol>
         }
       >
-        <p className="about-feature__lead">{ABOUT_JOURNEY.description}</p>
-        <p>{beginning.text}</p>
+        <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-(--ink)!">{ABOUT_JOURNEY.description}</p>
+        <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px]">{beginning.text}</p>
       </Feature>
     </section>
   )
@@ -219,14 +219,14 @@ function AboutJourney() {
 
 function AboutStatement() {
   return (
-    <section className="about-brand about-surface" aria-labelledby="about-brand-heading">
+    <section className="pb-(--about-space) bg-[#f5f5f0]" aria-labelledby="about-brand-heading">
       <Feature
         id="about-brand-heading"
         heading={ABOUT_STATEMENT.heading}
         image={ABOUT_STATEMENT.image}
         mediaSide="end"
       >
-        <p className="about-feature__lead">{ABOUT_STATEMENT.text}</p>
+        <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-(--ink)!">{ABOUT_STATEMENT.text}</p>
       </Feature>
     </section>
   )
@@ -234,20 +234,20 @@ function AboutStatement() {
 
 function AboutPrinciples() {
   return (
-    <section className="about-principles about-green" aria-labelledby="about-principles-heading">
-      <div className="section-container">
-        <div className="section-grid about-principles__grid">
-          <header className="about-principles__head" data-reveal-group>
-            <h2 id="about-principles-heading" className="section-heading about-principles__heading">
+    <section className="py-(--about-space) about-green bg-[#dcff52] text-(--ink) [--about-rule:rgba(17,17,17,0.16)] [--about-rule-strong:rgba(17,17,17,0.32)] [--about-copy:var(--ink)]" aria-labelledby="about-principles-heading">
+      <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
+        <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch md:gap-y-(--content-gap)">
+          <header className="grid content-start gap-(--text-gap) col-span-full lg:col-start-1 lg:col-end-5" data-reveal-group>
+            <h2 id="about-principles-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
               <MaskLine>{ABOUT_PRINCIPLES.heading}</MaskLine>
             </h2>
           </header>
 
-          <ol className="about-principles__list" data-reveal-group>
+          <ol className="col-span-full m-0 grid list-none grid-cols-1 gap-x-(--grid-gap) gap-y-7 p-0 md:grid-cols-2 md:gap-y-10 lg:col-start-6 lg:col-end-13" data-reveal-group>
             {ABOUT_PRINCIPLES.items.map((item) => (
-              <li key={item.title} data-reveal="fade" className="about-principle">
-                <h3 className="about-principle__title">{item.title}</h3>
-                <p className="about-principle__text">{item.text}</p>
+              <li key={item.title} data-reveal="fade" className="grid content-start gap-2 border-t border-(--about-rule-strong) pt-5">
+                <h3 className="m-0 text-[clamp(20px,1.6vw,24px)] font-medium leading-[1.15] tracking-[-0.015em] text-(--ink)">{item.title}</h3>
+                <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px]">{item.text}</p>
               </li>
             ))}
           </ol>
@@ -259,10 +259,11 @@ function AboutPrinciples() {
 
 function Member({ member, order }: { member: TeamMember; order: number }) {
   return (
-    <li className="about-member" style={{ order } as CSSProperties}>
-      <div data-reveal="rise" className="about-member__inner">
-        <div className="about-member__media" style={{ '--ratio': member.ratio } as CSSProperties}>
+    <li className="group/member" style={{ order } as CSSProperties}>
+      <div data-reveal="rise">
+        <div className="aspect-[var(--ratio,4/5)] overflow-hidden bg-[rgba(17,17,17,0.08)]" style={{ '--ratio': member.ratio } as CSSProperties}>
           <img
+            className="block size-full object-cover transition-transform duration-900 ease-[cubic-bezier(0.22,1,0.36,1)] [@media(hover:hover)_and_(pointer:fine)]:group-hover/member:scale-[1.025] motion-reduce:transition-none"
             src={member.image.src}
             srcSet={member.image.srcSet}
             sizes="(min-width: 1024px) 26vw, (min-width: 480px) 46vw, 100vw"
@@ -274,10 +275,9 @@ function Member({ member, order }: { member: TeamMember; order: number }) {
             style={member.image.position ? { objectPosition: member.image.position } : undefined}
           />
         </div>
-        <div className="about-member__meta">
-          <h3 className="about-member__name">{member.name}</h3>
-          <p className="about-member__role">{member.role}</p>
-          {/* <p className="about-member__speciality">{member.speciality}</p> */}
+        <div className="mt-4 grid gap-1">
+          <h3 className="m-0 text-[clamp(20px,1.6vw,24px)] font-medium leading-[1.15] tracking-[-0.015em] text-(--ink)">{member.name}</h3>
+          <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-[15px]! leading-[1.4]! text-[rgba(17,17,17,0.64)]!">{member.role}</p>
         </div>
       </div>
     </li>
@@ -291,21 +291,21 @@ function AboutTeam() {
   const columns = [members.filter((_, i) => i % 2 === 0), members.filter((_, i) => i % 2 === 1)]
 
   return (
-    <section className="about-team about-green" aria-labelledby="about-team-heading">
-      <div className="section-container">
-        <div className="section-grid about-team__grid">
-          <header className="about-team__intro" data-reveal-group>
-            <h2 id="about-team-heading" className="section-heading about-team__heading">
+    <section className="pb-(--about-space) about-green bg-[#dcff52] text-(--ink) [--about-rule:rgba(17,17,17,0.16)] [--about-rule-strong:rgba(17,17,17,0.32)] [--about-copy:var(--ink)]" aria-labelledby="about-team-heading">
+      <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
+        <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch md:gap-y-(--media-gap)">
+          <header className="col-span-full grid self-start gap-(--text-gap) max-lg:max-w-[560px] lg:sticky lg:top-[clamp(112px,14vh,160px)] lg:col-start-1 lg:col-end-5" data-reveal-group>
+            <h2 id="about-team-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
               <MaskLine>{ABOUT_TEAM.heading}</MaskLine>
             </h2>
-            <p data-reveal="fade" className="about-team__description">
+            <p data-reveal="fade" className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] max-w-[28ch]!">
               {ABOUT_TEAM.description}
             </p>
           </header>
 
-          <div className="about-team__members" data-reveal-group>
+          <div className="col-span-full flex flex-col items-start gap-[clamp(40px,12vw,64px)] min-[480px]:max-md:grid min-[480px]:max-md:grid-cols-2 min-[480px]:max-md:gap-x-4 min-[480px]:max-md:gap-y-10 md:grid md:grid-cols-2 md:gap-x-(--grid-gap) max-lg:mt-(--content-gap) lg:col-start-6 lg:col-end-13" data-reveal-group>
             {columns.map((column, c) => (
-              <ul key={c} className={`about-team__column about-team__column--${c === 0 ? 'a' : 'b'}`}>
+              <ul key={c} className={`m-0 list-none p-0 max-md:contents md:flex md:flex-col md:gap-[clamp(48px,6vw,96px)] ${c === 1 ? 'md:pt-[clamp(64px,12vw,200px)]' : ''}`}>
                 {column.map(({ member, order }) => (
                   <Member key={member.name} member={member} order={order} />
                 ))}
@@ -322,14 +322,14 @@ function AboutClosing() {
   const [first, second] = ABOUT_CLOSING.lines
 
   return (
-    <section className="about-closing about-surface" aria-labelledby="about-closing-heading" data-reveal-group>
-      <div className="section-container about-closing__inner">
-        <h2 id="about-closing-heading" className="section-heading about-closing__heading">
-          <MaskLine className="about-closing__muted">{first}</MaskLine> <MaskLine>{second}</MaskLine>
+    <section className="py-(--about-space) bg-[#f5f5f0]" aria-labelledby="about-closing-heading" data-reveal-group>
+      <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter) grid justify-items-center gap-(--content-gap) text-center">
+        <h2 id="about-closing-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) text-center">
+          <MaskLine className="text-[rgba(17,17,17,0.64)]">{first}</MaskLine> <MaskLine>{second}</MaskLine>
         </h2>
-        <a data-reveal="fade" href={ABOUT_CLOSING.cta.href} className="about-link">
+        <a data-reveal="fade" href={ABOUT_CLOSING.cta.href} className="group/link inline-flex items-center gap-3 border-b border-current pb-2 font-secondary text-[13px] font-semibold leading-none tracking-[0.12em] text-(--ink) uppercase focus-visible:outline-2 focus-visible:outline-(--ink) focus-visible:outline-offset-6">
           <span>{ABOUT_CLOSING.cta.label}</span>
-          <span className="about-link__arrow" aria-hidden="true">
+          <span className="text-[1.2em] tracking-normal transition-transform duration-[450ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1 motion-reduce:transition-none" aria-hidden="true">
             →
           </span>
         </a>
@@ -404,12 +404,10 @@ function AboutPage() {
       })
 
 
-      // Not motion, so it runs with reduced motion too. The header logo is ink
-      // by default (the page opens on the green hero, so first paint is right
-      // before this runs) and returns to its brand colours, by class, while
-      // the header sits over an off-white section (see AboutPage.css).
-      // Declared first: a trigger already active fires onToggle while it is
-      // still being created.
+      // Not motion, so it runs with reduced motion too. The header capsules
+      // follow the section under them, by class (via the header’s Tailwind
+      // variants). Declared first: a trigger already active fires onToggle
+      // while it is still being created.
       let onGreen: ScrollTrigger[] = []
       const sync = () =>
         document.body.classList.toggle('about-logo-on-light', !onGreen.some((trigger) => trigger.isActive))
@@ -418,17 +416,28 @@ function AboutPage() {
       )
       sync()
 
+      // The header logo is the one-colour version on this page's green and
+      // off-white sections, and the brand colours over the dark footer.
+      const footer = document.getElementById('footer')
+      const overFooter = footer && ScrollTrigger.create({
+        trigger: footer,
+        start: 'top 48px',
+        end: 'bottom 48px',
+        toggleClass: { targets: document.body, className: 'about-logo-on-dark' },
+      })
+
       return () => {
         mm.revert()
         onGreen.forEach((trigger) => trigger.kill())
-        document.body.classList.remove('about-logo-on-light')
+        overFooter?.kill()
+        document.body.classList.remove('about-logo-on-light', 'about-logo-on-dark')
       }
     },
     { scope: rootRef },
   )
 
   return (
-    <main ref={rootRef} className="about-page">
+    <main ref={rootRef} className="about-page overflow-x-clip bg-[#f5f5f0] text-(--ink) not-italic [&_*]:not-italic [--about-space:56px] md:[--about-space:clamp(64px,8vw,128px)] [--about-rule:rgba(17,17,17,0.12)] [--about-rule-strong:rgba(17,17,17,0.22)] [--about-copy:rgba(17,17,17,0.64)]">
       <AboutHero />
       <AboutIntro />
       <AboutJourney />

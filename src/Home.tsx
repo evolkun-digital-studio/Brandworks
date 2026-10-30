@@ -96,7 +96,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       {/* <div className="home-section"><Industries /></div> */}
         {/* <Blog /> */}
 
-      <HomeScrollRibbon containerRef={pageRef} />
+      {/* <HomeScrollRibbon containerRef={pageRef} /> */}
     </main>
   )
 }

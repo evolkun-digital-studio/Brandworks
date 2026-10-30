@@ -25,7 +25,7 @@ export default function PublicBlogIndex({
   return (
     <main className="flex flex-col items-center bg-white px-4 pt-16 pb-24 sm:pt-20">
       <div className="flex flex-col items-center text-center">
-        <p className="site-kicker text-neutral-500">BRANDWORKS / JOURNAL</p>
+        {/* <p className="site-kicker text-neutral-500">BRANDWORKS / JOURNAL</p> */}
         <h1 className="site-display mt-4 text-neutral-900 uppercase">Blog</h1>
         <p className="site-copy mt-4 max-w-[560px] text-neutral-600">
           Thoughts, ideas and perspectives on branding, creativity, digital experiences and the work shaping modern brands.

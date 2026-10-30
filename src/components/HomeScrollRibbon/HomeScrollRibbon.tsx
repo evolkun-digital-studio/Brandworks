@@ -76,7 +76,7 @@ const NARROW_ROUTE: Anchor[] = [
 ]
 
 const COLOR = '#CEFD10'
-const OPACITY = 0.18
+const OPACITY = 0.12
 // Both ends sit this far outside the clipped layer.
 const OVERHANG = 120
 const LOOP_STEPS = 8
@@ -85,11 +85,16 @@ const TABLE_STEPS = 200
 const TIP_LEAD_RATIO = 0.25
 const CONTENT = 'h1,h2,h3,h4,h5,h6,p,li,img,video,picture,canvas,iframe,button,a,figure,blockquote'
 
-function strokeFor(width: number) {
+// The route's size unit: loop radii and end offsets are measured in it.
+function unitFor(width: number) {
   if (width < 768) return 24
   if (width < 1024) return 38
   return 54
 }
+
+// The drawn stroke is this share of the unit, so thinning the ribbon keeps
+// its loops the same size.
+const THICKNESS = 0.6
 
 function measureLayout(container: HTMLElement, layer: HTMLElement): Layout {
   const hero = container.querySelector<HTMLElement>(':scope > .hero')
@@ -222,8 +227,9 @@ function sampleBezier([p0, c1, c2, p1]: Segment, t: number): Point {
 }
 
 function buildRibbon(layout: Layout) {
-  const stroke = strokeFor(layout.width)
-  const segments = toBeziers(routePoints(layout, stroke))
+  const unit = unitFor(layout.width)
+  const stroke = unit * THICKNESS
+  const segments = toBeziers(routePoints(layout, unit))
   const f = (n: number) => n.toFixed(1)
   const d =
     `M${f(segments[0][0].x)} ${f(segments[0][0].y)}` +
