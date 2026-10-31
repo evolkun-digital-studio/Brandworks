@@ -14,22 +14,33 @@ import { AnalysisBadge, ExternalSiteLink, ScanStatusBadge, ScoreBadge } from '..
 import { useAdminAuth } from '../context/useAdminAuth'
 import { usePollWhileVisible } from '../hooks/usePollWhileVisible'
 import { exactTime, GROUPS_NOT_FOUND_LABEL } from '../lib/siteScan'
+import { buildFindings, CLIENT_SHELL_CAVEAT } from '../../server/site-scan/pageFindings'
 import {
   KEY_PAGE_LABELS,
+  PAGE_GROUPS,
   type AuthorityData,
   type CollectorResult,
+  type ContactMethod,
+  type ContactVia,
   type CwvCategory,
   type DuplicateText,
   type FieldMetric,
+  type FindingConfidence,
+  type GroupResult,
   type KeyPageCheck,
   type KeyPageGroup,
+  type LinkHealth,
+  type MarketingSignals,
   type OnPageData,
   type PagesData,
   type PerformanceData,
+  type ScanFinding,
   type SiteScanDetail as ScanDetail,
+  type SitemapQuality,
   type TrafficData,
 } from '../../server/site-scan/types'
 
+const CANONICAL_ISSUES: string[] = ['points-to-homepage', 'cross-domain', 'http-on-https-site']
 const TITLE_MAX = 60
 const META_MAX = 160
 
@@ -175,8 +186,17 @@ function PageRow({ group, url, statusCode, error, check }: { group: string; url:
       </td>
       <td className="tabular-nums"><Warn when={check.h1Count !== 1} note={emptyHtml}>{check.h1Count}</Warn></td>
       <td><Warn when={check.noindex}>{yesNo(check.noindex)}</Warn></td>
-      <td className="max-w-48 break-all">{check.canonical ?? '—'}</td>
-      <td className="whitespace-nowrap tabular-nums" title={emptyHtml}>{check.wordCount.toLocaleString()} <span className="text-xs text-a-ink-2">in HTML</span></td>
+      <td className="max-w-48 break-all">
+        {check.canonical ?? '—'}
+        {check.details && <span className="block text-xs text-a-ink-2"><Warn when={CANONICAL_ISSUES.includes(check.details.canonicalStatus)}>{check.details.canonicalStatus}</Warn></span>}
+      </td>
+      <td className="whitespace-nowrap tabular-nums" title={emptyHtml}>
+        {check.wordCount.toLocaleString()} <span className="text-xs text-a-ink-2">in HTML</span>
+        {check.details?.contentConfidence === 'low' && <span className="block text-xs text-a-ink-2">Low confidence</span>}
+        {check.details?.thinContent && <span className="block text-xs"><Warn when>Thin content</Warn></span>}
+        {check.details && <span className="block text-xs text-a-ink-2">H2 {check.details.headings.h2} · H3 {check.details.headings.h3}</span>}
+        {(check.details?.mixedContent.count ?? 0) > 0 && <span className="block text-xs"><Warn when note={check.details?.mixedContent.samples.join(', ')}>{check.details?.mixedContent.count} insecure resources</Warn></span>}
+      </td>
       <td className="whitespace-nowrap tabular-nums">{check.images.total} / <Warn when={check.images.missingAlt > 0}>{check.images.missingAlt}</Warn></td>
       <td><ContactIcons check={check} /></td>
       <td className="min-w-40 text-xs">{check.ctaTexts.length ? check.ctaTexts.join(' · ') : '—'}</td>
@@ -204,10 +224,136 @@ function Duplicates({ title, items }: { title: string; items: DuplicateText[] })
 
 const groupNames = (groups: KeyPageGroup[]) => (groups.length ? groups.map((group) => KEY_PAGE_LABELS[group]).join(', ') : 'None')
 
+const CONFIDENCE_LABELS: Record<FindingConfidence, string> = {
+  measured: 'Measured',
+  detected: 'Detected',
+  'not-detected': 'Not detected, may still exist',
+  low: 'Low confidence',
+}
+const SEVERITY_TONES = { critical: 'danger', high: 'warning', medium: 'accent', low: 'neutral' } as const
+const VIA_LABELS: Record<ContactVia, string> = { link: 'link', text: 'plain text', form: 'form on the page', embed: 'embedded tool' }
+
+function SubHeading({ children }: { children: ReactNode }) {
+  return <h3 className="px-5.5 text-[13px] font-semibold">{children}</h3>
+}
+
+function groupStatusText(result: GroupResult): string {
+  if (result.status === 'not-found') return GROUPS_NOT_FOUND_LABEL
+  if (result.status === 'homepage-section') return `Section on the homepage (#${result.anchor})`
+  if (result.status === 'blocked-by-robots') return 'Blocked by robots.txt'
+  if (result.status === 'not-checked') return 'Not checked'
+  return `Own page${result.foundIn ? `, linked from ${result.foundIn}` : ''}`
+}
+
+function Findings({ findings }: { findings: ScanFinding[] }) {
+  if (!findings.length) return null
+  return (
+    <div className="flex flex-col gap-2">
+      <SubHeading>Findings</SubHeading>
+      <ul className="flex flex-col gap-2.5 px-5.5 text-[13.5px]">
+        {findings.map((finding) => (
+          <li key={finding.code}>
+            <span className="flex flex-wrap items-center gap-1.5">
+              <AdminStatusBadge tone={SEVERITY_TONES[finding.severity]} dot={false}>{finding.severity}</AdminStatusBadge>
+              <AdminStatusBadge dot={false}>{CONFIDENCE_LABELS[finding.confidence]}</AdminStatusBadge>
+              <strong className="font-[540]">{finding.title}</strong>
+            </span>
+            <p className="mt-0.5 text-a-ink-2">{finding.evidence}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function contactText(method: ContactMethod): ReactNode {
+  if (!method.found) return <span className="text-a-ink-2">We didn’t find one. {CONFIDENCE_LABELS[method.confidence]}.</span>
+  return (
+    <>
+      Found via {method.via ? VIA_LABELS[method.via] : 'the page'}
+      {method.providers?.length ? ` (${method.providers.join(', ')})` : ''}
+      {method.values?.length ? `: ${method.values.join(', ')}` : ''}
+      <span className="text-xs text-a-ink-2"> · {method.pages.length} page{method.pages.length === 1 ? '' : 's'}</span>
+    </>
+  )
+}
+
+function LinkHealthRows({ health }: { health: LinkHealth }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <SubHeading>Internal link health</SubHeading>
+      {health.confidence === 'low' && <p className="px-5.5 text-[13px] text-a-ink-2">Low confidence: an app shell can answer 200 for any address.</p>}
+      <Rows rows={[
+        ['Checked', `${health.checked} of ${health.candidates} known links`],
+        ['Left unchecked (time ran out)', health.dropped],
+        ['Couldn’t verify', health.inconclusive],
+        ['Broken', health.broken.length ? (
+          <ul key="broken">{health.broken.map((link) => <li key={link.url}><ExternalSiteLink url={link.url} /> <Warn when>{link.status}</Warn> <span className="text-xs text-a-ink-2">on {link.foundOn}</span></li>)}</ul>
+        ) : 'None found'],
+        ['Redirected', health.redirected.length ? (
+          <ul key="redirected">{health.redirected.map((link) => <li key={link.url}><ExternalSiteLink url={link.url} /> <span className="text-xs text-a-ink-2">→ {link.finalUrl} ({link.type}{link.httpToHttps ? ', http to https' : ''}), on {link.foundOn}</span></li>)}</ul>
+        ) : 'None found'],
+      ]} />
+    </div>
+  )
+}
+
+function SitemapRows({ sitemap }: { sitemap: SitemapQuality }) {
+  const urls = (items: string[]) => (items.length ? items.join(', ') : 'None found')
+  return (
+    <div className="flex flex-col gap-2">
+      <SubHeading>Sitemap quality</SubHeading>
+      <Rows rows={[
+        ['Found', yesNo(sitemap.found)],
+        ['URLs listed', sitemap.urlCount.toLocaleString()],
+        ['Listed in robots.txt', yesNo(sitemap.listedInRobotsTxt)],
+        ['lastmod present', yesNo(sitemap.hasLastmod)],
+        ['Newest lastmod', sitemap.newestLastmod ? exactTime(sitemap.newestLastmod) : '—'],
+        ['robots.txt blocks everything', <Warn key="blocks" when={sitemap.robotsBlocksAll}>{yesNo(sitemap.robotsBlocksAll)}</Warn>],
+        ['Redirecting (only pages we fetched)', urls(sitemap.redirects.map((r) => `${r.url} → ${r.finalUrl}`))],
+        ['Returning errors (only pages we fetched)', urls(sitemap.errors.map((e) => `${e.url} (${e.status})`))],
+        ['Reading as not found', urls(sitemap.soft404s)],
+        ['Noindex', urls(sitemap.noindex)],
+      ]} />
+    </div>
+  )
+}
+
+function SignalRows({ signals }: { signals: MarketingSignals }) {
+  const { tags, social, trust, headers, instagramHandle, latestPost } = signals
+  const TAG_NAMES: Array<[keyof typeof tags, string]> = [['ga4', 'GA4'], ['gtm', 'Google Tag Manager'], ['googleAds', 'Google Ads'], ['metaPixel', 'Meta Pixel'], ['linkedinInsight', 'LinkedIn Insight'], ['hotjar', 'Hotjar'], ['clarity', 'Microsoft Clarity']]
+  const SOCIAL_NAMES: Array<[keyof typeof social, string]> = [['instagram', 'Instagram'], ['facebook', 'Facebook'], ['linkedin', 'LinkedIn'], ['youtube', 'YouTube'], ['x', 'X/Twitter'], ['pinterest', 'Pinterest'], ['threads', 'Threads']]
+  const foundTags = TAG_NAMES.filter(([key]) => tags[key].length > 0)
+  const foundSocial = SOCIAL_NAMES.filter(([key]) => social[key].length > 0)
+  const seen = (value: boolean) => (value ? 'Detected' : 'Not detected')
+  return (
+    <div className="flex flex-col gap-2">
+      <SubHeading>Homepage signals</SubHeading>
+      <Rows rows={[
+        ['Tags', foundTags.length ? <ul key="tags">{foundTags.map(([key, name]) => <li key={key}>{name}: {tags[key].join(', ')}</li>)}</ul> : 'Not detected. They may load through JavaScript.'],
+        ['Social profiles', foundSocial.length ? <ul key="social">{foundSocial.map(([key, name]) => <li key={key}>{name}: {social[key].map((url) => <span key={url} className="mr-2"><ExternalSiteLink url={url} /></span>)}</li>)}</ul> : 'Not detected'],
+        ['Instagram handle', instagramHandle ? `@${instagramHandle}` : 'Not detected'],
+        ['Testimonials or reviews', seen(trust.testimonials)],
+        ['Client logos', seen(trust.clientLogos)],
+        ['Google Maps embed', seen(trust.googleMaps)],
+        ['Physical address', trust.address ? `Detected in ${trust.address === 'schema' ? 'structured data' : 'page text'}` : 'Not detected'],
+        ['Google reviews widget', seen(trust.googleReviews)],
+        ['Server / CDN', [headers.server, headers.cdn].filter(Boolean).join(' / ') || 'Not reported'],
+        ['HSTS', yesNo(headers.hsts)],
+        ['Compression', headers.compression ?? 'None reported'],
+        ['Cache-Control', headers.cacheControl ?? 'None reported'],
+        ['Latest post', latestPost ? `${exactTime(latestPost.date)} (from the ${latestPost.source})` : 'Not detected'],
+      ]} />
+    </div>
+  )
+}
+
 function KeyPages({ data }: { data: PagesData }) {
   const { summary, homepage, pages } = data
   const contact = summary.contactMethods
   const contactFound = [contact.form && 'Form', contact.phone && 'Phone', contact.email && 'Email', contact.whatsapp && 'WhatsApp'].filter(Boolean).join(', ') || 'None found'
+  const details = homepage.check.details
+  const findings = summary.findings ?? buildFindings(data)
   return (
     <div className="flex flex-col gap-4 pb-5">
       <div className="flex flex-wrap gap-2 px-5.5">
@@ -217,13 +363,46 @@ function KeyPages({ data }: { data: PagesData }) {
         <AdminStatusBadge dot={false}>Contact methods: {contactFound}</AdminStatusBadge>
       </div>
       {summary.note && <p className="px-5.5 text-[13px] text-a-ink-2">{summary.note}</p>}
+      {details && (
+        <div className="px-5.5 text-[13.5px]">
+          <AdminStatusBadge tone={details.renderMode === 'server' ? 'neutral' : 'warning'} dot={false}>
+            {details.renderMode === 'client-shell' ? 'Built by JavaScript' : details.renderMode === 'unknown' ? 'Rendering unclear' : 'Server-rendered'}
+          </AdminStatusBadge>
+          <p className="mt-1 text-a-ink-2">{details.renderMode === 'client-shell' ? CLIENT_SHELL_CAVEAT : details.renderReason}</p>
+          {details.renderMode === 'client-shell' && <p className="mt-1 text-xs text-a-ink-2">{details.renderReason}</p>}
+        </div>
+      )}
+      <Findings findings={findings} />
+      {summary.groups ? (
+        <div className="flex flex-col gap-2">
+          <SubHeading>Page types</SubHeading>
+          <Rows rows={PAGE_GROUPS.map((group) => [KEY_PAGE_LABELS[group], groupStatusText(summary.groups![group])] as [string, ReactNode])} />
+        </div>
+      ) : (
+        <Rows rows={[
+          ['Groups found', groupNames(summary.groupsFound)],
+          ['Groups not found', summary.groupsNotFound.length ? `${groupNames(summary.groupsNotFound)}. ${GROUPS_NOT_FOUND_LABEL}` : 'None'],
+          ['Groups not checked', summary.groupsNotChecked.length ? `${groupNames(summary.groupsNotChecked)}. A candidate existed but wasn’t read` : 'None'],
+        ]} />
+      )}
       <Rows rows={[
-        ['Groups found', groupNames(summary.groupsFound)],
-        ['Groups not found', summary.groupsNotFound.length ? `${groupNames(summary.groupsNotFound)}. ${GROUPS_NOT_FOUND_LABEL}` : 'None'],
-        ['Groups not checked', summary.groupsNotChecked.length ? `${groupNames(summary.groupsNotChecked)}. A candidate existed but wasn’t read` : 'None'],
         ['Blocked by robots.txt', summary.blockedByRobots.length ? summary.blockedByRobots.join(', ') : 'None'],
-        ['How pages were found', `${data.discovery.homepageLinks} homepage links, ${data.discovery.sitemapUrls} sitemap URLs`],
+        ['How pages were found', `${data.discovery.homepageLinks} homepage links, ${data.discovery.sitemapUrls} sitemap URLs${data.discovery.inlineHints ? `, ${data.discovery.inlineHints} hints from inline scripts` : ''}`],
       ]} />
+      {summary.contact && (
+        <div className="flex flex-col gap-2">
+          <SubHeading>Contact methods</SubHeading>
+          <Rows rows={[
+            ['Form or booking', contactText(summary.contact.form)],
+            ['Phone', contactText(summary.contact.phone)],
+            ['Email', contactText(summary.contact.email)],
+            ['WhatsApp', contactText(summary.contact.whatsapp)],
+          ]} />
+        </div>
+      )}
+      {data.linkHealth && <LinkHealthRows health={data.linkHealth} />}
+      {data.sitemap && <SitemapRows sitemap={data.sitemap} />}
+      {data.signals && <SignalRows signals={data.signals} />}
       <div className="overflow-x-auto">
         <table className="admin-table">
           <thead>

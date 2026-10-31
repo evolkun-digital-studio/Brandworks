@@ -136,13 +136,104 @@ export type TrafficData = {
 export const KEY_PAGE_GROUPS = ['about', 'services', 'contact', 'pricing', 'work', 'blog'] as const
 export type KeyPageGroup = (typeof KEY_PAGE_GROUPS)[number]
 
-export const KEY_PAGE_LABELS: Record<KeyPageGroup, string> = {
+/** Looked for too, after the main six: they never count against the main groups or as "missing". */
+export const EXTRA_PAGE_GROUPS = ['shop', 'faq', 'testimonials', 'careers'] as const
+export type ExtraPageGroup = (typeof EXTRA_PAGE_GROUPS)[number]
+export type PageGroup = KeyPageGroup | ExtraPageGroup
+export const PAGE_GROUPS: readonly PageGroup[] = [...KEY_PAGE_GROUPS, ...EXTRA_PAGE_GROUPS]
+
+export const KEY_PAGE_LABELS: Record<PageGroup, string> = {
   about: 'About',
   services: 'Services/Products',
   contact: 'Contact',
   pricing: 'Pricing',
   work: 'Work/Portfolio',
   blog: 'Blog/News',
+  shop: 'Shop',
+  faq: 'FAQ',
+  testimonials: 'Testimonials/Reviews',
+  careers: 'Careers',
+}
+
+/**
+ * How far a finding can be trusted, which also decides how it's worded.
+ * measured: a fact from a response. detected: a pattern found in the HTML.
+ * not-detected: a pattern not found, so it may still exist. low: a client-rendered page.
+ */
+export type FindingConfidence = 'measured' | 'detected' | 'not-detected' | 'low'
+export type FindingSeverity = 'critical' | 'high' | 'medium' | 'low'
+
+export type ScanFinding = {
+  code: string
+  severity: FindingSeverity
+  confidence: FindingConfidence
+  title: string
+  evidence: string
+  impact: string
+  pages?: string[]
+}
+
+export type RenderMode = 'server' | 'client-shell' | 'unknown'
+export type LinkLocation = 'nav' | 'footer' | 'body' | 'sitemap' | 'inline-script'
+export type CanonicalStatus = 'missing' | 'self' | 'points-to-homepage' | 'points-to-other-page' | 'cross-domain' | 'http-on-https-site' | 'relative'
+export type ContactVia = 'link' | 'text' | 'form' | 'embed'
+
+export type GroupResult = {
+  status: 'page' | 'homepage-section' | 'not-found' | 'not-checked' | 'blocked-by-robots'
+  url?: string
+  anchor?: string
+  /** Where the winning link was found. */
+  foundIn?: LinkLocation
+  confidence: FindingConfidence
+}
+
+export type RedirectInfo = {
+  count: number
+  /** permanent: every hop 301/308. temporary: every hop 302/303/307. */
+  type: 'permanent' | 'temporary' | 'mixed' | 'unknown'
+  httpToHttps: boolean
+  chain: string[]
+}
+
+export type PageContact = {
+  emails: Array<{ value: string; via: ContactVia }>
+  phones: Array<{ value: string; via: ContactVia }>
+  whatsapp: string[]
+  form: boolean
+  embeds: Array<{ provider: string; via: ContactVia }>
+}
+
+export type ContactMethod = {
+  found: boolean
+  /** The strongest way it was found; null when it wasn't. */
+  via: ContactVia | null
+  pages: string[]
+  /** Normalised and deduped, at most three. Team-only. */
+  values?: string[]
+  providers?: string[]
+  confidence: FindingConfidence
+}
+
+export type OrganizationSchema = { type: string; name: boolean; logo: boolean; url: boolean; telephone: boolean; address: boolean; sameAs: boolean }
+
+/** Extras read from one page. Absent on scans stored before they existed: treat that as "not checked". */
+export type PageDetails = {
+  renderMode: RenderMode
+  renderReason: string
+  /** How far word count, H1 and missing-content findings on this page can be trusted. */
+  contentConfidence: FindingConfidence
+  canonicalStatus: CanonicalStatus
+  /** Why the page reads as a "not found" page despite responding 200; null if it doesn't. */
+  soft404: string | null
+  headings: { h2: number; h3: number; outline: Array<{ level: number; text: string }> }
+  thinContent: boolean
+  social: { ogTitle: boolean; ogDescription: boolean; ogImage: boolean; twitterCard: boolean }
+  images: { missingDimensions: number; lazy: boolean }
+  mixedContent: { count: number; samples: string[] }
+  structuredData: { organization: OrganizationSchema | null; product: boolean; service: boolean; faq: boolean; breadcrumb: boolean }
+  contact: PageContact
+  /** Newest article:published_time or <time datetime> on the page. */
+  newestDate: string | null
 }
 
 export type KeyPageCheck = {
@@ -159,10 +250,11 @@ export type KeyPageCheck = {
   hasForm: boolean
   contactLinks: { email: string[]; phone: string[]; whatsapp: string[] }
   ctaTexts: string[]
+  details?: PageDetails
 }
 
 export type CrawledPage = {
-  group: KeyPageGroup
+  group: PageGroup
   url: string
   /** null when the request itself failed. */
   finalUrl: string | null
@@ -170,6 +262,10 @@ export type CrawledPage = {
   /** Why the page couldn't be read; `check` is null then. */
   error: string | null
   check: KeyPageCheck | null
+  foundIn?: LinkLocation
+  redirect?: RedirectInfo
+  /** It responded 200 but reads as a "not found" page. */
+  soft404?: boolean
 }
 
 export type DuplicateText = { text: string; urls: string[] }
@@ -198,13 +294,75 @@ export type PagesSummary = {
   /** The time budget ran out, so this is a partial result. */
   truncated: boolean
   note: string | null
+  /** The fields below are absent on scans stored before they existed. */
+  groups?: Record<PageGroup, GroupResult>
+  contact?: Record<'form' | 'phone' | 'email' | 'whatsapp', ContactMethod>
+  /** Ranked, most severe first. */
+  findings?: ScanFinding[]
+  soft404s?: string[]
+}
+
+export type LinkHealth = {
+  /** Unique internal links known that weren't crawled anyway. */
+  candidates: number
+  checked: number
+  broken: Array<{ url: string; status: number; foundOn: string }>
+  redirected: Array<{ url: string; finalUrl: string; foundOn: string; type: RedirectInfo['type']; httpToHttps: boolean }>
+  /** Answered 401, 403 or 429, or didn't answer: that proves nothing about the link. */
+  inconclusive: number
+  /** Left unchecked because the time budget ran out. */
+  dropped: number
+  /** An app shell answers 200 for any address, so "not broken" means little there. */
+  confidence: FindingConfidence
+}
+
+export type SitemapQuality = {
+  found: boolean
+  urlCount: number
+  listedInRobotsTxt: boolean
+  hasLastmod: boolean
+  newestLastmod: string | null
+  /** robots.txt says "Disallow: /" to every crawler. */
+  robotsBlocksAll: boolean
+  /** Only what we actually fetched: other sitemap URLs weren't checked. */
+  redirects: Array<{ url: string; finalUrl: string }>
+  errors: Array<{ url: string; status: number }>
+  soft404s: string[]
+  noindex: string[]
+}
+
+export type MarketingSignals = {
+  tags: { ga4: string[]; gtm: string[]; googleAds: string[]; metaPixel: string[]; linkedinInsight: string[]; hotjar: string[]; clarity: string[] }
+  social: { instagram: string[]; facebook: string[]; linkedin: string[]; youtube: string[]; x: string[]; pinterest: string[]; threads: string[] }
+  instagramHandle: string | null
+  trust: { testimonials: boolean; clientLogos: boolean; googleMaps: boolean; address: 'schema' | 'text' | null; googleReviews: boolean }
+  headers: { server: string | null; cdn: string | null; hsts: boolean; compression: string | null; cacheControl: string | null }
+  latestPost: { date: string; source: 'blog page' | 'sitemap' } | null
 }
 
 export type PagesData = {
-  homepage: { url: string; statusCode: number; check: KeyPageCheck }
+  homepage: {
+    url: string
+    statusCode: number
+    check: KeyPageCheck
+    redirect?: RedirectInfo
+    /** Groups the homepage has a section for: for one-page sites. */
+    sections?: Array<{ group: PageGroup; anchor: string }>
+  }
   pages: CrawledPage[]
-  discovery: { homepageLinks: number; sitemapUrls: number }
+  discovery: {
+    homepageLinks: number
+    sitemapUrls: number
+    /** Paths read from inline scripts of a client-rendered homepage: a hint, not proof. */
+    inlineHints?: number
+  }
   summary: PagesSummary
+  /** The fields below are absent on scans stored before they existed. Null: never got that far. */
+  linkHealth?: LinkHealth | null
+  sitemap?: SitemapQuality | null
+  signals?: MarketingSignals
+  /** Internal links written as http:// on an https site. */
+  insecureInternalLinks?: string[]
 }
 
 export type ScanResults = {

@@ -236,8 +236,8 @@ describe('key pages', () => {
   it('builds fallback issues from the summary, citing only real data', () => {
     const r = pagesOnly()
     const analysis = fallbackAnalysis(r)
-    expect(analysis.issues.map((i) => i.title)).toEqual(['No contact method found', 'Key pages hidden from search', 'Pages sharing the same title', 'Pages without a meta description'])
-    expect(analysis.issues[3].evidence).toBe('3 of 5 pages have no meta description (key-page check)')
+    expect(analysis.issues.map((i) => i.title)).toEqual(['No contact method found', 'Key pages hidden from search', 'Pages without a meta description', 'Pages sharing the same title'])
+    expect(analysis.issues[2].evidence).toBe('3 of 5 pages have no meta description (key-page check)')
     expect(analysis.issues[1].evidence).toContain('/services')
     const allowed = allowedNumbers(JSON.stringify(siteFacts(r)))
     for (const text of analysis.issues.flatMap((i) => [i.title, i.evidence, i.impact])) {
@@ -247,8 +247,7 @@ describe('key pages', () => {
 
   it('words a missing Contact page as "not found", only when no contact method turned up elsewhere', () => {
     const found = { form: false, phone: true, email: false, whatsapp: false }
-    const issue = fallbackAnalysis(pagesOnly({ contactMethods: found })).issues[0]
-    expect(issue.title).toBe('No Contact page found')
+    const issue = fallbackAnalysis(pagesOnly({ contactMethods: found })).issues.find((i) => i.title === 'No Contact page found')!
     expect(issue.evidence).toBe('No Contact page found from the homepage links or sitemap (key-page check)')
     expect(issue.impact).toContain('may exist')
     expect(issueTitles(pagesOnly({ contactMethods: found, groupsNotFound: [], groupsFound: ['contact'] }))).not.toContain('No Contact page found')
@@ -272,7 +271,80 @@ describe('key pages', () => {
   it('keeps room for key-page issues when speed and homepage issues fill the list', () => {
     const issues = fallbackAnalysis(withPages()).issues
     expect(issues).toHaveLength(4)
-    expect(issues.map((i) => i.title)).toEqual(['Slow on mobile', 'Main content loads slowly for real users', 'No contact method found', 'Key pages hidden from search'])
+    expect(issues.map((i) => i.title)).toEqual(['No contact method found', 'Slow on mobile', 'Main content loads slowly for real users', 'Key pages hidden from search'])
+  })
+
+  const findingsOf = (over: Partial<PagesData>, home: Partial<KeyPageCheck> = {}) => {
+    const r = pagesOnly({ contactMethods: { form: true, phone: false, email: false, whatsapp: false }, groupsNotFound: [], noindex: [], missingMetaDescription: [], duplicateTitles: [] }, home)
+    r.pages = { ...r.pages!, data: { ...r.pages!.data!, ...over } }
+    return r
+  }
+  const SHELL_DETAILS: NonNullable<KeyPageCheck['details']> = {
+    renderMode: 'client-shell', renderReason: 'x', contentConfidence: 'low', canonicalStatus: 'missing', soft404: null, headings: { h2: 0, h3: 0, outline: [] }, thinContent: false,
+    social: { ogTitle: false, ogDescription: false, ogImage: false, twitterCard: false }, images: { missingDimensions: 0, lazy: false }, mixedContent: { count: 0, samples: [] },
+    structuredData: { organization: null, product: false, service: false, faq: false, breadcrumb: false },
+    contact: { emails: [], phones: [], whatsapp: [], form: false, embeds: [] }, newestDate: null,
+  }
+
+  it('ranks critical findings first in the fallback, whatever else is wrong', () => {
+    const r = findingsOf({
+      sitemap: { found: true, urlCount: 1, listedInRobotsTxt: false, hasLastmod: false, newestLastmod: null, robotsBlocksAll: true, redirects: [], errors: [], soft404s: [], noindex: [] },
+      linkHealth: { candidates: 1, checked: 1, broken: [{ url: 'https://chaico.in/old', status: 404, foundOn: 'https://chaico.in/' }], redirected: [], inconclusive: 0, dropped: 0, confidence: 'measured' },
+    })
+    expect(fallbackAnalysis({ ...r, performance: results().performance }).issues.map((i) => i.title).slice(0, 2)).toEqual(['robots.txt blocks every crawler', 'Slow on mobile'])
+    expect(fallbackAnalysis(r).issues.map((i) => i.title)).toContain('Broken internal links')
+    const allowed = allowedNumbers(JSON.stringify(siteFacts(r)))
+    expect(allowed.has(404)).toBe(true)
+  })
+
+  it('tells the model how to word findings by confidence and gives the client-shell caveat', () => {
+    const prompt = buildAnalysisPrompt(findingsOf({}, { details: SHELL_DETAILS }), answers)
+    expect(prompt).toContain('never "You don\'t have X"')
+    expect(prompt).toContain('This site builds its content with JavaScript; the HTML we read before JavaScript runs is mostly empty, so content checks are unreliable and Google may also see less content.')
+    expect(prompt).toContain('Never claim the page is empty')
+    expect(prompt).toContain('critical first')
+  })
+
+  it('makes no content claims in the fallback for a client-rendered site, only the caveat', () => {
+    const r = withPages({ contactMethods: { form: false, phone: false, email: false, whatsapp: false } }, { details: SHELL_DETAILS })
+    const titles = issueTitles({ ...r, onPage: skip<OnPageData>('x'), performance: skip<PerformanceData>('x') })
+    expect(titles).toContain('Content is built by JavaScript')
+    expect(titles).not.toContain('No contact method found')
+    expect(titles).not.toContain('Incomplete link previews')
+    expect(titles.join(' ')).not.toMatch(/empty/i)
+  })
+
+  it('reads a stored scan without any of the new fields', () => {
+    const old = withPages()
+    expect(old.pages?.data?.summary.groups).toBeUndefined()
+    expect(old.pages?.data?.linkHealth).toBeUndefined()
+    const facts = siteFacts(old).key_pages_check as Record<string, unknown>
+    expect(facts).not.toHaveProperty('Internal link check')
+    expect(facts).not.toHaveProperty('How the homepage is built')
+    expect(fallbackAnalysis(old).issues.length).toBeGreaterThan(0)
+  })
+
+  it('keeps phone numbers, emails and tag IDs out of the prompt', () => {
+    const r = findingsOf({
+      signals: {
+        tags: { ga4: ['G-SECRET123'], gtm: [], googleAds: [], metaPixel: ['998877665544'], linkedinInsight: [], hotjar: [], clarity: [] },
+        social: { instagram: ['https://instagram.com/chai'], facebook: [], linkedin: [], youtube: [], x: [], pinterest: [], threads: [] },
+        instagramHandle: 'chai',
+        trust: { testimonials: true, clientLogos: false, googleMaps: false, address: null, googleReviews: false },
+        headers: { server: null, cdn: 'Cloudflare', hsts: true, compression: 'br', cacheControl: null },
+        latestPost: { date: '2026-09-01T00:00:00.000Z', source: 'blog page' },
+      },
+    })
+    r.pages!.data!.summary.contact = {
+      form: { found: false, via: null, pages: [], confidence: 'not-detected' },
+      phone: { found: true, via: 'text', pages: ['https://chaico.in/'], values: ['+919812345678'], confidence: 'detected' },
+      email: { found: true, via: 'link', pages: ['https://chaico.in/'], values: ['hello@chaico.in'], confidence: 'detected' },
+      whatsapp: { found: false, via: null, pages: [], confidence: 'not-detected' },
+    }
+    const prompt = buildAnalysisPrompt(r, answers)
+    expect(prompt).toContain('Google Analytics 4')
+    expect(prompt).toContain('2026-09-01')
+    for (const secret of ['G-SECRET123', '998877665544', '+919812345678', 'hello@chaico.in']) expect(prompt).not.toContain(secret)
   })
 
   it('keeps the crawl out of the public view', () => {

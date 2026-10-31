@@ -121,6 +121,26 @@ describe('assertPublicHost', () => {
   })
 })
 
+describe('safeFetch methods and redirects', () => {
+  it('sends HEAD when asked, re-checking every hop the same way, and reports each hop’s status', async () => {
+    const transport = vi.fn<Transport>(async (url) => (url.pathname === '/a'
+      ? { status: 301, headers: { location: '/b' }, body: new Uint8Array(), truncated: false }
+      : { status: 200, headers: {}, body: new Uint8Array(), truncated: false }))
+    const res = await safeFetch('https://chaico.in/a', { resolve: async () => ['93.184.215.14'], transport, method: 'HEAD' })
+    expect(transport.mock.calls.map((call) => call[4])).toEqual(['HEAD', 'HEAD'])
+    expect(res).toMatchObject({ status: 200, redirects: ['https://chaico.in/b'], redirectStatuses: [301] })
+  })
+
+  it('defaults to GET, and refuses a private address for HEAD too', async () => {
+    const transport = vi.fn<Transport>(async () => ({ status: 200, headers: {}, body: new Uint8Array(), truncated: false }))
+    await safeFetch('https://chaico.in/', { resolve: async () => ['93.184.215.14'], transport })
+    expect(transport.mock.calls[0][4]).toBe('GET')
+    transport.mockClear()
+    await expect(safeFetch('https://chaico.in/', { resolve: async () => ['10.0.0.5'], transport, method: 'HEAD' })).rejects.toMatchObject({ code: 'blocked' })
+    expect(transport).not.toHaveBeenCalled()
+  })
+})
+
 describe('safeFetch', () => {
   it('connects only to the checked address and returns the page', async () => {
     const transport = vi.fn<Transport>(async () => page(200, { 'content-type': 'text/html' }, '<title>Hi</title>'))

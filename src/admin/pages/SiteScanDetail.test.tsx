@@ -211,6 +211,64 @@ describe('SiteScanDetail', () => {
     expect(el.querySelector('[role="alertdialog"]')?.textContent).toContain('bills the paid data sources again')
   })
 
+  it('shows the newer crawl data: sections, contact via, link health, sitemap, signals and render mode', async () => {
+    const none = { found: false, via: null, pages: [], confidence: 'not-detected' as const }
+    const notFound = { status: 'not-found' as const, confidence: 'not-detected' as const }
+    const data: PagesData = {
+      ...pages,
+      homepage: { ...pages.homepage, check: check({ details: {
+        renderMode: 'client-shell', renderReason: '0 words and 0 links', contentConfidence: 'low', canonicalStatus: 'points-to-homepage', soft404: null,
+        headings: { h2: 1, h3: 2, outline: [] }, thinContent: true, social: { ogTitle: false, ogDescription: false, ogImage: false, twitterCard: false },
+        images: { missingDimensions: 0, lazy: false }, mixedContent: { count: 1, samples: ['http://x/a.png'] },
+        structuredData: { organization: null, product: false, service: false, faq: false, breadcrumb: false },
+        contact: { emails: [], phones: [], whatsapp: [], form: false, embeds: [] }, newestDate: null,
+      } }) },
+      summary: {
+        ...pages.summary,
+        groups: {
+          about: { status: 'page', url: 'https://chaico.in/about', foundIn: 'nav', confidence: 'measured' },
+          services: notFound, contact: { status: 'homepage-section', url: 'https://chaico.in/', anchor: 'contact', confidence: 'detected' },
+          pricing: { status: 'blocked-by-robots', confidence: 'measured' }, work: { status: 'not-checked', confidence: 'not-detected' }, blog: notFound,
+          shop: notFound, faq: notFound, testimonials: notFound, careers: notFound,
+        },
+        contact: {
+          form: { found: true, via: 'embed', pages: ['https://chaico.in/'], providers: ['Calendly'], confidence: 'detected' },
+          phone: { found: true, via: 'text', pages: ['https://chaico.in/'], values: ['+919812345678'], confidence: 'detected' },
+          email: none, whatsapp: none,
+        },
+        findings: [{ code: 'no-org', severity: 'medium', confidence: 'not-detected', title: 'No business details', evidence: 'We didn’t find it', impact: 'x' }],
+      },
+      linkHealth: { candidates: 30, checked: 20, broken: [{ url: 'https://chaico.in/gone', status: 404, foundOn: 'https://chaico.in/' }], redirected: [{ url: 'https://chaico.in/a', finalUrl: 'https://chaico.in/b', foundOn: 'https://chaico.in/', type: 'permanent', httpToHttps: false }], inconclusive: 1, dropped: 3, confidence: 'low' },
+      sitemap: { found: true, urlCount: 40, listedInRobotsTxt: true, hasLastmod: true, newestLastmod: at, robotsBlocksAll: true, redirects: [], errors: [{ url: 'https://chaico.in/x', status: 404 }], soft404s: [], noindex: [] },
+      signals: {
+        tags: { ga4: ['G-ABC123'], gtm: [], googleAds: [], metaPixel: ['123456'], linkedinInsight: [], hotjar: [], clarity: [] },
+        social: { instagram: ['https://instagram.com/chai'], facebook: [], linkedin: [], youtube: [], x: [], pinterest: ['javascript:alert(1)'], threads: [] },
+        instagramHandle: 'chai',
+        trust: { testimonials: true, clientLogos: false, googleMaps: true, address: 'schema', googleReviews: false },
+        headers: { server: 'nginx', cdn: 'Cloudflare', hsts: true, compression: 'br', cacheControl: 'no-store' },
+        latestPost: { date: at, source: 'sitemap' },
+      },
+    }
+    const detail = scan()
+    detail.results = { ...detail.results!, url: 'https://chaico.in/', domain: 'chaico.in', pages: ok('Key pages', data) }
+    const text = (await mount(detail)).textContent!
+    for (const expected of [
+      'Section on the homepage (#contact)', 'Blocked by robots.txt', 'Own page, linked from nav', 'Not found from links or sitemap',
+      'Found via embedded tool (Calendly)', 'Found via plain text: +919812345678', 'We didn’t find one',
+      '20 of 30 known links', '404', 'Low confidence: an app shell',
+      '40', 'G-ABC123', 'Meta Pixel: 123456', '@chai', 'Google Maps embed', 'Cloudflare',
+      'Built by JavaScript', 'This site builds its content with JavaScript', 'Not detected, may still exist', 'Thin content', 'points-to-homepage', '1 insecure resources',
+    ]) expect(text, expected).toContain(expected)
+    expect(text).not.toMatch(/page is empty/i)
+    expect(container!.querySelector('a[href^="javascript"]')).toBeNull()
+  })
+
+  it('renders a stored scan without any of the newer fields, adding nothing that wasn’t checked', async () => {
+    const text = (await mount(scan())).textContent!
+    expect(text).toContain('Groups not found')
+    for (const absent of ['Internal link health', 'Sitemap quality', 'Homepage signals', 'Contact methods:Form', 'Server-rendered', 'Built by JavaScript']) expect(text, absent).not.toContain(absent)
+  })
+
   it('starts a rescan from the button', async () => {
     api.rescanSiteScan.mockResolvedValue({ status: 'running' })
     const el = await mount(scan())

@@ -197,7 +197,7 @@ export async function validatePublicUrl(input: string, resolve: Resolver = resol
 
 export type HopResponse = { status: number; headers: Record<string, string>; body: Uint8Array; truncated: boolean }
 /** Makes one request to `url`, connecting only to the already-checked `address`. */
-export type Transport = (url: URL, address: string, signal: AbortSignal, maxBytes: number) => Promise<HopResponse>
+export type Transport = (url: URL, address: string, signal: AbortSignal, maxBytes: number, method?: 'GET' | 'HEAD') => Promise<HopResponse>
 
 const REDIRECTS = new Set([301, 302, 303, 307, 308])
 
@@ -235,7 +235,7 @@ function decoded(res: http.IncomingMessage): Readable {
   }
 }
 
-export const nodeTransport: Transport = (url, address, signal, maxBytes) =>
+export const nodeTransport: Transport = (url, address, signal, maxBytes, method = 'GET') =>
   new Promise((resolve, reject) => {
     const family = isIP(address)
     // Pin the socket to the address we validated, whatever DNS says now.
@@ -250,7 +250,7 @@ export const nodeTransport: Transport = (url, address, signal, maxBytes) =>
         hostname: url.hostname.replace(/^\[|\]$/g, ''),
         port: url.port || undefined,
         path: `${url.pathname}${url.search}`,
-        method: 'GET',
+        method,
         lookup,
         signal,
         headers: {
@@ -263,7 +263,8 @@ export const nodeTransport: Transport = (url, address, signal, maxBytes) =>
         const headers: Record<string, string> = {}
         for (const [k, v] of Object.entries(res.headers)) if (v !== undefined) headers[k] = Array.isArray(v) ? v.join(', ') : v
         const status = res.statusCode ?? 0
-        if (REDIRECTS.has(status)) {
+        // A HEAD response has no body to read, even when its headers describe a compressed one.
+        if (REDIRECTS.has(status) || method === 'HEAD') {
           res.resume()
           resolve({ status, headers, body: new Uint8Array(), truncated: false })
           return
@@ -287,6 +288,8 @@ export type SafeResponse = {
   text: string
   truncated: boolean
   redirects: string[]
+  /** The status code of each hop in `redirects`, in the same order. */
+  redirectStatuses?: number[]
   elapsedMs: number
 }
 
@@ -295,20 +298,22 @@ export type SafeFetchOptions = {
   transport?: Transport
   timeoutMs?: number
   maxBytes?: number
+  method?: 'GET' | 'HEAD'
 }
 
 export async function safeFetch(input: string | URL, options: SafeFetchOptions = {}): Promise<SafeResponse> {
-  const { resolve = resolveHost, transport = nodeTransport, timeoutMs = TIMEOUT_MS, maxBytes = MAX_BODY_BYTES } = options
+  const { resolve = resolveHost, transport = nodeTransport, timeoutMs = TIMEOUT_MS, maxBytes = MAX_BODY_BYTES, method = 'GET' } = options
   const started = performance.now()
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   const redirects: string[] = []
+  const redirectStatuses: number[] = []
   try {
     let current = normaliseUrl(typeof input === 'string' ? input : input.href)
     for (;;) {
       const [address] = await assertPublicHost(current.hostname, resolve)
       const hop = await Promise.race([
-        transport(current, address, controller.signal, maxBytes),
+        transport(current, address, controller.signal, maxBytes, method),
         new Promise<never>((_, reject) => {
           if (controller.signal.aborted) reject(new SafeFetchError('timeout', 'The website took too long to respond.'))
           controller.signal.addEventListener('abort', () => reject(new SafeFetchError('timeout', 'The website took too long to respond.')), { once: true })
@@ -321,6 +326,7 @@ export async function safeFetch(input: string | URL, options: SafeFetchOptions =
         try { next = new URL(location, current) } catch { throw new SafeFetchError('invalid', 'The website redirected to an invalid address.') }
         current = normaliseUrl(next.href)
         redirects.push(current.href)
+        redirectStatuses.push(hop.status)
         continue
       }
       return {
@@ -330,6 +336,7 @@ export async function safeFetch(input: string | URL, options: SafeFetchOptions =
         text: new TextDecoder('utf-8').decode(hop.body),
         truncated: hop.truncated,
         redirects,
+        redirectStatuses,
         elapsedMs: Math.round(performance.now() - started),
       }
     }
