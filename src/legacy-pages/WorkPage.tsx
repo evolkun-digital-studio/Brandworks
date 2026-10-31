@@ -29,12 +29,51 @@ interface Project {
   gallery?: string[]
 }
 
+const kinikhInfraImages = [
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k1.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k2.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k3.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k4.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k5.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k6.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k7.png',
+] as const
+
+const delhi6Images = [
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%201.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_14.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_Post16.2.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Delhi6_5.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/28th%20October%2C%202026.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Delhi6_28th%20Oct.png',
+] as const
+
+const workifyHubImages = [
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/WorkiffyHub_28thOctober_.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/WorkifyHub_Final2.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify_1_01.jpg',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify_8-01.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify_Post10.2-01.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify_Post9-2.png',
+] as const
+
+const riaajVintageImages = [
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/RiaajVintage_24thOct.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/RIAAJVINTAGE_27OCT_2.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/r3.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/RiaajVintage_Final.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/r1.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/r2.png',
+] as const
+
 const projects: Project[] = [
-  { id: 1, title: 'Delhi-6', media: '/images/brands/delhi%206%203.png', thumbnail: '/images/brands/delhi%206%203.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: [mediaUrl('identity.jpg'), mediaUrl('Artboard 2.png'), mediaUrl('creative.jpg')], gallery: [mediaUrl('ChatGPT Image Sep 21, 2026, 12_05_00 PM.png'), mediaUrl('business card mock up.png'), mediaUrl('photo-02.webp')] },
-  { id: 2, title: 'Workify Hub', media: mediaUrl('website .png'), thumbnail: mediaUrl('website .png'), mediaType: 'image', ratio: 'portrait', position: 'top center', category: 'Web Development', previewImages: [mediaUrl('scrolling.jpg'), mediaUrl('photo-1519389950473-47ba0277781c.jpg'), mediaUrl('ideas.jpg')], gallery: [mediaUrl('website .png'), mediaUrl('photo-1497366754035-f200968a6e72.jpg'), mediaUrl('Strategy.jpg')] },
+  { id: 1, title: 'Delhi-6', media: '/images/brands/delhi%206%203.png', thumbnail: '/images/brands/delhi%206%203.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: delhi6Images.slice(0, 3), gallery: delhi6Images.slice(3) },
+  { id: 2, title: 'Workify Hub', media: workifyHubImages[0], thumbnail: workifyHubImages[0], mediaType: 'image', ratio: 'portrait', position: 'top center', category: 'Web Development', previewImages: workifyHubImages.slice(1, 4), gallery: workifyHubImages.slice(4) },
   { id: 3, title: 'India WMS', media: mediaUrl('project 2.webp'), thumbnail: mediaUrl('project 2.webp'), mediaType: 'image', ratio: 'square', category: 'Digital Platform', previewImages: [mediaUrl('Strategy.jpg'), mediaUrl('photo-1497366754035-f200968a6e72.jpg'), mediaUrl('seo.jpg')], gallery: [mediaUrl('ideas.jpg'), mediaUrl('scrolling.jpg'), mediaUrl('photo-1519389950473-47ba0277781c.jpg')] },
-  { id: 4, title: 'Kinikh Infra', media: '/images/brands/vertical-infrastructure.webp', thumbnail: '/images/brands/vertical-infrastructure.webp', mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: [mediaUrl('our_stra.jpg'), mediaUrl('photo-1545235617-9465d2a55698.jpg'), mediaUrl('identity.jpg')], gallery: [mediaUrl('creative.jpg'), mediaUrl('Strategy.jpg'), mediaUrl('photo-1497366754035-f200968a6e72.jpg')] },
-  { id: 5, title: 'Riaaj Vintage', media: mediaUrl('photo-1483985988355-763728e1935b.jpg'), thumbnail: mediaUrl('content-still.webp'), mediaType: 'image', ratio: 'portrait', category: 'Photography', previewImages: [mediaUrl('photo-1524504388940-b1c1722653e1.jpg'), mediaUrl('photo-1513364776144-60967b0f800f.jpg'), mediaUrl('content-still.webp')], gallery: [mediaUrl('photo-1516035069371-29a1b244cc32.jpg'), mediaUrl('kyle-loftus-DqmXihYx5UE-unsplash.jpg'), mediaUrl('photo-02.webp')] },
+  { id: 4, title: 'Kinikh Infra', media: kinikhInfraImages[0], thumbnail: kinikhInfraImages[0], mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: kinikhInfraImages.slice(1, 4), gallery: kinikhInfraImages.slice(4) },
+  { id: 5, title: 'Riaaj Vintage', media: riaajVintageImages[0], thumbnail: riaajVintageImages[0], mediaType: 'image', ratio: 'portrait', category: 'Photography', previewImages: riaajVintageImages.slice(1, 4), gallery: riaajVintageImages.slice(4) },
   { id: 6, title: 'BrandWorks', media: mediaUrl('business card mock up.png'), thumbnail: mediaUrl('business card mock up.png'), mediaType: 'image', ratio: 'square', category: 'Graphic Design', previewImages: [mediaUrl('moisturizer mock up.png'), mediaUrl('Artboard 12@3x.png'), mediaUrl('Artboard 2@3x.png')], gallery: [mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png'), mediaUrl('identity.jpg'), mediaUrl('vcvcvcvcv.jpg')] },
   { id: 7, title: 'Editorial Series', media: mediaUrl('photo-02.webp'), thumbnail: mediaUrl('photo-02.webp'), mediaType: 'image', ratio: 'landscape', category: 'Editorial', previewImages: [mediaUrl('photo-03.webp'), mediaUrl('Photo1.jpg'), mediaUrl('vcvcvcvcv.jpg')], gallery: [mediaUrl('photo-1524504388940-b1c1722653e1.jpg'), mediaUrl('photo-1513364776144-60967b0f800f.jpg'), mediaUrl('kyle-loftus-DqmXihYx5UE-unsplash.jpg')] },
   { id: 8, title: 'Campaign Film', media: mediaUrl('brandworks_bw_transition_smooth_60fps.mp4'), thumbnail: mediaUrl('photo-03.webp'), mediaType: 'video', ratio: 'portrait', category: 'Film', previewImages: [mediaUrl('campaign-still.webp'), mediaUrl('campaign-action.jpg'), mediaUrl('movment.jpg')], gallery: [mediaUrl('photo-03.webp'), mediaUrl('photo-1516035069371-29a1b244cc32.jpg'), mediaUrl('content-still.webp')] },
@@ -42,23 +81,15 @@ const projects: Project[] = [
   { id: 10, title: 'Growth Campaign', media: mediaUrl('performance.jpg'), thumbnail: mediaUrl('performance.jpg'), mediaType: 'image', ratio: 'square', category: 'Performance Marketing', previewImages: [mediaUrl('enga.webp'), mediaUrl('content_creation.avif'), mediaUrl('team-04.webp')], gallery: [mediaUrl('performance.jpg'), mediaUrl('seo.jpg'), mediaUrl('Strategy.jpg')] },
 ]
 
-// Cloudflare R2 images already used in the Photography experience of the
-// homepage hero. Keeping this reel to that set avoids blank video frames.
-const photographyHeroImages = [
-  mediaUrl('Artboard 2.png'),
-  mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png'),
-  mediaUrl('moisturizer mock up.png'),
-  mediaUrl('Artboard 2@3x.png'),
-  mediaUrl('vcvcvcvcv.jpg'),
-  mediaUrl('Artboard 12@3x.png'),
-]
-
-const ratioClasses = {
-  landscape: 'aspect-[1.42/1]',
-  portrait: 'aspect-[0.79/1]',
-  square: 'aspect-square',
-  cinematic: 'aspect-[1.7/1]',
-}
+const projectHeroImages = [
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/vcvcvcvcv.jpg',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%2012%403x.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Sage%20Glow%20Serum%20Still%20Life.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k4.png',
+] as const
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const
 const EASE_IN_OUT = [0.76, 0, 0.24, 1] as const
@@ -211,14 +242,14 @@ function Hero() {
   }, { scope: ref })
 
   return (
-    <section ref={ref} aria-label="Projects" className="relative flex min-h-[86svh] flex-col justify-end overflow-hidden px-[var(--hero-gutter)] pb-[clamp(30px,3.5vw,52px)] pt-[clamp(118px,12vh,150px)] max-md:min-h-[70svh]">
+    <section ref={ref} aria-label="Projects" className="relative flex h-svh min-h-[520px] flex-col overflow-hidden px-[var(--hero-gutter)] pb-[clamp(24px,2.5vw,40px)] pt-[clamp(96px,11vh,130px)]">
       {/* thumbnail reel */}
-      <div aria-hidden="true" className="pointer-events-none mb-[clamp(28px,4vw,56px)] overflow-hidden">
-        <div data-reel className="flex w-max gap-4">
+      <div aria-hidden="true" className="pointer-events-none min-h-0 flex-1 overflow-hidden">
+        <div data-reel className="flex h-full w-max gap-4">
           {[...projects, ...projects.slice(0, 4)].map((p, i) => (
-            <div key={`${p.id}-${i}`} className="overflow-hidden">
-              <div data-thumb className="h-[clamp(260px,30vw,460px)] w-[clamp(180px,18vw,280px)] overflow-hidden bg-[#f1f1ed]">
-                <img src={photographyHeroImages[i % photographyHeroImages.length]} alt="" loading={i < 4 ? 'eager' : 'lazy'} decoding="async" className="h-full w-full object-cover" />
+            <div key={`${p.id}-${i}`} className="h-full overflow-hidden">
+              <div data-thumb className="h-full w-[clamp(200px,42svh,420px)] overflow-hidden bg-[#f1f1ed]">
+                <img src={projectHeroImages[i % projectHeroImages.length]} alt="" loading={i < 4 ? 'eager' : 'lazy'} decoding="async" className="h-full w-full object-cover" />
               </div>
             </div>
           ))}
@@ -236,19 +267,23 @@ type ProjectHandlers = {
   onHover: (p: Project | null) => void
   onOpen: (index: number) => void
   hiddenId: number | null
+  activeId: number | null
 }
 
-function ProjectCard({ project, index, onHover, onOpen, hiddenId }: ProjectHandlers & { project: Project; index: number }) {
+function ProjectCard({ project, index, onHover, onOpen, hiddenId, activeId }: ProjectHandlers & { project: Project; index: number }) {
+  const imageOnRight = index % 2 === 1
+
   return (
     <article
       data-card
       onPointerEnter={() => onHover(project)}
       onPointerLeave={() => onHover(null)}
-      className="group relative min-w-0"
+      className={`group relative flex min-w-0 items-center gap-[clamp(20px,2.5vw,48px)] ${imageOnRight ? 'md:flex-row-reverse' : ''}`}
     >
       <ProjectHoverPreview
         project={{ title: project.title, category: project.category, coverImage: project.thumbnail, previewImages: project.previewImages ?? [] }}
         onOpen={() => onOpen(index)}
+        className="w-full md:w-[50vw] md:shrink-0"
       >
         {(activate) => (
           <>
@@ -260,7 +295,7 @@ function ProjectCard({ project, index, onHover, onOpen, hiddenId }: ProjectHandl
               onFocus={() => onHover(project)}
               onBlur={() => onHover(null)}
               style={{ opacity: hiddenId === project.id ? 0 : 1 }}
-              className={`relative block w-full cursor-pointer overflow-hidden border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00] focus-visible:ring-offset-4 focus-visible:ring-offset-black ${ratioClasses[project.ratio]}`}
+              className="relative block aspect-[4/5] w-full cursor-pointer md:aspect-auto md:h-[70vh] overflow-hidden border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00] focus-visible:ring-offset-4 focus-visible:ring-offset-black"
             >
               <div data-clip className="absolute inset-0 overflow-hidden bg-[#1a1a1a] will-change-[clip-path]">
                 <div data-inner className="absolute inset-x-0 -top-[10%] h-[120%] will-change-transform">
@@ -271,8 +306,8 @@ function ProjectCard({ project, index, onHover, onOpen, hiddenId }: ProjectHandl
               </div>
             </button>
 
-            <div data-label className="mt-4 flex items-baseline justify-between gap-4 font-(--font-secondary) text-white">
-              <h2 className="-my-[0.05em] mx-0 font-(--font-primary) text-[clamp(20px,1.6vw,26px)] leading-[1.1] tracking-[-0.02em] md:opacity-0 md:transition-opacity md:duration-500 md:group-hover:opacity-100">
+            <div data-label className="mt-4 flex items-baseline justify-between gap-4 font-(--font-secondary) text-white md:mt-0">
+              <h2 className="-my-[0.05em] mx-0 font-(--font-primary) text-[clamp(20px,1.6vw,26px)] leading-[1.1] tracking-[-0.02em] md:sr-only">
                 {project.title}
               </h2>
               <span className="text-[10px] tracking-[0.06em] text-white/45">{[project.discipline, project.year].filter(Boolean).join(' · ')}</span>
@@ -280,6 +315,8 @@ function ProjectCard({ project, index, onHover, onOpen, hiddenId }: ProjectHandl
           </>
         )}
       </ProjectHoverPreview>
+
+      <HoverTitle project={activeId === project.id ? project : null} className="text-center" />
     </article>
   )
 }
@@ -298,26 +335,12 @@ function ProjectGrid(props: ProjectHandlers) {
         gsap.from(card.querySelector('[data-label]'), { autoAlpha: 0, y: 24, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: card, start: 'top 72%' } })
       })
     })
-    mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
-      // the two columns travel at different speeds
-      gsap.to('[data-col="right"]', { y: -160, ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top bottom', end: 'bottom top', scrub: true } })
-      gsap.to('[data-col="left"]', { y: 60, ease: 'none', scrollTrigger: { trigger: ref.current, start: 'top bottom', end: 'bottom top', scrub: true } })
-    })
     return () => mm.revert()
   }, { scope: ref })
 
-  const columns = [
-    projects.map((p, i) => ({ p, i })).filter(({ i }) => i % 2 === 0),
-    projects.map((p, i) => ({ p, i })).filter(({ i }) => i % 2 === 1),
-  ]
-
   return (
-    <div ref={ref} className="grid grid-cols-2 gap-x-[clamp(28px,5vw,80px)] max-md:flex max-md:flex-col max-md:gap-14">
-      {columns.map((col, c) => (
-        <div key={c} data-col={c === 0 ? 'left' : 'right'} className={`flex min-w-0 flex-col gap-[clamp(80px,9vw,140px)] max-md:contents ${c === 1 ? 'pt-[clamp(120px,12vw,200px)]' : ''}`}>
-          {col.map(({ p, i }) => <ProjectCard key={p.id} project={p} index={i} {...props} />)}
-        </div>
-      ))}
+    <div ref={ref} className="flex flex-col gap-[clamp(80px,9vw,140px)] max-md:gap-14">
+      {projects.map((p, i) => <ProjectCard key={p.id} project={p} index={i} {...props} />)}
     </div>
   )
 }
@@ -423,36 +446,46 @@ function ProjectIndex({ onOpen, hiddenId }: Omit<ProjectHandlers, 'onHover'>) {
 */
 
 /* -------------------------------------------------------------------------- */
-/*  Big centred title while hovering a card                                   */
+/*  Big title beside the image while hovering a card                          */
 /* -------------------------------------------------------------------------- */
 
-function HoverTitle({ project }: { project: Project | null }) {
+function HoverTitle({ project, className = '' }: { project: Project | null; className?: string }) {
   const reduce = useReducedMotion()
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed left-1/2 top-1/2 z-50 w-max max-w-[92vw] -translate-x-1/2 -translate-y-1/2 text-center max-md:hidden">
+    <div aria-hidden="true" className={`pointer-events-none min-w-0 flex-1 max-md:hidden ${className}`}>
       <AnimatePresence mode="wait">
         {project && (
           <motion.p
             key={project.id}
-            className="m-0 whitespace-nowrap font-(--font-primary) text-[clamp(34px,6vw,140px)] leading-[1.1] tracking-[-0.04em] text-[#CCFF00]"
+            className="m-0 font-(--font-primary) text-[clamp(26px,3.2vw,64px)] leading-[1.1] tracking-[-0.04em] text-[#CCFF00]"
             initial="hidden"
             animate="show"
             exit="exit"
           >
-            {project.title.split('').map((ch, i) => (
-              <span key={i} className="-mb-[0.14em] -mt-[0.06em] inline-block overflow-hidden pb-[0.14em] pt-[0.06em] align-bottom">
-                <motion.span
-                  className="inline-block"
-                  variants={{
-                    hidden: { y: reduce ? 0 : '120%', opacity: reduce ? 0 : 1 },
-                    show: { y: 0, opacity: 1, transition: { duration: 0.5, ease: EASE_OUT, delay: i * 0.018 } },
-                    exit: { y: reduce ? 0 : '-120%', opacity: reduce ? 0 : 1, transition: { duration: 0.25, ease: EASE_IN_OUT, delay: i * 0.008 } },
-                  }}
-                >
-                  {ch === ' ' ? ' ' : ch}
-                </motion.span>
-              </span>
-            ))}
+            {project.title.split(' ').map((word, w, words) => {
+              const offset = words.slice(0, w).join(' ').length
+              return (
+                <span key={w}>
+                  <span className="inline-block whitespace-nowrap">
+                    {word.split('').map((ch, c) => (
+                      <span key={c} className="-mb-[0.14em] -mt-[0.06em] inline-block overflow-hidden pb-[0.14em] pt-[0.06em] align-bottom">
+                        <motion.span
+                          className="inline-block"
+                          variants={{
+                            hidden: { y: reduce ? 0 : '120%', opacity: reduce ? 0 : 1 },
+                            show: { y: 0, opacity: 1, transition: { duration: 0.5, ease: EASE_OUT, delay: (offset + c) * 0.018 } },
+                            exit: { y: reduce ? 0 : '-120%', opacity: reduce ? 0 : 1, transition: { duration: 0.25, ease: EASE_IN_OUT, delay: (offset + c) * 0.008 } },
+                          }}
+                        >
+                          {ch}
+                        </motion.span>
+                      </span>
+                    ))}
+                  </span>
+                  {w < words.length - 1 && ' '}
+                </span>
+              )
+            })}
           </motion.p>
         )}
       </AnimatePresence>
@@ -507,13 +540,13 @@ function OverlayGallery({ project, slotRef }: { project: Project; slotRef: RefOb
 
   const goTo = (i: number) => {
     const track = trackRef.current
-    const el = track?.children[Math.max(0, Math.min(count - 1, i))] as HTMLElement | undefined
-    if (track && el) track.scrollTo({ left: el.offsetLeft, behavior: 'smooth' })
-  }
-
-  const atEnd = () => {
-    const track = trackRef.current
-    return !track || track.scrollLeft + track.clientWidth >= track.scrollWidth - 2
+    const target = Math.max(0, Math.min(count - 1, i))
+    const el = track?.children[target] as HTMLElement | undefined
+    if (!track || !el) return
+    // Scrolling is animated, so waiting for its event leaves the opposite
+    // navigation control stale. Update it before the motion begins.
+    setActive(target)
+    track.scrollTo({ left: el.offsetLeft, behavior: 'smooth' })
   }
 
   const item = 'relative aspect-[4/5] h-[min(58vh,640px)] shrink-0 snap-start overflow-hidden bg-[#1a1a1a] max-md:h-[min(52vh,460px)]'
@@ -542,7 +575,7 @@ function OverlayGallery({ project, slotRef }: { project: Project; slotRef: RefOb
         <button type="button" onClick={() => goTo(active - 1)} disabled={active === 0} aria-label="Previous photo" className={navBtn}>
           <ArrowIcon className="w-3.5 -rotate-[135deg]" />
         </button>
-        <button type="button" onClick={() => goTo(active + 1)} disabled={active === count - 1 || atEnd()} aria-label="Next photo" className={navBtn}>
+        <button type="button" onClick={() => goTo(active + 1)} disabled={active === count - 1} aria-label="Next photo" className={navBtn}>
           <ArrowIcon className="w-3.5 rotate-45" />
         </button>
       </div>
@@ -641,7 +674,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
       <div ref={bgRef} className="fixed inset-0 bg-[#0b0b0b]" />
 
       <div className="relative flex min-h-full flex-col px-[var(--hero-gutter)] py-[clamp(20px,2.2vw,36px)]">
-        <div className="flex items-center justify-between font-(--font-secondary) text-[11px] tracking-[0.08em]">
+        <div className="flex items-center justify-end font-(--font-secondary) text-[11px] tracking-[0.08em]">
           <button ref={closeRef} data-ov-fade type="button" onClick={close} className="group inline-flex items-center gap-3 uppercase text-white outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00]">
             <span className="relative block size-3">
               <span className="absolute left-0 top-1/2 h-px w-full rotate-45 bg-current transition-transform duration-500 group-hover:rotate-[135deg]" />
@@ -786,10 +819,8 @@ export default function WorkPage() {
       <Hero />
 
       <section id="project-index" aria-label="Selected project grid" className="bg-[#000] px-[var(--hero-gutter)] pb-[clamp(96px,10vw,160px)] pt-[clamp(72px,8vw,120px)] max-md:pb-20 max-md:pt-14">
-        <ProjectGrid onHover={setHovered} onOpen={setOpenIndex} hiddenId={openId} />
+        <ProjectGrid onHover={setHovered} onOpen={setOpenIndex} hiddenId={openId} activeId={openIndex === null ? hovered?.id ?? null : null} />
       </section>
-
-      <HoverTitle project={openIndex === null ? hovered : null} />
 
       {openIndex !== null && (
         <ProjectOverlay

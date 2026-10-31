@@ -43,8 +43,6 @@ import {
   formFootnote,
   formHint,
   formPage,
-  formSection,
-  formSectionFit,
   formSmallButton,
   formStepHeading,
   formStepHeadingCompact,
@@ -55,6 +53,10 @@ import { SECTION_LABELS } from './flow'
 const DRAFT_KEY = 'bw-project-planner:v1'
 const EMAIL = 'hello@brandworks.me'
 const INTRO = 'intro'
+
+// Keep the planner aligned with the site's primary page gutter.
+const questionnaireSection = 'mx-auto w-full max-w-[1720px] px-[var(--hero-gutter)] pb-20 pt-28 sm:pt-32 lg:pb-28 lg:pt-40'
+const questionnaireSectionFit = 'mx-auto flex min-h-dvh w-full max-w-[1720px] flex-col px-[var(--hero-gutter)] pb-4 pt-[88px] sm:pb-8 sm:pt-[104px]'
 
 // A small, one-shot burst of sparkles and confetti for the greeting pop-up.
 const CONFETTI = [
@@ -909,7 +911,7 @@ export default function QuestionnairePage() {
         </button>
       </div>
 
-      <section className={fit || framed ? formSectionFit : formSection}>
+      <section className={fit || framed ? questionnaireSectionFit : questionnaireSection}>
         {/* One persistent live region, so every step change is announced. */}
         <p className="sr-only" role="status" aria-live="polite">
           {stepId === INTRO ? '' : stepId === DONE ? 'Plan sent' : `Step ${stepNumber} of ${progressTotal}${step && step.kind !== 'ai' ? `: ${step.title}` : ''}`}

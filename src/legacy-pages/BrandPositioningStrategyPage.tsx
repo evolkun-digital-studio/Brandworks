@@ -176,7 +176,7 @@ function Faq() {
   return (
     <section id="faq" className="scroll-mt-24">
       <div className={`${shell} ${section}`}>
-        <div className="mx-auto max-w-[720px]">
+        <div className="max-w-[720px]">
           <h2 className="section-heading">Questions</h2>
           <div className="mt-10 border-t border-neutral-200">
             {FAQS.map((f, i) => {
