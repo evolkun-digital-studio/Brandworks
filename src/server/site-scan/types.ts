@@ -244,4 +244,61 @@ export type SiteAnalysis = {
   droppedItems: number
 }
 
-export const DISCLAIMER = 'Based on public data (Google, Moz/DataForSEO). Estimates, not your private analytics.'
+/* -------------------------------------------------------------------------- */
+/*  Team-only views (admin panel)                                             */
+/* -------------------------------------------------------------------------- */
+
+export type ScanStatus = 'running' | 'done' | 'failed'
+
+/** A collector's state in the list. status is null until it has reported (or on scans stored before it existed). */
+export type CollectorState = { status: CollectorStatus | null; reason: string | null }
+
+/** One row of the team's list: small by design, the full results are only sent for the detail page. */
+export type SiteScanSummary = {
+  id: string
+  domain: string
+  url: string
+  status: ScanStatus
+  /** Still marked running, but the process that held it was lost (e.g. a restart). */
+  stale: boolean
+  createdAt: string
+  updatedAt: string
+  paidSources: boolean
+  error: string | null
+  /** null until an analysis exists. */
+  ai: boolean | null
+  headline: string | null
+  issueCount: number | null
+  collectors: Record<ScanStepKey, CollectorState>
+  performanceScore: number | null
+  seoScore: number | null
+  /** Two different metrics with different scales: never shown under one label. */
+  authority: { provider: 'moz'; domainAuthority: number | null } | { provider: 'dataforseo'; domainRank: number | null } | null
+  estimatedTraffic: number | null
+  pages: { crawled: number; groupsFound: number; groupsNotFound: number; groupsNotChecked: number } | null
+}
+
+export type SiteScanListResult = { items: SiteScanSummary[]; page: number; pageSize: number; total: number; totalPages: number }
+
+export type LinkedSubmission = { id: string; name: string; email: string; company: string; submittedAt: string; branch: string }
+
+export type SiteScanDetail = {
+  id: string
+  domain: string
+  url: string
+  status: ScanStatus
+  stale: boolean
+  createdAt: string
+  updatedAt: string
+  /** When a new visitor would stop reusing this scan. */
+  cachedUntil: string
+  /** When Mongo's TTL index removes it. */
+  expiresAt: string
+  paidSources: boolean
+  error: string | null
+  results: ScanResults | PartialScanResults | null
+  analysis: SiteAnalysis | null
+  submissions: LinkedSubmission[]
+}
+
+export const DISCLAIMER ='Based on public data (Google, Moz/DataForSEO). Estimates, not your private analytics.'

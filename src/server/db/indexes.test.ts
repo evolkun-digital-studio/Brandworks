@@ -31,7 +31,9 @@ describe('ensureDatabaseIndexes', () => {
       { collection: 'admin_preferences', keys: { adminId: 1 }, options: { unique: true } },
       { collection: 'project_questionnaires', keys: { createdAt: -1 }, options: undefined },
       { collection: 'project_questionnaires', keys: { status: 1, createdAt: -1 }, options: undefined },
+      { collection: 'project_questionnaires', keys: { 'siteScan.id': 1 }, options: undefined },
       { collection: 'site_scans', keys: { domain: 1, createdAt: -1 }, options: undefined },
+      { collection: 'site_scans', keys: { updatedAt: -1 }, options: undefined },
       { collection: 'site_scans', keys: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },
     ])
   })

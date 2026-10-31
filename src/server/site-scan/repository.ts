@@ -10,7 +10,7 @@ export const CACHE_MS = 7 * 24 * 60 * 60 * 1000
 /** Mongo's TTL index deletes scans a day after the cache window closes. */
 const KEEP_MS = 8 * 24 * 60 * 60 * 1000
 /** A 'running' scan older than this was lost (process restart) and isn't reused. */
-const STALE_RUNNING_MS = 10 * 60 * 1000
+export const STALE_RUNNING_MS = 10 * 60 * 1000
 
 export type SiteScanStatus = 'running' | 'done' | 'failed'
 
@@ -75,6 +75,26 @@ export async function createScan(domain: string, url: string, paidSources: boole
 /** Marks a cached scan as running again while its free checks are retried. */
 export async function restartScan(id: string, now = new Date()): Promise<void> {
   await (await scans()).updateOne({ _id: new ObjectId(id) }, { $set: { status: 'running', updatedAt: now } })
+}
+
+/**
+ * Marks a scan as running for a team-started re-run and returns it as it was,
+ * or null if a live run already holds it. Atomic, so two clicks can't both run.
+ */
+export async function claimRescan(id: string, now = new Date()): Promise<SiteScanDoc | null> {
+  return (await scans()).findOneAndUpdate(
+    {
+      _id: new ObjectId(id),
+      $or: [{ status: { $ne: 'running' } }, { updatedAt: { $lt: new Date(now.getTime() - STALE_RUNNING_MS) } }],
+    },
+    { $set: { status: 'running', updatedAt: now } },
+    { returnDocument: 'before' },
+  )
+}
+
+/** Removes the cached scan only: questionnaire submissions keep their own copy. */
+export async function deleteScan(id: string): Promise<boolean> {
+  return (await (await scans()).deleteOne({ _id: new ObjectId(id) })).deletedCount === 1
 }
 
 /** Starts (or restarts) the run: resets progress, keeping only results passed in (reused paid data). */

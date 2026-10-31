@@ -13,6 +13,7 @@ import {
   Menu,
   Moon,
   PanelLeft,
+  ScanSearch,
   Search,
   SearchCheck,
   Settings2,
@@ -55,6 +56,12 @@ const NAV_GROUPS: Array<{ label: string; items: NavigationItem[] }> = [
       { label: 'Activity', to: '/admin/activity', icon: Activity },
     ],
   },
+  {
+    label: 'Insights',
+    items: [
+      { label: 'Site scans', to: '/admin/site-scans', icon: ScanSearch },
+    ],
+  },
 ]
 
 const THEME_ICONS: Record<AdminTheme, LucideIcon> = { system: SunMoon, light: Sun, dark: Moon }
@@ -66,6 +73,8 @@ const PAGE_TITLES: Array<[RegExp, string]> = [
   [/^\/admin\/calendar/, 'Calendar'],
   [/^\/admin\/seo/, 'SEO'],
   [/^\/admin\/activity/, 'Activity'],
+  [/^\/admin\/site-scans\/[^/]+/, 'Site scan'],
+  [/^\/admin\/site-scans/, 'Site scans'],
   [/^\/admin\/settings/, 'Settings'],
   [/^\/admin\/users/, 'Team'],
 ]

@@ -76,7 +76,8 @@ export async function runScan(
   free?: FreeResults,
 ): Promise<void> {
   try {
-    await beginRun(scanId, { url: url.href, domain: domainOf(url) })
+    // Reused paid data goes back in straight away, so a crash mid-run can't lose what was paid for.
+    await beginRun(scanId, { url: url.href, domain: domainOf(url), ...paid })
     const results = await collectAll(url, { allowPaid, paid, free, onResult: (step, result) => saveStep(scanId, step, result) })
     if (results.onPage.status !== 'ok' && results.performance.status !== 'ok') {
       await failScan(scanId, `No usable data: ${results.onPage.reason ?? 'on-page failed'}; ${results.performance.reason ?? 'performance failed'}`, results)

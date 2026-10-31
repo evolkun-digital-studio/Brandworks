@@ -10,6 +10,7 @@ import {
   Images,
   LayoutDashboard,
   Moon,
+  ScanSearch,
   Search,
   SearchCheck,
   Settings2,
@@ -90,12 +91,13 @@ function CommandPalette({ open, isAdmin, onClose, onThemeChange }: CommandPalett
       { id: 'calendar', group: 'Go to', label: 'Calendar', icon: CalendarDays, run: go('/admin/calendar') },
       { id: 'seo', group: 'Go to', label: 'SEO', icon: SearchCheck, run: go('/admin/seo') },
       { id: 'activity', group: 'Go to', label: 'Activity', icon: Activity, run: go('/admin/activity') },
+      { id: 'site-scans', group: 'Go to', label: 'Site scans', icon: ScanSearch, run: go('/admin/site-scans') },
       { id: 'settings', group: 'Go to', label: 'Settings', icon: Settings2, run: go('/admin/settings') },
       { id: 'theme-system', group: 'Appearance', label: 'Appearance: Automatic', icon: SunMoon, run: () => onThemeChange('system') },
       { id: 'theme-light', group: 'Appearance', label: 'Appearance: Light', icon: Sun, run: () => onThemeChange('light') },
       { id: 'theme-dark', group: 'Appearance', label: 'Appearance: Dark', icon: Moon, run: () => onThemeChange('dark') },
     ]
-    if (isAdmin) base.splice(10, 0, { id: 'team', group: 'Go to', label: 'Team', icon: UsersRound, run: go('/admin/users') })
+    if (isAdmin) base.splice(11, 0, { id: 'team', group: 'Go to', label: 'Team', icon: UsersRound, run: go('/admin/users') })
     return base
   }, [isAdmin, navigate, onThemeChange])
 
