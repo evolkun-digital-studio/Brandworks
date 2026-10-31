@@ -18,7 +18,7 @@ const MAX_DB_ERRORS = 5
 /**
  * Live progress of a website quick-look, as server-sent events:
  *
- *   event: step    data: {"step":"onPage"|"performance"|"authority"|"traffic"|"analysis","status":"ok"|"skipped"|"error","highlights":[...]}
+ *   event: step    data: {"step":"onPage"|"pages"|"performance"|"authority"|"traffic"|"analysis","status":"ok"|"skipped"|"error","highlights":[...]}
  *   event: teaser  data: {"text":"...","ai":true}
  *   event: done    data: {"domain","teaser","teaserAi","highlights","disclaimer"}
  *   event: failed  data: {"domain"}
@@ -65,9 +65,11 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
           if (scan) {
             for (const step of SCAN_STEPS) {
               const result = scan.results?.[step]
-              if (result && !sent.has(step)) {
+              // A scan stored before this step existed finished without it: not available, not still pending.
+              const status = result?.status ?? (scan.status === 'done' ? 'skipped' : null)
+              if (status && !sent.has(step)) {
                 sent.add(step)
-                write(sseFrame('step', { step, status: result.status, highlights: stepHighlights(step, result) }))
+                write(sseFrame('step', { step, status, highlights: stepHighlights(step, result) }))
               }
             }
             if (scan.analysis && !sent.has('analysis')) {

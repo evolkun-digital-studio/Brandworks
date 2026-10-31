@@ -2,6 +2,7 @@ import { domainOf } from '../safeFetch'
 import { failed, skipped, type CollectorDeps, type CollectorResult, type ScanResults, type ScanStepKey } from '../types'
 import { collectAuthority } from './authority'
 import { collectOnPage, ON_PAGE_SOURCE } from './onPage'
+import { collectPages, PAGES_SOURCE } from './pages'
 import { collectPerformance, PERFORMANCE_SOURCE } from './performance'
 import { collectTraffic, TRAFFIC_SOURCE } from './traffic'
 
@@ -11,6 +12,8 @@ type CollectOptions = {
   allowPaid: boolean
   deps?: CollectorDeps
   paid?: Pick<ScanResults, 'authority' | 'traffic'>
+  /** Earlier free results to keep as they are; any left out are collected. */
+  free?: Partial<Pick<ScanResults, 'onPage' | 'pages' | 'performance'>>
   /** Called as EACH collector finishes (in whatever order), so progress can be stored live. */
   onResult?: (step: ScanStepKey, result: CollectorResult<unknown>) => void | Promise<void>
 }
@@ -42,11 +45,13 @@ export async function collectAll(url: URL, options: CollectOptions): Promise<Sca
     return result
   }
 
-  const [onPage, performance, authority, traffic] = await Promise.all([
-    settle('onPage', ON_PAGE_SOURCE, collectOnPage(url, deps)),
-    settle('performance', PERFORMANCE_SOURCE, collectPerformance(url, deps)),
+  const free = options.free ?? {}
+  const [onPage, pages, performance, authority, traffic] = await Promise.all([
+    settle('onPage', ON_PAGE_SOURCE, free.onPage ? Promise.resolve(free.onPage) : collectOnPage(url, deps)),
+    settle('pages', PAGES_SOURCE, free.pages ? Promise.resolve(free.pages) : collectPages(url, deps)),
+    settle('performance', PERFORMANCE_SOURCE, free.performance ? Promise.resolve(free.performance) : collectPerformance(url, deps)),
     settle('authority', 'Authority', paid(options.paid?.authority, () => collectAuthority(domain, deps), 'Authority')),
     settle('traffic', TRAFFIC_SOURCE, paid(options.paid?.traffic, () => collectTraffic(domain, deps), TRAFFIC_SOURCE)),
   ])
-  return { url: url.href, domain, onPage, performance, authority, traffic } as ScanResults
+  return { url: url.href, domain, onPage, pages, performance, authority, traffic } as ScanResults
 }

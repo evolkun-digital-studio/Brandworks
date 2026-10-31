@@ -4,6 +4,7 @@ import { SCAN_CHECKS, SCAN_DISCLAIMER, type ScanCheck, type ScanCheckState, type
 
 const LABELS: Record<ScanCheck, { full: string; short: string }> = {
   onPage: { full: 'Reading your homepage', short: 'Homepage' },
+  pages: { full: 'Checking key pages', short: 'Key pages' },
   performance: { full: 'Checking speed on mobile', short: 'Mobile speed' },
   authority: { full: 'Backlinks & authority', short: 'Authority' },
   traffic: { full: 'Search traffic estimate', short: 'Traffic' },

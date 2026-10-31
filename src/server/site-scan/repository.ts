@@ -34,13 +34,17 @@ export const isScanId = (id: unknown): id is string => typeof id === 'string' &&
 
 const scans = async () => (await getDatabase()).collection<SiteScanDoc>(SITE_SCANS_COLLECTION)
 
-/** The newest finished (or still fresh, running) scan of this domain inside the cache window. */
+/**
+ * The newest finished (or still fresh, running) scan of this domain inside the
+ * cache window. Freshness goes by updatedAt: a days-old scan that is re-running
+ * must be found again, or a second visitor would start a new one and re-bill.
+ */
 export async function findReusableScan(domain: string, now = new Date()): Promise<SiteScanDoc | null> {
   return (await scans()).findOne(
     {
       domain,
       createdAt: { $gte: new Date(now.getTime() - CACHE_MS) },
-      $or: [{ status: 'done' }, { status: 'running', createdAt: { $gte: new Date(now.getTime() - STALE_RUNNING_MS) } }],
+      $or: [{ status: 'done' }, { status: 'running', updatedAt: { $gte: new Date(now.getTime() - STALE_RUNNING_MS) } }],
     },
     { sort: { createdAt: -1 } },
   )

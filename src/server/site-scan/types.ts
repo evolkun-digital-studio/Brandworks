@@ -132,24 +132,102 @@ export type TrafficData = {
   languageCode: string
 }
 
+/** The page types the crawl looks for, in priority order. */
+export const KEY_PAGE_GROUPS = ['about', 'services', 'contact', 'pricing', 'work', 'blog'] as const
+export type KeyPageGroup = (typeof KEY_PAGE_GROUPS)[number]
+
+export const KEY_PAGE_LABELS: Record<KeyPageGroup, string> = {
+  about: 'About',
+  services: 'Services/Products',
+  contact: 'Contact',
+  pricing: 'Pricing',
+  work: 'Work/Portfolio',
+  blog: 'Blog/News',
+}
+
+export type KeyPageCheck = {
+  htmlTruncated: boolean
+  title: { text: string | null; length: number }
+  metaDescription: { text: string | null; length: number }
+  h1Count: number
+  canonical: string | null
+  noindex: boolean
+  /** Counted in the HTML before JavaScript runs, like OnPageData.wordCount. */
+  wordCount: number
+  images: { total: number; missingAlt: number }
+  jsonLdTypes: string[]
+  hasForm: boolean
+  contactLinks: { email: string[]; phone: string[]; whatsapp: string[] }
+  ctaTexts: string[]
+}
+
+export type CrawledPage = {
+  group: KeyPageGroup
+  url: string
+  /** null when the request itself failed. */
+  finalUrl: string | null
+  statusCode: number | null
+  /** Why the page couldn't be read; `check` is null then. */
+  error: string | null
+  check: KeyPageCheck | null
+}
+
+export type DuplicateText = { text: string; urls: string[] }
+
+/** Computed in code from the homepage + crawled pages, never by the AI. */
+export type PagesSummary = {
+  groupsFound: KeyPageGroup[]
+  /** No link or sitemap entry matched. The page may still exist. */
+  groupsNotFound: KeyPageGroup[]
+  /** A candidate existed but wasn't read (failed, robots.txt, page limit or time budget). */
+  groupsNotChecked: KeyPageGroup[]
+  duplicateTitles: DuplicateText[]
+  duplicateMetaDescriptions: DuplicateText[]
+  noindex: string[]
+  missingTitle: string[]
+  missingMetaDescription: string[]
+  /** Pages with no words in the HTML are left out: they're rendered by JavaScript, so the count proves nothing. */
+  missingH1: string[]
+  contactMethods: { form: boolean; phone: boolean; email: boolean; whatsapp: boolean }
+  /** Read successfully, not counting the homepage. */
+  pagesCrawled: number
+  pagesFailed: number
+  /** pagesCrawled + the homepage. */
+  pagesChecked: number
+  blockedByRobots: string[]
+  /** The time budget ran out, so this is a partial result. */
+  truncated: boolean
+  note: string | null
+}
+
+export type PagesData = {
+  homepage: { url: string; statusCode: number; check: KeyPageCheck }
+  pages: CrawledPage[]
+  discovery: { homepageLinks: number; sitemapUrls: number }
+  summary: PagesSummary
+}
+
 export type ScanResults = {
   url: string
   domain: string
   onPage: CollectorResult<OnPageData>
+  /** Absent on scans stored before the key-page crawl existed; run.ts fills it in when one is reused. */
+  pages?: CollectorResult<PagesData>
   performance: CollectorResult<PerformanceData>
   authority: CollectorResult<AuthorityData>
   traffic: CollectorResult<TrafficData>
 }
 
 /** The live checklist, in display order. */
-export const SCAN_STEPS = ['onPage', 'performance', 'authority', 'traffic'] as const
+export const SCAN_STEPS = ['onPage', 'pages', 'performance', 'authority', 'traffic'] as const
 export type ScanStepKey = (typeof SCAN_STEPS)[number]
 
 /** What a running scan has stored so far (each collector appears when it finishes). */
 export type PartialScanResults = Pick<ScanResults, 'url' | 'domain'> & Partial<Pick<ScanResults, ScanStepKey>>
 
+/** 'pages' isn't required: scans stored before it existed are still complete, with the step simply missing. */
 export function isCompleteResults(r: ScanResults | PartialScanResults | null | undefined): r is ScanResults {
-  return Boolean(r && SCAN_STEPS.every((step) => r[step]))
+  return Boolean(r && SCAN_STEPS.every((step) => step === 'pages' || r[step]))
 }
 
 export type SiteIssue = { title: string; evidence: string; impact: string }
@@ -160,7 +238,7 @@ export type SiteAnalysis = {
   issues: SiteIssue[]
   opportunities: string[]
   customerTeaser: string
-  /** false = the deterministic fallback, built only from on-page + performance data. */
+  /** false = the deterministic fallback, built only from on-page, key-page + performance data. */
   ai: boolean
   /** Items the model wrote that cited numbers not in the data, and were dropped. */
   droppedItems: number
