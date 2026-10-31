@@ -10,7 +10,7 @@ import AdminPageHeader from '../components/AdminPageHeader'
 import AdminStatusBadge from '../components/AdminStatusBadge'
 import { useConfirm } from '../components/ConfirmDialog'
 import FormMessage from '../components/FormMessage'
-import { AnalysisBadge, ExternalSiteLink, ScanStatusBadge, ScoreBadge } from '../components/SiteScanParts'
+import { AnalysisBadge, ScanStatusBadge, ScoreBadge, UrlLink } from '../components/SiteScanParts'
 import { useAdminAuth } from '../context/useAdminAuth'
 import { usePollWhileVisible } from '../hooks/usePollWhileVisible'
 import { exactTime, GROUPS_NOT_FOUND_LABEL } from '../lib/siteScan'
@@ -163,11 +163,16 @@ function ContactIcons({ check }: { check: KeyPageCheck }) {
   )
 }
 
-function PageRow({ group, url, statusCode, error, check }: { group: string; url: string; statusCode: number | null; error: string | null; check: KeyPageCheck | null }) {
+/** Text from the page, held to two lines: only here may a long unbroken word split. The full text is on hover. */
+function ClampedText({ text }: { text: string }) {
+  return <span className="line-clamp-2 [overflow-wrap:anywhere] [word-break:normal]" title={text}>{text}</span>
+}
+
+function PageRow({ group, url, home, statusCode, error, check }: { group: string; url: string; home: string; statusCode: number | null; error: string | null; check: KeyPageCheck | null }) {
   const lead = (
     <>
       <td className="whitespace-nowrap">{group}</td>
-      <td className="max-w-60"><ExternalSiteLink url={url} /></td>
+      <td className="min-w-[180px]"><UrlLink url={url} home={home} /></td>
       <td className="tabular-nums">{statusCode ?? '—'}</td>
     </>
   )
@@ -177,17 +182,17 @@ function PageRow({ group, url, statusCode, error, check }: { group: string; url:
     <tr className="align-top">
       {lead}
       <td className="min-w-48">
-        <span className="block">{check.title.text ?? <Warn when>Missing</Warn>}</span>
+        {check.title.text ? <ClampedText text={check.title.text} /> : <Warn when>Missing</Warn>}
         {check.title.text && <span className="text-xs text-a-ink-2"><Warn when={check.title.length > TITLE_MAX}>{check.title.length} chars</Warn></span>}
       </td>
       <td className="min-w-56">
-        <span className="block">{check.metaDescription.text ?? <Warn when>Missing</Warn>}</span>
+        {check.metaDescription.text ? <ClampedText text={check.metaDescription.text} /> : <Warn when>Missing</Warn>}
         {check.metaDescription.text && <span className="text-xs text-a-ink-2"><Warn when={check.metaDescription.length > META_MAX}>{check.metaDescription.length} chars</Warn></span>}
       </td>
       <td className="tabular-nums"><Warn when={check.h1Count !== 1} note={emptyHtml}>{check.h1Count}</Warn></td>
       <td><Warn when={check.noindex}>{yesNo(check.noindex)}</Warn></td>
-      <td className="max-w-48 break-all">
-        {check.canonical ?? '—'}
+      <td className="min-w-[180px]">
+        {check.canonical ? <UrlLink url={check.canonical} home={home} copy={false} /> : '—'}
         {check.details && <span className="block text-xs text-a-ink-2"><Warn when={CANONICAL_ISSUES.includes(check.details.canonicalStatus)}>{check.details.canonicalStatus}</Warn></span>}
       </td>
       <td className="whitespace-nowrap tabular-nums" title={emptyHtml}>
@@ -204,7 +209,7 @@ function PageRow({ group, url, statusCode, error, check }: { group: string; url:
   )
 }
 
-function Duplicates({ title, items }: { title: string; items: DuplicateText[] }) {
+function Duplicates({ title, items, home }: { title: string; items: DuplicateText[]; home: string }) {
   return (
     <div>
       <h3 className="mb-1.5 text-[13px] font-semibold">{title}</h3>
@@ -212,8 +217,8 @@ function Duplicates({ title, items }: { title: string; items: DuplicateText[] })
         <ul className="flex flex-col gap-2 text-[13.5px]">
           {items.map((item) => (
             <li key={item.text}>
-              <p>{item.text}</p>
-              <ul className="flex flex-col text-xs">{item.urls.map((url) => <li key={url}><ExternalSiteLink url={url} /></li>)}</ul>
+              <p className="[overflow-wrap:anywhere]">{item.text}</p>
+              <ul className="flex flex-col text-xs">{item.urls.map((url) => <li key={url}><UrlLink url={url} home={home} /></li>)}</ul>
             </li>
           ))}
         </ul>
@@ -278,7 +283,14 @@ function contactText(method: ContactMethod): ReactNode {
   )
 }
 
-function LinkHealthRows({ health }: { health: LinkHealth }) {
+function UrlList({ urls, home, empty = 'None found' }: { urls: string[]; home: string; empty?: string }) {
+  if (!urls.length) return <>{empty}</>
+  return <ul>{urls.map((url) => <li key={url}><UrlLink url={url} home={home} /></li>)}</ul>
+}
+
+function LinkHealthRows({ health, home }: { health: LinkHealth; home: string }) {
+  const linkRow = 'flex flex-wrap items-center gap-x-1.5'
+  const onPage = (url: string) => <span className="inline-flex max-w-full items-center gap-1 text-xs text-a-ink-2">on <UrlLink url={url} home={home} copy={false} /></span>
   return (
     <div className="flex flex-col gap-2">
       <SubHeading>Internal link health</SubHeading>
@@ -288,18 +300,24 @@ function LinkHealthRows({ health }: { health: LinkHealth }) {
         ['Left unchecked (time ran out)', health.dropped],
         ['Couldn’t verify', health.inconclusive],
         ['Broken', health.broken.length ? (
-          <ul key="broken">{health.broken.map((link) => <li key={link.url}><ExternalSiteLink url={link.url} /> <Warn when>{link.status}</Warn> <span className="text-xs text-a-ink-2">on {link.foundOn}</span></li>)}</ul>
+          <ul key="broken">{health.broken.map((link) => <li key={link.url} className={linkRow}><UrlLink url={link.url} home={home} /> <Warn when>{link.status}</Warn> {onPage(link.foundOn)}</li>)}</ul>
         ) : 'None found'],
         ['Redirected', health.redirected.length ? (
-          <ul key="redirected">{health.redirected.map((link) => <li key={link.url}><ExternalSiteLink url={link.url} /> <span className="text-xs text-a-ink-2">→ {link.finalUrl} ({link.type}{link.httpToHttps ? ', http to https' : ''}), on {link.foundOn}</span></li>)}</ul>
+          <ul key="redirected">{health.redirected.map((link) => (
+            <li key={link.url} className={linkRow}>
+              <UrlLink url={link.url} home={home} />
+              <span className="inline-flex max-w-full items-center gap-1 text-xs text-a-ink-2">→ <UrlLink url={link.finalUrl} home={home} copy={false} /> ({link.type}{link.httpToHttps ? ', http to https' : ''})</span>
+              {onPage(link.foundOn)}
+            </li>
+          ))}</ul>
         ) : 'None found'],
       ]} />
     </div>
   )
 }
 
-function SitemapRows({ sitemap }: { sitemap: SitemapQuality }) {
-  const urls = (items: string[]) => (items.length ? items.join(', ') : 'None found')
+function SitemapRows({ sitemap, home }: { sitemap: SitemapQuality; home: string }) {
+  const urls = (items: string[]) => <UrlList urls={items} home={home} />
   return (
     <div className="flex flex-col gap-2">
       <SubHeading>Sitemap quality</SubHeading>
@@ -310,8 +328,12 @@ function SitemapRows({ sitemap }: { sitemap: SitemapQuality }) {
         ['lastmod present', yesNo(sitemap.hasLastmod)],
         ['Newest lastmod', sitemap.newestLastmod ? exactTime(sitemap.newestLastmod) : '—'],
         ['robots.txt blocks everything', <Warn key="blocks" when={sitemap.robotsBlocksAll}>{yesNo(sitemap.robotsBlocksAll)}</Warn>],
-        ['Redirecting (only pages we fetched)', urls(sitemap.redirects.map((r) => `${r.url} → ${r.finalUrl}`))],
-        ['Returning errors (only pages we fetched)', urls(sitemap.errors.map((e) => `${e.url} (${e.status})`))],
+        ['Redirecting (only pages we fetched)', sitemap.redirects.length ? (
+          <ul key="redirects">{sitemap.redirects.map((r) => <li key={r.url} className="flex flex-wrap items-center gap-x-1.5"><UrlLink url={r.url} home={home} /> <span className="inline-flex max-w-full items-center gap-1 text-xs text-a-ink-2">→ <UrlLink url={r.finalUrl} home={home} copy={false} /></span></li>)}</ul>
+        ) : 'None found'],
+        ['Returning errors (only pages we fetched)', sitemap.errors.length ? (
+          <ul key="errors">{sitemap.errors.map((e) => <li key={e.url} className="flex flex-wrap items-center gap-x-1.5"><UrlLink url={e.url} home={home} /> <Warn when>{e.status}</Warn></li>)}</ul>
+        ) : 'None found'],
         ['Reading as not found', urls(sitemap.soft404s)],
         ['Noindex', urls(sitemap.noindex)],
       ]} />
@@ -331,7 +353,7 @@ function SignalRows({ signals }: { signals: MarketingSignals }) {
       <SubHeading>Homepage signals</SubHeading>
       <Rows rows={[
         ['Tags', foundTags.length ? <ul key="tags">{foundTags.map(([key, name]) => <li key={key}>{name}: {tags[key].join(', ')}</li>)}</ul> : 'Not detected. They may load through JavaScript.'],
-        ['Social profiles', foundSocial.length ? <ul key="social">{foundSocial.map(([key, name]) => <li key={key}>{name}: {social[key].map((url) => <span key={url} className="mr-2"><ExternalSiteLink url={url} /></span>)}</li>)}</ul> : 'Not detected'],
+        ['Social profiles', foundSocial.length ? <ul key="social">{foundSocial.map(([key, name]) => <li key={key} className="flex flex-wrap items-center gap-x-2">{name}: {social[key].map((url) => <UrlLink key={url} url={url} />)}</li>)}</ul> : 'Not detected'],
         ['Instagram handle', instagramHandle ? `@${instagramHandle}` : 'Not detected'],
         ['Testimonials or reviews', seen(trust.testimonials)],
         ['Client logos', seen(trust.clientLogos)],
@@ -354,6 +376,7 @@ function KeyPages({ data }: { data: PagesData }) {
   const contactFound = [contact.form && 'Form', contact.phone && 'Phone', contact.email && 'Email', contact.whatsapp && 'WhatsApp'].filter(Boolean).join(', ') || 'None found'
   const details = homepage.check.details
   const findings = summary.findings ?? buildFindings(data)
+  const home = homepage.url
   return (
     <div className="flex flex-col gap-4 pb-5">
       <div className="flex flex-wrap gap-2 px-5.5">
@@ -386,7 +409,7 @@ function KeyPages({ data }: { data: PagesData }) {
         ]} />
       )}
       <Rows rows={[
-        ['Blocked by robots.txt', summary.blockedByRobots.length ? summary.blockedByRobots.join(', ') : 'None'],
+        ['Blocked by robots.txt', <UrlList key="blocked" urls={summary.blockedByRobots} home={home} empty="None" />],
         ['How pages were found', `${data.discovery.homepageLinks} homepage links, ${data.discovery.sitemapUrls} sitemap URLs${data.discovery.inlineHints ? `, ${data.discovery.inlineHints} hints from inline scripts` : ''}`],
       ]} />
       {summary.contact && (
@@ -400,10 +423,11 @@ function KeyPages({ data }: { data: PagesData }) {
           ]} />
         </div>
       )}
-      {data.linkHealth && <LinkHealthRows health={data.linkHealth} />}
-      {data.sitemap && <SitemapRows sitemap={data.sitemap} />}
+      {data.linkHealth && <LinkHealthRows health={data.linkHealth} home={home} />}
+      {data.sitemap && <SitemapRows sitemap={data.sitemap} home={home} />}
       {data.signals && <SignalRows signals={data.signals} />}
-      <div className="overflow-x-auto">
+      {/* relative: the screen-reader labels inside are absolutely positioned, and would otherwise escape this scroller and widen the page. */}
+      <div className="relative overflow-x-auto">
         <table className="admin-table">
           <thead>
             <tr>
@@ -411,14 +435,14 @@ function KeyPages({ data }: { data: PagesData }) {
             </tr>
           </thead>
           <tbody>
-            <PageRow group="Homepage" url={homepage.url} statusCode={homepage.statusCode} error={null} check={homepage.check} />
-            {pages.map((page) => <PageRow key={`${page.group}-${page.url}`} group={KEY_PAGE_LABELS[page.group]} url={page.finalUrl ?? page.url} statusCode={page.statusCode} error={page.error} check={page.check} />)}
+            <PageRow group="Homepage" url={homepage.url} home={home} statusCode={homepage.statusCode} error={null} check={homepage.check} />
+            {pages.map((page) => <PageRow key={`${page.group}-${page.url}`} group={KEY_PAGE_LABELS[page.group]} url={page.finalUrl ?? page.url} home={home} statusCode={page.statusCode} error={page.error} check={page.check} />)}
           </tbody>
         </table>
       </div>
       <div className="grid gap-4 px-5.5 md:grid-cols-2">
-        <Duplicates title="Duplicate titles" items={summary.duplicateTitles} />
-        <Duplicates title="Duplicate meta descriptions" items={summary.duplicateMetaDescriptions} />
+        <Duplicates title="Duplicate titles" items={summary.duplicateTitles} home={home} />
+        <Duplicates title="Duplicate meta descriptions" items={summary.duplicateMetaDescriptions} home={home} />
       </div>
     </div>
   )
@@ -430,15 +454,15 @@ function OnPage({ data }: { data: OnPageData }) {
   const og = Object.entries(data.openGraph)
   return (
     <Rows rows={[
-      ['Final URL', <ExternalSiteLink key="final" url={data.finalUrl} />],
+      ['Final URL', <UrlLink key="final" url={data.finalUrl} />],
       ['Status code', data.statusCode],
       ['Title', <span key="title">{data.title.text ?? <Warn when>Missing</Warn>} <span className="text-xs text-a-ink-2">({data.title.length} chars)</span></span>],
       ['Meta description', <span key="meta">{data.metaDescription.text ?? <Warn when>Missing</Warn>} <span className="text-xs text-a-ink-2">({data.metaDescription.length} chars)</span></span>],
       ['H1s', <Warn key="h1" when={data.h1Count !== 1}>{data.h1Count}</Warn>],
-      ['Canonical', data.canonical ?? '—'],
+      ['Canonical', data.canonical ? <UrlLink key="canonical" url={data.canonical} home={data.finalUrl} /> : '—'],
       ['Language', data.lang ?? '—'],
       ['Viewport meta', yesNo(data.viewport)],
-      ['Open Graph', og.length ? <ul key="og">{og.map(([key, value]) => <li key={key}><span className="text-a-ink-2">{key}:</span> {value}</li>)}</ul> : 'None'],
+      ['Open Graph', og.length ? <ul key="og">{og.map(([key, value]) => <li key={key}><span className="text-a-ink-2">{key}:</span> {/^https?:\/\//i.test(value) ? <UrlLink url={value} /> : value}</li>)}</ul> : 'None'],
       ['JSON-LD types', data.jsonLdTypes.length ? data.jsonLdTypes.join(', ') : 'None'],
       ['Robots meta', data.robotsMeta ?? '—'],
       ['Noindex', <Warn key="noindex" when={data.noindex}>{yesNo(data.noindex)}</Warn>],
@@ -549,7 +573,7 @@ function Submissions({ scan }: { scan: ScanDetail }) {
           {scan.submissions.map((submission) => (
             <tr key={submission.id}>
               <td>{submission.name || '—'}</td>
-              <td className="break-all">{submission.email || '—'}</td>
+              <td><span className="block max-w-[260px] truncate" title={submission.email}>{submission.email || '—'}</span></td>
               <td>{submission.company || '—'}</td>
               <td>{submission.branch}</td>
               <td className="whitespace-nowrap text-a-ink-2">{exactTime(submission.submittedAt)}</td>
@@ -699,7 +723,7 @@ function SiteScanDetail() {
       <section className="admin-card overflow-hidden pt-5" aria-label="Scan details">
         <Rows rows={[
           ['Status', <ScanStatusBadge key="status" status={scan.status} stale={scan.stale} error={scan.error} />],
-          ['Final URL', <ExternalSiteLink key="url" url={results?.onPage?.data?.finalUrl ?? scan.url} />],
+          ['Final URL', <UrlLink key="url" url={results?.onPage?.data?.finalUrl ?? scan.url} />],
           ['Created', exactTime(scan.createdAt)],
           ['Updated', exactTime(scan.updatedAt)],
           ['Cached until', exactTime(scan.cachedUntil)],

@@ -263,6 +263,46 @@ describe('SiteScanDetail', () => {
     expect(container!.querySelector('a[href^="javascript"]')).toBeNull()
   })
 
+  it('shows a short one-line label for each URL, keeping the full address in the link and tooltip', async () => {
+    const long = 'https://chaico.in/services/a-very-long-page-address-that-goes-on?utm_source=mail&id=7#team'
+    const detail = scan()
+    const data: PagesData = {
+      ...pages,
+      pages: [{ group: 'services', url: long, finalUrl: long, statusCode: 200, error: null, check: check() }],
+    }
+    detail.results = { ...detail.results!, url: 'https://chaico.in/', domain: 'chaico.in', pages: ok('Key pages', data) }
+    const el = await mount(detail)
+    const links = [...el.querySelectorAll<HTMLAnchorElement>('table a')]
+    const link = links.find((a) => a.title === long)!
+    expect(link.textContent).toBe('/services/a-very-long-page-address-that-goes-on')
+    expect(link.getAttribute('href')).toBe(long)
+    expect(link.getAttribute('target')).toBe('_blank')
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer nofollow')
+    expect(link.className).toContain('truncate')
+    expect(links.find((a) => a.title === 'https://chaico.in/')?.textContent).toBe('Homepage')
+    expect(el.querySelector('table')!.innerHTML).not.toContain('break-all')
+  })
+
+  it('copies the full URL, not the label', async () => {
+    const writeText = vi.fn(async () => undefined)
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    const el = await mount(scan())
+    const row = [...el.querySelectorAll('table tbody tr')].find((tr) => tr.textContent?.includes('About'))!
+    await act(async () => { row.querySelector<HTMLButtonElement>('button[aria-label="Copy full URL"]')!.click() })
+    expect(writeText).toHaveBeenCalledWith('https://chaico.in/about')
+  })
+
+  it('clamps long titles and descriptions to two lines, with the full text on hover', async () => {
+    const title = `A ${'long '.repeat(30)}title`
+    const detail = scan()
+    const data: PagesData = { ...pages, pages: [{ group: 'about', url: 'https://chaico.in/about', finalUrl: 'https://chaico.in/about', statusCode: 200, error: null, check: check({ title: { text: title, length: title.length } }) }] }
+    detail.results = { ...detail.results!, url: 'https://chaico.in/', domain: 'chaico.in', pages: ok('Key pages', data) }
+    const el = await mount(detail)
+    const cell = [...el.querySelectorAll('table .line-clamp-2')].find((node) => node.textContent === title)!
+    expect(cell.getAttribute('title')).toBe(title)
+    expect(cell.parentElement?.textContent).toContain(`${title.length} chars`)
+  })
+
   it('renders a stored scan without any of the newer fields, adding nothing that wasn’t checked', async () => {
     const text = (await mount(scan())).textContent!
     expect(text).toContain('Groups not found')

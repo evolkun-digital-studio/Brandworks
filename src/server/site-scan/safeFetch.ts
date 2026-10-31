@@ -184,9 +184,31 @@ export async function assertPublicHost(hostname: string, resolve: Resolver = res
   return addresses
 }
 
-/** Normalises and checks a customer URL without fetching it (used before starting a scan). */
+const TRACKING_PARAM = /^(_gl|_ga|utm_.*|gclid|fbclid|msclkid|mc_cid|mc_eid|igshid|ref)$/i
+
+/**
+ * Removes campaign parameters a customer's pasted link tends to carry. Works on
+ * the raw query so every other parameter keeps its exact encoding.
+ */
+export function stripTrackingParams(url: URL): URL {
+  const kept = url.search.slice(1).split('&').filter((pair) => {
+    const name = pair.split('=')[0]
+    let decoded = name
+    try { decoded = decodeURIComponent(name) } catch { /* a malformed name is simply not one of ours */ }
+    return pair !== '' && !TRACKING_PARAM.test(decoded)
+  })
+  const clean = new URL(url.href)
+  clean.search = kept.join('&')
+  return clean
+}
+
+/**
+ * Normalises and checks a customer URL without fetching it (used before starting
+ * a scan). Tracking parameters go here, not in normaliseUrl: that also runs on
+ * every redirect hop, where changing the address a site sent us to could loop.
+ */
 export async function validatePublicUrl(input: string, resolve: Resolver = resolveHost): Promise<URL> {
-  const url = normaliseUrl(input)
+  const url = stripTrackingParams(normaliseUrl(input))
   await assertPublicHost(url.hostname, resolve)
   return url
 }

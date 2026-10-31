@@ -14,7 +14,31 @@ export function safeHref(url: string | null | undefined): string | null {
   }
 }
 
-export type ScoreTone = 'danger' | 'warning' | 'success'
+const bareHost = (hostname: string) => hostname.replace(/^www\./, '')
+const bareKey = (path: string) => path.replace(/\/+$/, '') || '/'
+const readablePath = (path: string) => {
+  try { return decodeURI(path) } catch { return path }
+}
+
+/**
+ * A short name for a URL, for display only: the full address stays in the link
+ * and tooltip. With `home`: "Homepage" or the path on the same site. Anything
+ * else is host + path. No query string or fragment either way.
+ */
+export function urlLabel(url: string, home?: string | null): string {
+  let base: URL | null = null
+  try { base = home ? new URL(home) : null } catch { /* no usable homepage: every label gets its host */ }
+  let target: URL
+  try { target = new URL(url, base ?? undefined) } catch { return url }
+  if (target.protocol !== 'http:' && target.protocol !== 'https:') return url
+  const path = readablePath(target.pathname)
+  if (base && bareHost(target.hostname) === bareHost(base.hostname)) {
+    return bareKey(target.pathname) === '/' || bareKey(target.pathname) === bareKey(base.pathname) ? 'Homepage' : path
+  }
+  return `${target.hostname}${path === '/' ? '' : path}`
+}
+
+export type ScoreTone ='danger' | 'warning' | 'success'
 
 /** The standard Lighthouse bands. */
 export const scoreTone = (score: number): ScoreTone => (score >= 90 ? 'success' : score >= 50 ? 'warning' : 'danger')

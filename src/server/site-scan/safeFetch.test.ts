@@ -8,6 +8,7 @@ import {
   domainOf,
   isBlockedAddress,
   normaliseUrl,
+  stripTrackingParams,
   readCapped,
   safeFetch,
   validatePublicUrl,
@@ -118,6 +119,40 @@ describe('assertPublicHost', () => {
   it('validatePublicUrl runs both checks', async () => {
     expect((await validatePublicUrl('chaico.in', publicDns)).href).toBe('https://chaico.in/')
     expect(await codeOf(validatePublicUrl('http://169.254.169.254', publicDns))).toBe('blocked')
+  })
+})
+
+describe('tracking parameters', () => {
+  const clean = (url: string) => stripTrackingParams(new URL(url)).href
+
+  it('strips every tracking parameter', () => {
+    for (const param of ['_gl=1*abc', '_ga=2.1', 'utm_source=x', 'utm_medium=y', 'UTM_Campaign=z', 'gclid=a', 'fbclid=b', 'msclkid=c', 'mc_cid=d', 'mc_eid=e', 'igshid=f', 'ref=g']) {
+      expect(clean(`https://chaico.in/?${param}`), param).toBe('https://chaico.in/')
+    }
+  })
+
+  it('keeps every other parameter, exactly as written', () => {
+    expect(clean('https://chaico.in/shop?utm_source=x&id=5&fbclid=y&q=a%20b+c')).toBe('https://chaico.in/shop?id=5&q=a%20b+c')
+    expect(clean('https://chaico.in/?reference=1&prefix_ref=2&utm=3')).toBe('https://chaico.in/?reference=1&prefix_ref=2&utm=3')
+    expect(clean('https://chaico.in/about')).toBe('https://chaico.in/about')
+  })
+
+  it('cleans the address a scan starts from, without leaving its domain', async () => {
+    const url = await validatePublicUrl('elements.envato.com/?_gl=1*xyz', async () => ['93.184.215.14'])
+    expect(url.href).toBe('https://elements.envato.com/')
+    expect(domainOf(url)).toBe('elements.envato.com')
+  })
+
+  it('leaves the address alone on a redirect hop', async () => {
+    const seen: string[] = []
+    const transport = vi.fn<Transport>(async (url) => {
+      seen.push(url.href)
+      return url.search
+        ? { status: 200, headers: {}, body: new Uint8Array(), truncated: false }
+        : { status: 302, headers: { location: '/?ref=needed' }, body: new Uint8Array(), truncated: false }
+    })
+    await safeFetch('https://chaico.in/', { resolve: async () => ['93.184.215.14'], transport })
+    expect(seen).toEqual(['https://chaico.in/', 'https://chaico.in/?ref=needed'])
   })
 })
 
