@@ -64,7 +64,15 @@ const riaajVintageImages = [
 
 // Mr.Rework: add the cover first, then the preview / gallery shots (same
 // layout as riaajVintageImages: [0] cover, [1–3] hover preview, rest gallery).
-const mrReworkImages: string[] = []
+const mrReworkImages = [
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/01_hero_fashion.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/02_hero_editorial.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/04_campaign_banners.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/03_categories.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/05_accessories.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/06_trending_products.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/07_shop_the_look.png',
+] as const
 
 const evergreenImages = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/evergreen_enhanced_1.png',
@@ -74,12 +82,12 @@ const evergreenImages = [
 ] as const
 
 const projects: Project[] = [
-  { id: 1, title: 'Riaaj Vintage', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage.png', mediaType: 'image', ratio: 'portrait', category: 'Photography', previewImages: riaajVintageImages.slice(1, 4), gallery: riaajVintageImages.slice(4) },
-  { id: 2, title: 'Mr.Rework', media: mrReworkImages[0] ?? '', thumbnail: mrReworkImages[0] ?? '', mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: mrReworkImages.slice(1, 4), gallery: mrReworkImages.slice(4) },
+  { id: 1, title: 'Riaaj Vintage', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage%20Warehouse%20Stockroom%20(1).png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage%20Warehouse%20Stockroom%20(1).png', mediaType: 'image', ratio: 'portrait', category: 'Photography', previewImages: riaajVintageImages.slice(1, 4), gallery: riaajVintageImages.slice(4) },
+  { id: 2, title: 'Mr.Rework', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Mr.Rework.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Mr.Rework.png', mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: mrReworkImages, gallery: [] },
   { id: 3, title: 'Kinikh Infra', featuredVideo: { youtubeId: '1Lb4K9gLEbM', startSeconds: 37 },media: kinikhInfraImages[0], thumbnail: kinikhInfraImages[0], mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: kinikhInfraImages.slice(1, 4), gallery: kinikhInfraImages.slice(4) },
   { id: 4, title: 'Evergreen', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', mediaType: 'image', ratio: 'square', category: 'Digital Platform', previewImages: evergreenImages, gallery: [] },
-  { id: 5, title: 'Delhi-6', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: delhi6Images.slice(0, 3), gallery: delhi6Images.slice(3) },
-  { id: 6, title: 'BrandWorks', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', mediaType: 'image', ratio: 'square', category: 'Graphic Design', previewImages: [mediaUrl('moisturizer mock up.png'), mediaUrl('Artboard 12@3x.png'), mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png')], gallery: ['https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202.png', 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_38_07%20PM.png', mediaUrl('vcvcvcvcv.jpg')] },
+  { id: 5, title: 'Delhi-6', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/delhi_6home.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/delhi_6home.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: delhi6Images.slice(0, 3), gallery: delhi6Images.slice(3) },
+  { id: 6, title: 'BrandWorks', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', mediaType: 'image', ratio: 'square', category: 'Graphic Design', previewImages: [mediaUrl('moisturizer mock up.png'), mediaUrl('Artboard 12@3x.png'), mediaUrl('vcvcvcvcv.jpg')], gallery: ['https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202.png', 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_38_07%20PM.png', 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Sage%20Glow%20Serum%20Still%20Life.png'] },
 ]
 
 const projectHeroImages = [
@@ -510,11 +518,11 @@ function sourceFor(id: number) {
 
 /** Single-row photo strip (cover first) with prev/next buttons, shown inside the project overlay. */
 const PROJECT_SUMMARIES: Record<number, string> = {
-  1: 'A look at the visual identity and campaign imagery we created for Delhi-6, built to give the brand one recognisable voice across every post.',
-  2: 'A property film and brand visuals for Kinikh Infra, made to show its homes and spaces the way buyers would experience them.',
-  3: 'A selection of the strategy-led digital work we created for Evergreen, bringing its ideas together in one clear visual direction.',
-  4: 'A property film and brand visuals for Kinikh Infra, made to show its homes and spaces the way buyers would experience them.',
-  5: 'A photography-led series for Riaaj Vintage, composed to bring out the character and detail of the brand.',
+  1: 'A photography-led series for Riaaj Vintage, composed to bring out the character and detail of the brand.',
+  2: 'A fashion-focused e-commerce website for Mr.Rework, showcasing reworked vintage clothing, upcycled streetwear, and one-of-a-kind collections.',
+  3: 'A property film and brand visuals for Kinikh Infra, made to show its homes and spaces the way buyers would experience them.',
+  4: 'A selection of the strategy-led digital work we created for Evergreen, bringing its ideas together in one clear visual direction.',
+  5: 'A look at the visual identity and campaign imagery we created for Delhi-6, built to give the brand one recognisable voice across every post.',
   6: 'Our own identity in use: print, packaging and brand visuals that show how BrandWorks looks across different formats.',
   7: 'A brand and visual series for Mr.Rework, created to give the brand a distinct, recognisable look across everything it puts out.',
 }
@@ -526,11 +534,10 @@ function OverlayGallery({ project, slotRef }: { project: Project; slotRef: RefOb
     .filter((src) => src !== project.media)
 
   return (
-    <div className="culture-reels py-[clamp(16px,3vh,40px)]" style={{ '--culture-pad': 'var(--hero-gutter)' } as CSSProperties}>
+    <div className="culture-reels pb-[clamp(16px,3vh,40px)]" style={{ '--culture-pad': 'var(--hero-gutter)' } as CSSProperties}>
       <div className="culture-reels__container">
         <header data-ov-fade className="mb-[clamp(24px,4vh,48px)]">
-          <h2 id="overlay-title" className="section-heading capitalize">{project.title}</h2>
-          <p className="section-description mt-6 max-w-[600px] text-[16px] leading-7">{PROJECT_SUMMARIES[project.id]}</p>
+          <p className="section-description max-w-[600px] text-[16px] leading-7">{PROJECT_SUMMARIES[project.id]}</p>
         </header>
 
         {project.featuredVideo && (
@@ -662,14 +669,21 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
       <div ref={bgRef} className="fixed inset-0 bg-white" />
 
       <div className="relative flex min-h-full flex-col pb-[clamp(32px,5vh,64px)]">
-        <div className="sticky top-0 z-10 flex items-center justify-end bg-white px-[var(--hero-gutter)] py-4 font-(--font-secondary) text-[13px] tracking-[0.08em]">
-          <button ref={closeRef} data-ov-fade type="button" onClick={close} className="group inline-flex items-center gap-3 uppercase text-[#111] outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00]">
-            <span className="relative block size-3">
-              <span className="absolute left-0 top-1/2 h-px w-full rotate-45 bg-current transition-transform duration-500 group-hover:rotate-[135deg]" />
-              <span className="absolute left-0 top-1/2 h-px w-full -rotate-45 bg-current transition-transform duration-500 group-hover:rotate-45" />
-            </span>
-            Close
-          </button>
+        <div className="sticky top-0 z-10 bg-white py-[clamp(24px,3vh,40px)]">
+          <div className="culture-reels" style={{ '--culture-pad': 'var(--hero-gutter)' } as CSSProperties}>
+            <div className="culture-reels__container flex items-center justify-between gap-4">
+              <h2 id="overlay-title" data-ov-fade className="section-heading min-w-0 capitalize">
+                {project.title}
+              </h2>
+              <button ref={closeRef} data-ov-fade type="button" onClick={close} className="group inline-flex shrink-0 items-center gap-3 font-(--font-secondary) text-[13px] tracking-[0.08em] uppercase text-[#111] outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00]">
+                <span className="relative block size-3">
+                  <span className="absolute left-0 top-1/2 h-px w-full rotate-45 bg-current transition-transform duration-500 group-hover:rotate-[135deg]" />
+                  <span className="absolute left-0 top-1/2 h-px w-full -rotate-45 bg-current transition-transform duration-500 group-hover:rotate-45" />
+                </span>
+                Close
+              </button>
+            </div>
+          </div>
         </div>
 
         <OverlayGallery project={project} slotRef={slotRef} />
