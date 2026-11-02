@@ -43,6 +43,7 @@ function cylinder(section: HTMLElement) {
   let arc: number[] = []
   let progress = 0
   let active = -1
+  let captionTransition: gsap.core.Timeline | null = null
 
   const measure = () => {
     width = stage.clientWidth
@@ -70,17 +71,32 @@ function cylinder(section: HTMLElement) {
 
   const setActive = (next: number) => {
     if (next === active) return
-    const previous = captions[active]
-    if (previous) {
-      gsap.to(previous, { yPercent: -100, autoAlpha: 0, duration: 0.45, ease: 'power3.in', overwrite: 'auto' })
-    }
+    const previous = active >= 0 ? captions[active] : null
     const caption = captions[next]
+
+    // ScrollTrigger can advance through several cards before an earlier caption
+    // tween completes. Resetting every inactive caption makes this a single
+    // source of truth instead of allowing absolute-positioned captions to stack.
+    captionTransition?.kill()
+    gsap.killTweensOf(captions)
+    gsap.set(captions.filter((item) => item !== previous), { autoAlpha: 0, yPercent: 0 })
+
+    captionTransition = gsap.timeline()
+    if (previous) {
+      captionTransition.to(previous, {
+        autoAlpha: 0,
+        duration: 0.18,
+        ease: 'power1.out',
+      })
+    }
     if (caption) {
-      gsap.fromTo(
-        caption,
-        { yPercent: 100, autoAlpha: 0 },
-        { yPercent: 0, autoAlpha: 1, duration: 0.65, delay: previous ? 0.12 : 0, ease: 'power3.out', overwrite: 'auto' },
-      )
+      captionTransition
+        .set(captions, { autoAlpha: 0, yPercent: 0 })
+        .to(caption, {
+          autoAlpha: 1,
+          duration: 0.26,
+          ease: 'power1.out',
+        })
     }
     active = next
   }
@@ -133,6 +149,7 @@ function cylinder(section: HTMLElement) {
   render()
 
   return () => {
+    captionTransition?.kill()
     delete section.dataset.mode
     gsap.killTweensOf(captions)
     gsap.set(captions, { clearProps: 'all' })
