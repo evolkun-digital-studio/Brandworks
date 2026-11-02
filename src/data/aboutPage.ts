@@ -264,7 +264,7 @@ export const ABOUT_TEAM = {
     },
     {
       name: 'Yug',
-      role: 'Office Boy',
+      role: 'P/A',
       speciality: 'Office support and daily operations',
       ratio: '4/5',
       image: {

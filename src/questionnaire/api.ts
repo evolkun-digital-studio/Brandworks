@@ -90,7 +90,7 @@ export type SiteScanView = {
 
 export const SCAN_DISCLAIMER = 'Based on public data (Google, Moz/DataForSEO). Estimates, not your private analytics.'
 
-export const SCAN_CHECKS =['onPage', 'performance', 'authority', 'traffic', 'analysis'] as const
+export const SCAN_CHECKS =['onPage', 'pages', 'performance', 'authority', 'traffic', 'analysis'] as const
 export type ScanCheck = (typeof SCAN_CHECKS)[number]
 export type ScanCheckState = { status: 'ok' | 'skipped' | 'error'; highlights: SiteScanHighlight[] }
 

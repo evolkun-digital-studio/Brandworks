@@ -1,12 +1,14 @@
+import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useNativeMetadata } from '../routing/context'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import ProjectHoverPreview from '../components/ProjectHoverPreview/ProjectHoverPreview'
+import '../components/SocialContent/SocialContentSection.css'
 import { useGSAP } from '@gsap/react'
 import Lenis from 'lenis'
 import { mediaUrl } from '../lib/media'
-import ProjectHoverPreview from '../components/ProjectHoverPreview/ProjectHoverPreview'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -27,6 +29,8 @@ interface Project {
   category?: string
   previewImages?: string[]
   gallery?: string[]
+  /** Shown as a full-width film above the photo grid in the project overlay. */
+  featuredVideo?: { youtubeId: string; startSeconds?: number }
 }
 
 const kinikhInfraImages = [
@@ -42,7 +46,7 @@ const kinikhInfraImages = [
 const delhi6Images = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%201.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_14.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_Front.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_Post16.2.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Delhi6_5.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/28th%20October%2C%202026.png',
@@ -69,16 +73,12 @@ const riaajVintageImages = [
 ] as const
 
 const projects: Project[] = [
-  { id: 1, title: 'Delhi-6', media: '/images/brands/delhi%206%203.png', thumbnail: '/images/brands/delhi%206%203.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: delhi6Images.slice(0, 3), gallery: delhi6Images.slice(3) },
-  { id: 2, title: 'Workify Hub', media: workifyHubImages[0], thumbnail: workifyHubImages[0], mediaType: 'image', ratio: 'portrait', position: 'top center', category: 'Web Development', previewImages: workifyHubImages.slice(1, 4), gallery: workifyHubImages.slice(4) },
-  { id: 3, title: 'India WMS', media: mediaUrl('project 2.webp'), thumbnail: mediaUrl('project 2.webp'), mediaType: 'image', ratio: 'square', category: 'Digital Platform', previewImages: [mediaUrl('Strategy.jpg'), mediaUrl('photo-1497366754035-f200968a6e72.jpg'), mediaUrl('seo.jpg')], gallery: [mediaUrl('ideas.jpg'), mediaUrl('scrolling.jpg'), mediaUrl('photo-1519389950473-47ba0277781c.jpg')] },
-  { id: 4, title: 'Kinikh Infra', media: kinikhInfraImages[0], thumbnail: kinikhInfraImages[0], mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: kinikhInfraImages.slice(1, 4), gallery: kinikhInfraImages.slice(4) },
-  { id: 5, title: 'Riaaj Vintage', media: riaajVintageImages[0], thumbnail: riaajVintageImages[0], mediaType: 'image', ratio: 'portrait', category: 'Photography', previewImages: riaajVintageImages.slice(1, 4), gallery: riaajVintageImages.slice(4) },
+  { id: 1, title: 'Delhi-6', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: delhi6Images.slice(0, 3), gallery: delhi6Images.slice(3) },
+  { id: 2, title: 'Workify Hub', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/WorkifyHub.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/WorkifyHub.png', mediaType: 'image', ratio: 'portrait', position: 'top center', category: 'Web Development', previewImages: workifyHubImages.slice(1, 4), gallery: workifyHubImages.slice(4) },
+  { id: 3, title: 'Evergreen', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', mediaType: 'image', ratio: 'square', category: 'Digital Platform', previewImages: [mediaUrl('Strategy.jpg'), mediaUrl('photo-1497366754035-f200968a6e72.jpg'), mediaUrl('seo.jpg')], gallery: [mediaUrl('ideas.jpg'), mediaUrl('scrolling.jpg'), mediaUrl('photo-1519389950473-47ba0277781c.jpg')] },
+  { id: 4, title: 'Kinikh Infra', featuredVideo: { youtubeId: '1Lb4K9gLEbM', startSeconds: 37 },media: kinikhInfraImages[0], thumbnail: kinikhInfraImages[0], mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: kinikhInfraImages.slice(1, 4), gallery: kinikhInfraImages.slice(4) },
+  { id: 5, title: 'Riaaj Vintage', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage.png', mediaType: 'image', ratio: 'portrait', category: 'Photography', previewImages: riaajVintageImages.slice(1, 4), gallery: riaajVintageImages.slice(4) },
   { id: 6, title: 'BrandWorks', media: mediaUrl('business card mock up.png'), thumbnail: mediaUrl('business card mock up.png'), mediaType: 'image', ratio: 'square', category: 'Graphic Design', previewImages: [mediaUrl('moisturizer mock up.png'), mediaUrl('Artboard 12@3x.png'), mediaUrl('Artboard 2@3x.png')], gallery: [mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png'), mediaUrl('identity.jpg'), mediaUrl('vcvcvcvcv.jpg')] },
-  { id: 7, title: 'Editorial Series', media: mediaUrl('photo-02.webp'), thumbnail: mediaUrl('photo-02.webp'), mediaType: 'image', ratio: 'landscape', category: 'Editorial', previewImages: [mediaUrl('photo-03.webp'), mediaUrl('Photo1.jpg'), mediaUrl('vcvcvcvcv.jpg')], gallery: [mediaUrl('photo-1524504388940-b1c1722653e1.jpg'), mediaUrl('photo-1513364776144-60967b0f800f.jpg'), mediaUrl('kyle-loftus-DqmXihYx5UE-unsplash.jpg')] },
-  { id: 8, title: 'Campaign Film', media: mediaUrl('brandworks_bw_transition_smooth_60fps.mp4'), thumbnail: mediaUrl('photo-03.webp'), mediaType: 'video', ratio: 'portrait', category: 'Film', previewImages: [mediaUrl('campaign-still.webp'), mediaUrl('campaign-action.jpg'), mediaUrl('movment.jpg')], gallery: [mediaUrl('photo-03.webp'), mediaUrl('photo-1516035069371-29a1b244cc32.jpg'), mediaUrl('content-still.webp')] },
-  { id: 9, title: 'Founder Reputation', media: mediaUrl('PR.jpg'), thumbnail: mediaUrl('PR.jpg'), mediaType: 'image', ratio: 'cinematic', category: 'PR & Reputation', previewImages: [mediaUrl('photo-1560250097-0b93528c311a.jpg'), mediaUrl('photo-1500648767791-00dcc994a43e.jpg'), mediaUrl('photo-1506794778202-cad84cf45f1d.jpg')], gallery: [mediaUrl('PR.jpg'), mediaUrl('our_stra.jpg'), mediaUrl('team-04.webp')] },
-  { id: 10, title: 'Growth Campaign', media: mediaUrl('performance.jpg'), thumbnail: mediaUrl('performance.jpg'), mediaType: 'image', ratio: 'square', category: 'Performance Marketing', previewImages: [mediaUrl('enga.webp'), mediaUrl('content_creation.avif'), mediaUrl('team-04.webp')], gallery: [mediaUrl('performance.jpg'), mediaUrl('seo.jpg'), mediaUrl('Strategy.jpg')] },
 ]
 
 const projectHeroImages = [
@@ -87,7 +87,7 @@ const projectHeroImages = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/vcvcvcvcv.jpg',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%2012%403x.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Sage%20Glow%20Serum%20Still%20Life.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_Front.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k4.png',
 ] as const
 
@@ -121,20 +121,6 @@ function usePageLenis(enabled: boolean) {
 /* -------------------------------------------------------------------------- */
 /*  Small pieces                                                              */
 /* -------------------------------------------------------------------------- */
-
-function Chars({ text, attr = 'data-char', className = '' }: { text: string; attr?: string; className?: string }) {
-  return (
-    <>
-      {text.split('').map((ch, i) => (
-        <span key={`${ch}-${i}`} className="-mb-[0.06em] -mt-[0.06em] inline-block overflow-hidden pb-[0.14em] pt-[0.06em] align-bottom">
-          <span {...{ [attr]: '' }} className={`inline-block will-change-transform ${className}`}>
-            {ch === ' ' ? ' ' : ch}
-          </span>
-        </span>
-      ))}
-    </>
-  )
-}
 
 function ProjectMedia({ project, autoPlay = false }: { project: Project; autoPlay?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null)
@@ -514,70 +500,66 @@ function sourceFor(id: number) {
 }
 
 /** Single-row photo strip (cover first) with prev/next buttons, shown inside the project overlay. */
+const PROJECT_SUMMARIES: Record<number, string> = {
+  1: 'A look at the visual identity and campaign imagery we created for Delhi-6, built to give the brand one recognisable voice across every post.',
+  2: 'Selected visuals from our work with Workify Hub, shaped to present the brand clearly and consistently across its digital touchpoints.',
+  3: 'A selection of the strategy-led digital work we created for Evergreen, bringing its ideas together in one clear visual direction.',
+  4: 'A property film and brand visuals for Kinikh Infra, made to show its homes and spaces the way buyers would experience them.',
+  5: 'A photography-led series for Riaaj Vintage, composed to bring out the character and detail of the brand.',
+  6: 'Our own identity in use: print, packaging and brand visuals that show how BrandWorks looks across different formats.',
+}
+
+const GALLERY_COLUMN_OFFSETS = ['', 'md:mt-[clamp(48px,7vw,112px)]', 'md:mt-[clamp(20px,3vw,48px)]']
+
 function OverlayGallery({ project, slotRef }: { project: Project; slotRef: RefObject<HTMLDivElement | null> }) {
   const images = Array.from(new Set([...(project.previewImages ?? []), ...(project.gallery ?? [])]))
     .filter((src) => src !== project.media)
-  const count = images.length + 1
-  const trackRef = useRef<HTMLDivElement>(null)
-  const [active, setActive] = useState(0)
-
-  useEffect(() => {
-    trackRef.current?.scrollTo({ left: 0 })
-    setActive(0)
-  }, [project.id])
-
-  const onScroll = () => {
-    const track = trackRef.current
-    if (!track) return
-    const items = Array.from(track.children) as HTMLElement[]
-    const left = track.scrollLeft
-    let best = 0
-    items.forEach((el, i) => { if (Math.abs(el.offsetLeft - left) < Math.abs(items[best].offsetLeft - left)) best = i })
-    // at the far end the last item may never reach the left edge
-    if (left + track.clientWidth >= track.scrollWidth - 2) best = items.length - 1
-    setActive(best)
-  }
-
-  const goTo = (i: number) => {
-    const track = trackRef.current
-    const target = Math.max(0, Math.min(count - 1, i))
-    const el = track?.children[target] as HTMLElement | undefined
-    if (!track || !el) return
-    // Scrolling is animated, so waiting for its event leaves the opposite
-    // navigation control stale. Update it before the motion begins.
-    setActive(target)
-    track.scrollTo({ left: el.offsetLeft, behavior: 'smooth' })
-  }
-
-  const item = 'relative aspect-[4/5] h-[min(58vh,640px)] shrink-0 snap-start overflow-hidden bg-[#1a1a1a] max-md:h-[min(52vh,460px)]'
-  const navBtn = 'grid size-11 place-items-center rounded-full border border-white/25 text-white transition-colors duration-300 hover:border-[#CCFF00] hover:text-[#CCFF00] disabled:opacity-30 disabled:hover:border-white/25 disabled:hover:text-white'
 
   return (
-    <div className="flex flex-1 flex-col justify-center py-[clamp(24px,4vh,48px)]">
-      <div
-        ref={trackRef}
-        onScroll={onScroll}
-        className="flex snap-x snap-mandatory gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        <div ref={slotRef} className={`${item} will-change-transform`}>
-          <div data-ov-media key={project.id} className="h-full w-full">
-            <ProjectMedia project={project} autoPlay />
-          </div>
-        </div>
-        {images.map((src, i) => (
-          <div key={src} data-ov-fade className={item}>
-            <img src={src} alt={`${project.title} — photo ${i + 2}`} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-          </div>
-        ))}
-      </div>
+    <div className="culture-reels py-[clamp(16px,3vh,40px)]" style={{ '--culture-pad': 'var(--hero-gutter)' } as CSSProperties}>
+      <div className="culture-reels__container">
+        <header data-ov-fade className="mb-[clamp(24px,4vh,48px)]">
+          <h2 id="overlay-title" className="section-heading capitalize">{project.title}</h2>
+          <p className="section-description mt-6 max-w-[600px] text-[16px] leading-7">{PROJECT_SUMMARIES[project.id]}</p>
+        </header>
 
-      <div data-ov-fade className="mt-4 flex items-center justify-end gap-3">
-        <button type="button" onClick={() => goTo(active - 1)} disabled={active === 0} aria-label="Previous photo" className={navBtn}>
-          <ArrowIcon className="w-3.5 -rotate-[135deg]" />
-        </button>
-        <button type="button" onClick={() => goTo(active + 1)} disabled={active === count - 1} aria-label="Next photo" className={navBtn}>
-          <ArrowIcon className="w-3.5 rotate-45" />
-        </button>
+        {project.featuredVideo && (
+          <div key={project.featuredVideo.youtubeId} data-ov-fade className="relative mb-4 aspect-video overflow-hidden rounded-[20px] bg-[#111]">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${project.featuredVideo.youtubeId}?start=${project.featuredVideo.startSeconds ?? 0}&rel=0`}
+              title={`${project.title} film`}
+              loading="lazy"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              className="absolute inset-0 h-full w-full border-0"
+            />
+          </div>
+        )}
+
+        {/* Images keep their proportions and columns start offset; the last image in each column grows so all three end level. */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {GALLERY_COLUMN_OFFSETS.map((offset, column) => (
+            <div key={column} className={`flex min-w-0 flex-col gap-4 ${offset}`}>
+              {column === 0 && (
+                <div ref={slotRef} className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-[#111] will-change-transform">
+                  <div data-ov-media key={project.id} className="absolute inset-0">
+                    <ProjectMedia project={project} autoPlay />
+                  </div>
+                </div>
+              )}
+              {images.map((src, i) => {
+                if ((i + 1) % GALLERY_COLUMN_OFFSETS.length !== column) return null
+                const isLastInColumn = i + GALLERY_COLUMN_OFFSETS.length >= images.length
+                return (
+                  <div key={src} data-ov-fade className={`overflow-hidden rounded-[20px] bg-[#f1f1ed] ${isLastInColumn ? 'md:grid md:flex-1' : ''}`}>
+                    <img src={src} alt={`${project.title} — photo ${i + 2}`} loading="lazy" decoding="async" className={`block w-full ${isLastInColumn ? 'h-auto md:h-full md:object-cover' : 'h-auto'}`} />
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -620,7 +602,6 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
     } else {
       tl.fromTo(slot, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 }, 0.1)
     }
-    tl.fromTo(q('[data-ov-char]'), { yPercent: 125 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.025 }, reduce ? 0 : 0.7)
     tl.fromTo(q('[data-ov-fade]'), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 }, reduce ? 0 : 0.85)
     return () => { tl.kill() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -629,10 +610,10 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
   // switching project inside the overlay
   useLayoutEffect(() => {
     if (firstRun.current) { firstRun.current = false; return }
+    rootRef.current?.scrollTo({ top: 0 })
     const tl = gsap.timeline()
     tl.fromTo(slotRef.current, { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'expo.inOut' }, 0)
     tl.fromTo(q('[data-ov-media]'), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: 'expo.out' }, 0)
-    tl.fromTo(q('[data-ov-char]'), { yPercent: 125 }, { yPercent: 0, duration: 0.8, ease: 'expo.out', stagger: 0.02 }, 0.25)
     return () => { tl.kill() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index])
@@ -643,7 +624,6 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
     const slot = slotRef.current
     const tl = gsap.timeline({ onComplete: onClose })
     tl.to(q('[data-ov-fade]'), { autoAlpha: 0, duration: 0.25 }, 0)
-    tl.to(q('[data-ov-char]'), { yPercent: -125, duration: 0.45, ease: 'power3.in', stagger: 0.01 }, 0)
     const src = sourceFor(project.id)
     if (slot && src && !reduce) {
       gsap.set(slot, { clearProps: 'transform' })
@@ -667,15 +647,13 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
     return () => window.removeEventListener('keydown', onKey)
   }, [close, step])
 
-  const next = projects[(index + 1) % projects.length]
-
   return (
-    <div ref={rootRef} role="dialog" aria-modal="true" aria-labelledby="overlay-title" data-lenis-prevent className="fixed inset-0 z-[90] overflow-y-auto text-white">
-      <div ref={bgRef} className="fixed inset-0 bg-[#0b0b0b]" />
+    <div ref={rootRef} role="dialog" aria-modal="true" aria-labelledby="overlay-title" data-lenis-prevent className="fixed inset-0 z-[1100] overflow-y-auto text-[#111]">
+      <div ref={bgRef} className="fixed inset-0 bg-white" />
 
-      <div className="relative flex min-h-full flex-col px-[var(--hero-gutter)] py-[clamp(20px,2.2vw,36px)]">
-        <div className="flex items-center justify-end font-(--font-secondary) text-[11px] tracking-[0.08em]">
-          <button ref={closeRef} data-ov-fade type="button" onClick={close} className="group inline-flex items-center gap-3 uppercase text-white outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00]">
+      <div className="relative flex min-h-full flex-col pb-[clamp(32px,5vh,64px)]">
+        <div className="sticky top-0 z-10 flex items-center justify-end bg-white px-[var(--hero-gutter)] py-4 font-(--font-secondary) text-[13px] tracking-[0.08em]">
+          <button ref={closeRef} data-ov-fade type="button" onClick={close} className="group inline-flex items-center gap-3 uppercase text-[#111] outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00]">
             <span className="relative block size-3">
               <span className="absolute left-0 top-1/2 h-px w-full rotate-45 bg-current transition-transform duration-500 group-hover:rotate-[135deg]" />
               <span className="absolute left-0 top-1/2 h-px w-full -rotate-45 bg-current transition-transform duration-500 group-hover:rotate-45" />
@@ -686,30 +664,6 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
 
         <OverlayGallery project={project} slotRef={slotRef} />
 
-        <div className="grid items-end gap-6 border-t border-white/15 pt-6 md:grid-cols-[1fr_auto]">
-          <div>
-            <h2 id="overlay-title" key={project.id} className="m-0 font-(--font-primary) text-[48px] leading-[1.1] tracking-[-0.045em]">
-              <span className="sr-only">{project.title}</span>
-              <span aria-hidden="true"><Chars text={project.title} attr="data-ov-char" /></span>
-            </h2>
-            {(project.discipline || project.year) && (
-              <p data-ov-fade className="mt-3 font-(--font-secondary) text-[12px] tracking-[0.06em] text-white/55">
-                {[project.discipline, project.year].filter(Boolean).join(' · ')}
-              </p>
-            )}
-          </div>
-          <div data-ov-fade className="flex items-center gap-3 font-(--font-secondary)">
-            <button type="button" onClick={() => step(-1)} aria-label="Previous project" className="grid size-12 place-items-center rounded-full border border-white/25 text-white transition-colors duration-300 hover:border-[#CCFF00] hover:bg-[#CCFF00] hover:text-[#111]">
-              <ArrowIcon className="w-4 -rotate-[135deg]" />
-            </button>
-            <button type="button" onClick={() => step(1)} className="group inline-flex h-12 items-center gap-4 rounded-full bg-[#CCFF00] pl-5 pr-2 text-[12px] font-medium text-[#111]">
-              <span className="max-w-[18ch] truncate">{next.title}</span>
-              <span className="grid size-8 place-items-center rounded-full bg-[#111] text-[#CCFF00] transition-transform duration-500 group-hover:rotate-45">
-                <ArrowIcon className="w-3.5" />
-              </span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )

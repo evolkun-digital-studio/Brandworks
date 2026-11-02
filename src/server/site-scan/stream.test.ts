@@ -56,7 +56,12 @@ describe('live scan progress', () => {
       deps: { fetch: fetchImpl, env: {}, safeFetch } as never,
       onResult: (step, result) => { order.push(`${step}:${result.status}`) },
     })
-    expect(order.sort()).toEqual(['authority:skipped', 'onPage:error', 'performance:ok', 'traffic:skipped'])
+    expect(order.sort()).toEqual(['authority:skipped', 'onPage:error', 'pages:error', 'performance:ok', 'traffic:skipped'])
+  })
+
+  it('stepHighlights shows the customer nothing from the key-page crawl', () => {
+    const pages = { status: 'ok' as const, source: 'Key pages', fetchedAt: at, data: { summary: { groupsNotFound: ['contact'] } } }
+    expect(stepHighlights('pages', pages)).toEqual([])
   })
 
   it('stepHighlights gives only customer-safe, labelled metrics per step', () => {
@@ -82,7 +87,8 @@ describe('GET /api/questionnaire/site-scan/[id]/stream', () => {
     expect(response.headers.get('content-type')).toContain('text/event-stream')
     const events = await eventsOf(response)
     const steps = events.filter((e) => e.event === 'step').map((e) => JSON.parse(e.data))
-    expect(steps.map((s) => `${s.step}:${s.status}`)).toEqual(['onPage:ok', 'performance:ok', 'authority:skipped', 'traffic:skipped', 'analysis:ok'])
+    // This scan has no 'pages' (stored before the crawl existed): it ends as not available, never stuck pending.
+    expect(steps.map((s) => `${s.step}:${s.status}`)).toEqual(['onPage:ok', 'performance:ok', 'authority:skipped', 'traffic:skipped', 'pages:skipped', 'analysis:ok'])
     expect(steps[1].highlights[0]).toEqual({ label: 'Mobile performance (Google)', value: '41/100' })
     expect(events.map((e) => e.event).slice(-2)).toEqual(['teaser', 'done'])
     expect(JSON.parse(events.at(-1)!.data)).toMatchObject({ teaser: 'Your homepage scored 41/100.', teaserAi: true, disclaimer: 'Based on public data (Google, Moz/DataForSEO). Estimates, not your private analytics.' })

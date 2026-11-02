@@ -14,6 +14,9 @@ import { Link } from '../../routing'
 import * as blogAdminApi from '../api/blogAdminApi'
 import type { PublishDueJobStatus } from '../api/blogAdminApi'
 import type { AdminBlogListResult, AdminBlogPost } from '../api/blogTypes'
+import * as siteScanApi from '../api/siteScanAdminApi'
+import { ScanStatusBadge } from '../components/SiteScanParts'
+import type { SiteScanSummary } from '../../server/site-scan/types'
 import AdminButton from '../components/AdminButton'
 import AdminIconButton from '../components/AdminIconButton'
 import AdminStatusBadge from '../components/AdminStatusBadge'
@@ -126,6 +129,8 @@ function Dashboard() {
   const [scheduledCount, setScheduledCount] = useState<number | null>(null)
   const [scheduledError, setScheduledError] = useState(false)
   const [publishJobStatus, setPublishJobStatus] = useState<PublishDueJobStatus | null>(null)
+  const [recentScans, setRecentScans] = useState<SiteScanSummary[] | null>(null)
+  const [scansError, setScansError] = useState(false)
   const [refreshToken, setRefreshToken] = useState(0)
   const [hello, setHello] = useState('Welcome back')
 
@@ -154,6 +159,17 @@ function Dashboard() {
           if (!cancelled) setPublishJobStatus(null)
         })
     }
+
+    siteScanApi.listSiteScans({ pageSize: 5 })
+      .then(({ items }) => {
+        if (!cancelled) {
+          setRecentScans(items)
+          setScansError(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setScansError(true)
+      })
 
     // A partial API double (tests) may not provide listBlogPosts.
     if (!('listBlogPosts' in blogAdminApi)) {
@@ -318,6 +334,32 @@ function Dashboard() {
               <span>Scheduled Posts</span>
               <span className="tabular-nums text-a-ink-2">{scheduledValue === null ? '—' : scheduledValue}</span>
             </Link>
+          </section>
+
+          <section className="admin-card overflow-hidden" aria-labelledby="scans-heading">
+            <div className="admin-card__head">
+              <h2 id="scans-heading">Recent site scans</h2>
+              <Link to="/admin/site-scans" className="admin-link">See all <ChevronRight size={14} aria-hidden="true" /></Link>
+            </div>
+            {scansError ? (
+              <p className="px-5.5 pb-4 text-[13px] text-a-ink-2">Site scans are unavailable.</p>
+            ) : !recentScans ? (
+              <div className="flex flex-col gap-2.5 px-5.5 pb-4" aria-hidden="true"><span className="admin-skeleton h-9" /><span className="admin-skeleton h-9" /></div>
+            ) : recentScans.length ? (
+              <div className="admin-list pb-1.5">
+                {recentScans.map((scan) => (
+                  <Link key={scan.id} to={`/admin/site-scans/${scan.id}`} className="admin-list-row min-h-13">
+                    <span className="admin-list-row__main">
+                      <span className="admin-list-row__title">{scan.domain}</span>
+                      <span className="admin-list-row__sub">{formatDate(scan.updatedAt, true)}</span>
+                    </span>
+                    <ScanStatusBadge status={scan.status} stale={scan.stale} error={scan.error} />
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="px-5.5 pb-4 text-[13px] text-a-ink-2">Scans appear after someone enters a website URL in the questionnaire.</p>
+            )}
           </section>
 
           <section className="admin-card overflow-hidden" aria-labelledby="attention-heading">

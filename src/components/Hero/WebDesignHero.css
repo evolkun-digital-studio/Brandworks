@@ -446,7 +446,7 @@
   font-family: var(--font-secondary);
   font-size: 11px;
   line-height: 1.3;
-  transform: translate(calc(var(--dx, 0px) + var(--px, 0px)), calc(var(--dy, 0px) + var(--py, 0px)));
+  transform: translate(calc(var(--dx, 0px) + var(--px, 0px)), calc(var(--dy, 0px) + var(--py, 0px))) scale(var(--wd-card-k, 1));
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s;
   pointer-events: auto;
   touch-action: none;
@@ -498,22 +498,38 @@
   0%, 30% { color: var(--wd-violet); }
 }
 
-/* Interface: on the browser's right edge (48px over it), 40px below its top. */
+/* Interface: in the copy's columns (8–12), level with the browser's top, its
+   right edge on the content container's. fitZone keeps that edge in place when
+   the zone scales (--wd-type-x) and shrinks the card if a short window leaves
+   too little room above the headline (--wd-card-k). */
 .wd-card--type {
+  --wd-type-w: min(calc(var(--hero-col) * 5 + var(--hero-grid-gap) * 4), clamp(320px, 28vw, 440px));
   z-index: 2;
-  top: 40px;
-  left: calc(100% - 48px);
-  width: clamp(230px, 17vw, 280px);
+  top: 0;
+  left: var(--wd-type-x, calc(100% + var(--hero-col) * 5 + var(--hero-grid-gap) * 5 - var(--wd-type-w)));
+  width: var(--wd-type-w);
+  padding: 20px 24px 22px;
+  transform-origin: 100% 0;
+}
+
+.wd-card--type .wd-card__head {
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+
+.wd-card--type .wd-card__head .wd-mono {
+  font-size: 12.5px;
 }
 
 .wd-aa {
   display: block;
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   padding: 0;
   border: 0;
   background: none;
   color: inherit;
-  font-size: 56px;
+  font-size: 72px;
   font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1.05;
@@ -528,7 +544,7 @@
   display: flex;
   justify-content: space-between;
   color: #85897F;
-  font-size: 12.5px;
+  font-size: 15px;
   line-height: 1.9;
 }
 
@@ -540,7 +556,7 @@
 .wd-range {
   display: block;
   width: 100%;
-  margin: 2px 0 6px;
+  margin: 4px 0 10px;
   accent-color: var(--wd-violet);
   cursor: pointer;
 }

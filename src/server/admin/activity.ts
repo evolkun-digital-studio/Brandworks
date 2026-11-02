@@ -4,14 +4,14 @@ import { ObjectId } from 'mongodb'
 import { getDatabase } from '../db/client'
 import type { AdminDocument } from './types'
 
-export type ActivityAction = 'created' | 'updated' | 'submitted_for_review' | 'approved' | 'changes_requested' | 'published' | 'unpublished' | 'scheduled' | 'unscheduled' | 'archived' | 'restored' | 'backup_exported' | 'backup_restored' | 'login_failed'
+export type ActivityAction = 'created' | 'updated' | 'submitted_for_review' | 'approved' | 'changes_requested' | 'published' | 'unpublished' | 'scheduled' | 'unscheduled' | 'archived' | 'restored' | 'backup_exported' | 'backup_restored' | 'login_failed' | 'site_scan_rescanned' | 'site_scan_deleted'
 
 export interface ActivityLogDocument {
   _id: ObjectId
   actorId: ObjectId | null
   actorName: string
   action: ActivityAction
-  entityType: 'blog' | 'backup' | 'system'
+  entityType: 'blog' | 'backup' | 'system' | 'site_scan'
   entityId: string | null
   entityTitle: string | null
   metadata: Record<string, string | number | boolean | null>

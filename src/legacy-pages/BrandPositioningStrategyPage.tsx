@@ -13,7 +13,7 @@ const SEO_DESCRIPTION =
   'Building a brand without a strategy? BrandWorks defines who you’re for, what you stand for and why you win, then turns it into a 90-day growth roadmap.'
 
 // Served from ImageKit; the ?tr= options pick width, format (WebP/AVIF) and quality.
-const HERO_IMAGE = 'https://ik.imagekit.io/rxoyjxx4c/Sticky%20Note%20Brainstorm%20Portrait%20(2).png'
+const HERO_IMAGE = 'https://ik.imagekit.io/rxoyjxx4c/Brainstorming%20Man%20Covered%20in%20Sticky%20Notes.png'
 
 const STEPS = [
   { name: 'Discover', desc: 'An honest look at your brand, market, competitors and customers.' },
@@ -105,12 +105,12 @@ function Hero() {
         {/* Text first on small screens so the H1 isn't pushed below a tall photo. */}
         <div className="order-2 flex justify-center lg:order-1">
           <img
-            src={`${HERO_IMAGE}?tr=w-1180,f-auto,q-80`}
-            srcSet={[600, 900, 1180].map((w) => `${HERO_IMAGE}?tr=w-${w},f-auto,q-80 ${w}w`).join(', ')}
+            src={`${HERO_IMAGE}?tr=w-1122,f-auto,q-80`}
+            srcSet={[600, 900, 1122].map((w) => `${HERO_IMAGE}?tr=w-${w},f-auto,q-80 ${w}w`).join(', ')}
             sizes="(min-width: 1024px) 560px, 100vw"
             alt="A man with sticky notes on his face asking: logo, colours, fonts, story, audience, packaging"
-            width={1180}
-            height={1333}
+            width={1122}
+            height={1402}
             loading="eager"
             fetchPriority="high"
             className="block h-auto max-h-[640px] w-auto max-w-full object-contain"

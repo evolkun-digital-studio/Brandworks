@@ -291,20 +291,23 @@ describe('traffic collector', () => {
 /* -------------------------------------------------------------------------- */
 
 describe('collectAll', () => {
+  const offline = async () => { throw new SafeFetchError('network', 'offline') }
+
   it('skips paid sources over the daily cap and never lets one failure break the rest', async () => {
     const fetchImpl = vi.fn<typeof fetch>(async (input) => {
       if (String(input).startsWith(PSI_URL)) throw new Error('boom')
       return json(MOZ_BODY)
     })
     const env = { SEO_DATA_PROVIDER: 'moz', MOZ_API_TOKEN: 'moz-token' }
-    const capped = await collectAll(new URL('https://www.chaico.in/'), { allowPaid: false, deps: { fetch: fetchImpl, env, now } })
+    const capped = await collectAll(new URL('https://www.chaico.in/'), { allowPaid: false, deps: { fetch: fetchImpl, env, now, safeFetch: offline } as never })
     expect(capped.domain).toBe('chaico.in')
+    expect(capped.pages).toMatchObject({ status: 'error' })
     expect(capped.authority).toMatchObject({ status: 'skipped' })
     expect(capped.traffic).toMatchObject({ status: 'skipped' })
     expect(capped.performance).toMatchObject({ status: 'error' })
     expect(fetchImpl.mock.calls.some(([u]) => String(u) === MOZ_URL)).toBe(false)
 
-    const paid = await collectAll(new URL('https://www.chaico.in/'), { allowPaid: true, deps: { fetch: fetchImpl, env, now } })
+    const paid = await collectAll(new URL('https://www.chaico.in/'), { allowPaid: true, deps: { fetch: fetchImpl, env, now, safeFetch: offline } as never })
     expect(paid.authority).toMatchObject({ status: 'ok', data: { domainAuthority: 23 } })
   })
 
@@ -314,7 +317,7 @@ describe('collectAll', () => {
     const earlier = { status: 'ok' as const, source: 'Moz API', fetchedAt: '2026-10-20T00:00:00.000Z', data: { provider: 'moz' as const, domainAuthority: 23, pageAuthority: 31, spamScore: 2, linkingRootDomains: 140, externalLinks: 2210 } }
     const result = await collectAll(new URL('https://chaico.in/'), {
       allowPaid: true,
-      deps: { fetch: fetchImpl, env, now },
+      deps: { fetch: fetchImpl, env, now, safeFetch: offline } as never,
       paid: { authority: earlier, traffic: { status: 'skipped', source: 'x', fetchedAt: earlier.fetchedAt, data: null } },
     })
     expect(result.authority).toBe(earlier)

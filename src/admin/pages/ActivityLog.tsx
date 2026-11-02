@@ -1,4 +1,4 @@
-import { Activity, Archive, CalendarClock, CheckCircle2, ClipboardCheck, FilePenLine, RefreshCw, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
+import { Activity, Archive, CalendarClock, CheckCircle2, ClipboardCheck, FilePenLine, RefreshCw, RotateCcw, ScanSearch, ShieldCheck, Upload } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import * as operationsApi from '../api/operationsApi'
@@ -21,6 +21,8 @@ const labels: Record<string, string> = {
   restored: 'Restored',
   backup_exported: 'Backup exported',
   backup_restored: 'Backup restored',
+  site_scan_rescanned: 'Site scan re-run',
+  site_scan_deleted: 'Site scan deleted',
 }
 
 const actionOptions = [{ value: 'all', label: 'All activity' }, ...Object.entries(labels).map(([value, label]) => ({ value, label }))]
@@ -31,6 +33,7 @@ function iconFor(action: string): LucideIcon {
   if (action === 'archived') return Archive
   if (action === 'restored') return RotateCcw
   if (action.startsWith('backup')) return Upload
+  if (action.startsWith('site_scan')) return ScanSearch
   if (action === 'submitted_for_review' || action === 'changes_requested') return ClipboardCheck
   if (action === 'created' || action === 'updated' || action === 'unpublished') return FilePenLine
   return ShieldCheck

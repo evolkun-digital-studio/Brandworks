@@ -6,15 +6,18 @@ import './WebDesignHero.css'
  * A browser (hero columns 1–7) shows a finished mock client site; its top
  * bar holds the site switcher and three device icons (desktop / tablet /
  * phone) that resize the browser so the site reflows. Two live panels
- * overlap it: Interface (the H1's size and typeface) on its right edge and
- * Development (the component's code) on its bottom-left corner. Panels can
- * be dragged by their title bar; positions reset when the slide returns.
+ * accompany it: Interface (the H1's size and typeface) to its right, above
+ * the headline, and Development (the component's code) on its bottom-left
+ * corner. Panels can be dragged by their title bar; positions reset when the
+ * slide returns.
  *
  * Layout guard (fitZone): the whole visual zone scales from its top-left so
- * nothing in it enters the headline / subtext / tabs box plus a 32px safe
- * margin, the Development panel stays 40px above the hero's bottom, and the
- * panel never covers the mock CTA (it moves lower instead). It runs on every
- * resize, so every breakpoint is checked.
+ * the browser and Development panel stay out of the headline / subtext / tabs
+ * box plus a 32px safe margin, the Development panel stays 40px above the
+ * hero's bottom, and the panel never covers the mock CTA (it moves lower
+ * instead). Interface is then placed on the content's right edge and shrunk
+ * only if it would not fit above that box. It runs on every resize, so every
+ * breakpoint is checked.
  *
  * Whenever the slide comes up, two cursors run a short (~3s) film sized to
  * the hero's 4s autoplay: BrandWorks clicks the mock CTA, then selects the
@@ -183,6 +186,7 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
     function fitZone() {
       if (!hero || compact()) {
         stage.style.removeProperty('--wd-fit'); code.style.removeProperty('--wd-push')
+        type.style.removeProperty('--wd-type-x'); type.style.removeProperty('--wd-card-k')
         return
       }
       // 1. The Development panel sits below the mock's logo, H1, text, CTA
@@ -201,11 +205,9 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       // clear of the copy and the panel above the hero's bottom.
       const base = parseFloat(getComputedStyle(stage).getPropertyValue('--wd-scale')) || 1
       const origin = boxIn(stage, hero), rigBox = boxIn(rig, stage)
-      const items = [rigBox, ...[type, code].map((p) => {
-        const b = boxIn(p, rig)
-        return { l: rigBox.l + b.l, t: rigBox.t + b.t, r: rigBox.l + b.r, b: rigBox.t + b.b }
-      })]
-      const codeB = items[2].b
+      const codePanel = boxIn(code, rig)
+      const codeB = rigBox.t + codePanel.b
+      const items = [rigBox, { l: rigBox.l + codePanel.l, t: rigBox.t + codePanel.t, r: rigBox.l + codePanel.r, b: codeB }]
       const text = ['.hero-caption__pane[data-id="web"] .hero-title', '.hero-caption__pane[data-id="web"] .hero-description', '.hero-switcher-wrap']
         .map((sel) => hero.querySelector<HTMLElement>(sel)).filter((el): el is HTMLElement => !!el)
         .map((el) => boxIn(el, hero))
@@ -222,6 +224,12 @@ function WebDesignHero({ active, playing, reducedMotion }: { active: boolean; pl
       while (s > 0.1 && !clear(s)) s = Math.round((s - 0.01) * 100) / 100
       if (!clear(s)) console.warn('[WebDesignHero] the visual zone cannot clear the hero copy at this size')
       stage.style.setProperty('--wd-fit', String(s))
+
+      // 3. Interface: its right edge on the content's whatever the scale,
+      // and no taller than the room above the copy.
+      type.style.setProperty('--wd-type-x', `${stage.offsetWidth / s - rigBox.l - type.offsetWidth}px`)
+      const room = safe ? (safe.t - origin.t) / s - rigBox.t : Infinity
+      type.style.setProperty('--wd-card-k', String(Math.min(1, room / type.offsetHeight)))
     }
     let fitFrame = 0
     const queueFit = () => { cancelAnimationFrame(fitFrame); fitFrame = requestAnimationFrame(fitZone) }

@@ -11,6 +11,8 @@ import MediaLibrary from './pages/MediaLibrary'
 import SeoWorkspace from './pages/SeoWorkspace'
 import EditorialCalendar from './pages/EditorialCalendar'
 import ActivityLog from './pages/ActivityLog'
+import SiteScans from './pages/SiteScans'
+import SiteScanDetail from './pages/SiteScanDetail'
 
 /**
  * Everything under /admin lives here, isolated from the public site's
@@ -29,6 +31,8 @@ function AdminRoutes() {
           <Route path="seo" element={<SeoWorkspace />} />
           <Route path="calendar" element={<EditorialCalendar />} />
           <Route path="activity" element={<ActivityLog />} />
+          <Route path="site-scans" element={<SiteScans />} />
+          <Route path="site-scans/:id" element={<SiteScanDetail />} />
           <Route path="users" element={<Users />} />
           <Route path="blogs" element={<BlogList />} />
           <Route path="blogs/new" element={<BlogEditor />} />
