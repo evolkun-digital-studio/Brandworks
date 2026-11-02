@@ -7,6 +7,7 @@ import type { Components } from 'react-markdown'
 import type { Element } from 'hast'
 import { buildToc, parseMarkdown } from '../../lib/markdownMetrics'
 import { markdownRehypePlugins } from '../lib/markdownConfig'
+import { articleImageComponents } from './ArticleImage'
 
 function isExternalHref(href: string | undefined): boolean {
   return /^https?:\/\//i.test(href ?? '')
@@ -91,7 +92,10 @@ function ArticleMarkdown({ content }: { content: string }) {
       // External links open in a new tab with safe rel attributes;
       // anything else (relative paths, #anchors, mailto:, tel:) stays
       // same-tab. A simple protocol check — not a link-rewriting system.
-      a: ({ href, children, ...props }) =>
+      ...articleImageComponents,
+      // `node` is react-markdown's syntax tree node: it would otherwise reach the DOM as node="[object Object]".
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      a: ({ node, href, children, ...props }) =>
         !isSafeHref(href) ? (
           <span {...props}>{children}</span>
         ) : isExternalHref(href) ? (

@@ -4,6 +4,7 @@ import { AlertTriangle, Check, Monitor, Rocket, Smartphone, Tablet, X } from 'lu
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { markdownRehypePlugins } from '../../../../blog/lib/markdownConfig'
+import { articleImageComponents } from '../../../../blog/components/ArticleImage'
 import AdminButton from '../../../components/AdminButton'
 import AdminIconButton from '../../../components/AdminIconButton'
 import { isLikelyUrl } from '../lib/editorForm'
@@ -154,7 +155,7 @@ export function PreviewDialog({ form, readingMinutes, onClose }: { form: FormSta
               <p className="mt-5 text-[13px] text-a-ink-2">{byline}</p>
               <div className="markdown-rich-content mt-8 text-[17px] leading-[1.75]">
                 {form.content.trim()
-                  ? <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={markdownRehypePlugins}>{form.content}</ReactMarkdown>
+                  ? <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={markdownRehypePlugins} components={articleImageComponents}>{form.content}</ReactMarkdown>
                   : <p className="text-a-ink-3">Nothing to preview yet.</p>}
               </div>
               {form.keyTakeaways.filter(Boolean).length > 0 && (

@@ -1406,9 +1406,35 @@ body {
 .markdown-rich-content [data-align='right'] { text-align: right; }
 .markdown-rich-content [data-align='justify'] { text-align: justify; }
 
+/* Contains floated images, so a wrapped image can never spill out of the article. */
+.markdown-rich-content { display: flow-root; }
+
 .markdown-rich-content figure { margin: 22px 0; }
-.markdown-rich-content figure img { display: block; max-width: 100%; border-radius: 10px; }
+.markdown-rich-content figure a { display: block; }
+.markdown-rich-content figure img { display: block; width: 100%; max-width: 100%; height: auto; margin: 0; border-radius: 10px; }
 .markdown-rich-content figcaption { margin-top: 7px; color: var(--rc-muted, #6b6b6b); font-size: 12px; line-height: 1.45; }
+
+/* Editor image layout. Width and shape arrive as custom properties from the renderer. */
+.markdown-rich-content figure[data-width] { width: var(--rc-image-width, 100%); max-width: 100%; }
+.markdown-rich-content figure[data-ratio] img { aspect-ratio: var(--rc-image-ratio); object-fit: cover; }
+.markdown-rich-content figure[data-align='left'] { margin-inline: 0 auto; }
+.markdown-rich-content figure[data-align='center'] { margin-inline: auto; }
+.markdown-rich-content figure[data-align='right'] { margin-inline: auto 0; }
+.markdown-rich-content figure[data-align='full'] { width: 100%; }
+.markdown-rich-content figure[data-wrap='left'] { float: left; margin: 6px 24px 14px 0; }
+.markdown-rich-content figure[data-wrap='right'] { float: right; margin: 6px 0 14px 24px; }
+/* Keeps bullets and quote rules clear of a floated image beside them. */
+.markdown-rich-content figure[data-wrap] ~ :is(ul, ol, blockquote) { display: flow-root; }
+
+/* On a phone every image stacks full width. The editor keeps true sizes so they stay editable. */
+@media (max-width: 680px) {
+  .markdown-rich-content:not(.admin-rte__surface) figure[data-width],
+  .markdown-rich-content:not(.admin-rte__surface) figure[data-wrap] {
+    float: none;
+    width: 100%;
+    margin-inline: 0;
+  }
+}
 
 .markdown-rich-content [data-layout='media-text'] {
   display: grid;

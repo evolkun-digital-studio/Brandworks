@@ -22,7 +22,7 @@ function absolute(publicUrl: string) {
   return new URL(publicUrl, window.location.origin).href
 }
 
-const ACCEPT = 'image/jpeg,image/png,image/webp,image/avif,image/gif'
+const ACCEPT = 'image/jpeg,image/png,image/webp,image/avif,image/gif,image/svg+xml'
 
 /** Choose an existing image, or upload a new one into the media library. */
 function MediaPicker({ title = 'Choose an image', onClose, onPick }: MediaPickerProps) {
@@ -73,7 +73,7 @@ function MediaPicker({ title = 'Choose an image', onClose, onPick }: MediaPicker
   function chooseFile(file: File | null | undefined) {
     if (!file) return
     if (!ACCEPT.split(',').includes(file.type)) {
-      toast.error('Choose a JPEG, PNG, WebP, AVIF or GIF image.')
+      toast.error('Choose a JPEG, PNG, WebP, AVIF, GIF or SVG image.')
       return
     }
     setPendingFile(file)

@@ -267,8 +267,107 @@
     @apply text-a-danger;
   }
 
+  /* Image overlays sit in a clipped stage, so they slide under the toolbar with the page. */
+  .admin-image-stage {
+    @apply pointer-events-none fixed z-80 overflow-hidden;
+  }
+
   .admin-image-outline {
-    @apply pointer-events-none fixed z-90 rounded-a-lg outline-2 -outline-offset-2 outline-a-accent;
+    @apply absolute rounded-[10px] outline-2 outline-offset-0 outline-a-accent;
+  }
+
+  .admin-image-grip {
+    @apply pointer-events-auto absolute grid h-7 w-6 cursor-grab touch-none place-items-center rounded-a-sm border-0 bg-a-surface p-0 text-a-ink-2 shadow-a-md transition-colors duration-100 hover:text-a-ink active:cursor-grabbing;
+  }
+
+  .admin-image-handle {
+    @apply pointer-events-auto absolute z-1 size-3 touch-none rounded-[3px] border-[1.5px] border-a-surface bg-a-accent p-0 shadow-a-md;
+  }
+
+  /* A larger invisible target, without a larger visible handle. */
+  .admin-image-handle::after {
+    @apply absolute -inset-2 content-[''] pointer-coarse:-inset-4;
+  }
+
+  .admin-image-size {
+    @apply pointer-events-none fixed z-95 rounded-full bg-a-ink px-2 py-0.5 text-xs font-medium text-a-surface tabular-nums shadow-a-md;
+  }
+
+  .admin-image-bar {
+    @apply fixed z-95 max-w-[calc(100vw-16px)] w-max rounded-a-lg bg-a-surface p-1 shadow-a-lg;
+    animation: admin-pop 120ms var(--ease-a-spring);
+    transform-origin: bottom center;
+  }
+
+  @media (min-width: 640px) {
+    .admin-image-bar {
+      max-width: min(calc(100vw - 16px), 620px);
+    }
+  }
+
+  .admin-tool--danger {
+    @apply hover:bg-a-danger-soft hover:text-a-danger;
+  }
+
+  .admin-drop-line {
+    @apply pointer-events-none fixed z-95 h-0.5 rounded-full bg-a-accent shadow-[0_0_0_2px_var(--a-accent-soft)];
+  }
+
+  .admin-drop-line::before,
+  .admin-drop-line::after {
+    @apply absolute -top-[3px] size-2 rounded-full bg-a-accent content-[''];
+  }
+
+  .admin-drop-line::before { @apply -left-1; }
+  .admin-drop-line::after { @apply -right-1; }
+
+  .admin-drag-ghost {
+    @apply pointer-events-none fixed top-0 left-0 z-100 w-32 overflow-hidden rounded-a-lg bg-a-surface opacity-90 shadow-a-lg;
+  }
+
+  .admin-drag-ghost img {
+    @apply block max-h-32 w-full object-cover;
+  }
+
+  /* Upload placeholder, inside the document where the image will appear. */
+  .admin-upload {
+    @apply mb-[1.1em] flex cursor-default items-center gap-3 rounded-a-lg bg-a-fill p-3 select-none;
+  }
+
+  .admin-upload[data-state='error'] {
+    @apply bg-a-danger-soft;
+  }
+
+  .admin-upload__thumb {
+    @apply m-0! size-14 min-h-0! flex-none rounded-a-sm object-cover;
+  }
+
+  .admin-upload__body {
+    @apply flex min-w-0 flex-1 flex-col gap-1 text-[13px] leading-snug;
+  }
+
+  .admin-upload__body strong {
+    @apply truncate font-semibold;
+  }
+
+  .admin-upload__status {
+    @apply text-xs text-a-ink-2;
+  }
+
+  .admin-upload[data-state='error'] .admin-upload__status {
+    @apply text-a-danger;
+  }
+
+  .admin-upload__bar {
+    @apply mt-0.5 block h-1 overflow-hidden rounded-full bg-a-line-2;
+  }
+
+  .admin-upload__bar i {
+    @apply block h-full rounded-full bg-a-accent transition-[width] duration-150 ease-a;
+  }
+
+  .admin-upload__actions {
+    @apply flex flex-none gap-1.5;
   }
 
   .admin-tool--wide {
@@ -363,6 +462,25 @@
 
   .admin-rte__surface figure {
     @apply cursor-default;
+  }
+
+  .admin-rte__surface figure img {
+    @apply cursor-grab select-none;
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+  }
+
+  .admin-rte__surface figcaption {
+    @apply cursor-text outline-none;
+  }
+
+  .admin-rte__surface figcaption:empty::before {
+    @apply pointer-events-none text-a-ink-3;
+    content: attr(data-placeholder);
+  }
+
+  .admin-rte__surface [data-rte-dragging] {
+    @apply opacity-35;
   }
 
   .admin-rte__surface :is(p, h1, h2, h3, h4, blockquote, li)[data-align='center'] { @apply text-center; }
