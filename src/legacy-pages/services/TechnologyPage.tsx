@@ -32,9 +32,10 @@ const pad = (index: number) => String(index + 1).padStart(2, '0')
 
 // Shared type and link patterns; individual layout utilities stay on the elements.
 const sectionHeadingClasses = `
-  font-[family-name:var(--section-title-font)] text-(length:--section-title-size)
-  font-(--section-title-weight) leading-none tracking-(--section-title-tracking) text-balance
+  section-heading font-normal
 `
+const sectionLabelClasses = 'section-label font-normal'
+const sectionCopyClasses = 'section-description'
 const textLinkClasses = `
   group/link relative z-0 inline-flex min-h-11 items-center gap-2.5 no-underline transition-colors duration-300
   focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111]
@@ -169,7 +170,7 @@ function Hero({ reduced }: { reduced: boolean }) {
       ">
         <div className="
           bwt-container bwt-hero__inner mx-auto w-full
-          max-w-[1440px] px-[clamp(24px,5vw,80px)] relative z-1 pt-16
+          max-w-[1440px] px-[var(--page-gutter)] relative z-1 pt-16
           max-[761px]:pt-[clamp(112px,16svh,150px)]
         " data-hero>
           {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-hero-fade>
@@ -182,7 +183,7 @@ function Hero({ reduced }: { reduced: boolean }) {
           ">
             <MaskedLines lines={technologyHero.heading} />
           </h1>
-          <p className="bwt-hero__copy mt-[clamp(24px,2.6vw,36px)] max-w-[32em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]" data-hero-fade>
+          <p className={`bwt-hero__copy mt-[clamp(24px,2.6vw,36px)] max-w-[32em] text-[#111]/66 ${sectionCopyClasses}`} data-hero-fade>
             {technologyHero.copy}
           </p>
           <div className="bwt-hero__actions mt-[clamp(32px,3.4vw,48px)] flex flex-wrap items-center gap-x-8 gap-y-[18px]" data-hero-fade>
@@ -211,16 +212,16 @@ function Hero({ reduced }: { reduced: boolean }) {
 
 function Intro() {
   return (
-    <section className="bwt-intro relative z-1 pt-[clamp(96px,11vw,170px)] pb-[clamp(80px,8vw,130px)]" aria-labelledby="bwt-intro-title">
-      <div className="bwt-container bwt-intro__grid mx-auto w-full max-w-[1440px] px-[clamp(24px,5vw,80px)] grid grid-cols-12 gap-(--grid-gap)" data-reveal-group>
-        <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52 col-span-full lg:col-span-3 lg:pt-[0.9em]" data-reveal>
+    <section className="bwt-intro relative z-1 py-[clamp(48px,10vw,120px)]" aria-labelledby="bwt-intro-title">
+      <div className="bwt-container bwt-intro__grid mx-auto w-full max-w-[1440px] px-[var(--page-gutter)] grid grid-cols-12 gap-(--grid-gap)" data-reveal-group>
+        <p className={`bwt-label ${sectionLabelClasses} col-span-full lg:col-span-3 lg:pt-[0.9em]`} data-reveal>
           {technologyIntro.label}
         </p>
         <div className="bwt-intro__body col-span-full lg:col-start-4">
           <h2 id="bwt-intro-title" className={`bwt-intro__statement max-w-[18em] ${sectionHeadingClasses}`} data-reveal>
             {technologyIntro.statement}
           </h2>
-          <p className="bwt-intro__copy mt-[clamp(32px,3.6vw,52px)] ml-auto max-w-[36em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.65]" data-reveal>
+          <p className={`bwt-intro__copy mt-[clamp(32px,3.6vw,52px)] ml-auto max-w-[36em] text-[#111]/66 ${sectionCopyClasses}`} data-reveal>
             {technologyIntro.copy}
           </p>
         </div>
@@ -260,12 +261,12 @@ function Capabilities() {
     <section
       ref={sectionRef}
       id="capabilities"
-      className="bwt-caps relative z-1 scroll-mt-6 pt-[clamp(88px,9vw,140px)] pb-[clamp(110px,11vw,170px)]"
+      className="bwt-caps relative z-1 scroll-mt-6 py-[clamp(48px,10vw,120px)]"
       aria-labelledby="bwt-caps-title"
     >
-      <div className="bwt-container mx-auto w-full max-w-[1440px] px-[clamp(24px,5vw,80px)]">
+      <div className="bwt-container mx-auto w-full max-w-[1440px] px-[var(--page-gutter)]">
         <div className="bwt-caps__head mb-[clamp(40px,5vw,72px)] flex items-baseline justify-between gap-6" data-reveal-group>
-          <h2 id="bwt-caps-title" className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
+          <h2 id="bwt-caps-title" className={`bwt-label ${sectionLabelClasses}`} data-reveal>
             Capabilities
           </h2>
         </div>
@@ -466,12 +467,12 @@ function AutomationStory({ reduced }: { reduced: boolean }) {
       ">
         <div className="
           bwt-container bwt-story__grid mx-auto w-full
-          max-w-[1440px] px-[clamp(24px,5vw,80px)] grid grid-cols-1 items-center gap-[clamp(40px,6vw,110px)]
+          max-w-[1440px] px-[var(--page-gutter)] grid grid-cols-1 items-center gap-[clamp(40px,6vw,110px)]
           lg:grid-cols-[0.8fr_1.2fr]
           motion-safe:max-lg:gap-7
         ">
           <div className="bwt-story__copy">
-            <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52">Automation</p>
+            <p className={`bwt-label ${sectionLabelClasses}`}>Automation</p>
             <h2 id="bwt-story-title" className={`bwt-story__title mt-[22px] grid ${sectionHeadingClasses}`}>
               {automationStory.stages.map((stage) => (
                 <span key={stage.word} className="bwt-story__word block">
@@ -483,7 +484,7 @@ function AutomationStory({ reduced }: { reduced: boolean }) {
               {automationStory.stages.map((stage) => (
                 <p key={stage.word} className="
                   bwt-story__line
-                  max-w-[26em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]
+                  max-w-[26em] text-[#111]/66 section-description
                   group-data-[animated=true]/story:col-start-1 group-data-[animated=true]/story:row-start-1
                 ">
                   {stage.line}
@@ -545,8 +546,8 @@ function WorkflowExample({ reduced }: { reduced: boolean }) {
   )
 
   return (
-    <section ref={sectionRef} className="bwt-flow relative z-1 pt-[clamp(96px,11vw,170px)] pb-[clamp(96px,10vw,150px)]" aria-labelledby="bwt-flow-title">
-      <div className="bwt-container mx-auto w-full max-w-[1440px] px-[clamp(24px,5vw,80px)]">
+    <section ref={sectionRef} className="bwt-flow relative z-1 py-[clamp(48px,10vw,120px)]" aria-labelledby="bwt-flow-title">
+      <div className="bwt-container mx-auto w-full max-w-[1440px] px-[var(--page-gutter)]">
         <div className="bwt-flow__head " data-reveal-group>
           {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
             Business automation
@@ -657,10 +658,10 @@ function DataSection({ reduced }: { reduced: boolean }) {
   )
 
   return (
-    <section ref={sectionRef} className="bwt-data relative z-1 py-[clamp(96px,10vw,160px)]" aria-labelledby="bwt-data-title">
+    <section ref={sectionRef} className="bwt-data relative z-1 py-[clamp(48px,10vw,120px)]" aria-labelledby="bwt-data-title">
       <div className="
         bwt-container bwt-data__grid mx-auto w-full
-        max-w-[1440px] px-[clamp(24px,5vw,80px)] grid grid-cols-1 items-center gap-[clamp(48px,7vw,120px)]
+        max-w-[1440px] px-[var(--page-gutter)] grid grid-cols-1 items-center gap-[clamp(48px,7vw,120px)]
         lg:grid-cols-2
       ">
         <div className="bwt-data__head " data-reveal-group>
@@ -670,7 +671,7 @@ function DataSection({ reduced }: { reduced: boolean }) {
           <h2 id="bwt-data-title" className={`mt-[22px] ${sectionHeadingClasses}`}>
             <MaskedLines lines={dataSection.heading} />
           </h2>
-          <p className="bwt-data__copy mt-[clamp(24px,2.6vw,36px)] max-w-[30em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]" data-reveal>
+          <p className={`bwt-data__copy mt-[clamp(24px,2.6vw,36px)] max-w-[30em] text-[#111]/66 ${sectionCopyClasses}`} data-reveal>
             {dataSection.copy}
           </p>
         </div>
@@ -788,10 +789,10 @@ function ErpSection({ reduced }: { reduced: boolean }) {
   )
 
   return (
-    <section ref={sectionRef} className="bwt-erp relative z-1 pt-[clamp(110px,12vw,180px)] pb-[clamp(96px,10vw,150px)]" aria-labelledby="bwt-erp-title">
+    <section ref={sectionRef} className="bwt-erp relative z-1 py-[clamp(48px,10vw,120px)]" aria-labelledby="bwt-erp-title">
       <div className="
         bwt-container bwt-erp__grid mx-auto w-full
-        max-w-[1440px] px-[clamp(24px,5vw,80px)] grid grid-cols-1 items-center gap-[clamp(48px,7vw,120px)]
+        max-w-[1440px] px-[var(--page-gutter)] grid grid-cols-1 items-center gap-[clamp(48px,7vw,120px)]
         lg:grid-cols-[0.85fr_1.15fr]
       ">
         <div className="bwt-erp__text " data-reveal-group>
@@ -801,7 +802,7 @@ function ErpSection({ reduced }: { reduced: boolean }) {
           <h2 id="bwt-erp-title" data-reveal className={`max-w-[11em] mt-[22px] ${sectionHeadingClasses}`}>
             {erpSection.heading}
           </h2>
-          <p className="bwt-erp__copy mt-[clamp(24px,2.6vw,36px)] max-w-[30em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]" data-reveal>
+          <p className={`bwt-erp__copy mt-[clamp(24px,2.6vw,36px)] max-w-[30em] text-[#111]/66 ${sectionCopyClasses}`} data-reveal>
             {erpSection.copy}
           </p>
         </div>
@@ -819,8 +820,8 @@ function ErpSection({ reduced }: { reduced: boolean }) {
 
 function EvolkunSection() {
   return (
-    <section className="bwt-partner relative z-1 pt-[clamp(110px,12vw,180px)] pb-[clamp(120px,13vw,200px)]" aria-labelledby="bwt-partner-title">
-      <div className="bwt-container bwt-partner__inner mx-auto w-full max-w-[1440px] px-[clamp(24px,5vw,80px)]" data-reveal-group>
+    <section className="bwt-partner relative z-1 py-[clamp(48px,10vw,120px)]" aria-labelledby="bwt-partner-title">
+      <div className="bwt-container bwt-partner__inner mx-auto w-full max-w-[1440px] px-[var(--page-gutter)]" data-reveal-group>
         {/* <span className="bwt-partner__rule mb-8 block h-px w-[72px] bg-[#111]" data-reveal aria-hidden="true" /> */}
         {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
           {evolkunSection.label}
@@ -832,7 +833,7 @@ function EvolkunSection() {
           bwt-partner__foot mt-[clamp(40px,5vw,72px)] flex items-end justify-between gap-8 border-t border-[#111]/10 pt-7
           max-[761px]:flex-col max-[761px]:items-start
         ">
-          <p className="bwt-partner__copy max-w-[34em] text-[clamp(16px,1.3vw,20px)] text-[#111]/66 text-pretty leading-[1.6]" data-reveal>
+          <p className={`bwt-partner__copy max-w-[34em] text-[#111]/66 ${sectionCopyClasses}`} data-reveal>
             {evolkunSection.copy}
           </p>
           <div data-reveal>

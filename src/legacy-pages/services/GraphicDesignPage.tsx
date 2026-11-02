@@ -17,8 +17,6 @@ import softlyKeyVisualAsset from '../../assets/graphic-design/softly-key-visual.
 import staticThinkingCardAsset from '../../assets/graphic-design/static-thinking-card.webp'
 import artDirectionAsset from '../../assets/graphic-design/art-direction.webp'
 import printPublicationAsset from '../../assets/graphic-design/print-publication.webp'
-import staticThinkingMotionAsset from '../../assets/graphic-design/static-thinking-motion.webp'
-import pottBillboardAsset from '../../assets/graphic-design/pott-billboard.webp'
 import brandWalkIntoAsset from '../../assets/graphic-design/brand-walk-into.webp'
 import frameTensionAsset from '../../assets/graphic-design/frame-tension.webp'
 
@@ -29,8 +27,6 @@ const softlyKeyVisual = assetUrl(softlyKeyVisualAsset)
 const staticThinkingCard = assetUrl(staticThinkingCardAsset)
 const artDirection = assetUrl(artDirectionAsset)
 const printPublication = assetUrl(printPublicationAsset)
-const staticThinkingMotion = assetUrl(staticThinkingMotionAsset)
-const pottBillboard = assetUrl(pottBillboardAsset)
 const brandWalkInto = assetUrl(brandWalkIntoAsset)
 const frameTension = assetUrl(frameTensionAsset)
 
@@ -372,25 +368,6 @@ export default function GraphicDesignPage() {
 
         /*
         --------------------------------------------------
-        MOTION STUDIES
-        --------------------------------------------------
-        */
-
-        gsap.from('[data-motion-card]', {
-          y: 45,
-          opacity: 0,
-          duration: 1,
-          stagger: 0.12,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: '[data-motion-grid]',
-            start: 'top 76%',
-            once: true,
-          },
-        })
-
-        /*
-        --------------------------------------------------
         PROCESS
         --------------------------------------------------
         */
@@ -667,116 +644,6 @@ export default function GraphicDesignPage() {
       </section>
 
       {/* =========================================================
-          MOTION
-      ========================================================= */}
-
-      <section className="relative bg-[#101010] py-[clamp(90px,11vw,160px)] text-white">
-        <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
-          <div
-            data-section-intro
-            className="grid gap-8 "
-          >
-          
-
-            <div className="md:col-span-7 md:col-start-6">
-              <h2
-                data-intro-child
-                className="m-0 section-heading"
-              >
-                Design should know
-                <br />
-                when to move.
-              </h2>
-
-              <p
-                data-intro-child
-                className="mt-7 max-w-[420px] text-[14px] leading-[1.75] text-white/50"
-              >
-                Motion is treated as part of the visual language — not
-                decoration added at the end.
-              </p>
-            </div>
-          </div>
-
-          <div
-            data-motion-grid
-            className="mt-[clamp(70px,9vw,120px)] grid gap-[clamp(35px,5vw,70px)] md:grid-cols-12"
-          >
-            <article
-              data-motion-card
-              className="group md:col-span-7"
-            >
-              <div
-                data-tilt
-                className="relative aspect-[16/10] overflow-hidden bg-white/5"
-              >
-                <img
-                  data-tilt-inner
-                  className="h-full w-full object-cover opacity-90 transition-opacity duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:opacity-100"
-                  src={staticThinkingMotion}
-                  width={1800}
-                  height={1200}
-                  alt="A man in a suit sitting in thought in a bright studio"
-                  loading="lazy"
-                  decoding="async"
-                />
-
-             
-              </div>
-
-              <div className="mt-4 flex items-end justify-between gap-6">
-                <div>
-                  <p className="m-0 text-[9px] uppercase tracking-[0.14em] text-white/40">
-                    Title sequence
-                  </p>
-
-                  {/* <h3 className="mb-0 mt-2 font-[400] text-[26px] leading-none tracking-[-0.035em] [font-family:Grimblade,serif]">
-                    Static thinking, set in motion.
-                  </h3> */}
-                </div>
-
-                <span className="text-[10px] text-white/40">↗</span>
-              </div>
-            </article>
-
-            <article
-              data-motion-card
-              className="group md:col-span-4 md:col-start-9 md:mt-[120px]"
-            >
-              <div
-                data-tilt
-                className="relative aspect-[4/5] overflow-hidden bg-white/5"
-              >
-                <img
-                  data-tilt-inner
-                  className="h-full w-full object-cover opacity-85 transition-opacity duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)] group-hover:opacity-100"
-                  src={pottBillboard}
-                  width={1400}
-                  height={1126}
-                  alt="A red typographic billboard on a white wall as a car passes"
-                  // Landscape shot in a 4:5 frame: keep the billboard in view.
-                  style={{ objectPosition: '80% 50%' }}
-                  loading="lazy"
-                  decoding="async"
-                />
-
-              </div>
-
-              <div className="mt-4">
-                <p className="m-0 text-[9px] uppercase tracking-[0.14em] text-white/40">
-                  Brand motion
-                </p>
-
-                <h3 className="mb-0 mt-2 font-[400] text-[26px] leading-none tracking-[-0.035em]">
-                  A visual language with a pulse.
-                </h3>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================
           PROCESS
       ========================================================= */}
 
@@ -797,15 +664,13 @@ export default function GraphicDesignPage() {
 
             <h2
               data-intro-child
-              className="m-0 md:col-span-7 md:col-start-6 section-heading"
+              className="m-0 md:col-span-8 md:whitespace-nowrap section-heading"
             >
-              From first thought
-              <br />
-              to final frame.
+              From first thought to final frame.
             </h2>
           </div>
 
-          <div className="mt-[clamp(70px,9vw,120px)] border-t border-black/20">
+          <div className="mt-[clamp(36px,4vw,56px)] border-t border-black/20">
             {process.map((step) => (
               <article
                 key={step.title}

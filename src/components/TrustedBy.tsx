@@ -5,7 +5,6 @@ const clients = [
   'Dehli 6',
   'Aerolinkcarrier',
   'Evolkun',
-  'Workifyhub',
   'Urban Fold',
 ]
 

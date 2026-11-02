@@ -53,16 +53,6 @@ const delhi6Images = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Delhi6_28th%20Oct.png',
 ] as const
 
-const workifyHubImages = [
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/WorkiffyHub_28thOctober_.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/WorkifyHub_Final2.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify_1_01.jpg',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify_8-01.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify_Post10.2-01.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify_Post9-2.png',
-] as const
-
 const riaajVintageImages = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/RiaajVintage_24thOct.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/RIAAJVINTAGE_27OCT_2.png',
@@ -72,21 +62,31 @@ const riaajVintageImages = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/r2.png',
 ] as const
 
+// Mr.Rework: add the cover first, then the preview / gallery shots (same
+// layout as riaajVintageImages: [0] cover, [1–3] hover preview, rest gallery).
+const mrReworkImages: string[] = []
+
+const evergreenImages = [
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/evergreen_enhanced_1.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/evergreen_enhanced_2.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/evergreen_enhanced_3.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/evergreen_enhanced_4.png',
+] as const
+
 const projects: Project[] = [
-  { id: 1, title: 'Delhi-6', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: delhi6Images.slice(0, 3), gallery: delhi6Images.slice(3) },
-  { id: 2, title: 'Workify Hub', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/WorkifyHub.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/WorkifyHub.png', mediaType: 'image', ratio: 'portrait', position: 'top center', category: 'Web Development', previewImages: workifyHubImages.slice(1, 4), gallery: workifyHubImages.slice(4) },
-  { id: 3, title: 'Evergreen', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', mediaType: 'image', ratio: 'square', category: 'Digital Platform', previewImages: [mediaUrl('Strategy.jpg'), mediaUrl('photo-1497366754035-f200968a6e72.jpg'), mediaUrl('seo.jpg')], gallery: [mediaUrl('ideas.jpg'), mediaUrl('scrolling.jpg'), mediaUrl('photo-1519389950473-47ba0277781c.jpg')] },
-  { id: 4, title: 'Kinikh Infra', featuredVideo: { youtubeId: '1Lb4K9gLEbM', startSeconds: 37 },media: kinikhInfraImages[0], thumbnail: kinikhInfraImages[0], mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: kinikhInfraImages.slice(1, 4), gallery: kinikhInfraImages.slice(4) },
-  { id: 5, title: 'Riaaj Vintage', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage.png', mediaType: 'image', ratio: 'portrait', category: 'Photography', previewImages: riaajVintageImages.slice(1, 4), gallery: riaajVintageImages.slice(4) },
-  { id: 6, title: 'BrandWorks', media: mediaUrl('business card mock up.png'), thumbnail: mediaUrl('business card mock up.png'), mediaType: 'image', ratio: 'square', category: 'Graphic Design', previewImages: [mediaUrl('moisturizer mock up.png'), mediaUrl('Artboard 12@3x.png'), mediaUrl('Artboard 2@3x.png')], gallery: [mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png'), mediaUrl('identity.jpg'), mediaUrl('vcvcvcvcv.jpg')] },
+  { id: 1, title: 'Riaaj Vintage', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Riaaj%20Vintage.png', mediaType: 'image', ratio: 'portrait', category: 'Photography', previewImages: riaajVintageImages.slice(1, 4), gallery: riaajVintageImages.slice(4) },
+  { id: 2, title: 'Mr.Rework', media: mrReworkImages[0] ?? '', thumbnail: mrReworkImages[0] ?? '', mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: mrReworkImages.slice(1, 4), gallery: mrReworkImages.slice(4) },
+  { id: 3, title: 'Kinikh Infra', featuredVideo: { youtubeId: '1Lb4K9gLEbM', startSeconds: 37 },media: kinikhInfraImages[0], thumbnail: kinikhInfraImages[0], mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: kinikhInfraImages.slice(1, 4), gallery: kinikhInfraImages.slice(4) },
+  { id: 4, title: 'Evergreen', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', mediaType: 'image', ratio: 'square', category: 'Digital Platform', previewImages: evergreenImages, gallery: [] },
+  { id: 5, title: 'Delhi-6', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_26thOct_Final.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: delhi6Images.slice(0, 3), gallery: delhi6Images.slice(3) },
+  { id: 6, title: 'BrandWorks', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', mediaType: 'image', ratio: 'square', category: 'Graphic Design', previewImages: [mediaUrl('moisturizer mock up.png'), mediaUrl('Artboard 12@3x.png'), mediaUrl('ChatGPT Image Sep 30, 2026, 02_31_57 PM.png')], gallery: ['https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202.png', 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_38_07%20PM.png', mediaUrl('vcvcvcvcv.jpg')] },
 ]
 
 const projectHeroImages = [
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Workify.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/vcvcvcvcv.jpg',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%2012%403x.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Sage%20Glow%20Serum%20Still%20Life.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/RiaajVintage_Final.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k1.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_Front.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k4.png',
 ] as const
@@ -136,6 +136,15 @@ function ProjectMedia({ project, autoPlay = false }: { project: Project; autoPla
     observer.observe(video)
     return () => observer.disconnect()
   }, [autoPlay])
+
+  // No cover yet (images still to come): a quiet placeholder, not a broken image.
+  if (!project.media) {
+    return (
+      <div role="img" aria-label={`${project.title} project`} className="flex h-full w-full items-center justify-center bg-[#1a1a1a] font-(--font-primary) text-[clamp(20px,2vw,32px)] tracking-[-0.02em] text-white/30">
+        {project.title}
+      </div>
+    )
+  }
 
   if (project.mediaType === 'video') {
     return (
@@ -502,11 +511,12 @@ function sourceFor(id: number) {
 /** Single-row photo strip (cover first) with prev/next buttons, shown inside the project overlay. */
 const PROJECT_SUMMARIES: Record<number, string> = {
   1: 'A look at the visual identity and campaign imagery we created for Delhi-6, built to give the brand one recognisable voice across every post.',
-  2: 'Selected visuals from our work with Workify Hub, shaped to present the brand clearly and consistently across its digital touchpoints.',
+  2: 'A property film and brand visuals for Kinikh Infra, made to show its homes and spaces the way buyers would experience them.',
   3: 'A selection of the strategy-led digital work we created for Evergreen, bringing its ideas together in one clear visual direction.',
   4: 'A property film and brand visuals for Kinikh Infra, made to show its homes and spaces the way buyers would experience them.',
   5: 'A photography-led series for Riaaj Vintage, composed to bring out the character and detail of the brand.',
   6: 'Our own identity in use: print, packaging and brand visuals that show how BrandWorks looks across different formats.',
+  7: 'A brand and visual series for Mr.Rework, created to give the brand a distinct, recognisable look across everything it puts out.',
 }
 
 const GALLERY_COLUMN_OFFSETS = ['', 'md:mt-[clamp(48px,7vw,112px)]', 'md:mt-[clamp(20px,3vw,48px)]']
