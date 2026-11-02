@@ -29,7 +29,7 @@ import {
   isQuestionHeading,
   parseMarkdown,
 } from '../../../../lib/markdownMetrics'
-import type { Heading, TocEntry } from '../../../../lib/markdownMetrics'
+import type { Heading, MarkdownImage, TocEntry } from '../../../../lib/markdownMetrics'
 
 export type CheckStatus = 'pass' | 'warning' | 'fail' | 'info'
 
@@ -210,6 +210,7 @@ function analyzeSeo(
   headings: Heading[],
   metrics: ContentMetrics,
   headingJumps: string[],
+  bodyImages: MarkdownImage[],
 ): ScoreBreakdown {
   const hasFocusKeyword = input.focusKeyword.trim().length > 0
 
@@ -392,6 +393,20 @@ function analyzeSeo(
       ? check('seo-image-alt', 'Image ALT present', 'pass', 'Cover image alt text is set.')
       : check('seo-image-alt', 'Image ALT present', 'fail', 'Cover image alt text is missing.'),
   )
+  // A warning, not a fail: an empty alt is correct for a purely decorative image.
+  if (bodyImages.length > 0) {
+    const missingAlt = bodyImages.filter((image) => !image.alt).length
+    imageChecks.push(
+      missingAlt === 0
+        ? check('seo-body-image-alt', 'Article images have ALT text', 'pass', `All ${bodyImages.length} article image(s) have alt text.`)
+        : check(
+            'seo-body-image-alt',
+            'Article images have ALT text',
+            'warning',
+            `${missingAlt} of ${bodyImages.length} article image(s) have no alt text. Select an image and use its Alt button.`,
+          ),
+    )
+  }
 
   // --- Links ---
   const linkChecks: AnalyzerCheck[] = []
@@ -841,6 +856,7 @@ function buildChecklist(
   headingJumps: string[],
   toc: TocEntry[],
   schemaReadiness: SchemaReadinessItem[],
+  bodyImageAlt?: AnalyzerCheck,
 ): ChecklistSection[] {
   const hasFocusKeyword = input.focusKeyword.trim().length > 0
   const validFaqCount = input.faq.filter((f) => f.question.trim() && f.answer.trim()).length
@@ -903,6 +919,7 @@ function buildChecklist(
       input.coverImageAlt.trim() ? 'pass' : 'fail',
       input.coverImageAlt.trim() ? 'Set.' : 'Missing.',
     ),
+    ...(bodyImageAlt ? [{ ...bodyImageAlt, id: 'cl-body-image-alt' }] : []),
   ]
 
   const structure: AnalyzerCheck[] = [
@@ -1034,10 +1051,10 @@ export function analyzeBlog(input: AnalyzerInput): AnalysisResult {
   const readability = computeReadability(parsed.plainText, wordCount)
   const schemaReadiness = computeSchemaReadiness(input)
 
-  const seo = analyzeSeo(input, parsed.headings, metrics, headingWarnings)
+  const seo = analyzeSeo(input, parsed.headings, metrics, headingWarnings, parsed.images)
   const aeo = analyzeAeo(input, parsed.headings)
   const geo = analyzeGeo(input, metrics)
-  const checklist = buildChecklist(input, metrics, headingWarnings, toc, schemaReadiness)
+  const checklist = buildChecklist(input, metrics, headingWarnings, toc, schemaReadiness, seo.checks.find((c) => c.id === 'seo-body-image-alt'))
 
   return {
     metrics,

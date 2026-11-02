@@ -1,5 +1,6 @@
 import { Readable } from 'node:stream'
 import { getMediaStream } from '../../../../src/server/media/service'
+import { SVG_CONTENT_SECURITY_POLICY } from '../../../../src/server/media/svg'
 import { errorResponse } from '../../../../src/server/http/errors'
 
 export const runtime = 'nodejs'
@@ -15,6 +16,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
         'Content-Length': String(asset.size),
         'Content-Type': asset.mimeType,
         'X-Content-Type-Options': 'nosniff',
+        ...(asset.mimeType === 'image/svg+xml' ? { 'Content-Security-Policy': SVG_CONTENT_SECURITY_POLICY } : {}),
       },
     })
   } catch (error) {

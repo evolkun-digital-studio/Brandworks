@@ -3,10 +3,11 @@ import 'server-only'
 import { badRequest, notFound } from '../http/errors'
 import type { AdminDocument } from '../admin/types'
 import { countMediaUsage, deleteStoredFile, downloadStoredFile, findMediaAssetByPublicId, insertMediaAsset, queryMediaAssets, restoreMediaAsset, softDeleteMediaAsset, updateMediaAsset, uploadStoredFile } from './repository'
+import { isSafeSvg } from './svg'
 import { toMediaAssetResponse, type MediaKind } from './types'
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024
-const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif', 'video/mp4', 'video/webm'])
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif', 'image/svg+xml', 'video/mp4', 'video/webm'])
 
 function cleanName(name: string) {
   const base = name.normalize('NFKC').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
@@ -19,6 +20,7 @@ function hasSignature(buffer: Buffer, mimeType: string) {
   if (mimeType === 'image/gif') return buffer.subarray(0, 6).toString('ascii') === 'GIF87a' || buffer.subarray(0, 6).toString('ascii') === 'GIF89a'
   if (mimeType === 'image/webp') return buffer.subarray(0, 4).toString('ascii') === 'RIFF' && buffer.subarray(8, 12).toString('ascii') === 'WEBP'
   if (mimeType === 'image/avif') return buffer.subarray(4, 8).toString('ascii') === 'ftyp' && buffer.subarray(8, 12).toString('ascii').includes('avif')
+  if (mimeType === 'image/svg+xml') return isSafeSvg(buffer)
   if (mimeType === 'video/mp4') return buffer.subarray(4, 8).toString('ascii') === 'ftyp'
   if (mimeType === 'video/webm') return buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]))
   return false
@@ -61,9 +63,9 @@ export async function uploadMedia(actor: AdminDocument, form: FormData) {
   const file = form.get('file')
   if (!(file instanceof File)) throw badRequest('Choose a file to upload.')
   if (file.size <= 0 || file.size > MAX_UPLOAD_BYTES) throw badRequest('Files must be between 1 byte and 20 MB.')
-  if (!ALLOWED_TYPES.has(file.type)) throw badRequest('Only JPEG, PNG, WebP, AVIF, GIF, MP4, and WebM files are supported.')
+  if (!ALLOWED_TYPES.has(file.type)) throw badRequest('Only JPEG, PNG, WebP, AVIF, GIF, SVG, MP4, and WebM files are supported.')
   const buffer = Buffer.from(await file.arrayBuffer())
-  if (!hasSignature(buffer, file.type)) throw badRequest('The file signature does not match its declared type.')
+  if (!hasSignature(buffer, file.type)) throw badRequest(file.type === 'image/svg+xml' ? 'This SVG contains scripts or embedded content, which isn’t allowed.' : 'The file signature does not match its declared type.')
   const altText = typeof form.get('altText') === 'string' ? String(form.get('altText')).trim() : ''
   const caption = typeof form.get('caption') === 'string' ? String(form.get('caption')).trim() : ''
   if (altText.length > 300) throw badRequest('Alt text must be at most 300 characters.')

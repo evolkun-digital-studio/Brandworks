@@ -1,3 +1,5 @@
+import { IMAGE_ALIGNS, IMAGE_DIMENSION_PATTERN, IMAGE_RATIO_PATTERN, IMAGE_WIDTH_PATTERN, IMAGE_WRAPS } from '../../../../blog/lib/articleImage'
+
 export const COLORS = [
   { label: 'Red', value: 'red', swatch: '#b42318' },
   { label: 'Orange', value: 'orange', swatch: '#c76a16' },
@@ -114,6 +116,12 @@ export function sanitizeEditableHtml(source: string): string {
           || (tag === 'div' && name === 'data-layout' && attribute.value === 'media-text')
           || (ALIGNABLE_TAGS.has(tag) && name === 'data-align' && (ALIGNMENTS as readonly string[]).includes(attribute.value))
           || ((tag === 'a' || tag === 'img') && ['href', 'src', 'alt', 'title'].includes(name) && (name === 'alt' || name === 'title' || isSafeResource(attribute.value)))
+          || (tag === 'img' && (name === 'width' || name === 'height') && IMAGE_DIMENSION_PATTERN.test(attribute.value))
+          || (tag === 'img' && name === 'data-vector')
+          || (tag === 'figure' && name === 'data-width' && IMAGE_WIDTH_PATTERN.test(attribute.value))
+          || (tag === 'figure' && name === 'data-ratio' && IMAGE_RATIO_PATTERN.test(attribute.value))
+          || (tag === 'figure' && name === 'data-align' && (IMAGE_ALIGNS as readonly string[]).includes(attribute.value))
+          || (tag === 'figure' && name === 'data-wrap' && (IMAGE_WRAPS as readonly string[]).includes(attribute.value))
         if (!keep) target.removeAttribute(attribute.name)
       })
 
@@ -213,9 +221,5 @@ function imgHtml(src: string, alt: string, title?: string): string {
 }
 
 export function mediaTextHtml(src: string, alt: string, caption: string, text: string, title?: string): string {
-  return `<div data-layout="media-text"><figure>${imgHtml(src, alt, title)}${figcaptionHtml(caption)}</figure><div><p>${escapeHtml(text)}</p></div></div><p><br /></p>`
-}
-
-export function figureHtml(src: string, alt: string, caption: string, title?: string): string {
-  return `<figure>${imgHtml(src, alt, title)}${figcaptionHtml(caption)}</figure><p><br /></p>`
+  return `<div data-layout="media-text"><figure>${imgHtml(src, alt, title)}${figcaptionHtml(caption)}</figure><div><p>${escapeHtml(text)}</p></div></div>`
 }

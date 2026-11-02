@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
-import type { ClipboardEvent, DragEvent, KeyboardEvent, MouseEvent, ReactNode, Ref } from 'react'
+import type { ClipboardEvent, DragEvent, KeyboardEvent, MouseEvent, PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react'
 import { createPortal } from 'react-dom'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -14,11 +14,11 @@ import {
   ChevronDown,
   Code2,
   Eraser,
+  GripVertical,
   Heading1,
   Heading2,
   Heading3,
   Highlighter,
-  ImageOff,
   ImagePlus,
   IndentDecrease,
   IndentIncrease,
@@ -29,17 +29,14 @@ import {
   Minus,
   MoreHorizontal,
   Palette,
-  Pencil,
   Plus,
   Quote,
   Redo2,
-  Replace,
   Smile,
   SquareCode,
   Strikethrough,
   Subscript,
   Superscript,
-  Trash2,
   Type,
   Underline,
   Undo2,
@@ -49,18 +46,55 @@ import { toast } from 'sonner'
 import * as mediaApi from '../../../api/mediaAdminApi'
 import MediaPicker from './MediaPicker'
 import ImageDetailsDialog from './ImageDetailsDialog'
+import ImageToolbar from './ImageToolbar'
+import ImageUrlPanel from './ImageUrlPanel'
+import { useImageDrag, useImageResize } from './useImageGestures'
+import type { ResizeCorner } from './useImageGestures'
+import type { ImageToolbarAction } from './ImageToolbar'
 import type { PickedImage } from './MediaPicker'
 import type { ImageDetails } from './ImageDetailsDialog'
 import {
   COLORS,
   FONT_SIZES,
   escapeAttribute,
-  figureHtml,
   markdownToEditableHtml,
   mediaTextHtml,
   sanitizeEditableHtml,
   textToHtml,
 } from '../lib/richContent'
+import { captureSelection, EditorHistory, restoreSelectionSnapshot } from '../lib/editorHistory'
+import type { EditorSnapshot } from '../lib/editorHistory'
+import {
+  computeDropGap,
+  createFigure,
+  createUploadPlaceholder,
+  deleteImage,
+  ensureTrailingParagraph,
+  imageNextToCaret,
+  initialImageWidth,
+  isMediaTextFigure,
+  moveBlock,
+  movableUnit,
+  nudgeBlock,
+  paintUploadPlaceholder,
+  placeBlocks,
+  placeCaretAtEnd,
+  placeCaretAtStart,
+  prepareImages,
+  replaceImageSource,
+  resolveInsertionPoint,
+  scrollParent,
+  serializeEditorHtml,
+  setImageAlign,
+  setImageCaption,
+  setImageLink,
+  setImageWidth,
+  setImageWrap,
+  toggleImageCaption,
+  UPLOAD_ATTRIBUTE,
+  validateImageFile,
+} from '../lib/imageBlocks'
+import type { UploadView } from '../lib/imageBlocks'
 
 export interface RichEditorHandle {
   focus: () => void
@@ -236,54 +270,100 @@ interface RichContentEditorProps {
   handleRef?: Ref<RichEditorHandle>
 }
 
+interface ImageMeta {
+  naturalWidth?: number | null
+  naturalHeight?: number | null
+  vector?: boolean
+}
+
 interface DetailsTarget {
   mode: 'insert' | 'edit'
   src: string
   initial: Partial<ImageDetails>
-  image?: HTMLImageElement
+  figure?: HTMLElement
+  meta?: ImageMeta
+}
+
+interface StageBox { top: number; left: number; width: number; height: number }
+interface ImageView { figure: HTMLElement; rect: DOMRect; stage: StageBox }
+
+interface UploadEntry {
+  file: File
+  thumbnail: string
+  state: 'uploading' | 'error' | 'done' | 'cancelled'
+  percent: number
+  message: string
+  natural: { width: number; height: number } | null
+  publicUrl?: string
+  mimeType?: string
+  abort?: () => void
+}
+
+const VECTOR_TYPE = 'image/svg+xml'
+const HANDLE_CORNERS: ResizeCorner[] = ['nw', 'ne', 'sw', 'se']
+
+function uploadView(entry: UploadEntry): UploadView {
+  return { name: entry.file.name, thumbnail: entry.thumbnail, state: entry.state === 'error' ? 'error' : 'uploading', percent: entry.percent, message: entry.message }
 }
 
 function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichContentEditorProps) {
   const [mode, setMode] = useState<'visual' | 'code'>('visual')
   const [popover, setPopover] = useState<PopoverState | null>(null)
-  const [picker, setPicker] = useState<{ purpose: 'figure' | 'media-text' | 'replace'; image?: HTMLImageElement } | null>(null)
+  const [picker, setPicker] = useState<{ purpose: 'figure' | 'media-text' | 'replace'; figure?: HTMLElement } | null>(null)
   const [details, setDetails] = useState<DetailsTarget | null>(null)
   const [format, setFormat] = useState({ bold: false, italic: false, underline: false, strike: false, sub: false, sup: false, code: false, mark: false, align: 'left' as Align, block: 'p' as BlockName })
   const [linkUrl, setLinkUrl] = useState('')
   const [linkActive, setLinkActive] = useState(false)
-  const [imageUrl, setImageUrl] = useState('')
   const [uploading, setUploading] = useState(0)
   const [slash, setSlash] = useState<{ query: string; top?: number; bottom?: number; left: number; index: number } | null>(null)
   const [bubble, setBubble] = useState<{ top: number; bottom: number; left: number } | null>(null)
-  const [imageBar, setImageBar] = useState<{ el: HTMLImageElement; rect: DOMRect } | null>(null)
+  const [selectedImage, setSelectedImage] = useState<(ImageView & { version: number }) | null>(null)
+  const [hoveredImage, setHoveredImage] = useState<ImageView | null>(null)
   const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null)
+  const [history] = useState(() => new EditorHistory())
 
   const rootRef = useRef<HTMLDivElement>(null)
   const visualRef = useRef<HTMLDivElement>(null)
   const toolbarRef = useRef<HTMLDivElement>(null)
   const savedSelection = useRef<Range | null>(null)
   const slashRange = useRef<{ node: Text; start: number; end: number } | null>(null)
-  const didInitialize = useRef(false)
+  const loadedEditor = useRef<HTMLElement | null>(null)
   const lastSyncedValue = useRef(value)
+  const selectedFigure = useRef<HTMLElement | null>(null)
+  const typingTimer = useRef(0)
+  const uploads = useRef(new Map<string, UploadEntry>())
+  const nextUploadId = useRef(1)
 
   useEffect(() => {
     setPortalRoot((rootRef.current?.closest('.admin-app') as HTMLElement | null) ?? document.body)
+  }, [])
+
+  const snapshot = useCallback((): EditorSnapshot | null => {
+    const editor = visualRef.current
+    if (!editor) return null
+    const image = selectedFigure.current ? Array.from(editor.querySelectorAll('figure')).indexOf(selectedFigure.current as HTMLElement) : -1
+    return { html: editor.innerHTML, selection: captureSelection(editor), image }
   }, [])
 
   useEffect(() => {
     if (mode !== 'visual') return
     const editor = visualRef.current
     if (!editor) return
-    if (!didInitialize.current || editor.innerHTML === '') {
-      editor.innerHTML = markdownToEditableHtml(value)
-      didInitialize.current = true
-      lastSyncedValue.current = value
-      return
-    }
-    if (document.activeElement === editor || value === lastSyncedValue.current) return
+    const fresh = loadedEditor.current !== editor
+    if (!fresh && value === lastSyncedValue.current) return
+    if (!fresh && editor.innerHTML !== '' && document.activeElement === editor) return
     editor.innerHTML = markdownToEditableHtml(value)
+    prepareImages(editor)
+    ensureTrailingParagraph(editor)
+    loadedEditor.current = editor
     lastSyncedValue.current = value
-  }, [mode, value])
+    selectedFigure.current = null
+    savedSelection.current = null
+    setSelectedImage(null)
+    setHoveredImage(null)
+    const initial = snapshot()
+    if (initial) history.reset(initial)
+  }, [history, mode, snapshot, value])
 
   useEffect(() => {
     if (mode === 'visual') {
@@ -292,13 +372,96 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
     }
   }, [mode])
 
-  const sync = useCallback(() => {
+  /** Publishes the current article HTML without adding an undo step. */
+  const emit = useCallback(() => {
     const editor = visualRef.current
     if (!editor) return
     if (editor.innerHTML === '<br>') editor.innerHTML = ''
-    lastSyncedValue.current = editor.innerHTML
-    onChange(editor.innerHTML)
+    const html = serializeEditorHtml(editor)
+    lastSyncedValue.current = html
+    onChange(html)
   }, [onChange])
+
+  const commitHistory = useCallback(() => {
+    window.clearTimeout(typingTimer.current)
+    const state = snapshot()
+    if (state) history.commit(state)
+  }, [history, snapshot])
+
+  const sync = useCallback(() => {
+    emit()
+    commitHistory()
+  }, [commitHistory, emit])
+
+  /** Typing groups into one undo step per pause, rather than one per letter. */
+  const syncTyping = useCallback(() => {
+    emit()
+    window.clearTimeout(typingTimer.current)
+    typingTimer.current = window.setTimeout(commitHistory, 500)
+  }, [commitHistory, emit])
+
+  const measureImage = useCallback((figure: HTMLElement): ImageView => {
+    const surface = visualRef.current as HTMLElement
+    const scroller = scrollParent(surface)
+    const frame = scroller === document.documentElement
+      ? { top: 0, left: 0, width: window.innerWidth, bottom: window.innerHeight }
+      : scroller.getBoundingClientRect()
+    const top = Math.max(frame.top, toolbarRef.current?.getBoundingClientRect().bottom ?? frame.top)
+    return {
+      figure,
+      rect: (figure.querySelector('img') ?? figure).getBoundingClientRect(),
+      stage: { top, left: frame.left, width: frame.width, height: Math.max(0, frame.bottom - top) },
+    }
+  }, [])
+
+  const deselectImage = useCallback(() => {
+    selectedFigure.current = null
+    setSelectedImage(null)
+  }, [])
+
+  const refreshSelectedImage = useCallback(() => {
+    const figure = selectedFigure.current
+    if (!figure?.isConnected) {
+      deselectImage()
+      return
+    }
+    const view = measureImage(figure)
+    setSelectedImage((current) => (current ? { ...current, ...view, version: current.version + 1 } : current))
+  }, [deselectImage, measureImage])
+
+  const selectImage = useCallback((figure: HTMLElement) => {
+    const editor = visualRef.current
+    if (!editor) return
+    editor.focus({ preventScroll: true })
+    window.getSelection()?.removeAllRanges()
+    // Anything inserted while an image is selected goes right after it.
+    const after = document.createRange()
+    after.setStartAfter(movableUnit(figure))
+    after.collapse(true)
+    savedSelection.current = after
+    selectedFigure.current = figure
+    setHoveredImage(null)
+    setSelectedImage({ ...measureImage(figure), version: 0 })
+  }, [measureImage])
+
+  const dropImage = useCallback((unit: HTMLElement, before: Node | null) => {
+    const editor = visualRef.current
+    const figure = unit.tagName === 'FIGURE' ? unit : unit.querySelector('figure')
+    if (!editor || !figure) return
+    selectedFigure.current = figure
+    if (before !== unit) {
+      commitHistory()
+      moveBlock(editor, unit, before)
+      sync()
+    }
+    selectImage(figure)
+  }, [commitHistory, selectImage, sync])
+
+  const { arm, dragging, dropLine, setDropLine, ghostRef, consumeClick } = useImageDrag(visualRef, mode === 'visual', dropImage)
+  const { beginResize, resizeLabel } = useImageResize(refreshSelectedImage, () => {
+    sync()
+    refreshSelectedImage()
+  })
 
   const rememberSelection = useCallback(() => {
     const editor = visualRef.current
@@ -316,6 +479,7 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
   }
 
   function run(command: string, argument?: string) {
+    if (selectedFigure.current) caretBelowImage(selectedFigure.current)
     visualRef.current?.focus()
     restoreSelection()
     document.execCommand(command, false, argument)
@@ -324,11 +488,244 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
   }
 
   function insertHtml(html: string) {
-    visualRef.current?.focus()
+    const editor = visualRef.current
+    if (selectedFigure.current) caretBelowImage(selectedFigure.current)
+    editor?.focus()
     restoreSelection()
     document.execCommand('insertHTML', false, html)
+    // Pasted images become real image blocks straight away.
+    if (editor && /<img\b/i.test(html)) prepareImages(editor)
     sync()
     rememberSelection()
+  }
+
+  // ---- Image caret helpers -------------------------------------------------
+
+  function setCaret(range: Range) {
+    savedSelection.current = range.cloneRange()
+    deselectImage()
+  }
+
+  function caretBelowImage(figure: HTMLElement) {
+    const unit = movableUnit(figure)
+    let next = unit.nextElementSibling as HTMLElement | null
+    if (next?.tagName !== 'P') {
+      const paragraph = document.createElement('p')
+      paragraph.append(document.createElement('br'))
+      unit.after(paragraph)
+      next = paragraph
+    }
+    visualRef.current?.focus({ preventScroll: true })
+    setCaret(placeCaretAtStart(next))
+  }
+
+  function caretAboveImage(figure: HTMLElement) {
+    const unit = movableUnit(figure)
+    let previous = unit.previousElementSibling as HTMLElement | null
+    if (previous?.tagName !== 'P') {
+      const paragraph = document.createElement('p')
+      paragraph.append(document.createElement('br'))
+      unit.before(paragraph)
+      previous = paragraph
+    }
+    visualRef.current?.focus({ preventScroll: true })
+    setCaret(placeCaretAtEnd(previous))
+  }
+
+  /** Commits what came before, applies the change, then commits it as one undo step. */
+  function mutateImage(change: () => void) {
+    commitHistory()
+    change()
+    sync()
+    refreshSelectedImage()
+  }
+
+  function removeImage(figure: HTMLElement) {
+    const editor = visualRef.current
+    if (!editor) return
+    commitHistory()
+    const neighbour = deleteImage(editor, figure)
+    deselectImage()
+    if (neighbour?.tagName === 'FIGURE') selectImage(neighbour)
+    else if (neighbour) {
+      editor.focus({ preventScroll: true })
+      setCaret(placeCaretAtStart(neighbour))
+    }
+    sync()
+  }
+
+  // ---- Undo and redo -------------------------------------------------------
+
+  function applySnapshot(state: EditorSnapshot) {
+    const editor = visualRef.current
+    if (!editor) return
+    editor.innerHTML = state.html
+    savedSelection.current = null
+    deselectImage()
+    setHoveredImage(null)
+    reconcileUploads()
+    editor.focus({ preventScroll: true })
+    restoreSelectionSnapshot(editor, state.selection)
+    const figure = state.image >= 0 ? editor.querySelectorAll('figure')[state.image] : null
+    if (figure) selectImage(figure as HTMLElement)
+    emit()
+    const settled = snapshot()
+    if (settled) history.replaceCurrent(settled)
+  }
+
+  function undo() {
+    if (!visualRef.current) return
+    commitHistory()
+    const state = history.undo()
+    if (state) applySnapshot(state)
+  }
+
+  function redo() {
+    if (!visualRef.current) return
+    commitHistory()
+    const state = history.redo()
+    if (state) applySnapshot(state)
+  }
+
+  // ---- Uploads -------------------------------------------------------------
+
+  function findPlaceholder(id: string) {
+    return visualRef.current?.querySelector<HTMLElement>(`[${UPLOAD_ATTRIBUTE}="${id}"]`) ?? null
+  }
+
+  function countUploads() {
+    setUploading(Array.from(uploads.current.values()).filter((entry) => entry.state === 'uploading').length)
+  }
+
+  function finishedFigure(entry: UploadEntry) {
+    const editor = visualRef.current as HTMLElement
+    return createFigure(document, {
+      src: absoluteImageUrl(entry.publicUrl ?? ''),
+      alt: '',
+      naturalWidth: entry.natural?.width,
+      naturalHeight: entry.natural?.height,
+      vector: entry.mimeType === VECTOR_TYPE,
+      width: initialImageWidth(entry.natural?.width, editor.clientWidth),
+      align: 'center',
+    })
+  }
+
+  /** Undo can bring back a placeholder whose upload has since moved on, so match it to reality. */
+  function reconcileUploads() {
+    visualRef.current?.querySelectorAll<HTMLElement>(`[${UPLOAD_ATTRIBUTE}]`).forEach((element) => {
+      const entry = uploads.current.get(element.getAttribute(UPLOAD_ATTRIBUTE) ?? '')
+      if (!entry || entry.state === 'cancelled') element.remove()
+      else if (entry.state === 'done') element.replaceWith(finishedFigure(entry))
+      else {
+        element.removeAttribute('data-state')
+        paintUploadPlaceholder(element, uploadView(entry))
+      }
+    })
+  }
+
+  function startUpload(id: string) {
+    const entry = uploads.current.get(id)
+    if (!entry) return
+    entry.state = 'uploading'
+    entry.percent = 0
+    entry.message = ''
+    const initialPlaceholder = findPlaceholder(id)
+    if (initialPlaceholder) paintUploadPlaceholder(initialPlaceholder, uploadView(entry))
+    countUploads()
+
+    const { promise, abort } = mediaApi.uploadMediaWithProgress(entry.file, '', '', (percent) => {
+      entry.percent = percent
+      const placeholder = findPlaceholder(id)
+      if (placeholder) paintUploadPlaceholder(placeholder, uploadView(entry))
+    })
+    entry.abort = abort
+    promise
+      .then(({ asset }) => {
+        entry.state = 'done'
+        entry.publicUrl = asset.publicUrl
+        entry.mimeType = asset.mimeType
+        if (asset.width && asset.height) entry.natural = { width: asset.width, height: asset.height }
+        URL.revokeObjectURL(entry.thumbnail)
+        const placeholder = findPlaceholder(id)
+        if (placeholder) {
+          // The insert was already an undo step, so the swap doesn't add another.
+          placeholder.replaceWith(finishedFigure(entry))
+          emit()
+          const state = snapshot()
+          if (state) history.replaceCurrent(state)
+        }
+      })
+      .catch((uploadError: unknown) => {
+        if (uploadError instanceof DOMException && uploadError.name === 'AbortError') return
+        entry.state = 'error'
+        entry.message = uploadError instanceof Error ? uploadError.message : 'The upload failed.'
+        const placeholder = findPlaceholder(id)
+        if (placeholder) paintUploadPlaceholder(placeholder, uploadView(entry))
+      })
+      .finally(countUploads)
+  }
+
+  function insertFiles(files: File[], point: ReturnType<typeof resolveInsertionPoint>) {
+    const editor = visualRef.current
+    if (!editor) return
+    const valid = files.filter((file) => {
+      const problem = validateImageFile(file)
+      if (problem) toast.error(problem)
+      return !problem
+    })
+    if (!valid.length) return
+
+    commitHistory()
+    const ids: string[] = []
+    const blocks = valid.map((file) => {
+      const id = `upload-${nextUploadId.current++}`
+      const thumbnail = URL.createObjectURL(file)
+      const entry: UploadEntry = { file, thumbnail, state: 'uploading', percent: 0, message: '', natural: null }
+      const probe = new Image()
+      probe.onload = () => { if (probe.naturalWidth && !entry.natural) entry.natural = { width: probe.naturalWidth, height: probe.naturalHeight } }
+      probe.src = thumbnail
+      uploads.current.set(id, entry)
+      ids.push(id)
+      return createUploadPlaceholder(document, id, uploadView(entry))
+    })
+    const paragraph = placeBlocks(editor, blocks, point)
+    editor.focus({ preventScroll: true })
+    setCaret(placeCaretAtStart(paragraph))
+    sync()
+    ids.forEach(startUpload)
+  }
+
+  function insertAtSelection(block: HTMLElement) {
+    const editor = visualRef.current
+    if (!editor) return
+    commitHistory()
+    const point = resolveInsertionPoint(editor, savedSelection.current)
+    const paragraph = placeBlocks(editor, [block], point)
+    prepareImages(editor)
+    editor.focus({ preventScroll: true })
+    setCaret(placeCaretAtStart(paragraph))
+    sync()
+  }
+
+  function uploadAction(kind: string, element: HTMLElement) {
+    const id = element.getAttribute(UPLOAD_ATTRIBUTE) ?? ''
+    const entry = uploads.current.get(id)
+    if (kind === 'retry') {
+      startUpload(id)
+      return
+    }
+    if (entry) {
+      entry.state = 'cancelled'
+      entry.abort?.()
+      URL.revokeObjectURL(entry.thumbnail)
+      uploads.current.delete(id)
+    }
+    const editor = visualRef.current
+    commitHistory()
+    element.remove()
+    if (editor) ensureTrailingParagraph(editor)
+    sync()
+    countUploads()
   }
 
   function setBlock(block: BlockName) {
@@ -434,83 +831,91 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
 
   function insertPicked(picked: PickedImage) {
     const purpose = picker?.purpose ?? 'figure'
-    if (purpose === 'replace' && picker?.image) {
-      const image = picker.image
-      image.src = picked.url
-      if (!image.alt && picked.asset.altText) image.alt = picked.asset.altText
-      sync()
+    const meta: ImageMeta = { naturalWidth: picked.asset.width, naturalHeight: picked.asset.height, vector: picked.asset.mimeType === VECTOR_TYPE }
+    if (purpose === 'replace' && picker?.figure) {
+      const figure = picker.figure
       setPicker(null)
-      setImageBar(null)
+      if (figure.isConnected) mutateImage(() => replaceImageSource(figure, { src: picked.url, alt: picked.asset.altText, ...meta }))
       return
     }
     setPicker(null)
     setDetails({
       mode: 'insert',
       src: picked.url,
+      meta,
       initial: { alt: picked.asset.altText, title: '', caption: picked.asset.caption, layout: purpose === 'media-text' ? 'media-text' : 'figure' },
     })
   }
 
   function submitDetails(result: ImageDetails) {
-    if (!details) return
-    if (details.mode === 'edit' && details.image) {
-      const image = details.image
-      image.setAttribute('alt', result.alt)
-      if (result.title) image.setAttribute('title', result.title)
-      else image.removeAttribute('title')
-      let figure = image.closest('figure')
-      if (!figure && result.caption) {
-        figure = document.createElement('figure')
-        image.replaceWith(figure)
-        figure.appendChild(image)
-      }
-      if (figure) {
-        let caption = figure.querySelector('figcaption')
-        if (result.caption) {
-          if (!caption) {
-            caption = document.createElement('figcaption')
-            figure.appendChild(caption)
-          }
-          caption.textContent = result.caption
-        } else {
-          caption?.remove()
-        }
-      }
-      sync()
+    const editor = visualRef.current
+    if (!details || !editor) return
+    if (details.mode === 'edit' && details.figure) {
+      const figure = details.figure
       setDetails(null)
-      setImageBar(null)
+      if (figure.isConnected) {
+        mutateImage(() => {
+          const image = figure.querySelector('img')
+          image?.setAttribute('alt', result.alt)
+          if (result.title) image?.setAttribute('title', result.title)
+          else image?.removeAttribute('title')
+          setImageCaption(figure, result.caption)
+        })
+      }
       return
     }
-    insertHtml(result.layout === 'media-text'
-      ? mediaTextHtml(details.src, result.alt, result.caption, 'Add supporting text here.', result.title)
-      : figureHtml(details.src, result.alt, result.caption, result.title))
-    setDetails(null)
-  }
-
-  async function uploadAndDescribe(file: File) {
-    if (!file.type.startsWith('image/')) return
-    setUploading((count) => count + 1)
-    try {
-      const name = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') || 'Article image'
-      const { asset } = await mediaApi.uploadMedia(file, name, '')
-      setDetails({ mode: 'insert', src: absoluteImageUrl(asset.publicUrl), initial: { alt: asset.altText || name, caption: asset.caption, layout: 'figure' } })
-    } catch (uploadError) {
-      toast.error(uploadError instanceof Error ? uploadError.message : 'Could not upload the image.')
-    } finally {
-      setUploading((count) => count - 1)
+    const { meta } = details
+    let block: HTMLElement
+    if (result.layout === 'media-text') {
+      const template = document.createElement('template')
+      template.innerHTML = mediaTextHtml(details.src, result.alt, result.caption, 'Add supporting text here.', result.title)
+      block = template.content.firstElementChild as HTMLElement
+      if (meta?.vector) block.querySelector('img')?.setAttribute('data-vector', '')
+      if (meta?.naturalWidth && meta.naturalHeight) {
+        block.querySelector('img')?.setAttribute('width', String(meta.naturalWidth))
+        block.querySelector('img')?.setAttribute('height', String(meta.naturalHeight))
+      }
+    } else {
+      block = createFigure(document, {
+        src: details.src,
+        alt: result.alt,
+        title: result.title,
+        caption: result.caption,
+        ...meta,
+        width: initialImageWidth(meta?.naturalWidth, editor.clientWidth),
+        align: 'center',
+      })
     }
+    setDetails(null)
+    insertAtSelection(block)
   }
 
-  function removeImage(image: HTMLImageElement) {
-    const figure = image.closest('figure')
-    ;(figure ?? image).remove()
-    sync()
-    setImageBar(null)
+  function editImage(figure: HTMLElement) {
+    const image = figure.querySelector('img')
+    const caption = figure.querySelector('figcaption')?.textContent ?? ''
+    setDetails({ mode: 'edit', src: image?.currentSrc || image?.src || '', figure, initial: { alt: image?.getAttribute('alt') ?? '', title: image?.getAttribute('title') ?? '', caption } })
   }
 
-  function editImage(image: HTMLImageElement) {
-    const caption = image.closest('figure')?.querySelector('figcaption')?.textContent ?? ''
-    setDetails({ mode: 'edit', src: image.currentSrc || image.src, image, initial: { alt: image.getAttribute('alt') ?? '', title: image.getAttribute('title') ?? '', caption } })
+  function onImageAction(figure: HTMLElement, action: ImageToolbarAction) {
+    switch (action.type) {
+      case 'align': return mutateImage(() => setImageAlign(figure, action.align))
+      case 'wrap': return mutateImage(() => setImageWrap(figure, action.wrap))
+      case 'width': return mutateImage(() => setImageWidth(figure, action.width))
+      case 'alt':
+        figure.querySelector('img')?.setAttribute('alt', action.alt)
+        syncTyping()
+        return refreshSelectedImage()
+      case 'commit-alt': return commitHistory()
+      case 'caption': {
+        let created: HTMLElement | null = null
+        mutateImage(() => { created = toggleImageCaption(figure) })
+        return (created as HTMLElement | null)?.focus()
+      }
+      case 'link': return mutateImage(() => setImageLink(figure, action.link))
+      case 'replace': return setPicker({ purpose: 'replace', figure })
+      case 'details': return editImage(figure)
+      case 'remove': return removeImage(figure)
+    }
   }
 
   // The toolbar reflects whatever the caret is inside; the bubble follows a text selection.
@@ -525,6 +930,11 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
       }
       const anchorElement = elementOf(selection.anchorNode)
       const block = blockOf(selection.anchorNode, editor)
+      // A caption is plain text, so the formatting bubble stays away.
+      if (anchorElement?.closest('figcaption')) {
+        setBubble(null)
+        return
+      }
       setLinkActive(Boolean(anchorElement?.closest('a')))
       setFormat({
         bold: document.queryCommandState('bold'),
@@ -570,38 +980,91 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
     }
   }, [popover])
 
-  // The image toolbar stays attached to the image while the page moves.
+  // The image overlays stay attached to the image while the page moves or it changes size.
+  const selectedElement = selectedImage?.figure ?? null
   useEffect(() => {
-    if (!imageBar) return
-    const el = imageBar.el
-    const reposition = () => {
-      if (!el.isConnected) return setImageBar(null)
-      setImageBar({ el, rect: el.getBoundingClientRect() })
-    }
+    if (!selectedElement) return
     const dismiss = (event: PointerEvent) => {
       const target = event.target as Element | null
-      if (target === el || target?.closest('[data-rte-imagebar]')) return
-      setImageBar(null)
+      if (target?.closest('figure') === selectedElement || target?.closest('[data-rte-imagebar]')) return
+      deselectImage()
     }
-    window.addEventListener('scroll', reposition, true)
-    window.addEventListener('resize', reposition)
+    const observer = new ResizeObserver(refreshSelectedImage)
+    observer.observe(selectedElement)
+    window.addEventListener('scroll', refreshSelectedImage, true)
+    window.addEventListener('resize', refreshSelectedImage)
     document.addEventListener('pointerdown', dismiss)
     return () => {
-      window.removeEventListener('scroll', reposition, true)
-      window.removeEventListener('resize', reposition)
+      observer.disconnect()
+      window.removeEventListener('scroll', refreshSelectedImage, true)
+      window.removeEventListener('resize', refreshSelectedImage)
       document.removeEventListener('pointerdown', dismiss)
     }
-  }, [imageBar])
+  }, [deselectImage, refreshSelectedImage, selectedElement])
+
+  const hoveredElement = hoveredImage?.figure ?? null
+  useEffect(() => {
+    if (!hoveredElement) return
+    const follow = () => setHoveredImage(hoveredElement.isConnected ? measureImage(hoveredElement) : null)
+    window.addEventListener('scroll', follow, true)
+    return () => window.removeEventListener('scroll', follow, true)
+  }, [hoveredElement, measureImage])
+
+  // Records each image's natural size once known, which is what prevents layout shift for readers.
+  useEffect(() => {
+    if (mode !== 'visual') return
+    const editor = visualRef.current
+    if (!editor) return
+    const onLoad = (event: Event) => {
+      const image = event.target
+      if (!(image instanceof HTMLImageElement) || !image.closest('figure') || image.hasAttribute('width') || !image.naturalWidth) return
+      image.setAttribute('width', String(image.naturalWidth))
+      image.setAttribute('height', String(image.naturalHeight))
+      // Only an article already being edited: merely opening one mustn't mark it unsaved.
+      if (history.hasEdits) emit()
+      const state = snapshot()
+      if (state) history.replaceCurrent(state)
+    }
+    // Load events don't bubble, so this has to listen during capture.
+    editor.addEventListener('load', onLoad, true)
+    return () => editor.removeEventListener('load', onLoad, true)
+  }, [emit, history, mode, snapshot])
+
+  // Menu and gesture undo arrive here, not as a key press; the browser's own stack stays unused.
+  // Re-attached each render so it always calls the current undo and redo.
+  useEffect(() => {
+    const editor = visualRef.current
+    if (!editor) return
+    const onBeforeInput = (event: InputEvent) => {
+      if (event.inputType !== 'historyUndo' && event.inputType !== 'historyRedo') return
+      event.preventDefault()
+      if (event.inputType === 'historyUndo') undo()
+      else redo()
+    }
+    editor.addEventListener('beforeinput', onBeforeInput)
+    return () => editor.removeEventListener('beforeinput', onBeforeInput)
+  })
+
+  useEffect(() => {
+    const entries = uploads.current
+    return () => {
+      window.clearTimeout(typingTimer.current)
+      entries.forEach((entry) => {
+        if (entry.state === 'uploading') entry.abort?.()
+        URL.revokeObjectURL(entry.thumbnail)
+      })
+    }
+  }, [])
 
   useImperativeHandle(handleRef, () => ({
     focus: () => visualRef.current?.focus(),
-    undo: () => { visualRef.current?.focus(); document.execCommand('undo'); sync() },
-    redo: () => { visualRef.current?.focus(); document.execCommand('redo'); sync() },
+    undo,
+    redo,
     scrollToHeading: (index: number) => {
       const heading = visualRef.current?.querySelectorAll('h2, h3, h4')[index]
       heading?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     },
-  }), [sync])
+  }))
 
   function openPopover(id: PopoverId, anchor: HTMLElement) {
     rememberSelection()
@@ -609,7 +1072,6 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
       const link = elementOf(window.getSelection()?.anchorNode ?? null)?.closest('a')
       setLinkUrl(link?.getAttribute('href') ?? '')
     }
-    if (id === 'imageUrl') setImageUrl('')
     const rect = anchor.getBoundingClientRect()
     setPopover((current) => (current?.id === id ? null : { id, rect }))
   }
@@ -636,16 +1098,6 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
     closePopover()
   }
 
-  function continueWithImageUrl() {
-    const url = normalizeUrl(imageUrl)
-    if (!url) {
-      toast.error('Enter an image address that starts with https://')
-      return
-    }
-    closePopover()
-    setDetails({ mode: 'insert', src: url, initial: { layout: 'figure' } })
-  }
-
   function startInsert(choice: string) {
     closePopover()
     rememberSelection()
@@ -669,6 +1121,10 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
       return
     }
     const node = selection.anchorNode as Text
+    if (node.parentElement?.closest('figcaption')) {
+      setSlash(null)
+      return
+    }
     const upToCaret = (node.textContent ?? '').slice(0, selection.anchorOffset)
     const match = /(?:^|\s)\/([a-z0-9 ]{0,18})$/i.exec(upToCaret)
     if (!match || (match[1].includes(' ') && !/\S/.test(match[1]))) {
@@ -718,8 +1174,89 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
     setBlock(item.id as BlockName)
   }
 
+  /** Keyboard behaviour while an image is selected. Returns true when the key was handled. */
+  function onSelectedImageKey(event: KeyboardEvent<HTMLDivElement>, figure: HTMLElement): boolean {
+    const { key } = event
+    if (event.altKey && (key === 'ArrowUp' || key === 'ArrowDown')) {
+      event.preventDefault()
+      const editor = visualRef.current
+      if (!editor) return true
+      commitHistory()
+      if (nudgeBlock(editor, movableUnit(figure), key === 'ArrowUp' ? 'up' : 'down')) {
+        sync()
+        figure.scrollIntoView({ block: 'nearest', behavior: 'instant' })
+        refreshSelectedImage()
+      }
+      return true
+    }
+    if (event.metaKey || event.ctrlKey || event.altKey || key === 'Tab' || key === 'Shift') return false
+    if (key === 'Delete' || key === 'Backspace') {
+      event.preventDefault()
+      removeImage(figure)
+      return true
+    }
+    if (key === 'Enter' || key === 'Escape' || key === 'ArrowDown' || key === 'ArrowRight') {
+      event.preventDefault()
+      caretBelowImage(figure)
+      return true
+    }
+    if (key === 'ArrowUp' || key === 'ArrowLeft') {
+      event.preventDefault()
+      caretAboveImage(figure)
+      return true
+    }
+    // Typing never replaces the image: the text starts on the line below it.
+    if (key.length === 1) caretBelowImage(figure)
+    return false
+  }
+
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    setImageBar(null)
+    const shortcut = (event.metaKey || event.ctrlKey) && !event.altKey
+    if (shortcut && event.key.toLowerCase() === 'z') {
+      event.preventDefault()
+      if (event.shiftKey) redo()
+      else undo()
+      return
+    }
+    if (shortcut && event.key.toLowerCase() === 'y') {
+      event.preventDefault()
+      redo()
+      return
+    }
+
+    // A caption is a single line of its own, outside all of the block shortcuts below.
+    const caption = (event.target as HTMLElement).closest?.('figcaption')
+    if (caption) {
+      if (event.key === 'Enter' || event.key === 'Escape') {
+        event.preventDefault()
+        const figure = caption.closest('figure')
+        if (figure) selectImage(figure)
+      }
+      return
+    }
+
+    if (selectedFigure.current && onSelectedImageKey(event, selectedFigure.current)) return
+
+    // Backspace or Delete beside an image selects it first, rather than silently removing it.
+    if ((event.key === 'Backspace' || event.key === 'Delete') && !event.metaKey && !event.ctrlKey) {
+      const editor = visualRef.current
+      const selection = window.getSelection()
+      if (editor && selection?.rangeCount) {
+        const beside = imageNextToCaret(editor, selection.getRangeAt(0), event.key === 'Backspace' ? 'backward' : 'forward')
+        if (beside) {
+          event.preventDefault()
+          if (!beside.block.textContent?.trim()) {
+            commitHistory()
+            beside.block.remove()
+            ensureTrailingParagraph(editor)
+            sync()
+          }
+          selectImage(beside.figure)
+          return
+        }
+      }
+    }
+
     if (slash && filteredSlash.length) {
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault()
@@ -789,15 +1326,24 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
   }
 
   function onPaste(event: ClipboardEvent<HTMLDivElement>) {
-    const images = Array.from(event.clipboardData.files).filter((file) => file.type.startsWith('image/'))
+    const html = event.clipboardData.getData('text/html')
+    const text = event.clipboardData.getData('text/plain')
+
+    if ((event.target as HTMLElement).closest?.('figcaption')) {
+      event.preventDefault()
+      document.execCommand('insertText', false, text.replace(/\s+/g, ' '))
+      return
+    }
+
+    // Word and Excel put a picture of the text on the clipboard too; the text is what's meant.
+    const images = text.trim() ? [] : Array.from(event.clipboardData.files).filter((file) => file.type.startsWith('image/'))
     if (images.length) {
       event.preventDefault()
       rememberSelection()
-      void uploadAndDescribe(images[0])
+      const editor = visualRef.current
+      if (editor) insertFiles(images, resolveInsertionPoint(editor, savedSelection.current))
       return
     }
-    const html = event.clipboardData.getData('text/html')
-    const text = event.clipboardData.getData('text/plain')
     event.preventDefault()
     rememberSelection()
     // A pasted web address becomes a link: over selected text it links that text.
@@ -812,27 +1358,74 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
     else if (text) insertHtml(textToHtml(text))
   }
 
-  function onDrop(event: DragEvent<HTMLDivElement>) {
-    const images = Array.from(event.dataTransfer.files).filter((file) => file.type.startsWith('image/'))
-    if (!images.length) return
+  function onDragOver(event: DragEvent<HTMLDivElement>) {
+    const editor = visualRef.current
+    if (!editor || !event.dataTransfer.types.includes('Files')) return
     event.preventDefault()
-    const doc = document as Document & { caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null }
-    const range = document.caretRangeFromPoint?.(event.clientX, event.clientY)
-      ?? (() => {
-        const position = doc.caretPositionFromPoint?.(event.clientX, event.clientY)
-        if (!position) return null
-        const r = document.createRange()
-        r.setStart(position.offsetNode, position.offset)
-        return r
-      })()
-    if (range && visualRef.current?.contains(range.commonAncestorContainer)) savedSelection.current = range
-    void uploadAndDescribe(images[0])
+    event.dataTransfer.dropEffect = 'copy'
+    const gap = computeDropGap(editor, event.clientY, null)
+    setDropLine({ top: gap.top, left: gap.left, width: gap.width })
+  }
+
+  function onDragLeave(event: DragEvent<HTMLDivElement>) {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDropLine(null)
+  }
+
+  function onDrop(event: DragEvent<HTMLDivElement>) {
+    const editor = visualRef.current
+    setDropLine(null)
+    if (!editor || !event.dataTransfer.types.includes('Files')) return
+    event.preventDefault()
+    deselectImage()
+    const gap = computeDropGap(editor, event.clientY, null)
+    insertFiles(Array.from(event.dataTransfer.files), { before: gap.before, replace: null })
+  }
+
+  function imageFromTarget(target: EventTarget | null): HTMLElement | null {
+    const element = target as HTMLElement | null
+    if (element?.tagName !== 'IMG') return null
+    return element.closest('figure')
+  }
+
+  function onSurfaceMouseDown(event: MouseEvent<HTMLDivElement>) {
+    // No caret and no text selection when pressing an image: that press selects or moves it.
+    // Upload buttons keep the caret where it is too, so typing can carry on.
+    if (imageFromTarget(event.target) || (event.target as HTMLElement).closest?.('[data-rte-action]')) event.preventDefault()
+  }
+
+  function onSurfacePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    const figure = imageFromTarget(event.target)
+    if (!figure || event.button !== 0) return
+    arm({ x: event.clientX, y: event.clientY, pointerId: event.pointerId, pointerType: event.pointerType }, movableUnit(figure), false)
+  }
+
+  function onSurfaceMouseMove(event: MouseEvent<HTMLDivElement>) {
+    if (dragging) return
+    const figure = (event.target as HTMLElement).closest?.('figure') ?? null
+    if (figure === (hoveredImage?.figure ?? null)) return
+    setHoveredImage(figure ? measureImage(figure) : null)
+  }
+
+  function onSurfaceMouseLeave(event: MouseEvent<HTMLDivElement>) {
+    if (!(event.relatedTarget as Element | null)?.closest?.('[data-rte-grip]')) setHoveredImage(null)
   }
 
   function onSurfaceClick(event: MouseEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement
-    if (target.tagName === 'IMG') setImageBar({ el: target as HTMLImageElement, rect: target.getBoundingClientRect() })
-    else setImageBar(null)
+    const action = target.closest?.('[data-rte-action]')
+    if (action) {
+      event.preventDefault()
+      const placeholder = action.closest<HTMLElement>(`[${UPLOAD_ATTRIBUTE}]`)
+      if (placeholder) uploadAction(action.getAttribute('data-rte-action') ?? '', placeholder)
+      return
+    }
+    // Links work inside an uneditable block, but a click here should never leave the editor.
+    if (target.closest?.('figure a')) event.preventDefault()
+    if (consumeClick()) return
+    if (target.closest?.('figcaption')) return
+    const figure = imageFromTarget(target)
+    if (figure) selectImage(figure)
+    else deselectImage()
   }
 
   const currentBlock = BLOCKS.find((block) => block.id === format.block) ?? BLOCKS[0]
@@ -848,7 +1441,9 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
   )
   const tick = (on: boolean) => (on ? <Check size={14} aria-hidden="true" /> : null)
 
-  const imageBroken = imageBar ? imageBar.el.complete && imageBar.el.naturalWidth === 0 : false
+  const overlayImage = hoveredImage ?? selectedImage
+  const stageBox = overlayImage?.stage
+  const selectedIsSimple = selectedImage ? isMediaTextFigure(selectedImage.figure) : false
 
   return (
     <div className="admin-rte" ref={rootRef}>
@@ -886,8 +1481,8 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
             <ToolButton label="More formatting" expanded={isOpen('more')} active={isOpen('more')} onClick={(el) => openPopover('more', el)}><MoreHorizontal size={16} strokeWidth={1.8} /></ToolButton>
             {/* On wide screens undo/redo live in the editor header; phones get them here. */}
             <span className="admin-tool-sep md:hidden" aria-hidden="true" />
-            <ToolButton label="Undo" shortcut="⌘Z" className="md:hidden" onClick={() => run('undo')}><Undo2 size={15} strokeWidth={1.8} /></ToolButton>
-            <ToolButton label="Redo" shortcut="⇧⌘Z" className="md:hidden" onClick={() => run('redo')}><Redo2 size={15} strokeWidth={1.8} /></ToolButton>
+            <ToolButton label="Undo" shortcut="⌘Z" className="md:hidden" onClick={undo}><Undo2 size={15} strokeWidth={1.8} /></ToolButton>
+            <ToolButton label="Redo" shortcut="⇧⌘Z" className="md:hidden" onClick={redo}><Redo2 size={15} strokeWidth={1.8} /></ToolButton>
           </>
         ) : (
           <>
@@ -910,12 +1505,19 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? 'content-error' : undefined}
           spellCheck
-          onInput={() => { sync(); detectSlash() }}
+          onInput={() => { syncTyping(); detectSlash() }}
           onKeyDown={onKeyDown}
           onKeyUp={(event) => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'Backspace') detectSlash() }}
           onBlur={() => { rememberSelection(); onBlur?.() }}
           onClick={onSurfaceClick}
+          onMouseDown={onSurfaceMouseDown}
+          onPointerDown={onSurfacePointerDown}
+          onMouseMove={onSurfaceMouseMove}
+          onMouseLeave={onSurfaceMouseLeave}
           onPaste={onPaste}
+          onDragStart={(event) => { if ((event.target as HTMLElement).tagName === 'IMG') event.preventDefault() }}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
           onDrop={onDrop}
           className="admin-rte__surface markdown-rich-content"
           data-placeholder="Start writing… type / for blocks"
@@ -985,7 +1587,7 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
           <p className="admin-menu__label">Media</p>
           {menuItem('image', <ImagePlus size={15} strokeWidth={1.8} aria-hidden="true" />, 'Image from library', () => startInsert('image'))}
           {menuItem('media-text', <ImagePlus size={15} strokeWidth={1.8} aria-hidden="true" />, 'Image and text', () => startInsert('media-text'))}
-          {menuItem('image-url', <Link2 size={15} strokeWidth={1.8} aria-hidden="true" />, 'Image from a web address…', () => { setImageUrl(''); setPopover({ id: 'imageUrl', rect: popover.rect }) })}
+          {menuItem('image-url', <Link2 size={15} strokeWidth={1.8} aria-hidden="true" />, 'Image from a web address…', () => setPopover({ id: 'imageUrl', rect: popover.rect }))}
           <div className="admin-menu__sep" />
           <p className="admin-menu__label">Blocks</p>
           {menuItem('hr', <Minus size={15} strokeWidth={1.8} aria-hidden="true" />, 'Divider', () => startInsert('hr'))}
@@ -1004,7 +1606,17 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
           {menuItem('outdent', <IndentDecrease size={15} strokeWidth={1.8} aria-hidden="true" />, 'Decrease indent', () => { run('outdent'); closePopover() }, <kbd>⇧Tab</kbd>)}
           <div className="admin-menu__sep" />
           {menuItem('clear', <Eraser size={15} strokeWidth={1.8} aria-hidden="true" />, 'Clear formatting', () => { run('removeFormat'); closePopover() })}
-          {menuItem('code-view', <Code2 size={15} strokeWidth={1.8} aria-hidden="true" />, 'Edit HTML code', () => { closePopover(); setMode('code') })}
+          {menuItem('code-view', <Code2 size={15} strokeWidth={1.8} aria-hidden="true" />, 'Edit HTML code', () => {
+            closePopover()
+            // A finished upload needs its placeholder in the visual editor to land in the article.
+            if (uploading > 0) {
+              toast.error('Wait for your images to finish uploading first.')
+              return
+            }
+            deselectImage()
+            setHoveredImage(null)
+            setMode('code')
+          })}
         </Floating>
       )}
 
@@ -1033,11 +1645,12 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
 
       {portalRoot && popover?.id === 'imageUrl' && (
         <Floating rect={popover.rect} root={portalRoot} width={300} label="Image address">
-          <div className="flex flex-col gap-2 p-2" onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); continueWithImageUrl() } }}>
-            <label htmlFor="rte-image-url" className="admin-form-label mb-0">Image address</label>
-            <input id="rte-image-url" className="admin-input" autoFocus placeholder="https://" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} />
-            <button type="button" className="admin-button admin-button--primary admin-button--sm self-end" onClick={continueWithImageUrl}>Continue</button>
-          </div>
+          <ImageUrlPanel
+            onContinue={(image) => {
+              closePopover()
+              setDetails({ mode: 'insert', src: image.url, initial: { layout: 'figure' }, meta: { naturalWidth: image.width, naturalHeight: image.height } })
+            }}
+          />
         </Floating>
       )}
 
@@ -1063,22 +1676,84 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
         portalRoot,
       )}
 
-      {portalRoot && imageBar && mode === 'visual' && createPortal(
-        <>
-          <div className="admin-image-outline" aria-hidden="true" style={{ top: imageBar.rect.top, left: imageBar.rect.left, width: imageBar.rect.width, height: imageBar.rect.height }} />
-          <div
-            className="admin-bubble"
+      {portalRoot && mode === 'visual' && !dragging && overlayImage && stageBox && createPortal(
+        <div className="admin-image-stage" style={stageBox}>
+          {selectedImage && (
+            <>
+              <div
+                className="admin-image-outline"
+                aria-hidden="true"
+                style={{ top: selectedImage.rect.top - stageBox.top, left: selectedImage.rect.left - stageBox.left, width: selectedImage.rect.width, height: selectedImage.rect.height }}
+              />
+              {!selectedIsSimple && HANDLE_CORNERS.map((corner) => (
+                <button
+                  key={corner}
+                  type="button"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  data-rte-imagebar
+                  className="admin-image-handle"
+                  style={{
+                    top: selectedImage.rect.top - stageBox.top + (corner.includes('n') ? 0 : selectedImage.rect.height) - 6,
+                    left: selectedImage.rect.left - stageBox.left + (corner.includes('w') ? 0 : selectedImage.rect.width) - 6,
+                    cursor: corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize',
+                  }}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onPointerDown={(event) => {
+                    event.preventDefault()
+                    beginResize({ x: event.clientX, y: event.clientY, pointerId: event.pointerId, pointerType: event.pointerType }, selectedImage.figure, corner)
+                  }}
+                />
+              ))}
+            </>
+          )}
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Drag to move this image"
+            title="Drag to move. Alt+↑ or Alt+↓ moves a selected image."
+            data-rte-grip
             data-rte-imagebar
-            role="toolbar"
-            aria-label="Image"
-            style={{ top: Math.max(imageBar.rect.top + 8, 64), left: Math.max(imageBar.rect.left + imageBar.rect.width / 2, 170) }}
+            className="admin-image-grip"
+            style={{ top: overlayImage.rect.top - stageBox.top + 8, left: overlayImage.rect.left - stageBox.left + 8 }}
+            onMouseDown={(event) => event.preventDefault()}
+            onMouseLeave={(event) => { if ((event.relatedTarget as Element | null)?.closest?.('figure') !== overlayImage.figure) setHoveredImage(null) }}
+            onPointerDown={(event) => {
+              event.preventDefault()
+              arm({ x: event.clientX, y: event.clientY, pointerId: event.pointerId, pointerType: event.pointerType }, movableUnit(overlayImage.figure), true)
+            }}
+            onClick={() => selectImage(overlayImage.figure)}
           >
-            {imageBroken && <span className="flex items-center gap-1.5 px-2 text-xs text-a-warning"><ImageOff size={13} aria-hidden="true" /> Can’t load this image</span>}
-            <button type="button" className="admin-bubble__text" onClick={() => editImage(imageBar.el)}><Pencil size={13} aria-hidden="true" /> Alt text &amp; details</button>
-            <button type="button" className="admin-bubble__text" onClick={() => { rememberSelection(); setPicker({ purpose: 'replace', image: imageBar.el }) }}><Replace size={13} aria-hidden="true" /> Replace</button>
-            <button type="button" className="admin-bubble__text admin-bubble__text--danger" onClick={() => removeImage(imageBar.el)}><Trash2 size={13} aria-hidden="true" /> Delete</button>
-          </div>
-        </>,
+            <GripVertical size={15} strokeWidth={1.8} aria-hidden="true" />
+          </button>
+        </div>,
+        portalRoot,
+      )}
+
+      {portalRoot && mode === 'visual' && !dragging && !resizeLabel && selectedImage && createPortal(
+        <ImageToolbar
+          figure={selectedImage.figure}
+          rect={selectedImage.rect}
+          stageTop={selectedImage.stage.top}
+          simple={selectedIsSimple}
+          version={selectedImage.version}
+          onAction={onImageAction}
+        />,
+        portalRoot,
+      )}
+
+      {portalRoot && resizeLabel && createPortal(
+        <div className="admin-image-size" role="status" style={{ top: resizeLabel.y + 16, left: resizeLabel.x + 16 }}>{resizeLabel.width}%</div>,
+        portalRoot,
+      )}
+
+      {portalRoot && dropLine && createPortal(
+        <div className="admin-drop-line" aria-hidden="true" style={{ top: dropLine.top - 1, left: dropLine.left, width: dropLine.width }} />,
+        portalRoot,
+      )}
+
+      {portalRoot && dragging && createPortal(
+        <div ref={ghostRef} className="admin-drag-ghost" aria-hidden="true"><img src={dragging.src} alt="" draggable={false} /></div>,
         portalRoot,
       )}
 
@@ -1121,7 +1796,7 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
           initial={details.initial}
           onCancel={() => setDetails(null)}
           onSubmit={submitDetails}
-          onReplace={details.mode === 'edit' && details.image ? () => { const image = details.image; setDetails(null); setPicker({ purpose: 'replace', image }) } : undefined}
+          onReplace={details.mode === 'edit' && details.figure ? () => { const figure = details.figure; setDetails(null); setPicker({ purpose: 'replace', figure }) } : undefined}
         />
       )}
     </div>

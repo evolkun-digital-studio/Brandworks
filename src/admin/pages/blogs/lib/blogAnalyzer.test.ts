@@ -140,6 +140,27 @@ describe('analyzeBlog — empty article', () => {
   })
 })
 
+describe('analyzeBlog — article images', () => {
+  const bodyAlt = (content: string) => analyzeBlog({ ...strongInput(), content }).seo.checks.find((c) => c.id === 'seo-body-image-alt')
+
+  it('flags editor images with no alt text, and clears once they have it', () => {
+    const missing = bodyAlt('<p>Text</p><figure data-width="50"><img src="/a.png" alt="" width="10" height="10"></figure><figure><a href="https://example.com"><img src="/b.png" alt="Two"></a></figure>')
+    expect(missing?.status).toBe('warning')
+    expect(missing?.message).toContain('1 of 2')
+    expect(bodyAlt('<figure><img src="/a.png" alt="One"></figure>')?.status).toBe('pass')
+  })
+
+  it('lists the image check in the visible checklist too', () => {
+    const result = analyzeBlog({ ...strongInput(), content: '<figure><img src="/a.png" alt=""></figure>' })
+    const items = result.checklist.flatMap((section) => section.items)
+    expect(items.find((item) => item.id === 'cl-body-image-alt')?.status).toBe('warning')
+  })
+
+  it('adds no check to an article without images', () => {
+    expect(bodyAlt('<p>Just text.</p>')).toBeUndefined()
+  })
+})
+
 describe('analyzeBlog — strong article', () => {
   const result = analyzeBlog(strongInput())
 

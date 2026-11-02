@@ -3,7 +3,7 @@ import { motion, useInView, useReducedMotion } from 'motion/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, Pause, Play, Plus } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Check, Pause, Play, Plus } from 'lucide-react'
 import { Link } from '../../routing'
 import { useNativeMetadata } from '../../routing/context'
 
@@ -164,12 +164,11 @@ function TheConnection() {
             ['Product truth', 'Grown in the sun.', 'Start with something true about the brand.'],
             ['Human truth', 'We all need a brighter day.', 'Find something people can feel.'],
             ['Creative platform', 'A little sunshine, bottled.', 'Turn the connection into an idea you can build on.'],
-          ].map(([title, text, description], i) => (
-            <div key={title} data-concept-reveal className="relative border-t border-[#d9ddd0] pt-5">
+          ].map(([title, text, description]) => (
+            <div key={title} data-concept-reveal className="border-t border-[#d9ddd0] pt-5">
               <span className={`${label} text-[#828778]`}>{title}</span>
               <h3 className="mb-0 mt-4 text-[18px] font-medium leading-snug tracking-[-0.02em]">{text}</h3>
               <p className="mb-0 mt-2 max-w-[32ch] text-[12px] leading-relaxed text-[#73766a]">{description}</p>
-              {i < 2 && <ArrowRight className="absolute -right-8 top-5 hidden text-[#a1a791] md:block" size={16} strokeWidth={1} aria-hidden="true" />}
             </div>
           ))}
         </div>
@@ -284,7 +283,7 @@ function TheProcess() {
         <div className="self-center">
           {STEPS.map((item, i) => (
             <div key={item.word} className="border-t border-[#cfd3c3] last:border-b">
-              <h3 className="m-0"><button type="button" aria-expanded={step === i} aria-controls={`concept-process-${i}`} id={`concept-process-trigger-${i}`} onClick={() => setStep(step === i ? -1 : i)} className={`flex min-h-[76px] w-full cursor-pointer items-center gap-4 py-5 text-left transition-colors hover:text-[#b33e14] ${focus}`}><span className="w-5 shrink-0 font-mono text-[10px] text-[#919780]">0{i + 1}</span><span className="flex-1 text-[18px] font-medium tracking-[-0.025em]">{item.word}</span><Plus size={16} strokeWidth={1.3} className={`shrink-0 transition-transform duration-300 motion-reduce:transition-none ${step === i ? 'rotate-45' : ''}`} aria-hidden="true" /></button></h3>
+              <h3 className="m-0"><button type="button" aria-expanded={step === i} aria-controls={`concept-process-${i}`} id={`concept-process-trigger-${i}`} onClick={() => setStep(step === i ? -1 : i)} className={`flex min-h-[76px] w-full cursor-pointer items-center gap-4 py-5 text-left transition-colors hover:text-[#b33e14] ${focus}`}><span className="flex-1 text-[18px] font-medium tracking-[-0.025em]">{item.word}</span><Plus size={16} strokeWidth={1.3} className={`shrink-0 transition-transform duration-300 motion-reduce:transition-none ${step === i ? 'rotate-45' : ''}`} aria-hidden="true" /></button></h3>
               <div id={`concept-process-${i}`} role="region" aria-labelledby={`concept-process-trigger-${i}`} hidden={step !== i} className="pb-7 pl-9">
                 <p className="m-0 text-[15px] font-medium">{item.title}</p><p className={`${body} mb-5 mt-3 max-w-[45ch]`}>{item.text}</p><span className="inline-flex items-center gap-2 text-[11px] text-[#68724e]"><Check size={12} strokeWidth={1.5} aria-hidden="true" />{item.note}</span>
               </div>
@@ -329,7 +328,6 @@ function QuestionsAndNextThought() {
             <Link to="/start-project" className={`inline-flex min-h-12 items-center justify-between gap-10 rounded-full bg-[#343c2b] px-6 text-[12px] font-medium text-white transition-colors hover:bg-[#4e5a3c] md:mb-1 ${focus}`}>Let’s find your idea <ArrowUpRight size={17} strokeWidth={1.5} /></Link>
           </div>
         </div>
-        <p className="mb-0 mt-5 text-[10px] leading-relaxed text-[#828779]">Photography: <a href="https://unsplash.com/photos/orange-fruit-on-white-table-PUMfrQZQfFU" target="_blank" rel="noreferrer" className={`underline underline-offset-2 hover:text-[#343c2b] ${focus}`}>Jocelyn Morales</a>, <a href="https://unsplash.com/photos/wave-of-water-OKagoQYqEy8" target="_blank" rel="noreferrer" className={`underline underline-offset-2 hover:text-[#343c2b] ${focus}`}>Dakota Feliciano</a> &amp; <a href="https://unsplash.com/photos/a-tree-filled-with-lots-of-ripe-oranges-LuWr5tVYiFo" target="_blank" rel="noreferrer" className={`underline underline-offset-2 hover:text-[#343c2b] ${focus}`}>Igor Sporynin</a> / Unsplash.</p>
       </section>
     </>
   )

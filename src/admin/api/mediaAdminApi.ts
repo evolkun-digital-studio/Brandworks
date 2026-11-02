@@ -1,4 +1,5 @@
-import { adminApiFormRequest, adminApiRequest } from './client'
+import { API_BASE_URL } from '../../config/api'
+import { adminApiFormRequest, adminApiRequest, ApiError } from './client'
 
 export interface MediaAsset {
   id: string
@@ -40,6 +41,30 @@ export function uploadMedia(file: File, altText: string, caption: string) {
   form.set('altText', altText)
   form.set('caption', caption)
   return adminApiFormRequest<{ asset: MediaAsset }>('/media', form)
+}
+
+/** Same upload as `uploadMedia`, over XHR because fetch can't report upload progress. */
+export function uploadMediaWithProgress(file: File, altText: string, caption: string, onProgress: (percent: number) => void) {
+  const form = new FormData()
+  form.set('file', file)
+  form.set('altText', altText)
+  form.set('caption', caption)
+  const request = new XMLHttpRequest()
+  const promise = new Promise<{ asset: MediaAsset }>((resolve, reject) => {
+    request.open('POST', `${API_BASE_URL}/api/admin/media`)
+    request.withCredentials = true
+    request.responseType = 'json'
+    request.upload.onprogress = (event) => { if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100)) }
+    request.onload = () => {
+      const data = request.response as { asset?: MediaAsset; error?: string } | null
+      if (request.status >= 200 && request.status < 300 && data?.asset) resolve({ asset: data.asset })
+      else reject(new ApiError(request.status, data?.error ?? `Upload failed with status ${request.status}.`))
+    }
+    request.onerror = () => reject(new Error('The connection dropped during the upload.'))
+    request.onabort = () => reject(new DOMException('Upload cancelled.', 'AbortError'))
+    request.send(form)
+  })
+  return { promise, abort: () => request.abort() }
 }
 
 export function updateMedia(id: string, input: Pick<MediaAsset, 'altText' | 'caption' | 'description'>) {
