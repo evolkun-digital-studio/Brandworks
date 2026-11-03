@@ -49,6 +49,7 @@
     "three": "0.182.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.4.4",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/jsonwebtoken": "^9.0.10",

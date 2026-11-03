@@ -1,11 +1,12 @@
-import { mediaUrl } from '../../lib/media'
+import Image from 'next/image'
+import footerPoster from '../../../public/services/footer-poster.webp'
 import { useCallback, useEffect, useRef } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { Link } from '../../routing'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { useReducedMotion } from 'motion/react'
-const showreelPoster = mediaUrl("footer-showreel-poster.webp")
+const showreelPoster = footerPoster.src
 import { matches } from '../../lib/scrollMotion'
 import './Footer.css'
 import LegalLinks from '../../legacy-pages/legal/LegalLinks'
@@ -18,8 +19,8 @@ gsap.registerPlugin(useGSAP)
 // Shared footer film. The same adaptive MP4 is used across breakpoints so
 // every public page carries one consistent closing visual.
 const SHOWREEL = {
-  desktop: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/footer.mp4',
-  mobile: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/footer.mp4',
+  desktop: '/services/footer.mp4',
+  mobile: '/services/footer.mp4',
 }
 
 /** Where the fullscreen cursor follows the pointer instead of a button. */
@@ -30,12 +31,6 @@ type FullscreenVideo = HTMLVideoElement & {
   webkitEnterFullscreen?: () => void
   webkitRequestFullscreen?: () => Promise<void> | void
 }
-
-type FullscreenShell = HTMLDivElement & {
-  webkitRequestFullscreen?: () => Promise<void> | void
-}
-
-const VIDEO_FPS = 30
 
 const mainLinks = [
   { label: 'Home', href: '/' },
@@ -108,8 +103,8 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
   }, [reducedMotion])
 
   /**
-   * Start buffering the compact showreel well before the footer enters view,
-   * so its first frame is ready when the visitor arrives.
+   * Attach the compact showreel only when the footer enters view.
+   * The local blurred poster reserves the visual while the film loads.
    */
   useEffect(() => {
     const root = rootRef.current
@@ -139,7 +134,7 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
         nearby.disconnect()
       },
       {
-        rootMargin: '1600px 0px',
+        rootMargin: '0px',
       },
     )
 
@@ -499,6 +494,7 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
         className="footer-background"
         aria-hidden="true"
       >
+        <Image src={footerPoster} alt="" fill sizes="100vw" placeholder="blur" loading="lazy" className="object-cover" />
         <video
           ref={videoRef}
           className="footer-video"
@@ -506,7 +502,7 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
           muted
           loop
           playsInline
-          preload="auto"
+          preload="none"
           disablePictureInPicture
         />
 

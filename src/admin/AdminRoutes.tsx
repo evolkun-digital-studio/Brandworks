@@ -13,6 +13,7 @@ import EditorialCalendar from './pages/EditorialCalendar'
 import ActivityLog from './pages/ActivityLog'
 import SiteScans from './pages/SiteScans'
 import SiteScanDetail from './pages/SiteScanDetail'
+import Analytics from './pages/Analytics'
 
 /**
  * Everything under /admin lives here, isolated from the public site's
@@ -33,6 +34,7 @@ function AdminRoutes() {
           <Route path="activity" element={<ActivityLog />} />
           <Route path="site-scans" element={<SiteScans />} />
           <Route path="site-scans/:id" element={<SiteScanDetail />} />
+          <Route path="analytics" element={<Analytics />} />
           <Route path="users" element={<Users />} />
           <Route path="blogs" element={<BlogList />} />
           <Route path="blogs/new" element={<BlogEditor />} />

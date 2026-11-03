@@ -10,6 +10,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description: settings.siteDescription,
     openGraph: { siteName: settings.siteName, title: settings.siteName, description: settings.siteDescription },
     twitter: { title: settings.siteName, description: settings.siteDescription },
+    // Server-rendered so Search Console's HTML-tag check finds it without running JavaScript.
+    ...(settings.tracking.gscVerification ? { verification: { google: settings.tracking.gscVerification } } : {}),
   }
 }
 

@@ -169,12 +169,14 @@ function useMarkdownComponents(sections) {
 export default function LegalPage({ title, description, path, source, lastUpdated, contactHeading, contactEmail }) {
   const nativeMetadata = useNativeMetadata();
   const { hash } = useLocation();
-  const markdown = useMemo(() => fillTemplate(source), [source]);
+  // The consent config includes tracking IDs set in the CMS, so the cookie policy lists them.
+  const { config } = useConsent();
+  const markdown = useMemo(() => fillTemplate(source, config), [source, config]);
   const sections = useMemo(() => extractSections(markdown), [markdown]);
   const active = useActiveSection(sections.map((s) => s.id));
   const components = useMarkdownComponents(sections);
   const [menuOpen, setMenuOpen] = useState(false);
-  const todos = import.meta.env.DEV ? findTodos(legalConfig) : [];
+  const todos = process.env.NODE_ENV === 'development' ? findTodos(legalConfig) : [];
   const { brandName } = legalConfig.company;
 
   // Jump to a section when the page is opened with a #hash.

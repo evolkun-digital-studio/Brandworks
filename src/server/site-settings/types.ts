@@ -13,6 +13,13 @@ export interface SiteNavigationLabels {
   insights: string
 }
 
+/** Public measurement IDs (never secrets). An empty string turns that tool off. */
+export interface SiteTrackingSettings {
+  ga4MeasurementId: string
+  gscVerification: string
+  metaPixelId: string
+}
+
 export interface SiteSettingsDocument {
   _id: 'primary'
   siteName: string
@@ -21,6 +28,7 @@ export interface SiteSettingsDocument {
   footerTagline: string
   socialLinks: SiteSocialLink[]
   navLabels: SiteNavigationLabels
+  tracking?: SiteTrackingSettings
   updatedAt: Date
   updatedBy: ObjectId | null
 }
@@ -32,7 +40,10 @@ export interface PublicSiteSettings {
   footerTagline: string
   socialLinks: SiteSocialLink[]
   navLabels: SiteNavigationLabels
+  tracking: SiteTrackingSettings
 }
+
+export const DEFAULT_TRACKING_SETTINGS: SiteTrackingSettings = { ga4MeasurementId: '', gscVerification: '', metaPixelId: '' }
 
 export const DEFAULT_SITE_SETTINGS: PublicSiteSettings = {
   siteName: 'BRANDWORKS',
@@ -45,6 +56,7 @@ export const DEFAULT_SITE_SETTINGS: PublicSiteSettings = {
     { label: 'X', url: '#' },
   ],
   navLabels: { home: 'Home', about: 'About', services: 'Services', projects: 'Projects', insights: 'Insights' },
+  tracking: DEFAULT_TRACKING_SETTINGS,
 }
 
 export function toPublicSiteSettings(settings: SiteSettingsDocument | null): PublicSiteSettings {
@@ -56,5 +68,6 @@ export function toPublicSiteSettings(settings: SiteSettingsDocument | null): Pub
     footerTagline: settings.footerTagline,
     socialLinks: settings.socialLinks,
     navLabels: settings.navLabels,
+    tracking: { ...DEFAULT_TRACKING_SETTINGS, ...settings.tracking },
   }
 }

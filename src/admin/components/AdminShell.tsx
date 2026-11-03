@@ -4,6 +4,7 @@ import {
   Activity,
   Check,
   CalendarDays,
+  ChartLine,
   ExternalLink,
   FilePlus2,
   FileText,
@@ -60,6 +61,7 @@ const NAV_GROUPS: Array<{ label: string; items: NavigationItem[] }> = [
     label: 'Insights',
     items: [
       { label: 'Site scans', to: '/admin/site-scans', icon: ScanSearch },
+      { label: 'Analytics', to: '/admin/analytics', icon: ChartLine },
     ],
   },
 ]
@@ -75,6 +77,7 @@ const PAGE_TITLES: Array<[RegExp, string]> = [
   [/^\/admin\/activity/, 'Activity'],
   [/^\/admin\/site-scans\/[^/]+/, 'Site scan'],
   [/^\/admin\/site-scans/, 'Site scans'],
+  [/^\/admin\/analytics/, 'Analytics'],
   [/^\/admin\/settings/, 'Settings'],
   [/^\/admin\/users/, 'Team'],
 ]

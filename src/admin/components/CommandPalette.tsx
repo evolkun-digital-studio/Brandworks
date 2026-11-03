@@ -4,6 +4,7 @@ import {
   Activity,
   ArrowRight,
   CalendarDays,
+  ChartLine,
   CornerDownLeft,
   FilePlus2,
   FileText,
@@ -92,12 +93,13 @@ function CommandPalette({ open, isAdmin, onClose, onThemeChange }: CommandPalett
       { id: 'seo', group: 'Go to', label: 'SEO', icon: SearchCheck, run: go('/admin/seo') },
       { id: 'activity', group: 'Go to', label: 'Activity', icon: Activity, run: go('/admin/activity') },
       { id: 'site-scans', group: 'Go to', label: 'Site scans', icon: ScanSearch, run: go('/admin/site-scans') },
+      { id: 'analytics', group: 'Go to', label: 'Analytics', hint: 'Google Analytics, Search Console, Meta Pixel', icon: ChartLine, run: go('/admin/analytics') },
       { id: 'settings', group: 'Go to', label: 'Settings', icon: Settings2, run: go('/admin/settings') },
       { id: 'theme-system', group: 'Appearance', label: 'Appearance: Automatic', icon: SunMoon, run: () => onThemeChange('system') },
       { id: 'theme-light', group: 'Appearance', label: 'Appearance: Light', icon: Sun, run: () => onThemeChange('light') },
       { id: 'theme-dark', group: 'Appearance', label: 'Appearance: Dark', icon: Moon, run: () => onThemeChange('dark') },
     ]
-    if (isAdmin) base.splice(11, 0, { id: 'team', group: 'Go to', label: 'Team', icon: UsersRound, run: go('/admin/users') })
+    if (isAdmin) base.splice(base.findIndex((command) => command.id === 'settings') + 1, 0, { id: 'team', group: 'Go to', label: 'Team', icon: UsersRound, run: go('/admin/users') })
     return base
   }, [isAdmin, navigate, onThemeChange])
 

@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import bundleAnalyzer from '@next/bundle-analyzer'
 
 const nextConfig: NextConfig = {
   // Hide the dev-only route badge; compile and runtime errors still surface.
@@ -15,4 +16,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default bundleAnalyzer({ enabled: process.env.ANALYZE === 'true', openAnalyzer: false })(nextConfig)

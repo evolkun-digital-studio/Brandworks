@@ -28,14 +28,26 @@ function writeSavedChoice(choice) {
   }
 }
 
+/** IDs set in the CMS win; an empty CMS value falls back to legal.config.js. */
+function withTracking(overrides) {
+  const tracking = { ...legalConfig.tracking };
+  Object.entries(overrides ?? {}).forEach(([key, id]) => {
+    if (id) tracking[key] = id;
+  });
+  return { ...legalConfig, tracking };
+}
+
 /**
  * Wrap your app in this once (inside or outside the router). It renders the
  * cookie banner and preferences dialog, and loads tracking tools that the
- * visitor has allowed.
+ * visitor has allowed. `tracking` takes IDs from the admin Settings page.
  */
-export function ConsentProvider({ children }) {
-  const inUse = useMemo(() => categoriesInUse(legalConfig), []);
-  const vendors = useMemo(() => activeVendors(legalConfig), []);
+export function ConsentProvider({ children, tracking: trackingOverrides }) {
+  const overridesKey = JSON.stringify(trackingOverrides ?? {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the serialized IDs, not the object identity.
+  const config = useMemo(() => withTracking(trackingOverrides), [overridesKey]);
+  const inUse = useMemo(() => categoriesInUse(config), [config]);
+  const vendors = useMemo(() => activeVendors(config), [config]);
   const hasOptional = inUse.analytics || inUse.marketing;
 
   const [choice, setChoice] = useState(null);
@@ -46,11 +58,11 @@ export function ConsentProvider({ children }) {
   // identical on the server and client.
   useLayoutEffect(() => {
     const saved = readSavedChoice();
-    if (legalConfig.tracking.ga4 || legalConfig.tracking.googleAds) setGoogleConsentDefaults();
-    if (saved) applyConsent(saved);
+    if (config.tracking.ga4 || config.tracking.googleAds) setGoogleConsentDefaults();
+    if (saved) applyConsent(saved, config.tracking);
     setChoice(saved);
     setBannerOpen(hasOptional && !saved);
-  }, [hasOptional]);
+  }, [hasOptional, config]);
 
   const save = useCallback(
     (next) => {
@@ -76,13 +88,14 @@ export function ConsentProvider({ children }) {
         window.location.reload();
         return;
       }
-      applyConsent(record);
+      applyConsent(record, config.tracking);
     },
-    [choice, inUse],
+    [choice, inUse, config],
   );
 
   const value = useMemo(
     () => ({
+      config,
       choice,
       inUse,
       vendors,
@@ -95,7 +108,7 @@ export function ConsentProvider({ children }) {
       openPreferences: () => setPreferencesOpen(true),
       closePreferences: () => setPreferencesOpen(false),
     }),
-    [choice, inUse, vendors, hasOptional, bannerOpen, preferencesOpen, save],
+    [config, choice, inUse, vendors, hasOptional, bannerOpen, preferencesOpen, save],
   );
 
   return (
@@ -107,6 +120,7 @@ export function ConsentProvider({ children }) {
 }
 
 const fallback = {
+  config: legalConfig,
   choice: null,
   inUse: { analytics: false, marketing: false },
   vendors: [],
