@@ -35,6 +35,8 @@ describe('ensureDatabaseIndexes', () => {
       { collection: 'site_scans', keys: { domain: 1, createdAt: -1 }, options: undefined },
       { collection: 'site_scans', keys: { updatedAt: -1 }, options: undefined },
       { collection: 'site_scans', keys: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },
+      { collection: 'site_media', keys: { section: 1, isActive: 1, slot: 1, order: 1 }, options: undefined },
+      { collection: 'site_media', keys: { section: 1, slot: 1, itemId: 1, version: -1 }, options: { unique: true } },
     ])
   })
 })

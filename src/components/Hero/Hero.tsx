@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PointerEvent } from "react";
 import { useReducedMotion } from "motion/react";
@@ -11,6 +13,7 @@ import {
 } from "../../data/heroServices";
 import "./Hero.css";
 import { onIntroSettled } from "../../lib/introGate";
+import type { PublicSiteImage } from "../../config/siteMediaSections";
 // Autoplay: a random different service every 4s. The timer holds while the
 // pointer is over the visual or the tabs (or a touch was just made there),
 // and picks up again 3s after the pointer leaves.
@@ -51,7 +54,11 @@ type IdleWindow = Window & {
 
  */
 
-function Hero() {
+function Hero({ heroImage = null, gridImages }: {
+  heroImage?: PublicSiteImage | null;
+  /** Media Manager › Hero › Photography grid. */
+  gridImages?: PublicSiteImage[];
+} = {}) {
   const sectionRef = useRef<HTMLElement>(null);
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -272,6 +279,8 @@ function Hero() {
         mounted={mounted}
         inView={inView && introSettled}
         reducedMotion={reducedMotion}
+        heroImage={heroImage}
+        gridImages={gridImages}
       />
       <div className="hero-overlay" aria-hidden="true" />
       <div ref={contentRef} className="hero-content">

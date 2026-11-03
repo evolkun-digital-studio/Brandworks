@@ -395,7 +395,7 @@ function Dashboard() {
 
       <nav className="mt-5 flex flex-wrap gap-2" aria-label="Shortcuts">
         <Link to="/admin/blogs" className="admin-button"><FileText size={14} aria-hidden="true" /> Articles</Link>
-        <Link to="/admin/media" className="admin-button"><Images size={14} aria-hidden="true" /> Media</Link>
+        <Link to="/admin/media/library" className="admin-button"><Images size={14} aria-hidden="true" /> Media</Link>
         <Link to="/admin/settings" className="admin-button"><Settings2 size={14} aria-hidden="true" /> Settings</Link>
       </nav>
     </motion.div>

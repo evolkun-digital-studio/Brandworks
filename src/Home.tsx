@@ -1,4 +1,6 @@
-import { useEffect } from 'react'
+'use client'
+
+import { useEffect, type ReactNode } from 'react'
 import { useLocation } from './routing'
 import {
   removeLinkTag,
@@ -34,7 +36,12 @@ import SocialContentSection from './components/SocialContent/SocialContentSectio
 const HOME_DESCRIPTION =
   'We help brands build a stronger presence through strategic brand identity, social media, content, marketing, development and SEO.'
 
-export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boolean } = {}) {
+export function Home({ manageDocumentHead = true, hero, photography }: {
+  manageDocumentHead?: boolean
+  /** Next passes server-rendered sections that read Media Manager images. */
+  hero?: ReactNode
+  photography?: ReactNode
+} = {}) {
   useEffect(() => {
     if (!manageDocumentHead) return
 
@@ -71,7 +78,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
 
   return (
     <main className="home-page">
-      <Hero />
+      {hero ?? <Hero />}
       <HomeIntroStatement />
       {/* <BrandStatement /> */}
       {/* <BrandIntelligence /> */}
@@ -79,7 +86,7 @@ export function Home({ manageDocumentHead = true }: { manageDocumentHead?: boole
       {/* <div className="home-section home-section--before-cinematography"><Work /></div> */}
       <div className="home-section"><CinematographyShowcase /></div>
       {/* <div className="home-section home-section--before-cinematography"><Work /></div> */}
-      <div className="home-section"> <PhotographyEditorial /> </div>
+      <div className="home-section">{photography ?? <PhotographyEditorial />}</div>
       <div className="home-section"><SocialContentSection /></div>
       <div className="home-section"><GraphicMotionSection /></div>
       {/* <div className="home-section home-section--after-removed-photography"><Videography /></div> */}

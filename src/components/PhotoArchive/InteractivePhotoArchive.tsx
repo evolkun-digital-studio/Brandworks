@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { PerspectiveCamera } from '@react-three/drei'
 import { MathUtils, SRGBColorSpace, TextureLoader, type Texture } from 'three'
-import { frames, sphereGrid, sphereTiles, type FrameKey, type SphereTile } from '../../data/photographyArchive'
+import { sphereGrid, sphereTiles, type ArchiveFrame, type FrameKey, type SphereTile } from '../../data/photographyArchive'
 import { CAMERA_FOV, START_YAW, tileCentre } from './archiveScene'
 import { clampTo, useArchivePointer, type ArchiveField } from './useArchivePointer'
 import PhotoCameraRig, { pitchLimit, radiansPerPixel } from './PhotoCameraRig'
@@ -16,7 +16,10 @@ const AUTO_RESUME_EASE = 2.4
 
 type View = { yaw: number; pitch: number }
 
+type Frames = Record<FrameKey, ArchiveFrame>
+
 type SphereProps = {
+  frames: Frames
   field: RefObject<ArchiveField>
   view: RefObject<View>
   caption: RefObject<HTMLParagraphElement | null>
@@ -26,7 +29,7 @@ type SphereProps = {
 }
 
 /** The texture each frame needs: the 720px file unless its widest tile would show it softer. */
-function textureSource(key: FrameKey) {
+function textureSource(frames: Frames, key: FrameKey) {
   const frame = frames[key]
   const widest = Math.max(...sphereTiles.filter((tile) => tile.key === key).map((tile) => tile.at[1]))
   const pixels = ((widest * sphereGrid.cellDegrees) / CAMERA_FOV) * window.innerHeight * Math.min(window.devicePixelRatio || 1, 1.5)
@@ -39,7 +42,7 @@ function textureSource(key: FrameKey) {
  * pointer, scroll); each plane owns only its depth, hover and entrance; this
  * loop only measures scroll speed.
  */
-function PhotoSphere({ field, view, caption, proxies, intensity, onOpen }: SphereProps) {
+function PhotoSphere({ frames, field, view, caption, proxies, intensity, onOpen }: SphereProps) {
   const gl = useThree((state) => state.gl)
   const textures = useRef(new Map<string, Texture>())
   const velocity = useRef(0)
@@ -51,7 +54,7 @@ function PhotoSphere({ field, view, caption, proxies, intensity, onOpen }: Spher
     const loader = new TextureLoader()
     let cancelled = false
     for (const key of uniqueKeys) {
-      loader.load(textureSource(key), (texture) => {
+      loader.load(textureSource(frames, key), (texture) => {
         if (cancelled) return texture.dispose()
         texture.colorSpace = SRGBColorSpace
         texture.anisotropy = gl.capabilities.getMaxAnisotropy()
@@ -63,7 +66,7 @@ function PhotoSphere({ field, view, caption, proxies, intensity, onOpen }: Spher
       loaded.forEach((texture) => texture.dispose())
       loaded.clear()
     }
-  }, [gl])
+  }, [gl, frames])
 
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.1)
@@ -83,7 +86,7 @@ function PhotoSphere({ field, view, caption, proxies, intensity, onOpen }: Spher
       <PerspectiveCamera makeDefault fov={CAMERA_FOV} position={[0, 0, 0]} near={0.1} far={40} />
       <PhotoCameraRig field={field} view={view} intensity={intensity} />
       {sphereTiles.map((tile) => (
-        <PhotoPlane key={tile.id} tile={tile} textures={textures} field={field} velocity={velocity}
+        <PhotoPlane key={tile.id} tile={tile} frame={frames[tile.key]} textures={textures} field={field} velocity={velocity}
           caption={caption} proxy={proxies.get(tile.key) ?? null} onOpen={onOpen} />
       ))}
     </>
@@ -108,8 +111,10 @@ function nearestCopy(key: FrameKey, yaw: number) {
  * The page keeps an accessible list of the same photographs (`indexRef`) for
  * screen readers, keyboard focus and the viewer hand-off.
  */
-export default function InteractivePhotoArchive({ mode, opened, onOpen, indexRef }: {
+export default function InteractivePhotoArchive({ mode, frames, opened, onOpen, indexRef }: {
   mode: 'desktop' | 'tablet'
+  /** The archive frames, Media Manager replacements included. */
+  frames: Frames
   opened: string | null
   onOpen: (id: string) => void
   indexRef: RefObject<HTMLElement | null>
@@ -212,7 +217,7 @@ export default function InteractivePhotoArchive({ mode, opened, onOpen, indexRef
     <div ref={layer} className="bwp-gl" aria-hidden="true">
       <Canvas frameloop={active ? 'always' : 'never'} dpr={[1, 1.5]} flat
         gl={{ antialias: true, powerPreference: 'high-performance' }}>
-        <PhotoSphere field={field} view={view} caption={caption} proxies={proxies}
+        <PhotoSphere frames={frames} field={field} view={view} caption={caption} proxies={proxies}
           intensity={mode === 'desktop' ? 1 : 0.6} onOpen={onOpen} />
       </Canvas>
       <p ref={caption} className="bwp-gl-caption" />

@@ -8,6 +8,7 @@ import Users from './pages/Users'
 import BlogList from './pages/blogs/BlogList'
 import BlogEditor from './pages/blogs/BlogEditor'
 import MediaLibrary from './pages/MediaLibrary'
+import SiteMediaManager from './pages/SiteMediaManager'
 import SeoWorkspace from './pages/SeoWorkspace'
 import EditorialCalendar from './pages/EditorialCalendar'
 import ActivityLog from './pages/ActivityLog'
@@ -28,7 +29,8 @@ function AdminRoutes() {
         <Route element={<RequireAdminAuth />}>
           <Route index element={<Dashboard />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="media" element={<MediaLibrary />} />
+          <Route path="media" element={<SiteMediaManager />} />
+          <Route path="media/library" element={<MediaLibrary />} />
           <Route path="seo" element={<SeoWorkspace />} />
           <Route path="calendar" element={<EditorialCalendar />} />
           <Route path="activity" element={<ActivityLog />} />
