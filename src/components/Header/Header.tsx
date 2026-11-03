@@ -4,9 +4,10 @@ import Logo from '../Logo/Logo'
 import './Header.css'
 import type { SiteNavigationLabels } from '../../server/site-settings/types'
 
-// Keep the scrolled capsules legible over the About page’s green sections.
-const aboutSurfaceClasses =
-  '[body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-ink:#fff]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-bg:rgba(17,17,17,0.86)]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-bg-hover:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-border:rgba(17,17,17,0.86)]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--pill-border-hover:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-ink:var(--color-bw-lime)]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-ink-hover:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-bg:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-bg-hover:#fff]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-border:#111]! [body:has(.about-page):not(.about-logo-on-light)_.site-header.is-scrolled_&]:[--cta-border-hover:#fff]!'
+/** Horizontal line (px from the viewport top) through the middle of the nav capsules. */
+const NAV_LINE_Y = 50
+/** Ignore scroll jitter smaller than this when deciding scroll direction. */
+const DIRECTION_DELTA = 6
 
 
 const navLinks:{ label: string; href: string }[] = [
@@ -30,49 +31,96 @@ function RollLabel({ children }: { children: string }) {
 }
 
 function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
+  // Server render and first client render both start "not scrolled, shown".
   const [hidden, setHidden] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const lastScrollY = useRef(0)
   const { pathname } = useLocation()
 
+  // The homepage and photography page open on full-bleed dark imagery; every
+  // other public page starts on white. This is only the first-paint guess
+  // (identical on server and client); the observer below takes over after mount.
+  const isDarkHero = pathname === '/' || pathname === '/services/photography'
+  const [overDark, setOverDark] = useState(isDarkHero)
+
+  // "Scrolled": a sentinel covering the first 40px of the page. No scroll
+  // listener, so trackpad overscroll at the top can't bounce the state.
   useEffect(() => {
-    if (pathname === '/services') {
-      const sentinel = document.createElement('div')
-      sentinel.setAttribute('aria-hidden', 'true')
-      sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:40px;pointer-events:none'
-      document.body.prepend(sentinel)
-      const observer = new IntersectionObserver(([entry]) => setScrolled(!entry.isIntersecting))
-      observer.observe(sentinel)
-      return () => { observer.disconnect(); sentinel.remove() }
+    const sentinel = document.createElement('div')
+    sentinel.setAttribute('aria-hidden', 'true')
+    sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:40px;pointer-events:none'
+    document.body.prepend(sentinel)
+    const observer = new IntersectionObserver(([entry]) => setScrolled(!entry.isIntersecting))
+    observer.observe(sentinel)
+    return () => { observer.disconnect(); sentinel.remove() }
+  }, [])
+
+  // Hide on scroll down / show on scroll up. Position only — never colour.
+  // rAF-throttled, ignores tiny deltas, and only sets state when it changes.
+  useEffect(() => {
+    if (pathname === '/services') return // the services header never hides
+    let frame = 0
+    lastScrollY.current = window.scrollY
+    const update = () => {
+      frame = 0
+      const y = Math.max(0, window.scrollY)
+      const delta = y - lastScrollY.current
+      if (y <= 5) setHidden(false)
+      else if (Math.abs(delta) < DIRECTION_DELTA) return
+      else setHidden(delta > 0)
+      lastScrollY.current = y
     }
-    const handleScroll = () => {
-      const currentY = window.scrollY
-
-      setScrolled(currentY > 40)
-
-      if (currentY <= 5) {
-        setHidden(false)
-      } else if (currentY > lastScrollY.current) {
-        setHidden(true)
-      } else if (currentY < lastScrollY.current) {
-        setHidden(false)
-      }
-
-      lastScrollY.current = currentY
-    }
-
-    handleScroll()
-    window.addEventListener("scroll", handleScroll, { passive: true })
-
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update) }
+    window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
-      window.removeEventListener("scroll", handleScroll)
+      window.removeEventListener('scroll', onScroll)
+      if (frame) cancelAnimationFrame(frame)
     }
   }, [pathname])
 
-  // The homepage and photography page open on full-bleed dark imagery; every
-  // other public page starts on white, so the header keeps dark ink there.
-  const isDarkHero = pathname === '/' || pathname === '/services/photography'
-  const tone = isDarkHero ? 'is-on-dark' : 'is-on-light'
+  // Dark variant only while a section marked data-nav-theme="dark" is actually
+  // under the capsules: the observer root is shrunk to a 1px line at NAV_LINE_Y.
+  useEffect(() => {
+    let observer: IntersectionObserver | undefined
+    let targets: Element[] = []
+    let height = -1
+    const visible = new Set<Element>()
+    const connect = () => {
+      const next = Array.from(document.querySelectorAll('[data-nav-theme="dark"]'))
+      const sameTargets = next.length === targets.length && next.every((el, i) => el === targets[i])
+      if (sameTargets && height === window.innerHeight) return
+      targets = next
+      height = window.innerHeight
+      observer?.disconnect()
+      visible.clear()
+      const bottom = Math.max(0, height - NAV_LINE_Y - 1)
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => (e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)))
+          setOverDark(visible.size > 0) // React bails out when the value is unchanged
+        },
+        { rootMargin: `-${NAV_LINE_Y}px 0px -${bottom}px 0px` },
+      )
+      targets.forEach((el) => observer!.observe(el))
+      if (targets.length === 0) setOverDark(false)
+    }
+    connect()
+    // Sections can mount after the header (route change, lazy content).
+    let pending = 0
+    const schedule = () => { if (!pending) pending = requestAnimationFrame(() => { pending = 0; connect() }) }
+    const mutations = new MutationObserver(schedule)
+    mutations.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-nav-theme'] })
+    window.addEventListener('resize', schedule)
+    return () => {
+      observer?.disconnect()
+      mutations.disconnect()
+      window.removeEventListener('resize', schedule)
+      if (pending) cancelAnimationFrame(pending)
+    }
+  }, [pathname])
+
+  // /services keeps an opaque white header bar, so its capsules always use dark ink.
+  const tone = overDark && pathname !== '/services' ? 'is-on-dark' : 'is-on-light'
 
   // The project planner keeps only the logo so the questionnaire stays focused.
   if (pathname === '/start-project') {
@@ -91,7 +139,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
     <header className={`site-header ${hidden && pathname !== "/services" ? "is-hidden" : ""} ${pathname === "/services" ? "site-header--services" : ""} ${scrolled ? "is-scrolled" : ""}`}>
       {/* Desktop Layout */}
       <div
-        className={`site-header__surface ${tone} ${aboutSurfaceClasses} hidden lg:grid w-full h-[64px] items-center px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}
+        className={`site-header__surface ${tone} hidden lg:grid w-full h-[64px] items-center px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}
         style={{ gridTemplateColumns: '1fr auto 1fr' }}
       >
         {/* Left */}
@@ -114,7 +162,12 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
           className="justify-self-center flex items-center gap-[10px]"
         >
           {navLinks.map((link) => (
-            <Link key={link.label} to={link.href} className="nav-pill">
+            <Link
+              key={link.label}
+              to={link.href}
+              className="nav-pill"
+              aria-current={link.href === "/" ? (pathname === "/" ? "page" : undefined) : pathname.startsWith(link.href) ? "page" : undefined}
+            >
               <RollLabel>{navLabels?.[link.label.toLowerCase() as keyof SiteNavigationLabels] ?? link.label}</RollLabel>
             </Link>
           ))}
@@ -140,7 +193,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
       </div>
 
       {/* Mobile/Tablet Layout */}
-      <div className={`site-header__surface ${tone} ${aboutSurfaceClasses} flex lg:hidden w-full h-[64px] items-center justify-between px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}>
+      <div className={`site-header__surface ${tone} flex lg:hidden w-full h-[64px] items-center justify-between px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}>
         <div className="flex items-center">
           <Link to="/" aria-label="Brandworks home" className="block">
             <Logo className="site-header__logo site-header__logo--light [body:has(.about-page):not(.about-logo-on-dark)_&]:hidden! block h-[25px]" />

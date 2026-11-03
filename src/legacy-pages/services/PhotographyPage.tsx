@@ -207,7 +207,7 @@ export default function PhotographyPage({ siteUrl, frameImages }: {
     <FramesContext.Provider value={frames}>
     <main ref={rootRef} className="bwp-page">
       {mode !== 'off' ? (
-        <section className="bwp-hero" aria-labelledby="bwp-title">
+        <section className="bwp-hero" data-nav-theme="dark" aria-labelledby="bwp-title">
           <Suspense fallback={null}>
             <InteractivePhotoArchive mode={mode} frames={frames} opened={selection?.key ?? null} onOpen={openFromSphere} indexRef={indexRef} />
           </Suspense>

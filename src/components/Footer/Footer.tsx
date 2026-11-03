@@ -488,6 +488,7 @@ function Footer({ contactEmail = 'hello@brandworks.com', footerTagline = 'Based 
       id="footer"
       ref={rootRef}
       className="brandworks-footer"
+      data-nav-theme="dark"
     >
       {/* BACKGROUND SHOWREEL */}
       <div

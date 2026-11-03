@@ -1,8 +1,9 @@
 /*
- * Header capsules. The page sets the starting tone; once scrolled, every page
- * switches to the solid .is-scrolled capsules below:
- *   .is-on-dark   floating over the homepage hero photography
- *   .is-on-light  floating over white page introductions
+ * Header capsules. Outline-only on every background; the fill never turns dark.
+ * The tone follows whatever is under the nav (Header.tsx observes sections
+ * marked data-nav-theme="dark"):
+ *   .is-on-dark   white outline + white ink over dark imagery / the footer
+ *   .is-on-light  dark outline + dark ink over white and green sections
  */
 
 .site-header {
@@ -71,21 +72,15 @@ body:has(.hero[data-service='web']) .site-header__surface.is-on-dark {
   --cta-border-hover: var(--color-bw-lime);
 }
 
-/* Once the page scrolls, content of any colour passes under the header, so
-   the capsules take a solid dark fill that stays legible over anything.
-   `body` + :is() keeps this above the web-slide override's specificity. */
-body .site-header.is-scrolled .site-header__surface:is(.is-on-dark, .is-on-light) {
-  --pill-ink: #fff;
-  --pill-bg: rgba(17, 17, 17, 0.78);
-  --pill-bg-hover: rgba(17, 17, 17, 0.9);
-  --pill-border: rgba(255, 255, 255, 0.16);
-  --pill-border-hover: rgba(255, 255, 255, 0.4);
-  --cta-ink: #111;
-  --cta-ink-hover: #111;
-  --cta-bg: var(--color-bw-lime);
-  --cta-bg-hover: #fff;
-  --cta-border: var(--color-bw-lime);
-  --cta-border-hover: #fff;
+/* Current page: a thicker outline in the tone's ink colour. */
+.site-header__surface.is-on-light { --pill-border-active: #111; }
+.site-header__surface.is-on-dark { --pill-border-active: #fff; }
+body:has(.hero[data-service='web']) .site-header__surface.is-on-dark { --pill-border-active: #0E0E10; }
+
+.nav-pill[aria-current='page'],
+.nav-pill[aria-current='page']:hover {
+  border-color: var(--pill-border-active);
+  box-shadow: inset 0 0 0 0.5px var(--pill-border-active);
 }
 
 .site-header__logo--dark {
@@ -103,18 +98,17 @@ body .site-header.is-scrolled .site-header__surface:is(.is-on-dark, .is-on-light
   background: var(--pill-bg);
   color: var(--pill-ink);
   box-shadow: none;
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
   font-family: var(--font-secondary);
   font-size: 13px;
   font-weight: 400;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
+  /* Explicit properties only — never `all`. */
   transition:
-    background-color 0.45s var(--nav-ease),
-    border-color 0.45s var(--nav-ease),
-    color 0.45s var(--nav-ease);
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .nav-pill:hover {
@@ -170,7 +164,10 @@ body .site-header.is-scrolled .site-header__surface:is(.is-on-dark, .is-on-light
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .site-header {
+  .site-header,
+  .nav-pill,
+  .nav-roll__track,
+  .nav-pill__arrow {
     transition-duration: 0.01ms;
   }
 
@@ -186,4 +183,4 @@ body .site-header.is-scrolled .site-header__surface:is(.is-on-dark, .is-on-light
 .site-header--services.is-scrolled { border-bottom-color: #e5e5e5; }
 .site-header--services .site-header__logo--light { display: none; }
 .site-header--services .site-header__logo--dark { display: block; }
-.site-header--services .nav-pill { backdrop-filter: none; -webkit-backdrop-filter: none; transition: none; }
+.site-header--services { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease, border-color 0.2s ease; }

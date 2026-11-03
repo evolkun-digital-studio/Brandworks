@@ -270,6 +270,7 @@ function Hero({ heroImage = null, gridImages }: {
     <section
       ref={sectionRef}
       className="hero"
+      data-nav-theme="dark"
       data-service={activeId}
       aria-labelledby="hero-heading"
       {...holdHandlers}
