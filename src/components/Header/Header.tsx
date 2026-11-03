@@ -36,6 +36,15 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   const { pathname } = useLocation()
 
   useEffect(() => {
+    if (pathname === '/services') {
+      const sentinel = document.createElement('div')
+      sentinel.setAttribute('aria-hidden', 'true')
+      sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:40px;pointer-events:none'
+      document.body.prepend(sentinel)
+      const observer = new IntersectionObserver(([entry]) => setScrolled(!entry.isIntersecting))
+      observer.observe(sentinel)
+      return () => { observer.disconnect(); sentinel.remove() }
+    }
     const handleScroll = () => {
       const currentY = window.scrollY
 
@@ -58,7 +67,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
     return () => {
       window.removeEventListener("scroll", handleScroll)
     }
-  }, [])
+  }, [pathname])
 
   // The homepage and photography page open on full-bleed dark imagery; every
   // other public page starts on white, so the header keeps dark ink there.
@@ -79,7 +88,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   }
 
   return (
-    <header className={`site-header ${hidden ? "is-hidden" : ""} ${scrolled ? "is-scrolled" : ""}`}>
+    <header className={`site-header ${hidden && pathname !== "/services" ? "is-hidden" : ""} ${pathname === "/services" ? "site-header--services" : ""} ${scrolled ? "is-scrolled" : ""}`}>
       {/* Desktop Layout */}
       <div
         className={`site-header__surface ${tone} ${aboutSurfaceClasses} hidden lg:grid w-full h-[64px] items-center px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}
@@ -113,7 +122,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
 
         {/* Right */}
         <Link to="/start-project" className="nav-pill nav-pill--cta justify-self-end">
-          <RollLabel>Let's Talk</RollLabel>
+          <RollLabel>{"Let's Talk"}</RollLabel>
           <svg
             viewBox="0 0 24 24"
             fill="none"

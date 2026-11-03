@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
+import type { FormEvent } from 'react'
 import { toast } from 'sonner'
 import { useAdminAuth } from '../context/useAdminAuth'
 import * as adminApi from '../api/adminApi'
@@ -8,6 +8,7 @@ import FormField from '../components/FormField'
 import FormMessage from '../components/FormMessage'
 import AdminButton from '../components/AdminButton'
 import AdminPageHeader from '../components/AdminPageHeader'
+import SettingsCard from '../components/SettingsCard'
 import { useConfirm } from '../components/ConfirmDialog'
 import * as siteSettingsApi from '../api/siteSettingsApi'
 import type { SiteSettings } from '../api/siteSettingsApi'
@@ -15,23 +16,6 @@ import * as operationsApi from '../api/operationsApi'
 
 function errorMessage(err: unknown): string {
   return err instanceof ApiError ? err.message : 'Something went wrong. Please try again.'
-}
-
-/** A titled group of settings with its own save action in the footer. */
-function SettingsCard({ title, description, children, footer, onSubmit }: { title: string; description?: string; children: ReactNode; footer?: ReactNode; onSubmit?: (event: FormEvent) => void }) {
-  const body = (
-    <>
-      <div className="px-6 pt-5 pb-1">
-        <h2 className="text-[17px] font-semibold tracking-[-0.016em]">{title}</h2>
-        {description && <p className="mt-0.5 max-w-[60ch] text-[13px] leading-snug text-a-ink-2">{description}</p>}
-      </div>
-      <div className="flex flex-col gap-4 px-6 py-5">{children}</div>
-      {footer && <div className="flex flex-wrap items-center gap-3 border-t border-a-line bg-a-surface-2 px-6 py-3.5">{footer}</div>}
-    </>
-  )
-  return onSubmit
-    ? <form className="admin-card overflow-hidden" onSubmit={onSubmit}>{body}</form>
-    : <section className="admin-card overflow-hidden">{body}</section>
 }
 
 function UsernameForm() {
@@ -119,6 +103,7 @@ const fallbackSettings: SiteSettings = {
   footerTagline: 'Based in India, working worldwide.',
   socialLinks: [{ label: 'Instagram', url: '#' }, { label: 'LinkedIn', url: '#' }, { label: 'X', url: '#' }],
   navLabels: { home: 'Home', about: 'About', services: 'Services', projects: 'Projects', insights: 'Insights' },
+  tracking: { ga4MeasurementId: '', gscVerification: '', metaPixelId: '' },
 }
 
 function WebsiteSettingsForm() {

@@ -5,8 +5,42 @@ import Image from 'next/image'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
+import SiteMediaImage from '../SiteMediaImage'
+import type { PublicSiteImage } from '../../config/siteMediaSections'
+import { DEFAULT_PHOTOGRAPHY_IMAGES } from '../../data/siteMediaDefaults'
 
 gsap.registerPlugin(ScrollTrigger)
+
+// Media Manager › Photography fills the four frames in gallery order; any
+// frame without an uploaded image keeps its built-in photograph.
+const FRAME_SIZES = [
+  '(max-width: 1440px) 19vw, 250px',
+  '(max-width: 1440px) 58vw, 770px',
+  '(max-width: 1440px) 21vw, 280px',
+  '(max-width: 1440px) 21vw, 280px',
+]
+
+type PhotographyRowProps = {
+  className?: string
+  images?: PublicSiteImage[]
+}
+
+/** Lazy, never preloaded: the row sits well below the hero. */
+function FramePhoto({ index, images }: { index: number; images: PublicSiteImage[] }) {
+  const managed = images[index]
+  if (managed) return <SiteMediaImage image={managed} sizes={FRAME_SIZES[index]} />
+  const fallback = DEFAULT_PHOTOGRAPHY_IMAGES[index]
+  return (
+    <Image
+      src={fallback.src}
+      alt={fallback.alt}
+      fill
+      loading="lazy"
+      sizes={FRAME_SIZES[index]}
+      className="object-cover object-center"
+    />
+  )
+}
 
 /**
  * Brandworks — a single horizontal photography row.
@@ -16,27 +50,11 @@ gsap.registerPlugin(ScrollTrigger)
  * derived from the container width, so the whole row scales to fit at every
  * screen size and the layout never crops, scrolls or collapses.
  */
-const PHOTO_BASE =
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/'
-
-const DEFAULT_IMAGES = {
-  portrait: `${PHOTO_BASE}Copy%20of%20img.png`,
-  landscape: `${PHOTO_BASE}t-shiry.png`,
-  fourThree: `${PHOTO_BASE}Artboard%202.png`,
-  fourThreeSecond: `${PHOTO_BASE}Artboard%203.png`,
-}
-
-type PhotographyRowProps = {
-  className?: string
-  images?: Partial<typeof DEFAULT_IMAGES>
-}
-
 export default function PhotographyRow({
   className = '',
-  images,
+  images = [],
 }: PhotographyRowProps) {
   const sectionRef = useRef<HTMLElement>(null)
-  const photos = { ...DEFAULT_IMAGES, ...images }
 
   useGSAP(
     () => {
@@ -112,27 +130,14 @@ export default function PhotographyRow({
               data-photo-reveal
               className={`${frameClass} aspect-[9/16] h-[var(--photo-h)]`}
             >
-              <Image
-                src={photos.portrait}
-                alt="Portrait-format Brandworks commercial photograph"
-                fill
-                priority
-                sizes="(max-width: 1440px) 19vw, 250px"
-                className="object-cover object-center"
-              />
+              <FramePhoto index={0} images={images} />
             </figure>
 
             <figure
               data-photo-reveal
               className={`${frameClass} aspect-[16/9] h-[var(--photo-h)]`}
             >
-              <Image
-                src={photos.landscape}
-                alt="Landscape-format Brandworks campaign photograph"
-                fill
-                sizes="(max-width: 1440px) 58vw, 770px"
-                className="object-cover object-center"
-              />
+              <FramePhoto index={1} images={images} />
             </figure>
 
             {/* Two 4:3 frames, each half the row height minus half a gap. */}
@@ -141,25 +146,13 @@ export default function PhotographyRow({
                 data-photo-reveal
                 className="relative aspect-[4/3] h-[calc((var(--photo-h)_-_var(--photo-gap))/2)] overflow-hidden bg-[#f4f4f4]"
               >
-                <Image
-                  src={photos.fourThree}
-                  alt="Four-by-three Brandworks product photograph"
-                  fill
-                  sizes="(max-width: 1440px) 21vw, 280px"
-                  className="object-cover object-center"
-                />
+                <FramePhoto index={2} images={images} />
               </figure>
               <figure
                 data-photo-reveal
                 className="relative aspect-[4/3] h-[calc((var(--photo-h)_-_var(--photo-gap))/2)] overflow-hidden bg-[#f4f4f4]"
               >
-                <Image
-                  src={photos.fourThreeSecond}
-                  alt="Four-by-three Brandworks lifestyle photograph"
-                  fill
-                  sizes="(max-width: 1440px) 21vw, 280px"
-                  className="object-cover object-center"
-                />
+                <FramePhoto index={3} images={images} />
               </figure>
             </div>
           </div>

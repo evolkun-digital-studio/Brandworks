@@ -1,11 +1,15 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+'use client'
+
+import { Suspense, createContext, lazy, useCallback, useContext, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link } from '../../routing'
 import { useNativeMetadata } from '../../routing/context'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { heroPhotograph, photographySeo } from '../../data/photography.data'
-import { closingColumns, frames, sphereTiles, wall, wallIntro, type FrameKey } from '../../data/photographyArchive'
+import { closingColumns, frames as builtInFrames, sphereTiles, wall, wallIntro, type ArchiveFrame, type FrameKey } from '../../data/photographyArchive'
+import type { PublicSiteImage } from '../../config/siteMediaSections'
+import { withManagedFrames } from '../../components/SiteMedia/convert'
 import { PhotographyProjectTransition, type Selection, type ViewerPhoto } from '../../components/PhotographyWall/PhotographyWall'
 import { useArchiveMode } from '../../components/PhotoArchive/useArchiveMode'
 import './PhotographyPage.css'
@@ -13,6 +17,10 @@ import './PhotographyPage.css'
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const InteractivePhotoArchive = lazy(() => import('../../components/PhotoArchive/InteractivePhotoArchive'))
+
+type Frames = Record<FrameKey, ArchiveFrame>
+/** The archive with any Media Manager replacements applied. */
+const FramesContext = createContext<Frames>(builtInFrames)
 
 /**
  * One photograph. The figure takes scroll parallax, `.bwp-media` takes the
@@ -31,7 +39,7 @@ function Photo({ id, sizes, eager = false, className = '', style, depth, drift, 
   drift?: number
   onOpen?: (key: FrameKey, trigger: HTMLButtonElement) => void
 }) {
-  const photo = frames[id]
+  const photo = useContext(FramesContext)[id]
   const media = (
     <span className="bwp-media" data-bwp-reveal data-bww-media style={{ '--natural': `${photo.width} / ${photo.height}` } as CSSProperties}>
       <img src={photo.src} srcSet={photo.srcSet} sizes={sizes} alt={photo.alt}
@@ -52,7 +60,7 @@ function Photo({ id, sizes, eager = false, className = '', style, depth, drift, 
 }
 
 /** The homepage wall's viewer, fed from an archive frame. */
-function viewerPhoto(key: FrameKey): ViewerPhoto {
+function viewerPhoto(frames: Frames, key: FrameKey): ViewerPhoto {
   const { label, alt, width, height, src, thumb } = frames[key]
   const [category, title = category] = label.split(' / ')
   return { title, category, alt, width, height, image: thumb, hero: src }
@@ -135,7 +143,12 @@ function usePhotographyMetadata(siteUrl?: string) {
   }, [siteUrl, nativeMetadata])
 }
 
-export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
+export default function PhotographyPage({ siteUrl, frameImages }: {
+  siteUrl?: string
+  /** Media Manager › Photography page uploads, keyed by frame. */
+  frameImages?: Record<string, PublicSiteImage[]>
+}) {
+  const frames = useMemo(() => withManagedFrames(builtInFrames, frameImages), [frameImages])
   const rootRef = useRef<HTMLElement>(null)
   const indexRef = useRef<HTMLUListElement>(null)
   const mode = useArchiveMode()
@@ -146,8 +159,8 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
 
   const open = useCallback((key: FrameKey, trigger: HTMLButtonElement) => {
     const media = trigger.querySelector('[data-bww-media]') ?? trigger
-    setSelection({ key, project: viewerPhoto(key), trigger, bounds: media.getBoundingClientRect() })
-  }, [])
+    setSelection({ key, project: viewerPhoto(frames, key), trigger, bounds: media.getBoundingClientRect() })
+  }, [frames])
   // A click on a sphere tile opens through the same button the keyboard uses.
   const openFromSphere = useCallback((tile: string) => {
     const key = sphereTiles.find((slot) => slot.id === tile)?.key
@@ -191,11 +204,12 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
   const [ic, ics, ir, irs] = wallIntro
 
   return (
+    <FramesContext.Provider value={frames}>
     <main ref={rootRef} className="bwp-page">
       {mode !== 'off' ? (
         <section className="bwp-hero" aria-labelledby="bwp-title">
           <Suspense fallback={null}>
-            <InteractivePhotoArchive mode={mode} opened={selection?.key ?? null} onOpen={openFromSphere} indexRef={indexRef} />
+            <InteractivePhotoArchive mode={mode} frames={frames} opened={selection?.key ?? null} onOpen={openFromSphere} indexRef={indexRef} />
           </Suspense>
           <div className="bwp-hero-edge" aria-hidden="true" />
           <div className="bwp-hero-ui">
@@ -263,5 +277,6 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
 
       {selection && <PhotographyProjectTransition selection={selection} onClose={close} />}
     </main>
+    </FramesContext.Provider>
   )
 }

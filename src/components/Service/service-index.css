@@ -1,0 +1,23 @@
+.service-preview { background: #111; isolation: isolate; }
+.service-preview__image { object-fit: cover; opacity: 0; z-index: 0; will-change: opacity; transition: opacity 0s 280ms; }
+.service-preview__image.is-active { opacity: 1; z-index: 1; transition: opacity 280ms ease-out; }
+.service-preview__gradient { position: absolute; inset: 62% 0 0; z-index: 2; background: linear-gradient(transparent, rgb(0 0 0 / 55%)); pointer-events: none; }
+.service-preview__title { animation: service-title-in 200ms ease-out; }
+@keyframes service-title-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.service-index-row { position: relative; }
+.service-index-row__link::after { content: ''; position: absolute; inset: auto 0 -1px; height: 1px; background: var(--color-bw-lime); transform: scaleX(0); transform-origin: left; transition: transform 180ms ease-out; }
+.service-index-row__name, .service-index-row__arrow { transition: transform 180ms ease-out; }
+.service-index-row__description { color: #525252; opacity: 0; transition: opacity 180ms ease-out; }
+.service-index-row:where(:hover, :focus-within) .service-index-row__description { opacity: 1; }
+.service-index-row:where(:hover, :focus-within) .service-index-row__name { transform: translateX(4px); }
+.service-index-row:where(:hover, :focus-within) .service-index-row__arrow { transform: translate(3px, -3px); }
+.service-index-row:where(:hover, :focus-within) .service-index-row__link::after { transform: scaleX(1); }
+@media (max-width: 1023px), (hover: none) { .service-index-row__description { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .service-preview__image, .service-preview__image.is-active, .service-index-row__name, .service-index-row__arrow, .service-index-row__description, .service-index-row__link::after { transition: none; }
+  .service-preview__title { animation: none; }
+  .service-index-row:where(:hover, :focus-within) .service-index-row__name, .service-index-row:where(:hover, :focus-within) .service-index-row__arrow { transform: none; }
+}
+.services-fonts { --font-primary: var(--font-services-display); --font-secondary: var(--font-services-body); --section-title-font: var(--font-services-section); font-family: var(--font-secondary); }
+
+.service-index-row__link, .service-index-row__mobile summary { scroll-margin-top: 120px; }

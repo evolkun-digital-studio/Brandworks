@@ -180,3 +180,10 @@ body .site-header.is-scrolled .site-header__surface:is(.is-on-dark, .is-on-light
     transform: none;
   }
 }
+
+/* The services index keeps an opaque surface over both light and dark sections. */
+.site-header--services { background: #fff; padding-bottom: 16px; border-bottom: 1px solid transparent; }
+.site-header--services.is-scrolled { border-bottom-color: #e5e5e5; }
+.site-header--services .site-header__logo--light { display: none; }
+.site-header--services .site-header__logo--dark { display: block; }
+.site-header--services .nav-pill { backdrop-filter: none; -webkit-backdrop-filter: none; transition: none; }

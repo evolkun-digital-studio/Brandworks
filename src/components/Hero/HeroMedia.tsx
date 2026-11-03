@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import type { HeroImage, HeroServiceId } from '../../data/heroServices'
@@ -9,6 +9,10 @@ import WebDesignHero from './WebDesignHero'
 import HeroDesignPair from './HeroDesignPair'
 import { HeroImg } from './HeroImg'
 import type { ImagePriority } from './HeroImg'
+import SiteMediaImage from '../SiteMediaImage'
+import type { PublicSiteImage } from '../../config/siteMediaSections'
+import { findSiteMediaSlot } from '../../config/siteMediaSections'
+import { toHeroGalleryImage } from '../SiteMedia/convert'
 
 gsap.registerPlugin(useGSAP)
 
@@ -16,6 +20,8 @@ gsap.registerPlugin(useGSAP)
 const EASE = 'power4.out'
 // Matches the caption's cross-fade in Hero.css.
 const DURATION = 0.5
+// Media Manager › Hero › Photography grid replaces the built-in set once it holds this many.
+const GRID_MIN_ITEMS = findSiteMediaSlot('hero', 'photography')?.slot.minItems ?? 3
 
 /**
  * The cinematic film. The poster sits underneath and the video fades in
@@ -28,11 +34,14 @@ function HeroVideo({
   poster,
   playing,
   reducedMotion,
+  managedPoster,
 }: {
   src: string
   poster: HeroImage
   playing: boolean
   reducedMotion: boolean
+  /** The Media Manager hero image, when an admin has set one. */
+  managedPoster?: PublicSiteImage | null
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [requested, setRequested] = useState(false)
@@ -87,7 +96,9 @@ function HeroVideo({
 
   return (
     <>
-      <HeroImg image={poster} sizes="100vw" priority="low" />
+      {managedPoster
+        ? <SiteMediaImage image={managedPoster} sizes="100vw" preload className="hero-img" />
+        : <HeroImg image={poster} sizes="100vw" priority="low" />}
       {requested && (
         <video
           ref={videoRef}
@@ -120,12 +131,22 @@ function HeroMedia({
   mounted,
   inView,
   reducedMotion,
+  heroImage = null,
+  gridImages = [],
 }: {
   activeId: HeroServiceId
   mounted: ReadonlySet<HeroServiceId>
   inView: boolean
   reducedMotion: boolean
+  /** Replaces the opening service's poster (Media Manager › Hero). */
+  heroImage?: PublicSiteImage | null
+  /** Media Manager › Hero › Photography grid, in gallery order. */
+  gridImages?: PublicSiteImage[]
 }) {
+  const managedGrid = useMemo(
+    () => gridImages.length >= GRID_MIN_ITEMS ? gridImages.map(toHeroGalleryImage) : null,
+    [gridImages],
+  )
   const rootRef = useRef<HTMLDivElement>(null)
   const previousRef = useRef<HeroServiceId>(activeId)
 
@@ -198,7 +219,7 @@ function HeroMedia({
             {mounted.has(id) &&
               (media.kind === 'grid' ? (
                 <HeroPhotographyGrid
-                  images={media.images}
+                  images={managedGrid ?? media.images}
                   priority={priority}
                   active={isActive && inView}
                   reducedMotion={reducedMotion}
@@ -209,6 +230,7 @@ function HeroMedia({
                   poster={media.poster}
                   playing={isActive && inView}
                   reducedMotion={reducedMotion}
+                  managedPoster={isDefault ? heroImage : null}
                 />
               ) : media.kind === 'showcase' ? (
                 <HeroSocialShowcase

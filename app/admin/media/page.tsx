@@ -1,8 +1,8 @@
 'use client'
 
-import MediaLibrary from '../../../src/admin/pages/MediaLibrary'
+import SiteMediaManager from '../../../src/admin/pages/SiteMediaManager'
 import ProtectedAdminPage from '../../../src/next/ProtectedAdminPage'
 
 export default function AdminMediaPage() {
-  return <ProtectedAdminPage><MediaLibrary /></ProtectedAdminPage>
+  return <ProtectedAdminPage><SiteMediaManager /></ProtectedAdminPage>
 }

@@ -34,3 +34,6 @@ playwright-report/
 *.njsproj
 *.sln
 *.sw?
+
+# Media Manager local storage (STORAGE_PROVIDER=local)
+.media-storage/

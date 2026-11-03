@@ -1,4 +1,5 @@
 import type { Db } from 'mongodb'
+import { ensureSiteMediaIndexes } from '../site-media/repository'
 
 /** Mirrors backend/src/repositories/*: idempotent, non-destructive index creation. */
 export async function ensureDatabaseIndexes(db: Db): Promise<void> {
@@ -18,4 +19,5 @@ export async function ensureDatabaseIndexes(db: Db): Promise<void> {
   await db.collection('site_scans').createIndex({ domain: 1, createdAt: -1 })
   await db.collection('site_scans').createIndex({ updatedAt: -1 })
   await db.collection('site_scans').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+  await ensureSiteMediaIndexes(db)
 }

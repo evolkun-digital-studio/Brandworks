@@ -4,10 +4,12 @@ import {
   Activity,
   Check,
   CalendarDays,
+  ChartLine,
   ExternalLink,
   FilePlus2,
   FileText,
   Images,
+  ImageUp,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -37,6 +39,8 @@ interface NavigationItem {
   to: string
   icon: LucideIcon
   end?: boolean
+  /** Shown to the admin role only. */
+  adminOnly?: boolean
 }
 
 const NAV_GROUPS: Array<{ label: string; items: NavigationItem[] }> = [
@@ -45,7 +49,8 @@ const NAV_GROUPS: Array<{ label: string; items: NavigationItem[] }> = [
     items: [
       { label: 'Overview', to: '/admin', icon: LayoutDashboard, end: true },
       { label: 'Articles', to: '/admin/blogs', icon: FileText },
-      { label: 'Media', to: '/admin/media', icon: Images },
+      { label: 'Media Manager', to: '/admin/media', icon: ImageUp, end: true, adminOnly: true },
+      { label: 'Media library', to: '/admin/media/library', icon: Images },
     ],
   },
   {
@@ -60,6 +65,7 @@ const NAV_GROUPS: Array<{ label: string; items: NavigationItem[] }> = [
     label: 'Insights',
     items: [
       { label: 'Site scans', to: '/admin/site-scans', icon: ScanSearch },
+      { label: 'Analytics', to: '/admin/analytics', icon: ChartLine },
     ],
   },
 ]
@@ -69,12 +75,14 @@ const THEME_ICONS: Record<AdminTheme, LucideIcon> = { system: SunMoon, light: Su
 const PAGE_TITLES: Array<[RegExp, string]> = [
   [/^\/admin\/?$/, 'Overview'],
   [/^\/admin\/blogs/, 'Articles'],
-  [/^\/admin\/media/, 'Media'],
+  [/^\/admin\/media\/library/, 'Media library'],
+  [/^\/admin\/media/, 'Media Manager'],
   [/^\/admin\/calendar/, 'Calendar'],
   [/^\/admin\/seo/, 'SEO'],
   [/^\/admin\/activity/, 'Activity'],
   [/^\/admin\/site-scans\/[^/]+/, 'Site scan'],
   [/^\/admin\/site-scans/, 'Site scans'],
+  [/^\/admin\/analytics/, 'Analytics'],
   [/^\/admin\/settings/, 'Settings'],
   [/^\/admin\/users/, 'Team'],
 ]
@@ -260,7 +268,7 @@ function AdminShell({ children }: { children?: ReactNode }) {
               {NAV_GROUPS.map((group) => (
                 <div className="admin-nav-group" key={group.label}>
                   <p className="admin-nav-label">{group.label}</p>
-                  {group.items.map((item) => <NavigationLink key={item.to} item={item} onNavigate={closeMobileNavigation} />)}
+                  {group.items.filter((item) => isAdmin || !item.adminOnly).map((item) => <NavigationLink key={item.to} item={item} onNavigate={closeMobileNavigation} />)}
                 </div>
               ))}
               <div className="admin-nav-group">

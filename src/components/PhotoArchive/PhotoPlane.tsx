@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { Color, MathUtils, ShaderMaterial, Vector2, Vector3, type Mesh, type Texture } from 'three'
-import { frames, type SphereTile } from '../../data/photographyArchive'
+import type { ArchiveFrame, SphereTile } from '../../data/photographyArchive'
 import { RADIUS, tileShape } from './archiveScene'
 import { CLICK_TOLERANCE, type ArchiveField } from './useArchivePointer'
 
@@ -43,6 +43,8 @@ function parseFocus(focus = '50% 50%') {
 
 type Props = {
   tile: SphereTile
+  /** The photograph this tile shows. */
+  frame: ArchiveFrame
   textures: RefObject<Map<string, Texture>>
   field: RefObject<ArchiveField>
   /** Smoothed scroll speed, px/s. */
@@ -53,7 +55,7 @@ type Props = {
   onOpen: (id: string) => void
 }
 
-export default function PhotoPlane({ tile, textures, field, velocity, caption, proxy, onOpen }: Props) {
+export default function PhotoPlane({ tile, frame, textures, field, velocity, caption, proxy, onOpen }: Props) {
   const mesh = useRef<Mesh>(null)
   const motion = useRef({ hover: 0, dim: 1, reveal: 0, entered: false })
   const shape = useMemo(() => tileShape(tile), [tile])
@@ -73,12 +75,12 @@ export default function PhotoPlane({ tile, textures, field, velocity, caption, p
     uniforms: {
       uMap: { value: null as Texture | null },
       uScale: { value: new Vector2(1, 1) },
-      uFocus: { value: parseFocus(frames[tile.key].focus) },
+      uFocus: { value: parseFocus(frame.focus) },
       uHover: { value: 0 },
       uFade: { value: 0 },
       uBg: { value: new Color('#080808') },
     },
-  }), [tile.key])
+  }), [frame.focus])
 
   useEffect(() => () => {
     shape.geometry.dispose()
@@ -147,7 +149,7 @@ export default function PhotoPlane({ tile, textures, field, velocity, caption, p
   const enter = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
     field.current.hovered = tile.id
-    if (caption.current) caption.current.textContent = frames[tile.key].label
+    if (caption.current) caption.current.textContent = frame.label
   }
   const leave = () => {
     if (field.current.hovered === tile.id) field.current.hovered = null

@@ -17,11 +17,11 @@ export default function NextPublicLayout({ children, settings }: { children: Rea
   const { pathname } = useLocation()
   const focused = FOCUSED_ROUTES.has(pathname)
   return (
-    <ConsentProvider>
+    <ConsentProvider tracking={{ ga4: settings.tracking.ga4MeasurementId, metaPixel: settings.tracking.metaPixelId }}>
         <div className="min-h-screen bg-white">
           <RouteAnalytics />
-          <SmoothScroll />
-          {!focused && <Preloader />}
+          {pathname !== '/services' && <SmoothScroll />}
+          {!focused && pathname !== '/services' && <Preloader />}
           <Header navLabels={settings.navLabels} />
           {children}
           {!focused && <Footer contactEmail={settings.contactEmail} footerTagline={settings.footerTagline} socialLinks={settings.socialLinks} />}
