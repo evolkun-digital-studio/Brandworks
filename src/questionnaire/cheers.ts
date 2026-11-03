@@ -173,3 +173,52 @@ const NAME_LINES = [
 export function nameLineFor(name: string): string {
   return NAME_LINES[name.trim().length % NAME_LINES.length]
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Opening greetings: the two pop-ups after the first two questions          */
+/* -------------------------------------------------------------------------- */
+
+export type Greeting = { title: string; body: string }
+
+const hashOf = (s: string) => { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h }
+
+
+const NAME_GREETINGS: Array<(name: string) => Greeting> = [
+  (n) => ({ title: `Hey ${n}, love it!`, body: 'Great name. We’re already excited to build this.' }),
+  (n) => ({ title: `${n}! You’ve got our attention.`, body: 'Now that’s a name worth putting online.' }),
+  (n) => ({ title: `Welcome aboard, ${n}!`, body: 'Okay, we’re excited already. Let’s make something great.' }),
+  (n) => ({ title: `${n}? Great start!`, body: 'Love where this is going. Just a few more quick ones.' }),
+]
+
+/** Pop-up after Question 1 (brand name): addresses the brand by name, line varies by name. */
+export function nameGreetingFor(name: string): Greeting {
+  const clean = name.trim()
+  // Very long names would swamp the headline, so they get a name-free one.
+  if (clean.split(/\s+/).length > 4 || clean.length > 32) return { title: 'Okay, we’re excited already!', body: 'That’s a name worth putting online. Let’s build it.' }
+  return NAME_GREETINGS[hashOf(clean.toLowerCase()) % NAME_GREETINGS.length](clean)
+}
+
+const WORK_GREETINGS: Record<string, Greeting> = {
+  'restaurant-cafe-food-brand': { title: 'Ooh, food! Now we’re talking!', body: 'We’ll make your menu look as good as it tastes.' },
+  'local-services-salon-gym-plumbing-etc': { title: 'A local favourite in the making!', body: 'Let’s make you the first name people call nearby.' },
+  'home-services-cleaning-repair-maintenance': { title: 'We love a home services brief!', body: 'Let’s turn quick visits into booked jobs.' },
+  'e-commerce-online-store': { title: 'A store? This is getting exciting!', body: 'Let’s get those carts filling up.' },
+  'fashion-clothing-brand': { title: 'Fashion! Our favourite kind of fun.', body: 'Big visuals, great style, a store that feels like you.' },
+  'doctor-clinic-healthcare': { title: 'Healthcare? So glad you’re here!', body: 'Let’s help patients feel at ease before they walk in.' },
+  'coach-educator-institute': { title: 'Teaching people? We love that!', body: 'Let’s help the right students find you.' },
+  'hotel-resort-homestay': { title: 'A getaway! Count us in.', body: 'Let’s make people want to book the moment they land.' },
+  'real-estate': { title: 'Real estate? Let’s make it shine!', body: 'Listings that look stunning and load in a flash.' },
+  'legal-financial-services': { title: 'Love it. Trust is our thing too!', body: 'Let’s make your expertise feel solid at first glance.' },
+  'creator-influencer-artist': { title: 'A creator! This’ll be fun.', body: 'Let’s give your work a home beyond the feed.' },
+  'tech-startup-saas': { title: 'Tech! We love building for builders.', body: 'Let’s turn your product into a story people sign up for.' },
+  'agency-studio': { title: 'A fellow studio! High five.', body: 'Let’s put your best work front and centre.' },
+  'ngo-non-profit': { title: 'Doing good? We’re all in!', body: 'Let’s help more people get behind your cause.' },
+  other: { title: 'Something different? We love it!', body: 'Unusual briefs are often our very favourite ones.' },
+}
+
+/** Pop-up after Question 2 (work type). `custom` is the "Other" description when given. */
+export function workGreetingFor(value: string, custom?: string): Greeting {
+  const text = custom?.trim()
+  if (value === 'other' && text && text.length <= 40) return { title: 'Ooh, now we’re talking!', body: `${text}? Something good is taking shape already.` }
+  return WORK_GREETINGS[value] ?? { title: 'We love your direction!', body: 'Something good is taking shape already.' }
+}

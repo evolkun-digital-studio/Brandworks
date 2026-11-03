@@ -14,9 +14,6 @@ import studioExperimentAsset from '../../assets/graphic-design/studio-experiment
 import businessCardMockupAsset from '../../assets/graphic-design/business-card-mockup.webp'
 import businessCardSokoAsset from '../../assets/graphic-design/business-card-soko.webp'
 import softlyKeyVisualAsset from '../../assets/graphic-design/softly-key-visual.webp'
-import staticThinkingCardAsset from '../../assets/graphic-design/static-thinking-card.webp'
-import artDirectionAsset from '../../assets/graphic-design/art-direction.webp'
-import printPublicationAsset from '../../assets/graphic-design/print-publication.webp'
 import brandWalkIntoAsset from '../../assets/graphic-design/brand-walk-into.webp'
 import frameTensionAsset from '../../assets/graphic-design/frame-tension.webp'
 
@@ -24,9 +21,6 @@ const studioExperiment = assetUrl(studioExperimentAsset)
 const businessCardMockup = assetUrl(businessCardMockupAsset)
 const businessCardSoko = assetUrl(businessCardSokoAsset)
 const softlyKeyVisual = assetUrl(softlyKeyVisualAsset)
-const staticThinkingCard = assetUrl(staticThinkingCardAsset)
-const artDirection = assetUrl(artDirectionAsset)
-const printPublication = assetUrl(printPublicationAsset)
 const brandWalkInto = assetUrl(brandWalkIntoAsset)
 const frameTension = assetUrl(frameTensionAsset)
 
@@ -57,17 +51,7 @@ const projects: Project[] = [
   },
   {
     image:
-      staticThinkingCard,
-    type: 'Motion / Title sequence',
-    title: 'Static thinking, set in motion.',
-    kind: 'Client',
-    year: '2026',
-    aspect: 4 / 5,
-    fit: 'contain',
-  },
-  {
-    image:
-      mediaUrl("client.webp"),
+      mediaUrl("graphic_2.jpg"),
     type: 'Social / Content system',
     title: 'One system. Every touchpoint.',
     kind: 'Client',
@@ -76,7 +60,7 @@ const projects: Project[] = [
   },
   {
     image:
-      mediaUrl("vcvcvcvcv.jpg"),
+      'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/hoodie.png',
     type: 'Illustration / Visual language',
     title: 'Built to be recognised.',
     kind: 'Studio',
@@ -85,7 +69,7 @@ const projects: Project[] = [
   },
   {
     image:
-      artDirection,
+      'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/SOKO%20Cat.png',
     type: 'Art direction / Brand world',
     title: 'A visual language people remember.',
     kind: 'Client',
@@ -94,7 +78,7 @@ const projects: Project[] = [
   },
   {
     image:
-      printPublication,
+      'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/t-shiry.png',
     type: 'Print / Publication',
     title: 'Details that reward attention.',
     kind: 'Studio',

@@ -162,7 +162,8 @@
   user-select: none;
 }
 .bwp-gl.is-dragging { cursor: grabbing; }
-.bwp-gl-caption {
+.bwp-gl-caption { display: none !important; }
+.bwp-gl-caption-unused {
   position: absolute;
   z-index: 3;
   top: 0;

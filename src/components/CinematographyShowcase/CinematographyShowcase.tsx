@@ -23,7 +23,7 @@ import {
   type Transition,
   type Variants,
 } from 'motion/react'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Pause, SkipForward, Volume2, VolumeX, X } from 'lucide-react'
 import { getSmoothScroll } from '../../lib/smoothScroll'
 import { CINEMATOGRAPHY_PROJECTS, type CinematographyProject } from '../../data/cinematography'
 
@@ -91,6 +91,14 @@ function PlayGlyph({ className }: { className?: string }) {
   )
 }
 
+function formatTimecode(time: number) {
+  const totalSeconds = Math.max(0, Math.floor(time))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  return [hours, minutes, seconds].map((part) => String(part).padStart(2, '0')).join(':')
+}
+
 export default function CinematographyShowcase() {
   const projects = CINEMATOGRAPHY_PROJECTS
   const count = projects.length
@@ -106,6 +114,11 @@ export default function CinematographyShowcase() {
   const [nearView, setNearView] = useState(false)
   const [inView, setInView] = useState(false)
   const [cursorVisible, setCursorVisible] = useState(false)
+  const [userPaused, setUserPaused] = useState(false)
+  const [userRequestedPlayback, setUserRequestedPlayback] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [muted, setMuted] = useState(true)
+  const [currentTime, setCurrentTime] = useState(0)
 
   const reducedMotion = useReducedMotion() ?? false
   const finePointer = useMediaQuery(FINE_POINTER)
@@ -131,7 +144,7 @@ export default function CinematographyShowcase() {
   }, [])
 
   const goTo = useCallback(
-    (index: number) => {
+    (index: number, requestedDirection?: 1 | -1) => {
       // Clicks during a running transition are dropped so slides can't stack.
       if (transitioningRef.current) return
       const next = Math.max(0, Math.min(count - 1, index))
@@ -139,7 +152,11 @@ export default function CinematographyShowcase() {
       transitioningRef.current = true
       fallbackTimer.current = window.setTimeout(() => finishTransition(next), TRANSITION_FALLBACK_MS)
       videos.current.get(projects[active].id)?.pause()
-      setDirection(next > active ? 1 : -1)
+      setUserPaused(false)
+      setUserRequestedPlayback(false)
+      setIsPlaying(false)
+      setCurrentTime(0)
+      setDirection(requestedDirection ?? (next > active ? 1 : -1))
       setActive(next)
       setAnnouncement(`${projects[next].title}, ${next + 1} of ${count}`)
     },
@@ -175,6 +192,27 @@ export default function CinematographyShowcase() {
   }, [])
 
   const shouldPlay = inView && pageVisible && lightbox === null && !reducedMotion
+  const canPlay = (shouldPlay || userRequestedPlayback) && !userPaused
+
+  const togglePlayback = () => {
+    const video = videos.current.get(current.id)
+    if (!video) return
+    if (video.paused) {
+      setUserPaused(false)
+      setUserRequestedPlayback(true)
+      void video.play().catch(() => setIsPlaying(false))
+    } else {
+      setUserPaused(true)
+      video.pause()
+    }
+  }
+
+  const toggleMute = () => {
+    const video = videos.current.get(current.id)
+    if (!video) return
+    video.muted = !video.muted
+    setMuted(video.muted)
+  }
 
   const openLightbox = () => {
     setCursorVisible(false)
@@ -286,10 +324,14 @@ export default function CinematographyShowcase() {
                 count={count}
                 direction={direction}
                 loaded={nearView}
-                playing={shouldPlay && settled === active}
+                playing={canPlay && settled === active}
+                muted={muted}
                 reducedMotion={reducedMotion}
                 videos={videos}
                 onEntered={finishTransition}
+                onPlaybackChange={setIsPlaying}
+                onMuteChange={setMuted}
+                onTimeChange={setCurrentTime}
               />
             </AnimatePresence>
 
@@ -353,6 +395,44 @@ export default function CinematographyShowcase() {
                 </motion.div>
               </AnimatePresence>
             </div>
+
+            <motion.div
+              className="absolute bottom-3 right-3 z-[5] flex items-center gap-1 rounded-full border border-white/15 bg-black/20 p-1 text-white shadow-[0_1px_12px_rgb(0_0_0/0.16)] backdrop-blur-[8px] sm:bottom-6 sm:right-6 sm:gap-1.5 sm:p-1.5 lg:bottom-8 lg:right-8"
+              initial={{ opacity: 0, y: reducedMotion ? 0 : 4 }}
+              animate={{ opacity: inView ? 1 : 0, y: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.28, ease: EASE_OUT }}
+            >
+              <button
+                type="button"
+                className="grid size-8 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
+                aria-label={isPlaying ? 'Pause film' : 'Play film'}
+                aria-pressed={isPlaying}
+                onClick={togglePlayback}
+              >
+                {isPlaying ? <Pause className="size-3.5" aria-hidden="true" strokeWidth={1.8} /> : <PlayGlyph className="ml-px h-3.5 w-3" />}
+              </button>
+              <button
+                type="button"
+                className="grid size-8 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
+                aria-label={muted ? 'Unmute film' : 'Mute film'}
+                aria-pressed={!muted}
+                onClick={toggleMute}
+              >
+                {muted ? <VolumeX className="size-3.5" aria-hidden="true" strokeWidth={1.8} /> : <Volume2 className="size-3.5" aria-hidden="true" strokeWidth={1.8} />}
+              </button>
+              <span className="ml-1 border-l border-white/20 pl-2 font-mono text-[9px] font-medium leading-none tracking-[0.08em] text-white/70 sm:text-[10px]" aria-hidden="true">60FPS</span>
+              <output className="w-[4.8rem] font-mono text-[10px] tabular-nums leading-none tracking-[0.06em] text-white sm:w-[5.25rem] sm:text-[11px]" aria-label={`Current time ${formatTimecode(currentTime)}`}>
+                {formatTimecode(currentTime)}
+              </output>
+              <button
+                type="button"
+                className="grid size-8 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
+                aria-label="Next film"
+                onClick={() => goTo((active + 1) % count, 1)}
+              >
+                <SkipForward className="size-3.5" aria-hidden="true" strokeWidth={1.8} />
+              </button>
+            </motion.div>
 
           </motion.div>
 
@@ -448,9 +528,13 @@ function Slide({
   direction,
   loaded,
   playing,
+  muted,
   reducedMotion,
   videos,
   onEntered,
+  onPlaybackChange,
+  onMuteChange,
+  onTimeChange,
 }: {
   project: CinematographyProject
   index: number
@@ -458,9 +542,13 @@ function Slide({
   direction: number
   loaded: boolean
   playing: boolean
+  muted: boolean
   reducedMotion: boolean
   videos: RefObject<Map<string, HTMLVideoElement>>
   onEntered: (index: number) => void
+  onPlaybackChange: (playing: boolean) => void
+  onMuteChange: (muted: boolean) => void
+  onTimeChange: (time: number) => void
 }) {
   const isPresent = useIsPresent()
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -519,12 +607,13 @@ function Slide({
           style={mediaStyle}
           src={inlineSource(project)}
           poster={project.poster}
-          muted
+          muted={muted}
           loop
           playsInline
           preload={playing ? 'auto' : 'metadata'}
           aria-label={project.title}
           onLoadedMetadata={(event) => {
+            if (isPresent) onTimeChange(0)
             if (!DEV) return
             const { videoWidth, videoHeight } = event.currentTarget
             const ratio = videoWidth / videoHeight
@@ -532,6 +621,18 @@ function Slide({
             if (Math.abs(ratio / SIXTEEN_NINE - 1) > 0.03) {
               console.info(`[cinematography] "${project.title}" is ${videoWidth}×${videoHeight} (${ratio.toFixed(3)}:1), not 16:9`)
             }
+          }}
+          onPlay={() => {
+            if (isPresent) onPlaybackChange(true)
+          }}
+          onPause={() => {
+            if (isPresent) onPlaybackChange(false)
+          }}
+          onVolumeChange={(event) => {
+            if (isPresent) onMuteChange(event.currentTarget.muted)
+          }}
+          onTimeUpdate={(event) => {
+            if (isPresent) onTimeChange(event.currentTarget.currentTime)
           }}
         />
       ) : project.poster ? (

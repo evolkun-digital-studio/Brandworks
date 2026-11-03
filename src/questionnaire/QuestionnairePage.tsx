@@ -27,7 +27,7 @@ import {
   type SiteScanView,
 } from './api'
 import AiMessage from './AiMessage'
-import { cheerFor, headlineFor } from './cheers'
+import { nameGreetingFor, workGreetingFor } from './cheers'
 import { SiteScanCard, SiteScanChecklist, type ScanChecks } from './SiteScanCard'
 import { BigInput, ContactFields, EASE, Helper, KEYS, LongAnswer, OptionTiles, focusRing } from './fields'
 import {
@@ -90,7 +90,7 @@ const str = (v: Answer | undefined) => (typeof v === 'string' ? v : '')
 const list = (v: Answer | undefined) => (Array.isArray(v) ? v : [])
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? ''
 
-type StepPopup = { target: string; eyebrow: string; title: string; body: string }
+type StepPopup = { target: string; eyebrow: string; title: string; body: string; cta: string; icon: 'wave' | 'spark' }
 
 const popupButton = 'group inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-[999px] px-[22px] text-[15px]! font-semibold! transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111111] max-[480px]:w-full'
 const popupPrimary = `${popupButton} border-none bg-[#111111] text-white hover:bg-[#333333]`
@@ -196,18 +196,18 @@ function PopupArrow() {
 }
 
 // The one pop-up look for the planner: backdrop, card, eyebrow, heading, line of context, footer row.
-function PopupCard({ role = 'dialog', cardRef, eyebrow, title, body, footer }: { role?: 'dialog' | 'alertdialog'; cardRef?: RefObject<HTMLDivElement | null>; eyebrow: string; title: string; body: string; footer: ReactNode }) {
+function PopupCard({ role = 'dialog', cardRef, icon, eyebrow, title, body, footer }: { role?: 'dialog' | 'alertdialog'; cardRef?: RefObject<HTMLDivElement | null>; icon?: ReactNode; eyebrow: string; title: string; body: string; footer: ReactNode }) {
   const reduce = useReducedMotion()
   const id = useId()
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <motion.div
         aria-hidden="true"
-        className="absolute inset-0 bg-[rgba(17,17,17,0.40)]"
+        className="absolute inset-0 bg-[rgba(17,17,17,0.40)] backdrop-blur-[6px]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
+        transition={{ duration: reduce ? 0.12 : 0.3, ease: 'easeOut' }}
       />
       <motion.div
         ref={cardRef}
@@ -216,10 +216,11 @@ function PopupCard({ role = 'dialog', cardRef, eyebrow, title, body, footer }: {
         aria-labelledby={`${id}-title`}
         aria-describedby={`${id}-body`}
         className="relative w-[440px] max-w-[calc(100%-32px)] rounded-[16px] border border-[#EAEAEA] bg-white p-8 text-left shadow-[0_12px_40px_rgba(0,0,0,0.10)] max-[480px]:p-6"
-        initial={{ opacity: 0, y: reduce ? 0 : 8 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' } }}
-        exit={{ opacity: 0, y: reduce ? 0 : 8, transition: { duration: 0.15, ease: 'easeIn' } }}
+        initial={{ opacity: 0, y: reduce ? 0 : 12, scale: reduce ? 1 : 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: reduce ? 0.12 : 0.36, ease: [0.22, 1, 0.36, 1] } }}
+        exit={{ opacity: 0, y: reduce ? 0 : 6, scale: reduce ? 1 : 0.98, transition: { duration: reduce ? 0.1 : 0.2, ease: 'easeIn' } }}
       >
+        {icon && <div className="mb-5">{icon}</div>}
         <p className="m-0 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#666666]">{eyebrow}</p>
         <h2 id={`${id}-title`} className="m-0 mt-3 text-[26px] font-semibold leading-[1.2] tracking-[-0.02em] text-[#111111] wrap-anywhere max-[480px]:text-[22px]">
           {title}
@@ -251,8 +252,82 @@ function LeaveConfirm({ onStay, onLeave }: { onStay: () => void; onLeave: () => 
   )
 }
 
+// Celebratory mark for the greeting pop-ups: a small champagne-metal 3D
+// sparkle (a lit facet and a shaded facet per arm, with a soft highlight) plus
+// two tiny satellite glints. It scales and turns in once, then a light sheen
+// sweeps across it a single time.
+const SPARKLE_ARMS = 'M32 4C33.6 21 43 30.4 60 32 43 33.6 33.6 43 32 60 30.4 43 21 33.6 4 32 21 30.4 30.4 21 32 4Z'
+function MiniSparkle({ className, delay }: { className: string; delay: number }) {
+  const reduce = useReducedMotion()
+  return (
+    <motion.svg
+      viewBox="0 0 64 64"
+      className={`absolute ${className}`}
+      initial={{ scale: reduce ? 1 : 0, opacity: reduce ? 1 : 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: reduce ? 0 : 0.45, delay: reduce ? 0 : delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <path d={SPARKLE_ARMS} fill="url(#greet-sparkle-metal)" />
+    </motion.svg>
+  )
+}
+
+function GreetingSparkle() {
+  const reduce = useReducedMotion()
+  return (
+    <div aria-hidden="true" className="relative mx-auto h-[72px] w-[72px]">
+      {/* Faint warm halo so the metal reads as lit rather than flat. */}
+      <div className="absolute inset-[6px] rounded-full bg-[radial-gradient(circle,rgba(232,212,168,0.45)_0%,rgba(232,212,168,0)_70%)]" />
+      <motion.svg
+        viewBox="0 0 64 64"
+        className="absolute inset-[6px] drop-shadow-[0_6px_10px_rgba(150,120,70,0.28)]"
+        initial={{ scale: reduce ? 1 : 0.55, rotate: reduce ? 0 : -30, opacity: reduce ? 1 : 0 }}
+        animate={{ scale: 1, rotate: 0, opacity: 1 }}
+        transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : 0.12, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <defs>
+          <linearGradient id="greet-sparkle-metal" x1="10" y1="6" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#FFF8E7" />
+            <stop offset="0.35" stopColor="#EBD3A0" />
+            <stop offset="0.6" stopColor="#C9A86A" />
+            <stop offset="1" stopColor="#F3E2BC" />
+          </linearGradient>
+          <linearGradient id="greet-sparkle-shade" x1="32" y1="32" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#A9864C" stopOpacity="0.55" />
+            <stop offset="1" stopColor="#A9864C" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="greet-sparkle-sheen" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#FFFFFF" stopOpacity="0" />
+            <stop offset="0.5" stopColor="#FFFFFF" stopOpacity="0.9" />
+            <stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
+          </linearGradient>
+          <clipPath id="greet-sparkle-clip"><path d={SPARKLE_ARMS} /></clipPath>
+        </defs>
+        <path d={SPARKLE_ARMS} fill="url(#greet-sparkle-metal)" />
+        {/* Shaded half-facets on the right and bottom arms give it depth. */}
+        <path d="M32 32 60 32C43 33.6 33.6 43 32 60Z" fill="url(#greet-sparkle-shade)" />
+        <path d="M32 4C30.4 21 21 30.4 4 32L32 32Z" fill="#FFFFFF" opacity="0.35" />
+        <g clipPath="url(#greet-sparkle-clip)">
+          <motion.rect
+            y="-8" width="18" height="80" fill="url(#greet-sparkle-sheen)" transform="rotate(20 32 32)"
+            initial={{ x: -24 }}
+            animate={{ x: reduce ? -24 : 72 }}
+            transition={{ duration: 0.9, delay: 0.55, ease: 'easeInOut' }}
+          />
+        </g>
+        <circle cx="32" cy="32" r="2.2" fill="#FFFFFF" opacity="0.9" />
+      </motion.svg>
+      <MiniSparkle className="-right-1 top-0 h-[16px] w-[16px]" delay={0.45} />
+      <MiniSparkle className="bottom-1 -left-1 h-[11px] w-[11px]" delay={0.55} />
+    </div>
+  )
+}
+
+/** How long a greeting pop-up stays before the planner moves on by itself. */
+const GREETING_MS = 3000
+
 function StepPopupDialog({ popup, onContinue }: { popup: StepPopup; onContinue: () => void }) {
-  const buttonRef = useRef<HTMLButtonElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const continueRef = useRef(onContinue)
   useEffect(() => { continueRef.current = onContinue })
   // The dialog stays mounted while it fades out, so a second key press or click must not advance again.
@@ -263,10 +338,12 @@ function StepPopupDialog({ popup, onContinue }: { popup: StepPopup; onContinue: 
     continueRef.current()
   }, [])
   useEffect(() => {
-    buttonRef.current?.focus({ preventScroll: true })
+    cardRef.current?.focus({ preventScroll: true })
+    // The greeting moves on by itself; Enter, Escape or a click skips the wait.
+    const timer = window.setTimeout(close, GREETING_MS)
     const onKey = (event: KeyboardEvent) => {
-      // Continue is the only control, so trapping focus means keeping it there.
-      if (event.key === 'Tab') { event.preventDefault(); if (!closed.current) buttonRef.current?.focus(); return }
+      // No controls inside, so trapping focus means keeping it on the card.
+      if (event.key === 'Tab') { event.preventDefault(); if (!closed.current) cardRef.current?.focus(); return }
       if (event.key !== 'Enter' && event.key !== 'Escape') return
       event.preventDefault()
       event.stopPropagation()
@@ -274,23 +351,51 @@ function StepPopupDialog({ popup, onContinue }: { popup: StepPopup; onContinue: 
       if (!event.repeat) close()
     }
     document.addEventListener('keydown', onKey, true)
-    return () => document.removeEventListener('keydown', onKey, true)
+    return () => { window.clearTimeout(timer); document.removeEventListener('keydown', onKey, true) }
   }, [close])
+  const reduce = useReducedMotion()
+  const id = useId()
   return (
-    <PopupCard
-      eyebrow={popup.eyebrow}
-      title={popup.title}
-      body={popup.body}
-      footer={
-        <>
-          <span className="inline-flex items-center gap-1.5 text-[13px] text-[#888888] max-[480px]:hidden">
-            Press
-            <kbd className="rounded-[6px] border border-[#E2E2E2] bg-[#FAFAFA] px-[7px] py-[2px] text-[12px] text-[#555555] font-[inherit]">Enter</kbd>
-          </span>
-          <button ref={buttonRef} type="button" onClick={close} className={popupPrimary}>Continue<PopupArrow /></button>
-        </>
-      }
-    />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={close}>
+      <motion.div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[rgba(17,17,17,0.45)] backdrop-blur-[6px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: reduce ? 0.12 : 0.3, ease: 'easeOut' }}
+      />
+      <motion.div
+        ref={cardRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`${id}-title`}
+        aria-describedby={`${id}-body`}
+        className="relative w-[420px] outline-none max-w-full overflow-hidden rounded-[24px] bg-[#FFFDFA] px-8 pb-7 pt-9 text-center shadow-[0_24px_60px_rgba(0,0,0,0.16)] ring-1 ring-[#EFEBE4] max-[480px]:px-6 max-[480px]:pb-6 max-[480px]:pt-8"
+        initial={{ opacity: 0, y: reduce ? 0 : 16, scale: reduce ? 1 : 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: reduce ? 0.12 : 0.38, ease: [0.22, 1, 0.36, 1] } }}
+        exit={{ opacity: 0, y: reduce ? 0 : 8, scale: reduce ? 1 : 0.98, transition: { duration: reduce ? 0.1 : 0.2, ease: 'easeIn' } }}
+      >
+        <div className="relative">
+          <GreetingSparkle />
+          <h2 id={`${id}-title`} className="m-0 mt-5 text-[30px] font-semibold leading-[1.15] tracking-[-0.025em] text-[#111111] wrap-anywhere max-[480px]:text-[25px]">
+            {popup.title}
+          </h2>
+          <p id={`${id}-body`} className="m-0 mx-auto mt-3 max-w-[320px] text-[16px] leading-[1.5] text-[#555555]">{popup.body}</p>
+          <p className="m-0 mt-6 text-[12px] text-[#A39E95] max-[480px]:hidden">
+            Press <kbd className="rounded-[5px] border border-[#E2E2E2] bg-white px-[6px] py-px text-[11px] text-[#555555] font-[inherit]">Enter</kbd> to skip
+          </p>
+        </div>
+        <motion.div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-[3px] origin-left bg-[#E3D3AE]"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: GREETING_MS / 1000, ease: 'linear' }}
+        />
+      </motion.div>
+    </div>
   )
 }
 
@@ -319,6 +424,7 @@ export default function QuestionnairePage() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [swapHint, setSwapHint] = useState(false)
   const [popup, setPopup] = useState<StepPopup | null>(null)
+  const greeted = useRef(new Set<string>())
   const swapTimer = useRef<number | undefined>(undefined)
 
   const path = useMemo(() => buildPath(answers), [answers])
@@ -427,31 +533,22 @@ export default function QuestionnairePage() {
     const target = route[route.indexOf(stepId) + 1]
     if (!target) return
 
-    // Dedicated welcome greeting pop-up when brand name is entered
-    if (here.id === 'brandName') {
+    // Greeting pop-ups after the first two questions only, each shown once per
+    // visit so going back or changing an answer never repeats it.
+    if (here.id === 'brandName' && !greeted.current.has('brandName')) {
       const name = str(current.brandName).trim()
       if (name) {
-        setPopup({
-          target,
-          eyebrow: 'Welcome to BrandWorks',
-          title: `Nice to meet you, ${name}.`,
-          body: 'A few quick questions and we’ll have everything we need for a focused first conversation.',
-        })
+        greeted.current.add('brandName')
+        setPopup({ target, icon: 'wave', eyebrow: '', cta: 'Let’s do this!', ...nameGreetingFor(name) })
         return
       }
     }
-
-    // Proud, encouraging pop-up greeting after selecting work type
-    if (here.id === 'workType' && here.kind === 'single') {
+    if (here.id === 'workType' && here.kind === 'single' && !greeted.current.has('workType')) {
       const value = str(current.workType)
       const option = here.options.find((o) => o.value === value)
       if (option) {
-        setPopup({
-          target,
-          eyebrow: option.label,
-          title: headlineFor(option.value),
-          body: cheerFor(option.value),
-        })
+        greeted.current.add('workType')
+        setPopup({ target, icon: 'spark', eyebrow: '', cta: 'Let’s keep going!', ...workGreetingFor(option.value, str(current.workTypeOther)) })
         return
       }
     }
@@ -938,7 +1035,7 @@ export default function QuestionnairePage() {
     <main className={`relative ${formPage}`}>
       {aiOff && (
         <div role="status" className="fixed inset-x-0 top-3 z-40 mx-auto flex w-[calc(100%-32px)] max-w-[520px] items-center justify-between gap-4 rounded-xl bg-black px-4 py-3 text-[13px] text-white shadow-lg">
-          <span><span className="mr-2 font-normal text-[#CCFF00]">Dev</span>AI is off. Showing neutral copy.</span>
+          <span><span className="mr-2 font-normal text-[#CCFF  00]">Dev</span>AI is off. Showing neutral copy.</span>
           <button type="button" onClick={() => setAiOff(false)} className="shrink-0 rounded-full border border-white/20 px-3 py-1 text-[12px] hover:border-white">Dismiss</button>
         </div>
       )}

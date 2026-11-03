@@ -6,13 +6,12 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { setDocumentTitle, setMetaTag, removeMetaTag, setLinkTag, removeLinkTag } from '../../blog/lib/documentHead'
 import { assetUrl } from '../../lib/assetUrl'
-import productImageAsset from '../../assets/photography/photo4-720.jpg'
 import portraitImageAsset from '../../assets/photography/photo3-720.jpg'
 import './PerformanceMarketingPage.css'
 
 gsap.registerPlugin(useGSAP, ScrollTrigger)
 
-const productImage = assetUrl(productImageAsset)
+const productImage = 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/t-shiry.png'
 const portraitImage = assetUrl(portraitImageAsset)
 
 const capabilities = ['Meta Ads', 'Google Search Ads', 'Google Display', 'YouTube Advertising', 'Performance Max', 'LinkedIn Ads', 'Remarketing', 'Lead Generation Campaigns', 'E-commerce Acquisition', 'App Promotion', 'Conversion Rate Optimization', 'Landing Page Strategy', 'Campaign Creative Strategy', 'Analytics & Tracking', 'Budget Scaling', 'Performance Reporting']

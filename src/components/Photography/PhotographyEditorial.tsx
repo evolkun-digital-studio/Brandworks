@@ -21,7 +21,7 @@ const PHOTO_BASE =
 
 const DEFAULT_IMAGES = {
   portrait: `${PHOTO_BASE}Copy%20of%20img.png`,
-  landscape: `${PHOTO_BASE}Artboard%2014%403x.png`,
+  landscape: `${PHOTO_BASE}t-shiry.png`,
   fourThree: `${PHOTO_BASE}Artboard%202.png`,
   fourThreeSecond: `${PHOTO_BASE}Artboard%203.png`,
 }

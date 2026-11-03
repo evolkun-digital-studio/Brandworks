@@ -25,7 +25,9 @@ function canHover() {
 
 /**
  * Wraps a project card and reveals a compact strip of supporting images below it.
- * The strip floats over the gap under the card, so opening it never shifts the page layout.
+ * The strip expands in document flow. This keeps the project rhythm compact while
+ * closed and gives the preview its own space while open, rather than permanently
+ * reserving a large empty gap below every card.
  * Desktop: opens on hover (with a short close delay so the cursor can travel into the panel).
  * Touch: first tap opens the preview, a second tap (or "View Project") calls `onOpen`.
  */
@@ -96,7 +98,7 @@ export default function ProjectHoverPreview({
       {lead && (
         <div
           aria-hidden={!open}
-          className={`absolute inset-x-0 top-full grid bg-black ${open ? '' : 'pointer-events-none'}`}
+          className={`relative grid bg-black ${open ? '' : 'pointer-events-none'}`}
           style={{
             gridTemplateRows: open ? '1fr' : '0fr',
             transition: `grid-template-rows 520ms ${EASE}`,

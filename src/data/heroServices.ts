@@ -226,7 +226,7 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
         },
         {
           id: 'dramatic-skincare-study',
-          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%2012%403x.png',
+          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/t-shiry.png',
           width: 1200,
           height: 1600,
           alt: 'Artboard 12 skincare photography composition',

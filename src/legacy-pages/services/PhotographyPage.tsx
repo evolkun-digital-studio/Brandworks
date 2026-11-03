@@ -47,7 +47,6 @@ function Photo({ id, sizes, eager = false, className = '', style, depth, drift, 
           {media}
         </button>
       ) : media}
-      <figcaption>{photo.label}</figcaption>
     </figure>
   )
 }
@@ -242,7 +241,7 @@ export default function PhotographyPage({ siteUrl }: { siteUrl?: string }) {
       <section className="bwp-sequence" aria-label="Selected frames">
         <div className="bwp-seq-pair">
           <Photo id="denim" sizes="50vw" />
-          <Photo id="lovegen" sizes="50vw" />
+          <Photo id="hand" sizes="50vw" />
         </div>
       </section>
 

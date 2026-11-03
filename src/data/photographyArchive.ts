@@ -21,7 +21,22 @@ export type ArchiveFrame = {
   focus?: string
 }
 
+/**
+ * Remote (R2) photos go through Next's image optimizer: it serves them from
+ * this origin, so WebGL can use them as textures (R2 sends no CORS headers),
+ * and resizes the multi-MB originals. Widths must be in Next's default sizes.
+ */
+const optimized = (url: string, w: number) => `/_next/image?url=${encodeURIComponent(url)}&w=${w}&q=75`
+
+function remoteFrame(url: string, label: string, alt: string, width: number, height: number, focus?: string): ArchiveFrame {
+  const thumb = optimized(url, 750)
+  const src = optimized(url, 1920)
+  return { label, alt, width, height, src, thumb, srcSet: `${thumb} 750w, ${src} 1920w`, focus }
+}
+
 function frame(file: string, label: string, alt: string, width: number, height: number, focus?: string): ArchiveFrame {
+  const remote = large[`../assets/photography/${file}-1600.jpg`]
+  if (remote?.startsWith('http')) return remoteFrame(remote, label, alt, width, height, focus)
   const s = small[`../assets/photography/${file}-720.jpg`]
   const l = large[`../assets/photography/${file}-1600.jpg`]
   const xl = xlarge[`../assets/photography/${file}-2400.jpg`]
@@ -35,29 +50,29 @@ export const frames = {
   cowboy: frame('photo7', 'Editorial / Portrait', 'Man in a cowboy hat and white tank top beside a horse', 960, 1200),
   motion: frame('photo15', 'Editorial / Movement', 'Monochrome figure bending forward with blurred movement', 1200, 673, '35% 50%'),
   eye: frame('eye-light', 'Detail / Light', 'Close crop of eyes crossed by a band of warm light', 1535, 862),
-  bottle: frame('photo4', 'Product / Still life', 'White pump bottle lit softly against a charcoal background', 1200, 1200),
-  balance: frame('photo13', 'Still life / Set', 'White spheres on geometric plinths with orange and blue panels', 1200, 904),
-  coconut: frame('photo3', 'Food & drink / Campaign', 'Woman in sunglasses drinking from a green coconut water can against blue', 736, 1104),
+  bottle: frame('photo4', 'Product / Still life', 'White pump bottle lit softly against a charcoal background', 1086, 1448),
+  balance: frame('photo13', 'Still life / Set', 'White spheres on geometric plinths with orange and blue panels', 1536, 1024),
+  coconut: frame('photo3', 'Food & drink / Campaign', 'Woman in sunglasses drinking from a green coconut water can against blue', 1067, 1600),
   film: frame('film-reels', 'Detail / Archive', 'Vintage film reels and cameras arranged on a wall', 1600, 1067),
-  wave: frame('photo11', 'Experimental / Portrait', 'Teal portrait with horizontal waves distorting the face', 904, 1200),
+  wave: frame('photo11', 'Experimental / Portrait', 'Teal portrait with horizontal waves distorting the face', 1312, 1199),
   reader: frame('reader', 'Lifestyle / Editorial', 'Person reading a broadsheet against a wall papered with newsprint', 1067, 1600),
   studio: frame('studio', 'Studio / Interior', 'Dark photography studio with lighting stands and a single chair', 1600, 1067),
-  spectrum: frame('photo12', 'Light study', 'Vertical bands of multicoloured light emerging from black', 1200, 904),
+  spectrum: frame('photo12', 'Light study', 'Vertical bands of multicoloured light emerging from black', 1122, 1402),
   lovegen: frame('lovegen', 'Experimental / Portrait', 'Model in wide light-wash cargo jeans holding a cream Lovegen T-shirt up in front of her face', 1067, 1600),
-  orange: frame('photo8', 'Experimental / Portrait', 'Portrait in teal with orange motion streaks across the face', 904, 1200),
-  trophy: frame('trophy', 'Product / Still life', 'Gold trophy on a black base against a pale grey wall', 1600, 1067),
-  tube: frame('photo5', 'Product / Beauty', 'Black skincare tube on a textured stone pedestal', 967, 1200),
-  afterimage: frame('photo6', 'Experimental / Portrait', 'Profile portrait dissolved into bright silver points of light', 1200, 800),
-  visor: frame('photo9', 'Fashion / Campaign', 'Man wearing a metallic visor surrounded by flowing teal fabric', 904, 1200),
+  orange: frame('photo8', 'Experimental / Portrait', 'Portrait in teal with orange motion streaks across the face', 1126, 1397),
+  trophy: frame('trophy', 'Product / Still life', 'Gold trophy on a black base against a pale grey wall', 1201, 1600),
+  tube: frame('photo5', 'Product / Beauty', 'Black skincare tube on a textured stone pedestal', 1201, 1600),
+  afterimage: frame('photo6', 'Experimental / Portrait', 'Profile portrait dissolved into bright silver points of light', 1536, 1024),
+  visor: frame('lovegen', 'Fashion / Campaign', 'Model in wide light-wash cargo jeans holding a cream Lovegen T-shirt up in front of her face', 1067, 1600),
   desk: frame('window-desk', 'Interior / Workspace', 'Desk by a shuttered window with a lamp, plants and a laptop', 1600, 1067),
   street: frame('street', 'Street / City', 'Traveller hailing a cab on a city street beside a suitcase', 1200, 1600),
-  can: frame('photo2', 'Product / Drinks', 'Silver drinks can suspended in a sports net against black', 736, 980),
+  can: frame('photo2', 'Product / Drinks', 'Silver drinks can suspended in a sports net against black', 1201, 1600),
   dusk: frame('dusk-camera', 'Behind the lens', 'Photographer framing a shot of the sea at dusk', 1067, 1600),
-  hand: frame('photo10', 'Product / Beauty', 'Hand holding a dark cosmetic tube against warm daylight', 960, 1200),
-  sphere: frame('photo14', 'Still life / Glass', 'Clear glass sphere drawn in soft shadow on pale paper', 1200, 904),
+  hand: frame('photo9', 'Product / Beauty', 'Hand holding a dark cosmetic tube against warm daylight', 1067, 1600),
+  sphere: frame('photo14', 'Still life / Glass', 'Clear glass sphere drawn in soft shadow on pale paper', 1126, 1397),
   denim: frame('denim', 'Fashion / Lookbook', 'Model in wide cargo jeans holding a white T-shirt against a pale wall', 1067, 1600),
-  jellystar: frame('jellystar', 'Brand / Campaign', 'Jellystar streetwear campaign: woman in a white hooded top with a chrome star logo beside the headline Not Just Clothes', 1536, 1024),
-  arcade: frame('arcade', 'or', 'Empty monochrome shopping arcade receding to a vanishing point', 1600, 1067),
+  jellystar: frame('jellystar', 'Brand / Campaign', 'Jellystar streetwear campaign: woman in a white hooded top with a chrome star logo beside the headline Not Just Clothes', 4000, 6000),
+  arcade: frame('arcade', 'or', 'Empty monochrome shopping arcade receding to a vanishing point', 1201, 1600),
   dropper: frame('dropper', 'Product / Beauty', 'Glass dropper releasing a drop of serum onto a pale surface', 1280, 1600),
   lotion: frame('lotion', 'Brand / Beauty', 'Fingers holding a dab of white lotion beside a Softly bottle against blue sky', 1280, 1600),
   jeansPocket: frame('jeans-pocket', 'Fashion / Product', 'Back pocket of black jeans with a star print and the Jellystar logo', 1080, 1350),

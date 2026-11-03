@@ -246,6 +246,7 @@ function Hero() {
 
   return (
     <section ref={ref} aria-label="Projects" className="relative flex h-svh min-h-[520px] flex-col overflow-hidden px-[var(--hero-gutter)] pb-[clamp(24px,2.5vw,40px)] pt-[clamp(96px,11vh,130px)]">
+      <h1 className="sr-only">Selected creative work by BrandWorks</h1>
       {/* thumbnail reel */}
       <div aria-hidden="true" className="pointer-events-none min-h-0 flex-1 overflow-hidden">
         <div data-reel className="flex h-full w-max gap-4">
@@ -328,6 +329,18 @@ function ProjectGrid(props: ProjectHandlers) {
   const ref = useRef<HTMLDivElement>(null)
 
   useGSAP(() => {
+    const grid = ref.current
+    let refreshFrame: number | null = null
+    const refresh = () => {
+      if (refreshFrame !== null) return
+      refreshFrame = window.requestAnimationFrame(() => {
+        refreshFrame = null
+        ScrollTrigger.refresh()
+      })
+    }
+    const resizeObserver = grid ? new ResizeObserver(refresh) : null
+    if (grid) resizeObserver?.observe(grid)
+
     const mm = gsap.matchMedia()
     mm.add('(prefers-reduced-motion: no-preference)', () => {
       gsap.utils.toArray<HTMLElement>('[data-card]').forEach((card) => {
@@ -338,11 +351,15 @@ function ProjectGrid(props: ProjectHandlers) {
         gsap.from(card.querySelector('[data-label]'), { autoAlpha: 0, y: 24, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: card, start: 'top 72%' } })
       })
     })
-    return () => mm.revert()
+    return () => {
+      if (refreshFrame !== null) window.cancelAnimationFrame(refreshFrame)
+      resizeObserver?.disconnect()
+      mm.revert()
+    }
   }, { scope: ref })
 
   return (
-    <div ref={ref} className="flex flex-col gap-[clamp(80px,9vw,140px)] max-md:gap-14">
+    <div ref={ref} className="flex flex-col gap-[clamp(32px,4vw,64px)] max-md:gap-8">
       {projects.map((p, i) => <ProjectCard key={p.id} project={p} index={i} {...props} />)}
     </div>
   )
@@ -527,15 +544,13 @@ const PROJECT_SUMMARIES: Record<number, string> = {
   7: 'A brand and visual series for Mr.Rework, created to give the brand a distinct, recognisable look across everything it puts out.',
 }
 
-const GALLERY_COLUMN_OFFSETS = ['', 'md:mt-[clamp(48px,7vw,112px)]', 'md:mt-[clamp(20px,3vw,48px)]']
-
 function OverlayGallery({ project, slotRef }: { project: Project; slotRef: RefObject<HTMLDivElement | null> }) {
   const images = Array.from(new Set([...(project.previewImages ?? []), ...(project.gallery ?? [])]))
     .filter((src) => src !== project.media)
 
   return (
-    <div className="culture-reels pb-[clamp(16px,3vh,40px)]" style={{ '--culture-pad': 'var(--hero-gutter)' } as CSSProperties}>
-      <div className="culture-reels__container">
+    <div className="culture-reels pb-[clamp(16px,3vh,40px)]">
+      <div className="culture-reels__container !max-w-7xl">
         <header data-ov-fade className="mb-[clamp(24px,4vh,48px)]">
           <p className="section-description max-w-[600px] text-[16px] leading-7">{PROJECT_SUMMARIES[project.id]}</p>
         </header>
@@ -554,8 +569,19 @@ function OverlayGallery({ project, slotRef }: { project: Project; slotRef: RefOb
           </div>
         )}
 
-        {/* Images keep their proportions and columns start offset; the last image in each column grows so all three end level. */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {/* Natural-ratio masonry keeps the gallery compact at every image count. */}
+        <div className="columns-1 gap-4 md:columns-2 xl:columns-3">
+          <div ref={slotRef} className="relative mb-4 break-inside-avoid aspect-[4/5] overflow-hidden rounded-[20px] bg-[#111] will-change-transform">
+            <div data-ov-media key={project.id} className="absolute inset-0">
+              <ProjectMedia project={project} autoPlay />
+            </div>
+          </div>
+          {images.map((src, i) => (
+            <div key={src} data-ov-fade className="mb-4 break-inside-avoid overflow-hidden rounded-[20px] bg-[#f1f1ed]">
+              <img src={src} alt={`${project.title} â€” photo ${i + 2}`} loading="lazy" decoding="async" className="block h-auto w-full" />
+            </div>
+          ))}
+          {/* Legacy offset layout retained as an implementation reference.
           {GALLERY_COLUMN_OFFSETS.map((offset, column) => (
             <div key={column} className={`flex min-w-0 flex-col gap-4 ${offset}`}>
               {column === 0 && (
@@ -576,6 +602,7 @@ function OverlayGallery({ project, slotRef }: { project: Project; slotRef: RefOb
               })}
             </div>
           ))}
+          */}
         </div>
       </div>
     </div>
@@ -591,7 +618,10 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
   const closing = useRef(false)
   const firstRun = useRef(true)
   const reduce = useReducedMotion()
-  const q = gsap.utils.selector(rootRef)
+  const select = useCallback((selector: string) => {
+    const root = rootRef.current
+    return root ? gsap.utils.selector(root)(selector) : []
+  }, [])
 
   // lock page scroll while open
   useEffect(() => {
@@ -619,7 +649,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
     } else {
       tl.fromTo(slot, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5 }, 0.1)
     }
-    tl.fromTo(q('[data-ov-fade]'), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 }, reduce ? 0 : 0.85)
+    tl.fromTo(select('[data-ov-fade]'), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', stagger: 0.06 }, reduce ? 0 : 0.85)
     return () => { tl.kill() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -630,17 +660,16 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
     rootRef.current?.scrollTo({ top: 0 })
     const tl = gsap.timeline()
     tl.fromTo(slotRef.current, { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'expo.inOut' }, 0)
-    tl.fromTo(q('[data-ov-media]'), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: 'expo.out' }, 0)
+    tl.fromTo(select('[data-ov-media]'), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: 'expo.out' }, 0)
     return () => { tl.kill() }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index])
+  }, [index, select])
 
   const close = useCallback(() => {
     if (closing.current) return
     closing.current = true
     const slot = slotRef.current
     const tl = gsap.timeline({ onComplete: onClose })
-    tl.to(q('[data-ov-fade]'), { autoAlpha: 0, duration: 0.25 }, 0)
+    tl.to(select('[data-ov-fade]'), { autoAlpha: 0, duration: 0.25 }, 0)
     const src = sourceFor(project.id)
     if (slot && src && !reduce) {
       gsap.set(slot, { clearProps: 'transform' })
@@ -650,7 +679,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
       tl.to(slot, { autoAlpha: 0, scale: 0.96, duration: 0.4 }, 0.1)
       tl.to(bgRef.current, { opacity: 0, duration: 0.45 }, 0.2)
     }
-  }, [onClose, project.id, q, reduce])
+  }, [onClose, project.id, reduce, select])
 
   const step = useCallback((dir: 1 | -1) => setIndex((index + dir + projects.length) % projects.length), [index, setIndex])
 
@@ -670,8 +699,8 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
 
       <div className="relative flex min-h-full flex-col pb-[clamp(32px,5vh,64px)]">
         <div className="sticky top-0 z-10 bg-white py-[clamp(24px,3vh,40px)]">
-          <div className="culture-reels" style={{ '--culture-pad': 'var(--hero-gutter)' } as CSSProperties}>
-            <div className="culture-reels__container flex items-center justify-between gap-4">
+          <div className="culture-reels">
+            <div className="culture-reels__container !max-w-7xl flex items-center justify-between gap-4">
               <h2 id="overlay-title" data-ov-fade className="section-heading min-w-0 capitalize">
                 {project.title}
               </h2>
