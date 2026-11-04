@@ -145,15 +145,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
         {/* Left */}
         <div className="justify-self-start flex items-center">
           <Link to="/" aria-label="Brandworks home" className="block">
-            <Logo data-nav-logo="color" className="site-header__logo site-header__logo--light [body:has(.about-page):not(.about-logo-on-dark)_&]:hidden! block h-[30px]" />
-            {/* Shown instead on the About page, except over its dark footer (the classes below). */}
-            <Logo
-              variant="dark"
-              data-nav-logo="dark"
-              alt=""
-              aria-hidden="true"
-              className="site-header__logo site-header__logo--dark [body:has(.about-page):not(.about-logo-on-dark)_&]:block! h-[30px]"
-            />
+            <Logo className="site-header__logo block h-[30px]" />
           </Link>
         </div>
 
@@ -198,15 +190,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
       <div className={`site-header__surface ${tone} flex lg:hidden w-full h-[64px] items-center justify-between px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}>
         <div className="flex items-center">
           <Link to="/" aria-label="Brandworks home" className="block">
-            <Logo data-nav-logo="color" className="site-header__logo site-header__logo--light [body:has(.about-page):not(.about-logo-on-dark)_&]:hidden! block h-[25px]" />
-            {/* Shown instead on the About page, except over its dark footer (the classes below). */}
-            <Logo
-              variant="dark"
-              data-nav-logo="dark"
-              alt=""
-              aria-hidden="true"
-              className="site-header__logo site-header__logo--dark [body:has(.about-page):not(.about-logo-on-dark)_&]:block! h-[25px]"
-            />
+            <Logo className="site-header__logo block h-[25px]" />
           </Link>
         </div>
 
