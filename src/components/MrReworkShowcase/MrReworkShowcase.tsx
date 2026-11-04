@@ -130,10 +130,10 @@ export default function MrReworkShowcase(_props: Props) {
 
       <section className="mrw-editorial" aria-labelledby="mrw-editorial-title">
         <div className="mrw-section-heading">
-          <h3 id="mrw-editorial-title">A wardrobe with a point of view.</h3>
+          <h3 id="mrw-editorial-title" className="project-detail__tagline">A wardrobe with a point of view.</h3>
         </div>
-        <div className="mrw-editorial__grid">
-          <ImageFrame src={lookImages[0]} alt="Mr.Rework editorial collection" className="mrw-editorial__lead" />
+        <div className="mrw-editorial__grid project-detail__grid">
+          <ImageFrame src={lookImages[0]} alt="Mr.Rework editorial collection" />
           <ImageFrame src={bestSellingImages[1]} alt="Mr.Rework reworked clothing product" contain />
           <ImageFrame src={trendingImages[0]} alt="Mr.Rework trending accessories" contain />
         </div>
@@ -142,7 +142,7 @@ export default function MrReworkShowcase(_props: Props) {
       <section className="mrw-shopping" aria-labelledby="mrw-shopping-title">
         <div className="mrw-section-heading">
           {/* <p className="mrw-kicker">Shopping experience</p> */}
-          <h3 id="mrw-shopping-title">Made to browse, filter, and find.</h3>
+          <h3 id="mrw-shopping-title" className="project-detail__tagline">Made to browse, filter, and find.</h3>
         </div>
         <div className="mrw-shopping__grid">
           <ImageFrame src={categoryImages[3]} alt="Mr.Rework accessories category" contain />
@@ -156,7 +156,7 @@ export default function MrReworkShowcase(_props: Props) {
         </div>
         <div className="mrw-final__caption">
           <div>
-            <h3 id="mrw-final-title">A digital home for one-of-a-kind style.</h3>
+            <h3 id="mrw-final-title" className="project-detail__tagline">A digital home for one-of-a-kind style.</h3>
           </div>
           <a href="https://www.mrrework.com/" target="_blank" rel="noreferrer" className="mrw-cta">Explore Mr.Rework <span>↗</span></a>
         </div>

@@ -703,7 +703,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
   }, [close, step])
 
   return (
-    <div ref={rootRef} role="dialog" aria-modal="true" aria-labelledby="overlay-title" data-lenis-prevent className="fixed inset-0 z-[1100] overflow-y-auto text-[#111]">
+    <div ref={rootRef} role="dialog" aria-modal="true" aria-labelledby="overlay-title" data-lenis-prevent className="project-modal fixed inset-0 z-[1100] overflow-y-auto text-[#111]">
       <div ref={bgRef} className="fixed inset-0 bg-white" />
 
       <div className="relative flex min-h-full flex-col pb-[clamp(32px,5vh,64px)]">

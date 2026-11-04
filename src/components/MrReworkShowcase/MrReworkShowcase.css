@@ -84,11 +84,6 @@
 .mrw-section-heading > .mrw-kicker,
 .mrw-final__caption .mrw-kicker { align-self: flex-end; text-align: right; }
 .mrw-section-heading h3 { max-width: 520px; margin-left: 0; font-size: 48px; text-align: left; }
-.mrw-editorial__grid { display: grid; grid-template-columns: 1.45fr .78fr .78fr; align-items: end; gap: 12px; }
-.mrw-editorial__grid .mrw-image { aspect-ratio: 4 / 5; }
-.mrw-editorial__grid .mrw-image img { height: 100%; object-fit: cover; }
-.mrw-editorial__grid .mrw-image__contain { object-fit: contain; }
-.mrw-editorial__grid .mrw-editorial__lead { aspect-ratio: 1.1 / 1; align-self: start; }
 .mrw-shopping { border-top: 1px solid var(--mrw-line); }
 .mrw-shopping__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .mrw-shopping__grid .mrw-image { aspect-ratio: 1.35; }
@@ -145,9 +140,6 @@
   .mrw-scrub__label span:last-child { max-width: 150px; text-align: right; }
   .mrw-section-heading { display: block; }
   .mrw-section-heading h3 { margin-top: 14px; text-align: left; }
-  .mrw-editorial__grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .mrw-editorial__grid .mrw-editorial__lead { grid-column: 1 / -1; aspect-ratio: 1.15; }
-  .mrw-editorial__grid .mrw-image { aspect-ratio: 1 / 1.2; }
   .mrw-shopping__grid { grid-template-columns: 1fr; gap: 8px; }
   .mrw-shopping__grid .mrw-image { aspect-ratio: 1.15; }
   .mrw-final__looks { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
