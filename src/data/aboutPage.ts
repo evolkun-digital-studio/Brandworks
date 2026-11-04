@@ -7,6 +7,7 @@ import { mediaUrl } from '../lib/media'
 
 const beginningStill = mediaUrl("Beginning.jpg")
 const studioStill = mediaUrl("studio.jpg")
+const aboutHeroStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/about.png"
 const technologyStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/creative_2.jpg"
 const websiteDevStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website_dev.jpg"
 const bottleStill = mediaUrl("photo-04.webp")
@@ -32,7 +33,7 @@ export const ABOUT_HERO = {
     'We partner with brands that want more than output: work that is clear, consistent and built to be remembered.',
   ],
   image: {
-    src: studioStill,
+    src: aboutHeroStill,
     width: 6000,
     height: 4000,
     alt: 'A lit photo studio set with an armchair and plant on a paper backdrop',

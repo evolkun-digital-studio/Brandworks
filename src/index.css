@@ -1592,7 +1592,7 @@ body {
 
 /* Shared project-detail layout, used by any project showcase in the popup.
    Tagline: one line from md up with a fluid size; wraps normally on mobile. */
-.project-modal .project-detail__tagline { max-width: none; font-size: clamp(2rem, 4.5vw, 3rem); }
+.project-modal .project-detail__tagline { max-width: none; padding-bottom: clamp(24px, 4vw, 52px); font-size: clamp(2rem, 4.5vw, 3rem); }
 @media (min-width: 768px) {
   .project-modal .project-detail__tagline { white-space: nowrap; }
 }

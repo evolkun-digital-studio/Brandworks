@@ -151,14 +151,14 @@ export default function MrReworkShowcase(_props: Props) {
       </section>
 
       <section className="mrw-final" aria-labelledby="mrw-final-title">
-        <div className="mrw-final__looks">
-          {lookImages.map((src, index) => <ImageFrame key={src} src={src} alt={`Mr.Rework look ${index + 1}`} />)}
-        </div>
         <div className="mrw-final__caption">
           <div>
             <h3 id="mrw-final-title" className="project-detail__tagline">A digital home for one-of-a-kind style.</h3>
           </div>
-          <a href="https://www.mrrework.com/" target="_blank" rel="noreferrer" className="mrw-cta">Explore Mr.Rework <span>↗</span></a>
+          {/* <a href="https://www.mrrework.com/" target="_blank" rel="noreferrer" className="mrw-cta">Explore Mr.Rework <span>↗</span></a> */}
+        </div>
+        <div className="mrw-final__looks">
+          {lookImages.map((src, index) => <ImageFrame key={src} src={src} alt={`Mr.Rework look ${index + 1}`} />)}
         </div>
       </section>
     </article>
