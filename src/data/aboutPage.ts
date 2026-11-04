@@ -29,7 +29,6 @@ export const ABOUT_HERO = {
   heading: 'About Us',
   description: 'The people, thinking and journey behind BrandWorks.',
   body: [
-    // 'BrandWorks is an interdisciplinary creative and marketing studio. Strategy, design, content, photography, film and technology work as one process, under one roof.',
     'We partner with brands that want more than output: work that is clear, consistent and built to be remembered.',
   ],
   image: {

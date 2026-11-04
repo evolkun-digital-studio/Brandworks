@@ -1,0 +1,109 @@
+.evg-showcase { --evg-ink: #173b29; --evg-green: #0c3a25; --evg-soft: #f3f5ef; --evg-line: #d6ded5; width: 100%; max-width: var(--media-max-width); margin-inline: auto; padding-inline: var(--media-pad); color: var(--evg-ink); }
+.evg-intro { display: grid; grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); align-items: start; gap: clamp(32px, 7vw, 110px); padding-block: clamp(24px, 4vw, 58px) clamp(56px, 8vw, 120px); }
+.evg-intro__copy { max-width: 430px; }
+.evg-intro h2, .evg-site-heading h4, .evg-scrub h3, .evg-hero h4, .evg-about h4, .evg-process h4, .evg-sustainability h4 { margin: 0; font-family: var(--section-title-font); font-weight: 500; letter-spacing: -.045em; line-height: .95; }
+.evg-intro h2 { font-size: 48px; }
+.evg-intro__copy p { margin: 16px 0 0; color: var(--evg-green); font-family: var(--font-secondary); font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+.evg-intro__copy > span { display: block; max-width: 380px; margin-top: 22px; color: #6a756d; font-size: 15px; line-height: 1.65; }
+.evg-intro__image { width: 100%; aspect-ratio: 1.45; object-fit: cover; }
+.evg-scrub { position: relative; height: 220vh; margin-inline: calc(var(--culture-gutter, 0px) * -1); padding-inline: var(--culture-gutter, 0px); background: var(--evg-soft); }
+.evg-scrub__sticky { position: sticky; top: 0; display: flex; min-height: 100vh; flex-direction: column; justify-content: center; padding-block: clamp(28px, 5vh, 72px); }
+.evg-scrub__header { display: grid; grid-template-columns: 1fr minmax(120px, 220px) auto; align-items: end; gap: 24px; margin-bottom: 20px; }
+.evg-scrub__header p { margin: 0; color: #7e8b82; font-family: var(--font-secondary); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+.evg-scrub h3 { margin-top: 10px; font-size: 48px; }
+.evg-progress { height: 1px; margin-bottom: 4px; overflow: hidden; background: #cfd9cf; }
+.evg-progress span { display: block; height: 100%; transform-origin: left; background: var(--evg-green); transition: transform 180ms ease-out; }
+.evg-counter { font-family: ui-monospace, monospace !important; letter-spacing: .08em !important; }
+.evg-browser-stage { display: grid; grid-template-columns: clamp(2.25rem, 3.6vw, 3.25rem) minmax(0, 1fr) clamp(2.25rem, 3.6vw, 3.25rem); align-items: center; gap: clamp(.25rem, 1vw, 1rem); }
+.evg-browser { overflow: hidden; border: 1px solid var(--evg-line); background: #fff; }
+.evg-browser__bar { display: flex; height: 32px; align-items: center; gap: 5px; padding-inline: 12px; border-bottom: 1px solid #e7ebe5; background: #fbfcf9; }
+.evg-browser__bar > span:not(.evg-browser__address) { width: 6px; height: 6px; border-radius: 50%; background: #b7c3b8; }
+.evg-browser__address { margin-left: 10px; color: #87958a; font-family: ui-monospace, monospace; font-size: 8px; }
+.evg-browser__screen { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #f7f8f4; }
+.evg-browser__image { position: absolute; inset: 0; overflow: hidden; opacity: 0; transition: opacity 420ms cubic-bezier(.22,1,.36,1); }
+.evg-browser__image.is-active { opacity: 1; }
+.evg-browser-nav { display: grid; width: 100%; aspect-ratio: 1; place-items: center; border: 0; border-radius: 999px; background: transparent; color: rgb(12 58 37 / 65%); cursor: pointer; transition: background-color 200ms ease, color 200ms ease, transform 200ms ease; }
+.evg-browser-nav svg { width: clamp(1.5rem, 2.6vw, 2.5rem); height: auto; }
+.evg-browser-nav:hover:not(:disabled) { background: rgb(12 58 37 / 8%); color: var(--evg-green); }
+.evg-browser-nav:active:not(:disabled) { transform: scale(.94); }
+.evg-browser-nav:focus-visible { outline: 2px solid var(--evg-green); outline-offset: 2px; }
+.evg-browser-nav:disabled { cursor: not-allowed; opacity: .3; }
+.evg-scrub__label { display: flex; justify-content: space-between; gap: 20px; padding-top: 12px; color: #829085; font-family: var(--font-secondary); font-size: 11px; }
+.evg-scrub__label span:first-child { color: var(--evg-ink); font-weight: 600; }
+.evg-site-screen { height: 100%; overflow: hidden; background: #f8faf6; color: var(--evg-ink); font-family: var(--font-secondary), sans-serif; }
+.evg-site-screen__nav { display: grid; grid-template-columns: 1.2fr 2fr auto; height: 13%; min-height: 28px; align-items: center; gap: 2%; padding-inline: 4%; border-bottom: 1px solid #e0e7df; background: #fff; }
+.evg-site-screen__logo { width: auto; height: clamp(13px, 2vw, 29px); object-fit: contain; object-position: left center; }
+.evg-site-screen__nav nav { display: flex; justify-content: center; gap: clamp(8px, 2vw, 28px); color: #45604c; font-size: clamp(6px, .65vw, 10px); text-transform: uppercase; letter-spacing: .05em; }
+.evg-site-screen__contact { justify-self: end; color: var(--evg-green); font-size: clamp(6px, .65vw, 10px); text-transform: uppercase; letter-spacing: .06em; }
+.evg-hero { position: relative; height: 87%; overflow: hidden; background: var(--evg-green); }
+.evg-hero > img { width: 100%; height: 100%; object-fit: cover; }
+.evg-hero__overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgb(4 43 26 / 88%), rgb(4 43 26 / 36%) 60%, rgb(4 43 26 / 8%)); }
+.evg-hero__copy { position: absolute; inset: 0 auto auto 6%; width: 47%; padding-top: 13%; color: #fff; }
+.evg-hero__copy p, .evg-site-heading > span, .evg-industries > span, .evg-sustainability__copy > span { margin: 0 0 10px; color: #9ab59e; font-size: clamp(6px, .65vw, 10px); letter-spacing: .1em; text-transform: uppercase; }
+.evg-hero h4 { font-size: clamp(22px, 3.6vw, 52px); }
+.evg-hero__copy > span { display: block; max-width: 240px; margin-top: 16px; color: #d4e1d5; font-size: clamp(7px, .8vw, 13px); line-height: 1.45; }
+.evg-site-heading h4 { max-width: 55%; font-size: clamp(24px, 3.2vw, 48px); }
+.evg-about, .evg-recycle, .evg-materials, .evg-process, .evg-certifications { height: 87%; padding: 6% 6%; }
+.evg-about__grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 5%; height: 65%; margin-top: 5%; }
+.evg-about__grid img { width: 100%; height: 100%; object-fit: cover; }
+.evg-about__grid p { margin: 0 0 12px; color: #53655a; font-size: clamp(8px, .85vw, 13px); line-height: 1.5; }
+.evg-stats { display: grid; gap: 8px; margin-top: 7%; }
+.evg-stats--three { grid-template-columns: repeat(3, 1fr); }
+.evg-stat { display: flex; flex-direction: column; gap: 3px; border-top: 1px solid #c9d6ca; padding-top: 8px; }
+.evg-stat strong { font-family: var(--section-title-font); font-size: clamp(13px, 1.6vw, 25px); font-weight: 500; letter-spacing: -.04em; }
+.evg-stat span { color: #718073; font-size: clamp(6px, .58vw, 9px); line-height: 1.25; }
+.evg-service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2%; margin-top: 5%; }
+.evg-service-grid figure, .evg-materials__grid figure, .evg-industries figure { min-width: 0; margin: 0; }
+.evg-service-grid img { display: block; width: 100%; height: 20%; aspect-ratio: 1.55; object-fit: cover; }
+.evg-service-grid figcaption { padding-top: 7px; color: var(--evg-green); font-size: clamp(7px, .72vw, 11px); font-weight: 600; }
+.evg-materials__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2%; margin-top: 5%; }
+.evg-materials__grid img { width: 100%; aspect-ratio: 1.15; object-fit: cover; }
+.evg-materials__grid figcaption { display: flex; flex-direction: column; gap: 3px; padding-top: 6px; }
+.evg-materials__grid figcaption strong { font-size: clamp(7px, .72vw, 11px); }
+.evg-materials__grid figcaption span { color: #6b7c70; font-size: clamp(6px, .58vw, 9px); }
+.evg-capacity { margin-top: 6%; border-top: 1px solid #c9d6ca; padding-top: 7px; }
+.evg-capacity > span { color: #718073; font-size: clamp(6px, .6vw, 9px); text-transform: uppercase; letter-spacing: .08em; }
+.evg-capacity > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6%; margin-top: 9px; }
+.evg-process__feature { display: grid; grid-template-columns: 1fr 1fr; gap: 5%; height: 38%; margin-top: 5%; }
+.evg-process__feature img { width: 100%; height: 100%; object-fit: cover; }
+.evg-process__feature div { align-self: center; }
+.evg-process__feature strong { color: #7d9c83; font-size: clamp(8px, .7vw, 11px); }
+.evg-process__feature h4 { margin-top: 7px; font-size: clamp(19px, 2.5vw, 37px); }
+.evg-process__feature p { max-width: 230px; margin-top: 11px; color: #64766a; font-size: clamp(7px, .7vw, 11px); line-height: 1.45; }
+.evg-process__steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2%; margin-top: 5%; }
+.evg-process__steps div { display: flex; flex-direction: column; gap: 5px; border-top: 1px solid #c9d6ca; padding-top: 7px; }
+.evg-process__steps span { color: #7d9c83; font-size: clamp(6px, .6vw, 9px); }
+.evg-process__steps strong { font-size: clamp(6px, .62vw, 10px); line-height: 1.25; }
+.evg-certifications__grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 5%; height: 36%; margin-top: 5%; }
+.evg-certifications__grid > img { width: 100%; height: 100%; object-fit: cover; }
+.evg-cert-list { display: grid; gap: 8px; }
+.evg-cert-list div { display: flex; flex-direction: column; gap: 3px; border-top: 1px solid #c9d6ca; padding-top: 7px; }
+.evg-cert-list strong { font-size: clamp(7px, .72vw, 11px); }
+.evg-cert-list span { color: #718073; font-size: clamp(6px, .58vw, 9px); }
+.evg-industries { margin-top: 5%; }
+.evg-industries > div { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2%; margin-top: 9px; }
+.evg-industries img { width: 100%; aspect-ratio: 1.5; object-fit: cover; }
+.evg-industries figcaption { padding-top: 5px; color: #53655a; font-size: clamp(6px, .6vw, 9px); }
+.evg-sustainability { position: relative; height: 100%; overflow: hidden; background: var(--evg-green); color: #fff; }
+.evg-sustainability > img { width: 100%; height: 100%; object-fit: cover; opacity: .3; }
+.evg-sustainability__copy { position: absolute; top: 15%; left: 7%; width: 42%; }
+.evg-sustainability__copy > span { color: #b1cdb5; }
+.evg-sustainability h4 { font-size: clamp(24px, 3.3vw, 50px); }
+.evg-sustainability__copy p { max-width: 230px; margin-top: 14px; color: #d3e0d4; font-size: clamp(7px, .72vw, 11px); line-height: 1.45; }
+.evg-sustainability__stats { position: absolute; right: 7%; bottom: 17%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 28px; width: 42%; }
+.evg-sustainability__stats .evg-stat { border-color: rgb(213 231 216 / 40%); }
+.evg-sustainability__stats .evg-stat span { color: #c6d8c8; }
+.evg-sustainability footer { position: absolute; right: 6%; bottom: 6%; left: 6%; border-top: 1px solid rgb(213 231 216 / 30%); padding-top: 8px; color: #c6d8c8; font-size: clamp(6px, .58vw, 9px); }
+@media (max-width: 767px) {
+  .evg-intro { grid-template-columns: 1fr; gap: 34px; }
+  .evg-intro__image { order: -1; aspect-ratio: 1.15; }
+  .evg-scrub { height: 150vh; margin-inline: calc(var(--media-pad) * -1); padding-inline: var(--media-pad); }
+  .evg-scrub__sticky { min-height: 100svh; }
+  .evg-scrub__header { grid-template-columns: 1fr auto; gap: 12px; }
+  .evg-progress { grid-column: 1 / -1; grid-row: 2; width: 100%; margin-top: 6px; }
+  .evg-browser__screen { aspect-ratio: 4 / 5; }
+  .evg-browser-stage { grid-template-columns: 28px minmax(0, 1fr) 28px; gap: 4px; }
+  .evg-scrub__label { font-size: 10px; }
+  .evg-scrub__label span:last-child { max-width: 150px; text-align: right; }
+}
+@media (prefers-reduced-motion: reduce) { .evg-browser__image, .evg-progress span { transition: none; } }

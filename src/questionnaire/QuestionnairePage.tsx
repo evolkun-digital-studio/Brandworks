@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Link, useNavigate } from '../routing'
+import Logo from '../components/Logo/Logo'
 import { trackEvent } from '../analytics/analytics'
 import { AnalyticsEvents } from '../analytics/events'
 import {
@@ -1047,7 +1048,7 @@ export default function QuestionnairePage() {
       {/* Sits on the same line as the site logo (Header.tsx), which only shows from tablet width. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-30 mt-[18px] flex h-[64px] items-center justify-between px-[var(--hero-gutter)] lg:mt-[20px]">
         <Link to="/" className={`pointer-events-auto inline-flex items-center sm:hidden ${focusRing}`} aria-label="BrandWorks home">
-          <span className="text-[15px] font-medium tracking-[-0.04em] text-black">BRANDWORKS<span className="text-[#9dc000]">.</span></span>
+          <Logo variant="dark" className="block h-[25px]" />
         </Link>
         <span className="hidden sm:block" aria-hidden="true" />
         <button
