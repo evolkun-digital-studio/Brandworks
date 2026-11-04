@@ -143,10 +143,15 @@ function HeroMedia({
   /** Media Manager › Hero › Photography grid, in gallery order. */
   gridImages?: PublicSiteImage[]
 }) {
-  const managedGrid = useMemo(
-    () => gridImages.length >= GRID_MIN_ITEMS ? gridImages.map(toHeroGalleryImage) : null,
-    [gridImages],
-  )
+  // Uploads take the built-in photographs' places in order; any built-ins
+  // past the last upload stay, so the contact sheet below is never empty.
+  const managedGrid = useMemo(() => {
+    if (gridImages.length < GRID_MIN_ITEMS) return null
+    const gridMedia = HERO_SERVICE_ORDER.map((id) => heroServices[id].media).find((media) => media.kind === 'grid')
+    const builtIn = gridMedia?.kind === 'grid' ? gridMedia.images : []
+    const uploads = gridImages.map(toHeroGalleryImage)
+    return [...uploads, ...builtIn.slice(uploads.length)]
+  }, [gridImages])
   const rootRef = useRef<HTMLDivElement>(null)
   const previousRef = useRef<HeroServiceId>(activeId)
 
