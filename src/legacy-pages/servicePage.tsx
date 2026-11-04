@@ -163,7 +163,7 @@ export default function ServicesPage() {
           INTRO
       ====================================================== */}
 
-      <section className="mx-auto w-full max-w-[1280px] px-5 pb-16 pt-24 sm:px-7 sm:pb-20 sm:pt-28 lg:px-10 lg:pb-24 lg:pt-32">
+      <section className="mx-auto w-full max-w-[1440px] px-5 pb-16 pt-24 sm:px-7 sm:pb-20 sm:pt-28 lg:px-10 lg:pb-24 lg:pt-32">
         <div className="mx-auto max-w-[880px] text-center"> 
 
           <h1 className="mx-auto mt-5 max-w-[820px] text-[clamp(2.25rem,4.4vw,3rem)] font-medium leading-[0.98] tracking-[-0.045em]">
@@ -189,7 +189,7 @@ export default function ServicesPage() {
         aria-labelledby="services-index-title"
         className="border-t border-neutral-200"
       >
-        <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-5 py-16 sm:px-7 sm:py-20 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:gap-16 lg:px-10 lg:py-24"
+        <div className="mx-auto grid w-full max-w-[1440px] gap-10 px-5 py-16 sm:px-7 sm:py-20 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:gap-16 lg:px-10 lg:py-24"
         >
           <div>
             <div className="mb-8 flex items-end justify-between gap-6 border-b border-neutral-200 pb-5 sm:mb-10">
@@ -228,7 +228,7 @@ export default function ServicesPage() {
           INTEGRATED AGENCY MESSAGE */}
 
       <section className="border-t border-neutral-200 bg-neutral-950 text-white">
-        <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-5 py-16 sm:px-7 sm:py-20 md:grid-cols-[0.8fr_1.2fr] lg:px-10 lg:py-24">
+        <div className="mx-auto grid w-full max-w-[1440px] gap-10 px-5 py-16 sm:px-7 sm:py-20 md:grid-cols-[0.8fr_1.2fr] lg:px-10 lg:py-24">
           <SectionLabel>
            <span className='text-white/80'>One creative direction</span> 
           </SectionLabel>
@@ -260,7 +260,7 @@ export default function ServicesPage() {
       {/*  CLOSING / INTERNAL LINKING */}
 
       <section className="border-t border-neutral-800 bg-neutral-950 text-white">
-        <div className="mx-auto w-full max-w-[1280px] px-5 py-14 sm:px-7 sm:py-16 lg:px-10">
+        <div className="mx-auto w-full max-w-[1440px] px-5 py-14 sm:px-7 sm:py-16 lg:px-10">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-[650px]">
               {/* <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">

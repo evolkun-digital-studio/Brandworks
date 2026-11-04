@@ -53,7 +53,7 @@ export const frames = {
   bottle: frame('photo4', 'Product / Still life', 'White pump bottle lit softly against a charcoal background', 1086, 1448),
   balance: frame('photo13', 'Still life / Set', 'White spheres on geometric plinths with orange and blue panels', 1536, 1024),
   coconut: frame('photo3', 'Food & drink / Campaign', 'Woman in sunglasses drinking from a green coconut water can against blue', 1067, 1600),
-  film: frame('film-reels', 'Detail / Archive', 'Vintage film reels and cameras arranged on a wall', 1600, 1067),
+  film: frame('film-reels', 'Product / Beauty', 'Moisturizer product mockup', 1600, 1067),
   wave: frame('photo11', 'Experimental / Portrait', 'Teal portrait with horizontal waves distorting the face', 1312, 1199),
   reader: frame('reader', 'Lifestyle / Editorial', 'Person reading a broadsheet against a wall papered with newsprint', 1067, 1600),
   studio: frame('studio', 'Studio / Interior', 'Dark photography studio with lighting stands and a single chair', 1600, 1067),

@@ -16,8 +16,6 @@ import asset11 from '../assets/photography/dusk-camera-1600.jpg'
 import asset12 from '../assets/photography/dusk-camera-720.jpg'
 import asset13 from '../assets/photography/eye-light-1600.jpg'
 import asset14 from '../assets/photography/eye-light-720.jpg'
-import asset15 from '../assets/photography/film-reels-1600.jpg'
-import asset16 from '../assets/photography/film-reels-720.jpg'
 import asset17 from '../assets/photography/jeans-pocket-1600.jpg'
 import asset18 from '../assets/photography/jeans-pocket-720.jpg'
 import asset21 from '../assets/photography/lotion-1600.jpg'
@@ -50,8 +48,6 @@ import asset51 from '../assets/photography/logo-mockup-1600.jpg'
 import asset52 from '../assets/photography/logo-mockup-720.jpg'
 import asset53 from '../assets/photography/dsc06777-1600.jpg'
 import asset54 from '../assets/photography/dsc06777-720.jpg'
-import asset55 from '../assets/photography/reader-1600.jpg'
-import asset56 from '../assets/photography/reader-720.jpg'
 import asset57 from '../assets/photography/shoulder-1600.jpg'
 import asset58 from '../assets/photography/shoulder-720.jpg'
 import asset59 from '../assets/photography/street-1600.jpg'
@@ -74,7 +70,7 @@ export const photographySmall: Readonly<Record<string, string>> = {
   '../assets/photography/dropper-720.jpg': assetUrl(asset10),
   '../assets/photography/dusk-camera-720.jpg': assetUrl(asset12),
   '../assets/photography/eye-light-720.jpg': assetUrl(asset14),
-  '../assets/photography/film-reels-720.jpg': assetUrl(asset16),
+  '../assets/photography/film-reels-720.jpg': 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/moisturizer%20mock%20up.png',
   '../assets/photography/jeans-pocket-720.jpg': assetUrl(asset18),
   '../assets/photography/jellystar-720.jpg': 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/DSC06887.JPG',
   '../assets/photography/lotion-720.jpg': assetUrl(asset22),
@@ -94,7 +90,7 @@ export const photographySmall: Readonly<Record<string, string>> = {
   '../assets/photography/photo7-720.jpg': assetUrl(asset50),
   '../assets/photography/photo8-720.jpg': assetUrl(asset52),
   '../assets/photography/photo9-720.jpg': assetUrl(asset54),
-  '../assets/photography/reader-720.jpg': assetUrl(asset56),
+  '../assets/photography/reader-720.jpg': 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202%403x.png',
   '../assets/photography/shoulder-720.jpg': assetUrl(asset58),
   '../assets/photography/street-720.jpg': assetUrl(asset60),
   '../assets/photography/studio-720.jpg': assetUrl(asset62),
@@ -111,7 +107,7 @@ export const photographyLarge: Readonly<Record<string, string>> = {
   '../assets/photography/dropper-1600.jpg': assetUrl(asset9),
   '../assets/photography/dusk-camera-1600.jpg': assetUrl(asset11),
   '../assets/photography/eye-light-1600.jpg': assetUrl(asset13),
-  '../assets/photography/film-reels-1600.jpg': assetUrl(asset15),
+  '../assets/photography/film-reels-1600.jpg': 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/moisturizer%20mock%20up.png',
   '../assets/photography/jeans-pocket-1600.jpg': assetUrl(asset17),
   '../assets/photography/jellystar-1600.jpg': 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/DSC06887.JPG',
   '../assets/photography/lotion-1600.jpg': assetUrl(asset21),
@@ -131,7 +127,7 @@ export const photographyLarge: Readonly<Record<string, string>> = {
   '../assets/photography/photo7-1600.jpg': assetUrl(asset49),
   '../assets/photography/photo8-1600.jpg': assetUrl(asset51),
   '../assets/photography/photo9-1600.jpg': assetUrl(asset53),
-  '../assets/photography/reader-1600.jpg': assetUrl(asset55),
+  '../assets/photography/reader-1600.jpg': 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202%403x.png',
   '../assets/photography/shoulder-1600.jpg': assetUrl(asset57),
   '../assets/photography/street-1600.jpg': assetUrl(asset59),
   '../assets/photography/studio-1600.jpg': assetUrl(asset61),
