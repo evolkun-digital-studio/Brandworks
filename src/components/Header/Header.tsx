@@ -145,10 +145,11 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
         {/* Left */}
         <div className="justify-self-start flex items-center">
           <Link to="/" aria-label="Brandworks home" className="block">
-            <Logo className="site-header__logo site-header__logo--light [body:has(.about-page):not(.about-logo-on-dark)_&]:hidden! block h-[30px]" />
+            <Logo data-nav-logo="color" className="site-header__logo site-header__logo--light [body:has(.about-page):not(.about-logo-on-dark)_&]:hidden! block h-[30px]" />
             {/* Shown instead on the About page, except over its dark footer (the classes below). */}
             <Logo
               variant="dark"
+              data-nav-logo="dark"
               alt=""
               aria-hidden="true"
               className="site-header__logo site-header__logo--dark [body:has(.about-page):not(.about-logo-on-dark)_&]:block! h-[30px]"
@@ -166,6 +167,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               key={link.label}
               to={link.href}
               className="nav-pill"
+              data-nav-reveal
               aria-current={link.href === "/" ? (pathname === "/" ? "page" : undefined) : pathname.startsWith(link.href) ? "page" : undefined}
             >
               <RollLabel>{navLabels?.[link.label.toLowerCase() as keyof SiteNavigationLabels] ?? link.label}</RollLabel>
@@ -174,7 +176,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
         </nav>
 
         {/* Right */}
-        <Link to="/start-project" className="nav-pill nav-pill--cta justify-self-end">
+        <Link to="/start-project" className="nav-pill nav-pill--cta justify-self-end" data-nav-reveal>
           <RollLabel>{"Let's Talk"}</RollLabel>
           <svg
             viewBox="0 0 24 24"
@@ -196,10 +198,11 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
       <div className={`site-header__surface ${tone} flex lg:hidden w-full h-[64px] items-center justify-between px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}>
         <div className="flex items-center">
           <Link to="/" aria-label="Brandworks home" className="block">
-            <Logo className="site-header__logo site-header__logo--light [body:has(.about-page):not(.about-logo-on-dark)_&]:hidden! block h-[25px]" />
+            <Logo data-nav-logo="color" className="site-header__logo site-header__logo--light [body:has(.about-page):not(.about-logo-on-dark)_&]:hidden! block h-[25px]" />
             {/* Shown instead on the About page, except over its dark footer (the classes below). */}
             <Logo
               variant="dark"
+              data-nav-logo="dark"
               alt=""
               aria-hidden="true"
               className="site-header__logo site-header__logo--dark [body:has(.about-page):not(.about-logo-on-dark)_&]:block! h-[25px]"
@@ -207,7 +210,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
           </Link>
         </div>
 
-        <button aria-label="Open menu" className="nav-pill">
+        <button aria-label="Open menu" className="nav-pill" data-nav-reveal>
           Menu
         </button>
       </div>
