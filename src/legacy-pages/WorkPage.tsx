@@ -55,6 +55,8 @@ const delhi6Images = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Delhi6_28th%20Oct.png',
 ] as const
 
+const RIAAJ_VINTAGE_COVER = 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/riaaj1.png'
+
 const riaajVintageImages = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/RiaajVintage_24thOct.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/RIAAJVINTAGE_27OCT_2.png',
@@ -94,9 +96,9 @@ const projects: Project[] = [
 
 const projectHeroImages = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/RiaajVintage_Final.png',
+  RIAAJ_VINTAGE_COVER,
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k1.png',
-  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen%20E-Waste_%20New%20Growth.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_Front.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k4.png',
 ] as const

@@ -13,6 +13,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 const productImage = 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/t-shiry.png'
 const portraitImage = assetUrl(portraitImageAsset)
+const performanceImage = 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/performance.png'
 
 const capabilities = ['Meta Ads', 'Google Search Ads', 'Google Display', 'YouTube Advertising', 'Performance Max', 'LinkedIn Ads', 'Remarketing', 'Lead Generation Campaigns', 'E-commerce Acquisition', 'App Promotion', 'Conversion Rate Optimization', 'Landing Page Strategy', 'Campaign Creative Strategy', 'Analytics & Tracking', 'Budget Scaling', 'Performance Reporting']
 
@@ -108,7 +109,8 @@ function Flow({ items, className = '' }: { items: string[]; className?: string }
 }
 
 function CampaignField() {
-  return <div className="pm-campaign-field" role="img" aria-label="Conceptual campaign paths connecting attention, intent and conversion. No performance data is represented.">
+  return <div className="pm-campaign-field pm-performance-image" role="img" aria-label="Performance marketing campaign visual">
+    <img src={performanceImage} alt="Performance marketing campaign visual" className="pm-performance-image__asset" />
     <div className="pm-field-top"><span>Creative × Media × Technology</span><span>Acquisition system</span></div>
     <svg viewBox="0 0 600 390" fill="none" aria-hidden="true">
       <g className="pm-field-grid" stroke="currentColor">{[80, 160, 240, 320].map(y => <path key={y} d={`M0 ${y}H600`} />)}{[100, 200, 300, 400, 500].map(x => <path key={x} d={`M${x} 0V390`} />)}</g>
@@ -139,7 +141,7 @@ function CreativeLab() {
   ]
   return <div className="pm-creative-lab">
     <div className="pm-creative-preview">
-      <img src={visual === 0 ? productImage : portraitImage} alt={visual === 0 ? 'Studio product photograph of a white pump bottle' : 'Lifestyle campaign photograph of a woman with a coconut water can'} width="720" height="900" loading="lazy" />
+      <img src={visual === 0 ? performanceImage : portraitImage} alt={visual === 0 ? 'Performance marketing campaign visual' : 'Lifestyle campaign photograph of a woman with a coconut water can'} width="720" height="900" loading="lazy" />
       <div className="pm-creative-copy"><span>Illustrative creative study</span><h3>{['Make the everyday feel considered.', 'A small change. A better ritual.', 'Designed for your daily rhythm.'][hook]}</h3><p>{offer === 0 ? 'Explore the collection' : 'Find your everyday essential'} <span aria-hidden="true">↗</span></p></div>
     </div>
     <div className="pm-test-selector"><p className="pm-label">Choose a test combination</p>{groups.map(group => <fieldset key={group.name}><legend>{group.name}</legend><div>{group.labels.map((label, index) => <button key={label} type="button" aria-pressed={group.value === index} onClick={() => group.set(index)}>{label}</button>)}</div></fieldset>)}

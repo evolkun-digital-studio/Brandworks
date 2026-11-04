@@ -37,6 +37,8 @@
 .pm-hero .pm-lead { margin-top: 25px; max-width: 47ch; font-size: 16px; }
 .pm-page .pm-hero-signature { margin-top: 48px; font-size: 11px; letter-spacing: .05em; }
 .pm-campaign-field { position: relative; min-height: 480px; background: var(--pm-dark); color: #c5cabf; overflow: hidden; }
+.pm-performance-image__asset { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 480px; object-fit: cover; }
+.pm-performance-image > :not(.pm-performance-image__asset) { display: none; }
 .pm-campaign-field svg { position: absolute; width: 100%; height: 80%; top: 8%; }
 .pm-field-grid { opacity: .12; }
 .pm-field-paths { stroke: #aeb6a3; }
@@ -186,6 +188,7 @@
 @media (max-width: 1023px) {
   .pm-hero { grid-template-columns: 1fr 1fr; gap: 30px; }
   .pm-campaign-field { min-height: 420px; }
+  .pm-performance-image__asset { min-height: 420px; }
   .pm-field-top { flex-direction: column; gap: 7px; }
   .pm-field-label { font-size: 10px; }
   .pm-channel-linkedin { grid-template-columns: .7fr 1.3fr; }
@@ -201,6 +204,7 @@
   .pm-page h1 { max-width: 20ch; }
   .pm-page h2 { max-width: 27ch; }
   .pm-campaign-field { min-height: 390px; }
+  .pm-performance-image__asset { min-height: 390px; }
   .pm-field-top { flex-direction: row; }
   .pm-field-label-c { left: 47%; }
   .pm-section { padding-block: 64px; }
