@@ -67,7 +67,7 @@ export const SITE_MEDIA_SECTIONS: SiteMediaSectionConfig[] = [
       {
         id: 'photography',
         label: 'Photography grid',
-        description: 'The photos shown when a visitor picks “Photography” in the hero. Add at least 3 to replace the built-in set; until then the built-in photos stay. Upright (3:4) photos work best.',
+        description: 'The photos shown when a visitor picks “Photography” in the hero. Add at least 3: they take the built-in photos’ places in order, and the remaining built-in photos keep filling the small grid below. Upright (3:4) photos work best.',
         kind: 'gallery',
         recommended: { longEdge: 1600, label: '1600 px on the long edge, upright 3:4' },
         maxItems: 24,

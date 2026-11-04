@@ -16,11 +16,14 @@ const LOGO_SRC = '/BWorksLogo-01.svg'
 
 gsap.registerPlugin(useGSAP)
 
-// Shared footer film. The same adaptive MP4 is used across breakpoints so
-// every public page carries one consistent closing visual.
+// Shared footer film. The same MP4 is used across breakpoints so every
+// public page carries one consistent closing visual.
+const FOOTER_VIDEO_URL =
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260815_034306_b4af8200-cdba-4dc8-b46d-ba7eb9c68c44.mp4'
+
 const SHOWREEL = {
-  desktop: '/services/footer.mp4',
-  mobile: '/services/footer.mp4',
+  desktop: FOOTER_VIDEO_URL,
+  mobile: FOOTER_VIDEO_URL,
 }
 
 /** Where the fullscreen cursor follows the pointer instead of a button. */

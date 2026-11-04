@@ -159,6 +159,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
               key={link.label}
               to={link.href}
               className="nav-pill"
+              data-nav-reveal
               aria-current={link.href === "/" ? (pathname === "/" ? "page" : undefined) : pathname.startsWith(link.href) ? "page" : undefined}
             >
               <RollLabel>{navLabels?.[link.label.toLowerCase() as keyof SiteNavigationLabels] ?? link.label}</RollLabel>
@@ -167,7 +168,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
         </nav>
 
         {/* Right */}
-        <Link to="/start-project" className="nav-pill nav-pill--cta justify-self-end">
+        <Link to="/start-project" className="nav-pill nav-pill--cta justify-self-end" data-nav-reveal>
           <RollLabel>{"Let's Talk"}</RollLabel>
           <svg
             viewBox="0 0 24 24"
@@ -193,7 +194,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
           </Link>
         </div>
 
-        <button aria-label="Open menu" className="nav-pill">
+        <button aria-label="Open menu" className="nav-pill" data-nav-reveal>
           Menu
         </button>
       </div>

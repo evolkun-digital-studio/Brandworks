@@ -1582,3 +1582,32 @@ body {
 :is(h1, h2, h3, h4, h5, h6):not(.admin-app *) {
   font-family: var(--section-title-font) !important;
 }
+
+/* Project popup (shared by every project): all headings use the 400 weight.
+   The mock store screens inside the Mr.Rework / Evergreen browser frames keep their own
+   weights, since they reproduce the live site's typography. */
+.project-modal :is(h1, h2, h3, h4, h5, h6):not(.mrw-site-screen *, .evg-site-screen *) {
+  font-weight: 400;
+}
+
+/* Shared project-detail layout, used by any project showcase in the popup.
+   Tagline: one line from md up with a fluid size; wraps normally on mobile. */
+.project-modal .project-detail__tagline { max-width: none; font-size: clamp(2rem, 4.5vw, 3rem); }
+@media (min-width: 768px) {
+  .project-modal .project-detail__tagline { white-space: nowrap; }
+}
+
+/* Equal 3:4 tiles for any number of images: rows of 3 (desktop), 2 (tablet),
+   an 80vw swipe row (mobile). Product cut-outs use .is-contain. */
+.project-modal .project-detail__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 16px; }
+.project-modal .project-detail__grid > * { width: 100%; aspect-ratio: 3 / 4; overflow: hidden; background: #f1f1f1; border-radius: 0; }
+.project-modal .project-detail__grid > * img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.project-modal .project-detail__grid > * img:is(.is-contain, .mrw-image__contain) { box-sizing: border-box; padding: 8%; object-fit: contain; }
+@media (min-width: 768px) and (max-width: 1023px) {
+  .project-modal .project-detail__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .project-modal .project-detail__grid { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 80vw; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .project-modal .project-detail__grid::-webkit-scrollbar { display: none; }
+  .project-modal .project-detail__grid > * { scroll-snap-align: start; }
+}
