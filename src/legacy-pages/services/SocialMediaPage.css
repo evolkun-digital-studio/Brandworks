@@ -2074,6 +2074,7 @@ a:hover>.bwsm-arrow {
 
 .bwsm-roundnav { position: fixed; inset: clamp(20px, 2vw, 38px) clamp(20px, 2vw, 38px) auto; z-index: 1200; display: flex; justify-content: space-between; pointer-events: none; }
 .bwsm-page .bwsm-roundnav > * { pointer-events: auto; display: grid; place-content: center; gap: 4px; width: clamp(52px, 4vw, 76px); height: clamp(52px, 4vw, 76px); border: 0; border-radius: 50%; background: #e993bc; color: #055c2c; cursor: pointer; }
+.bwsm-page .bwsm-roundnav__logo { position: absolute; left: 50%; width: auto; height: auto; transform: translateX(-50%); border-radius: 0; background: transparent; }
 .bwsm-page .bwsm-roundnav button span { display: block; width: 14px; height: 2px; background: currentColor; }
 body.bwsm-route:not(.bwsm-nav-open) .site-header { display: none; }
 body.bwsm-route.bwsm-nav-open .site-header { z-index: 1100; }

@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { Link } from '../../routing'
 import { useNativeMetadata } from '../../routing/context'
+import Logo from '../../components/Logo/Logo'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
@@ -2596,6 +2597,9 @@ function SocialRoundNav() {
       <button type="button" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         <span /><span /><span />
       </button>
+      <Link to="/" aria-label="BrandWorks home" className="bwsm-roundnav__logo">
+        <Logo className="block h-[30px]" />
+      </Link>
       <Link to="/contact" aria-label="Contact us">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3Z" /></svg>
       </Link>

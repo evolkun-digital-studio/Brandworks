@@ -22,7 +22,7 @@ export default memo(function ServiceRow({ service, index, onIntent, onCancel, on
         className="service-index-row__link group grid min-h-[84px] grid-cols-[1fr_auto] items-center gap-4 py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-4 sm:min-h-[94px] sm:grid-cols-[minmax(190px,0.72fr)_minmax(240px,1fr)_auto] sm:gap-5">
         <span className="service-index-row__name text-[20px] font-medium leading-tight tracking-[-0.025em] sm:text-[22px]">{service.shortTitle ?? service.title}</span>
         <span className="service-index-row__description hidden max-w-[410px] text-sm leading-6 sm:block">{service.description}</span>
-        <span aria-hidden="true" className="service-index-row__arrow">↗</span>
+        {/* <span aria-hidden="true" className="service-index-row__arrow">↗</span> */}
       </Link>
       <details className="service-index-row__mobile lg:hidden">
         <summary className="cursor-pointer pb-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-4">Preview {service.shortTitle ?? service.title}</summary>

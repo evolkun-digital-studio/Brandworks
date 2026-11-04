@@ -9,6 +9,8 @@ import '../components/SocialContent/SocialContentSection.css'
 import { useGSAP } from '@gsap/react'
 import Lenis from 'lenis'
 import { mediaUrl } from '../lib/media'
+import MrReworkShowcase from '../components/MrReworkShowcase/MrReworkShowcase'
+import EvergreenShowcase from '../components/EvergreenShowcase/EvergreenShowcase'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -544,13 +546,20 @@ const PROJECT_SUMMARIES: Record<number, string> = {
   7: 'A brand and visual series for Mr.Rework, created to give the brand a distinct, recognisable look across everything it puts out.',
 }
 
-function OverlayGallery({ project, slotRef }: { project: Project; slotRef: RefObject<HTMLDivElement | null> }) {
+function OverlayGallery({ project, slotRef, scrollRoot }: { project: Project; slotRef: RefObject<HTMLDivElement | null>; scrollRoot: RefObject<HTMLDivElement | null> }) {
+  if (project.id === 2) {
+    return <MrReworkShowcase scrollRoot={scrollRoot} />
+  }
+  if (project.id === 4) {
+    return <EvergreenShowcase scrollRoot={scrollRoot} />
+  }
+
   const images = Array.from(new Set([...(project.previewImages ?? []), ...(project.gallery ?? [])]))
     .filter((src) => src !== project.media)
 
   return (
     <div className="culture-reels pb-[clamp(16px,3vh,40px)]">
-      <div className="culture-reels__container !max-w-7xl">
+      <div className="culture-reels__container !max-w-[var(--media-max-width)]">
         <header data-ov-fade className="mb-[clamp(24px,4vh,48px)]">
           <p className="section-description max-w-[600px] text-[16px] leading-7">{PROJECT_SUMMARIES[project.id]}</p>
         </header>
@@ -700,7 +709,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
       <div className="relative flex min-h-full flex-col pb-[clamp(32px,5vh,64px)]">
         <div className="sticky top-0 z-10 bg-white py-[clamp(24px,3vh,40px)]">
           <div className="culture-reels">
-            <div className="culture-reels__container !max-w-7xl flex items-center justify-between gap-4">
+            <div className="culture-reels__container !max-w-[var(--media-max-width)] flex items-center justify-between gap-4">
               <h2 id="overlay-title" data-ov-fade className="section-heading min-w-0 capitalize">
                 {project.title}
               </h2>
@@ -715,7 +724,7 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
           </div>
         </div>
 
-        <OverlayGallery project={project} slotRef={slotRef} />
+        <OverlayGallery project={project} slotRef={slotRef} scrollRoot={rootRef} />
 
       </div>
     </div>

@@ -146,10 +146,10 @@ function AboutHero() {
     <section className="about-green box-border h-svh pt-[max(104px,calc(88px+env(safe-area-inset-top)))] pb-[max(16px,3svh,env(safe-area-inset-bottom))] bg-[#dcff52] text-(--ink)" aria-labelledby="about-hero-heading">
       <div className="mx-auto grid h-full w-full max-w-(--page-max-width) grid-rows-[auto_minmax(0,1fr)] gap-[clamp(16px,3svh,32px)] px-(--page-gutter) md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:items-center md:gap-x-(--grid-gap) min-[480px]:landscape:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] min-[480px]:landscape:grid-rows-[minmax(0,1fr)] min-[480px]:landscape:items-center min-[480px]:landscape:gap-x-(--grid-gap)" data-reveal-group>
         <div className="grid min-w-0 content-center gap-[clamp(12px,2svh,24px)]">
-          <h1 id="about-hero-heading" className="m-0 font-[family-name:var(--section-title-font)] text-[clamp(28px,5svh,var(--section-title-size))] font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance">
+          <h1 id="about-hero-heading" className="m-0 font-[family-name:var(--section-title-font)] text-[clamp(28px,4vw,48px)] font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance">
             <MaskLine>{ABOUT_HERO.heading}</MaskLine>
           </h1>
-          <div data-reveal="fade" className="grid gap-[clamp(8px,1.6svh,16px)] font-secondary text-[clamp(14px,2.2svh,18px)] font-normal leading-[1.5] text-pretty [&_p]:m-0 [&_p]:max-w-[58ch]">
+          <div data-reveal="fade" className="grid gap-[clamp(8px,1.6svh,16px)] font-secondary text-[clamp(14px,2vw,18px)] font-normal leading-[1.5] text-pretty [&_p]:m-0 [&_p]:max-w-[58ch]">
             <p>{ABOUT_HERO.description}</p>
             {ABOUT_HERO.body.map((line) => <p key={line}>{line}</p>)}
           </div>
