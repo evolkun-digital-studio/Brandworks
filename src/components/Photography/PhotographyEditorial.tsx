@@ -13,11 +13,12 @@ gsap.registerPlugin(ScrollTrigger)
 
 // Media Manager › Photography fills the four frames in gallery order; any
 // frame without an uploaded image keeps its built-in photograph.
+// Phone: 2-col mosaic · tablet: 3-col mosaic · desktop: the single row.
 const FRAME_SIZES = [
-  '(max-width: 1440px) 19vw, 250px',
-  '(max-width: 1440px) 58vw, 770px',
-  '(max-width: 1440px) 21vw, 280px',
-  '(max-width: 1440px) 21vw, 280px',
+  '(max-width: 767px) 50vw, (max-width: 1023px) 34vw, (max-width: 1440px) 19vw, 250px',
+  '(max-width: 767px) 100vw, (max-width: 1023px) 67vw, (max-width: 1440px) 58vw, 770px',
+  '(max-width: 767px) 50vw, (max-width: 1023px) 34vw, (max-width: 1440px) 21vw, 280px',
+  '(max-width: 767px) 50vw, (max-width: 1023px) 34vw, (max-width: 1440px) 21vw, 280px',
 ]
 
 type PhotographyRowProps = {
@@ -49,6 +50,13 @@ function FramePhoto({ index, images }: { index: number; images: PublicSiteImage[
  * the stacked pair is two 4:3 frames plus one gap. On desktop the height is
  * derived from the container width, so the whole row scales to fit at every
  * screen size and the layout never crops, scrolls or collapses.
+ *
+ * Below lg a single row would shrink every photo to a thumbnail, so the same
+ * four frames regroup into a mosaic instead:
+ *   phone   the landscape runs full width on top; beneath it the portrait
+ *           (left) sets the height and the two 4:3s split the right column.
+ *   tablet  the portrait spans both rows on the left; the landscape sits
+ *           top-right over the two 4:3s side by side.
  */
 export default function PhotographyRow({
   className = '',
@@ -125,32 +133,35 @@ export default function PhotographyRow({
           container query lets it size itself to its own content box. */}
       <div className="mx-auto max-w-[var(--media-max-width)] px-[var(--media-pad)]">
         <div className="[container-type:inline-size]">
-          <div className="flex w-full flex-nowrap items-start justify-center gap-[var(--photo-gap)] [--photo-gap:clamp(4px,0.5vw,8px)] [--photo-h:calc((100cqw_-_1.34*var(--photo-gap))/3.008)]  ">
+          <div className="grid w-full grid-cols-2 gap-[var(--photo-gap)] [--photo-gap:6px] md:grid-cols-3 md:[--photo-gap:8px] lg:flex lg:flex-nowrap lg:items-start lg:justify-center lg:[--photo-gap:clamp(4px,0.5vw,8px)] [--photo-h:calc((100cqw_-_1.34*var(--photo-gap))/3.008)]">
+            {/* Portrait: phone row 2-3 left · tablet rows 1-2 left (stretches) · desktop 9:16 */}
             <figure
               data-photo-reveal
-              className={`${frameClass} aspect-[9/16] h-[var(--photo-h)]`}
+              className={`${frameClass} col-start-1 row-span-2 row-start-2 aspect-[9/16] md:row-start-1 md:aspect-auto lg:aspect-[9/16] lg:h-[var(--photo-h)]`}
             >
               <FramePhoto index={0} images={images} />
             </figure>
 
+            {/* Landscape: the lead image — full width on phone, top-right on tablet */}
             <figure
               data-photo-reveal
-              className={`${frameClass} aspect-[16/9] h-[var(--photo-h)]`}
+              className={`${frameClass} col-span-2 row-start-1 aspect-[16/10] md:col-span-2 md:col-start-2 md:aspect-[16/9] lg:h-[var(--photo-h)]`}
             >
               <FramePhoto index={1} images={images} />
             </figure>
 
-            {/* Two 4:3 frames, each half the row height minus half a gap. */}
-            <div className="flex shrink-0 flex-col gap-[var(--photo-gap)]">
+            {/* Two 4:3 frames. Below lg the wrapper dissolves into the grid;
+                on desktop each is half the row height minus half a gap. */}
+            <div className="contents lg:flex lg:shrink-0 lg:flex-col lg:gap-[var(--photo-gap)]">
               <figure
                 data-photo-reveal
-                className="relative aspect-[4/3] h-[calc((var(--photo-h)_-_var(--photo-gap))/2)] overflow-hidden bg-[#f4f4f4]"
+                className="relative col-start-2 row-start-2 min-h-0 overflow-hidden bg-[#f4f4f4] md:aspect-[4/3] lg:h-[calc((var(--photo-h)_-_var(--photo-gap))/2)]"
               >
                 <FramePhoto index={2} images={images} />
               </figure>
               <figure
                 data-photo-reveal
-                className="relative aspect-[4/3] h-[calc((var(--photo-h)_-_var(--photo-gap))/2)] overflow-hidden bg-[#f4f4f4]"
+                className="relative col-start-2 row-start-3 min-h-0 overflow-hidden bg-[#f4f4f4] md:col-start-3 md:row-start-2 md:aspect-[4/3] lg:h-[calc((var(--photo-h)_-_var(--photo-gap))/2)]"
               >
                 <FramePhoto index={3} images={images} />
               </figure>

@@ -131,7 +131,7 @@ function Feature({
             eager={eager}
           />
           {caption && (
-            <p data-reveal="fade" className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] max-w-none! font-secondary text-[11px]! font-medium! leading-[1.2]! tracking-[0.14em] uppercase text-(--about-copy) flex justify-between">
+            <p data-reveal="fade" className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6] max-w-none! font-secondary text-[11px]! font-medium! leading-[1.2]! tracking-[0.14em] uppercase text-(--about-copy) flex justify-between">
               {caption}
             </p>
           )}
@@ -146,10 +146,10 @@ function AboutHero() {
     <section className="about-green box-border h-svh pt-[max(104px,calc(88px+env(safe-area-inset-top)))] pb-[max(16px,3svh,env(safe-area-inset-bottom))] bg-[#dcff52] text-(--ink)" aria-labelledby="about-hero-heading">
       <div className="mx-auto grid h-full w-full max-w-(--page-max-width) grid-rows-[auto_minmax(0,1fr)] gap-[clamp(16px,3svh,32px)] px-(--page-gutter) md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:items-center md:gap-x-(--grid-gap) min-[480px]:landscape:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] min-[480px]:landscape:grid-rows-[minmax(0,1fr)] min-[480px]:landscape:items-center min-[480px]:landscape:gap-x-(--grid-gap)" data-reveal-group>
         <div className="grid min-w-0 content-center gap-[clamp(12px,2svh,24px)]">
-          <h1 id="about-hero-heading" className="m-0 font-[family-name:var(--section-title-font)] text-[clamp(28px,4vw,48px)] font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance">
+          <h1 id="about-hero-heading" className="m-0 font-[family-name:var(--section-title-font)] text-[clamp(56px,16.5vw,96px)] font-(--section-title-weight) leading-[0.92] tracking-[-0.04em] text-balance md:text-[clamp(60px,7.4vw,84px)] lg:text-[clamp(28px,4vw,48px)] lg:leading-[1.05] lg:tracking-(--section-title-tracking)">
             <MaskLine>{ABOUT_HERO.heading}</MaskLine>
           </h1>
-          <div data-reveal="fade" className="grid gap-[clamp(8px,1.6svh,16px)] font-secondary text-[clamp(14px,2vw,18px)] font-normal leading-[1.5] text-pretty [&_p]:m-0 [&_p]:max-w-[58ch]">
+          <div data-reveal="fade" className="grid gap-[clamp(8px,1.6svh,16px)] font-secondary text-[clamp(16px,4.3vw,19px)] font-normal leading-[1.5] text-pretty [&_p]:m-0 [&_p]:max-w-[34ch] [&_p:first-child]:font-medium md:text-[clamp(17px,2.2vw,19px)] lg:text-[clamp(14px,2vw,18px)] lg:[&_p]:max-w-[58ch] lg:[&_p:first-child]:font-normal">
             <p>{ABOUT_HERO.description}</p>
             {ABOUT_HERO.body.map((line) => <p key={line}>{line}</p>)}
           </div>
@@ -179,8 +179,8 @@ function AboutIntro() {
 
         <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch mt-(--content-gap) md:gap-y-(--content-gap)" data-reveal-group>
           <div data-reveal="fade" className="grid content-start gap-(--text-gap) md:col-span-4 lg:col-start-1 lg:col-end-7">
-            <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px]">{ABOUT_INTRO.studio}</p>
-            <ul className="m-0 grid list-none grid-cols-2 gap-x-(--grid-gap) p-0 max-[380px]:grid-cols-1 [&_li]:border-t [&_li]:border-(--about-rule) [&_li]:py-2.5 [&_li]:font-secondary [&_li]:text-[15px] [&_li]:leading-[1.35] [&_li]:text-(--ink)" aria-label="Disciplines">
+            <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6]">{ABOUT_INTRO.studio}</p>
+            <ul className="m-0 grid list-none grid-cols-2 gap-x-(--grid-gap) p-0 max-[380px]:grid-cols-1 [&_li]:border-t [&_li]:border-(--about-rule) [&_li]:py-2.5 [&_li]:font-secondary [&_li]:text-[16px] [&_li]:leading-[1.35] [&_li]:text-(--ink) lg:[&_li]:text-[15px]" aria-label="Disciplines">
               {ABOUT_INTRO.disciplines.map((discipline) => (
                 <li key={discipline}>{discipline}</li>
               ))}
@@ -188,7 +188,7 @@ function AboutIntro() {
           </div>
 
           <div data-reveal="fade" className="grid content-start gap-4 md:col-span-4 lg:col-start-8 lg:col-end-13">
-            <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-(--ink)!">{ABOUT_INTRO.approach[0]}</p>
+            <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6] text-(--ink)!">{ABOUT_INTRO.approach[0]}</p>
           </div>
         </div>
       </div>
@@ -206,18 +206,19 @@ function AboutJourney() {
         heading={ABOUT_JOURNEY.heading}
         image={ABOUT_JOURNEY.images.beginning}
         mediaSide="start"
-        footer={
-          // The path the story takes, by its stage names: an index, not
-          // more copy.
-          <ol className="m-0 grid max-w-[32ch] list-none justify-items-start p-0 [&_li]:w-full [&_li]:border-t [&_li]:border-(--about-rule) [&_li]:py-2.5 [&_li]:text-left [&_li]:font-secondary [&_li]:text-[15px] [&_li]:leading-[1.35] [&_li]:text-[rgba(17,17,17,0.64)]" aria-label="Stages of the journey">
-            {ABOUT_JOURNEY.stages.map((stage) => (
-              <li key={stage.title}>{stage.title}</li>
-            ))}
-          </ol>
-        }
+        // Stage index hidden for now — uncomment to bring it back.
+        // footer={
+        //  // The path the story takes, by its stage names: an index, not
+        //  // more copy.
+        //  <ol className="m-0 grid max-w-[32ch] list-none justify-items-start p-0 [&_li]:w-full [&_li]:border-t [&_li]:border-(--about-rule) [&_li]:py-2.5 [&_li]:text-left [&_li]:font-secondary [&_li]:text-[16px] [&_li]:leading-[1.35] [&_li]:text-[rgba(17,17,17,0.64)] lg:[&_li]:text-[15px]" aria-label="Stages of the journey">
+        //    {ABOUT_JOURNEY.stages.map((stage) => (
+        //      <li key={stage.title}>{stage.title}</li>
+        //    ))}
+        //  </ol>
+        //}
       >
-        <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-(--ink)!">{ABOUT_JOURNEY.description}</p>
-        <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px]">{beginning.text}</p>
+        <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6] text-(--ink)!">{ABOUT_JOURNEY.description}</p>
+        <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6]">{beginning.text}</p>
       </Feature>
     </section>
   )
@@ -232,7 +233,7 @@ function AboutStatement() {
         image={ABOUT_STATEMENT.image}
         mediaSide="end"
       >
-        <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-(--ink)!">{ABOUT_STATEMENT.text}</p>
+        <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6] text-(--ink)!">{ABOUT_STATEMENT.text}</p>
       </Feature>
     </section>
   )
@@ -249,11 +250,11 @@ function AboutPrinciples() {
             </h2>
           </header>
 
-          <ol className="col-span-full m-0 grid list-none grid-cols-1 gap-x-(--grid-gap) gap-y-7 p-0 md:grid-cols-2 md:gap-y-10 lg:col-start-6 lg:col-end-13" data-reveal-group>
+          <ol className="col-span-full m-0 grid list-none grid-cols-1 gap-x-(--grid-gap) gap-y-9 p-0 md:grid-cols-2 md:gap-y-12 lg:gap-y-10 lg:col-start-6 lg:col-end-13" data-reveal-group>
             {ABOUT_PRINCIPLES.items.map((item) => (
-              <li key={item.title} data-reveal="fade" className="grid content-start gap-2 border-t border-(--about-rule-strong) pt-5">
-                <h3 className="m-0 text-[clamp(20px,1.6vw,24px)] font-medium leading-[1.15] tracking-[-0.015em] text-(--ink)">{item.title}</h3>
-                <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px]">{item.text}</p>
+              <li key={item.title} data-reveal="fade" className="grid content-start gap-3 border-t border-(--about-rule-strong) pt-5 md:pt-6 lg:gap-2 lg:pt-5">
+                <h3 className="m-0 text-[clamp(26px,7vw,34px)] font-medium leading-[1.05] tracking-[-0.025em] text-(--ink) md:text-[clamp(28px,3.6vw,34px)] lg:text-[clamp(20px,1.6vw,24px)] lg:leading-[1.15] lg:tracking-[-0.015em]">{item.title}</h3>
+                <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6]">{item.text}</p>
               </li>
             ))}
           </ol>
@@ -282,8 +283,8 @@ function Member({ member, order }: { member: TeamMember; order: number }) {
           />
         </div>
         <div className="mt-4 grid gap-1">
-          <h3 className="m-0 text-[clamp(20px,1.6vw,24px)] font-medium leading-[1.15] tracking-[-0.015em] text-(--ink)">{member.name}</h3>
-          <p className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] text-[15px]! leading-[1.4]! text-[rgba(17,17,17,0.64)]!">{member.role}</p>
+          <h3 className="m-0 text-[clamp(19px,5vw,22px)] font-medium leading-[1.15] tracking-[-0.015em] text-(--ink) lg:text-[clamp(20px,1.6vw,24px)]">{member.name}</h3>
+          <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6] text-[15px]! leading-[1.4]! text-[rgba(17,17,17,0.64)]!">{member.role}</p>
         </div>
       </div>
     </li>
@@ -304,7 +305,7 @@ function AboutTeam() {
             <h2 id="about-team-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
               <MaskLine>{ABOUT_TEAM.heading}</MaskLine>
             </h2>
-            <p data-reveal="fade" className="m-0 max-w-[58ch] font-secondary text-base font-normal leading-[1.6] text-pretty text-(--about-copy) md:text-[18px] max-w-[28ch]!">
+            <p data-reveal="fade" className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6] max-w-[28ch]!">
               {ABOUT_TEAM.description}
             </p>
           </header>
@@ -333,7 +334,7 @@ function AboutClosing() {
         <h2 id="about-closing-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) text-center">
           <MaskLine className="text-[rgba(17,17,17,0.64)]">{first}</MaskLine> <MaskLine>{second}</MaskLine>
         </h2>
-        <a data-reveal="fade" href={ABOUT_CLOSING.cta.href} className="group/link inline-flex items-center gap-3 border-b border-current pb-2 font-secondary text-[13px] font-semibold leading-none tracking-[0.12em] text-(--ink) uppercase focus-visible:outline-2 focus-visible:outline-(--ink) focus-visible:outline-offset-6">
+        <a data-reveal="fade" href={ABOUT_CLOSING.cta.href} className="group/link inline-flex items-center gap-3 border-b border-current pb-2 font-secondary text-[14px] font-semibold leading-none tracking-[0.12em] text-(--ink) uppercase min-h-11 lg:min-h-0 lg:text-[13px] focus-visible:outline-2 focus-visible:outline-(--ink) focus-visible:outline-offset-6">
           <span>{ABOUT_CLOSING.cta.label}</span>
           <span className="text-[1.2em] tracking-normal transition-transform duration-[450ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1 motion-reduce:transition-none" aria-hidden="true">
             →
@@ -443,7 +444,7 @@ function AboutPage() {
   )
 
   return (
-    <main ref={rootRef} className="about-page overflow-x-clip bg-[#f5f5f0] text-(--ink) not-italic [&_*]:not-italic [--about-space:56px] md:[--about-space:clamp(64px,8vw,128px)] [--about-rule:rgba(17,17,17,0.12)] [--about-rule-strong:rgba(17,17,17,0.22)] [--about-copy:rgba(17,17,17,0.64)]">
+    <main ref={rootRef} className="about-page max-lg:[--section-title-size:clamp(32px,8.4vw,52px)] max-lg:[--section-title-tracking:-0.025em] max-lg:[--text-gap:clamp(16px,3vw,24px)] overflow-x-clip bg-[#f5f5f0] text-(--ink) not-italic [&_*]:not-italic [--about-space:56px] md:[--about-space:clamp(64px,8vw,128px)] [--about-rule:rgba(17,17,17,0.12)] [--about-rule-strong:rgba(17,17,17,0.22)] [--about-copy:rgba(17,17,17,0.64)]">
       <AboutHero />
       <AboutIntro />
       <AboutJourney />
