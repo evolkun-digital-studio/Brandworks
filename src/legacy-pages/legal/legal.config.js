@@ -57,6 +57,9 @@ export const legalConfig = {
     googleAds: '', // Google Ads conversion ID, e.g. 'AW-1234567890'
     metaPixel: '', // Meta (Facebook/Instagram) Pixel ID, e.g. '1234567890123456'
     linkedinPartnerId: '', // LinkedIn Insight Tag partner ID, e.g. '1234567'
+    // Also picked up from NEXT_PUBLIC_* env vars (src/analytics/config.ts):
+    clarity: '', // Microsoft Clarity project ID
+    gtm: '', // Google Tag Manager container ID, e.g. 'GTM-ABC1234'
   },
 
   // Service providers that handle personal data for you. Tracking tools above
@@ -81,10 +84,12 @@ export const legalConfig = {
   ],
 
   // Bump this number when you add a new tracking tool. Everyone is asked again.
+  // Bump it too when the cookie policy changes in a way people should see.
   consentVersion: 1,
-  consentStorageKey: 'bw-consent',
+  // First-party cookie that stores the choice (consent/consentCookie.js).
+  consentStorageKey: 'bw_consent',
   // How long a cookie choice is remembered before we ask again.
-  consentMaxAgeDays: 365,
+  consentMaxAgeDays: 180,
 };
 
 export const LEGAL_PAGES = [

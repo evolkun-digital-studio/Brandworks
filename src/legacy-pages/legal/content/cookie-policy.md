@@ -16,7 +16,7 @@ Some cookies are set by us (first-party cookies). Others are set by the services
 {{/if}}
 Analytics and marketing cookies stay off until you allow them. Rejecting them won't stop any part of the site from working.
 
-When you first visit, a banner asks for your choice. We remember it for 12 months, then ask again. We'll also ask again if we add a new tool.
+When you first visit, a banner asks for your choice. We remember it in a cookie for 6 months, then ask again. We'll also ask again if we add a new tool.
 {{/if}}{{#unless optionalCookies}}We don't use analytics or advertising cookies on this site, so there's nothing to switch on or off.
 {{/unless}}
 
@@ -29,7 +29,7 @@ When you first visit, a banner asks for your choice. We remember it for 12 month
 
 ## Changing your choice
 
-{{#if optionalCookies}}You can change your mind at any time. Open [Cookie settings](#cookie-settings) (there's also a link at the bottom of every page), switch the groups on or off and save. If you switch off a group you'd allowed before, we delete the cookies it set on this site and reload the page.
+{{#if optionalCookies}}You can change your mind at any time. Open [Cookie settings](#cookie-settings) (there's also a link at the bottom of every page), switch the groups on or off and save. If you switch off a group you'd allowed before, its tools stop straight away and we delete the cookies they set on this site.
 {{/if}}
 You can also block or delete cookies in your browser settings. Each browser explains how in its help pages.{{#if optionalCookies}} If you block necessary cookies, we can't remember your cookie choice, so you'll see the banner on every visit.{{/if}}
 

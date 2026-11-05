@@ -35,6 +35,19 @@ d.classList.add(${JSON.stringify(PRELOAD_CLASS)});
 setTimeout(function(){if(!d.hasAttribute(${JSON.stringify(LOADER_ATTR)}))d.classList.remove(${JSON.stringify(PRELOAD_CLASS)})},${FAILSAFE_MS});
 }catch(e){}})();`
 
+/**
+ * Google Consent Mode v2 default, inlined at the top of <head> in
+ * app/layout.tsx so it runs before any Google tag can load: every signal
+ * starts "denied". The cookie consent provider sends the "update" once the
+ * visitor's choice is known (legacy-pages/legal/consent/trackers.js).
+ */
+export const CONSENT_DEFAULT_SCRIPT = `(function(){try{
+window.dataLayer=window.dataLayer||[];
+window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};
+window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',functionality_storage:'granted',security_storage:'granted',wait_for_update:500});
+window.__bwConsentDefault=true;
+}catch(e){}})();`
+
 export function preloadRequested(): boolean {
   return typeof document !== 'undefined' && document.documentElement.classList.contains(PRELOAD_CLASS)
 }

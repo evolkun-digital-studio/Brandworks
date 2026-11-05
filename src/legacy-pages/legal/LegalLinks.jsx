@@ -10,7 +10,7 @@ export default function LegalLinks({
   className = 'flex flex-wrap gap-x-6 gap-y-2 text-[14px]',
   linkClassName = 'text-black/60 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black',
 }) {
-  const { hasOptional, openPreferences } = useConsent();
+  const { openSettings } = useConsent();
 
   return (
     <ul className={className}>
@@ -21,13 +21,11 @@ export default function LegalLinks({
           </Link>
         </li>
       ))}
-      {hasOptional && (
-        <li>
-          <button type="button" onClick={openPreferences} className={linkClassName}>
-            Cookie settings
-          </button>
-        </li>
-      )}
+      <li>
+        <button type="button" onClick={openSettings} className={linkClassName}>
+          Cookie settings
+        </button>
+      </li>
     </ul>
   );
 }

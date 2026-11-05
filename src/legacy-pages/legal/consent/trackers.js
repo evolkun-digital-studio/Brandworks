@@ -1,39 +1,34 @@
 /**
- * Loads tracking scripts only after the visitor allows them.
+ * Switches tracking on and off to match the visitor's cookie choice.
  *
- * Google tags run with Google Consent Mode v2. Every signal starts as
- * "denied" and is updated when the visitor chooses. Meta and LinkedIn
- * scripts aren't added to the page at all until marketing cookies are allowed.
+ * Scripts themselves are loaded by <ConsentScripts /> (IDs from the CMS and
+ * legal.config.js) and by src/analytics (NEXT_PUBLIC_* IDs), both only for
+ * allowed categories. This file sends the signals that apply to tools that
+ * are already on the page:
+ *
+ * - Google Consent Mode v2. Every signal starts "denied" (inline script in
+ *   app/layout.tsx, before any Google tag) and is updated here.
+ * - Opt-outs that take effect immediately, without a reload, when consent
+ *   is withdrawn: GA's ga-disable flag, Meta's consent revoke, Clarity's
+ *   consent erase.
+ * - Deleting the first-party cookies of withdrawn categories.
  */
-import { legalConfig } from '../legal.config';
 import { CLEARABLE_COOKIES } from '../cookieCatalog';
-
-const loaded = new Set();
-
-function addScript(src, id) {
-  if (document.getElementById(id)) return;
-  const script = document.createElement('script');
-  script.id = id;
-  script.async = true;
-  script.src = src;
-  document.head.appendChild(script);
-}
 
 function ensureGtag() {
   window.dataLayer = window.dataLayer || [];
   if (!window.gtag) {
     // gtag must push the `arguments` object, so this can't be an arrow function.
     window.gtag = function gtag() {
-      // eslint-disable-next-line prefer-rest-params
       window.dataLayer.push(arguments);
     };
   }
 }
 
-/** Call once, as early as possible: every Google signal starts as denied. */
+/** Fallback for pages rendered without app/layout.tsx's inline default. */
 export function setGoogleConsentDefaults() {
-  if (loaded.has('google-defaults')) return;
-  loaded.add('google-defaults');
+  if (window.__bwConsentDefault) return;
+  window.__bwConsentDefault = true;
   ensureGtag();
   window.gtag('consent', 'default', {
     ad_storage: 'denied',
@@ -57,82 +52,45 @@ function updateGoogleConsent({ analytics, marketing }) {
   });
 }
 
-function loadGoogle({ analytics, marketing }, tracking) {
-  const ids = [analytics && tracking.ga4, marketing && tracking.googleAds].filter(Boolean);
-  if (!ids.length) return;
-  ensureGtag();
-  if (!loaded.has('gtag')) {
-    loaded.add('gtag');
-    addScript(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ids[0])}`, 'bw-gtag');
-    window.gtag('js', new Date());
-  }
-  ids.forEach((id) => {
-    if (loaded.has(id)) return;
-    loaded.add(id);
-    window.gtag('config', id);
+/**
+ * Applies a choice to everything already on the page. `tracking` holds every
+ * configured ID (CMS, env and legal.config.js merged).
+ */
+export function applyConsent({ analytics, marketing }, tracking) {
+  setGoogleConsentDefaults();
+  updateGoogleConsent({ analytics, marketing });
+
+  // GA stops sending hits for a property at once when this flag is set.
+  // `gaIds` also covers a NEXT_PUBLIC_GA_MEASUREMENT_ID that differs from the CMS one.
+  (tracking.gaIds ?? [tracking.ga4]).filter(Boolean).forEach((id) => {
+    window[`ga-disable-${id}`] = !analytics;
   });
+
+  try {
+    if (window.fbq) window.fbq('consent', marketing ? 'grant' : 'revoke');
+  } catch {
+    // A blocked or half-loaded pixel must never break the page.
+  }
+  try {
+    // consent() allows Clarity cookies; consent(false) stops it and erases them.
+    if (window.clarity) {
+      if (analytics) window.clarity('consent');
+      else window.clarity('consent', false);
+    }
+  } catch {
+    // Same as above.
+  }
 }
 
-function loadMetaPixel(pixelId) {
-  if (loaded.has('meta')) {
-    window.fbq?.('consent', 'grant');
-    return;
-  }
-  loaded.add('meta');
-  if (!window.fbq) {
-    // Meta's standard base code, unminified. Like gtag, it queues `arguments`.
-    const fbq = function fbq() {
-      // eslint-disable-next-line prefer-rest-params
-      if (fbq.callMethod) fbq.callMethod.apply(fbq, arguments);
-      // eslint-disable-next-line prefer-rest-params
-      else fbq.queue.push(arguments);
-    };
-    fbq.push = fbq;
-    fbq.loaded = true;
-    fbq.version = '2.0';
-    fbq.queue = [];
-    window.fbq = fbq;
-    window._fbq = fbq;
-    addScript('https://connect.facebook.net/en_US/fbevents.js', 'bw-meta-pixel');
-  }
-  window.fbq('consent', 'grant');
-  window.fbq('init', pixelId);
-  // The pixel tracks later React Router page changes on its own.
-  window.fbq('track', 'PageView');
-}
-
-function loadLinkedIn(partnerId) {
-  if (loaded.has('linkedin')) return;
-  loaded.add('linkedin');
-  window._linkedin_partner_id = partnerId;
-  window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
-  window._linkedin_data_partner_ids.push(partnerId);
-  if (!window.lintrk) {
-    const lintrk = (a, b) => lintrk.q.push([a, b]);
-    lintrk.q = [];
-    window.lintrk = lintrk;
-  }
-  addScript('https://snap.licdn.com/li.lms-analytics/insight.min.js', 'bw-linkedin');
-}
-
-/** Turns tools on to match a saved choice. Turning tools off needs a reload (see clearTrackingCookies). */
-export function applyConsent(choice, tracking = legalConfig.tracking) {
-  const { analytics, marketing } = choice;
-  if (tracking.ga4 || tracking.googleAds) {
-    setGoogleConsentDefaults();
-    updateGoogleConsent({ analytics, marketing });
-    loadGoogle({ analytics, marketing }, tracking);
-  }
-  if (marketing && tracking.metaPixel) loadMetaPixel(tracking.metaPixel);
-  if (marketing && tracking.linkedinPartnerId) loadLinkedIn(tracking.linkedinPartnerId);
-}
-
-/** Deletes the first-party cookies of the groups that were switched off. */
+/**
+ * Deletes the first-party cookies of the categories that are not allowed,
+ * on this host and on every parent domain (e.g. www.brandworks.me and
+ * .brandworks.me), where analytics tools usually set them.
+ */
 export function clearTrackingCookies({ analytics, marketing }) {
   const prefixes = [...(analytics ? CLEARABLE_COOKIES.analytics : []), ...(marketing ? CLEARABLE_COOKIES.marketing : [])];
   if (!prefixes.length) return;
 
-  // Try the current host and each parent domain, e.g. www.example.com and .example.com.
   const parts = window.location.hostname.split('.');
   const domains = [''];
   for (let i = 0; i < parts.length - 1; i += 1) domains.push(`; domain=.${parts.slice(i).join('.')}`);
@@ -141,7 +99,7 @@ export function clearTrackingCookies({ analytics, marketing }) {
     const name = pair.split('=')[0].trim();
     if (!prefixes.some((prefix) => name.startsWith(prefix))) return;
     domains.forEach((domain) => {
-      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${domain}`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; path=/${domain}`;
     });
   });
 }

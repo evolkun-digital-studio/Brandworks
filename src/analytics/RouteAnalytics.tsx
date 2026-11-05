@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useLocation } from '../routing'
-import { initAnalytics, trackPageView } from './analytics'
+import { trackPageView } from './analytics'
 import { applyGscVerification } from './gsc'
 
 /**
@@ -17,8 +17,10 @@ function RouteAnalytics() {
   const location = useLocation()
   const lastTrackedPath = useRef<string | null>(null)
 
+  // Provider scripts are not loaded here: the cookie consent provider
+  // starts them (setAnalyticsConsent) once the visitor allows them.
+  // Page views below only reach providers that have been allowed.
   useEffect(() => {
-    initAnalytics()
     applyGscVerification()
   }, [])
 

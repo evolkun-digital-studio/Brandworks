@@ -11,8 +11,8 @@ export const NECESSARY_STORAGE = [
   {
     name: null,
     provider: 'Brand Works',
-    purpose: 'Remembers your cookie choices so we don’t ask on every page. Kept in your browser’s local storage.',
-    duration: '12 months',
+    purpose: 'Remembers your cookie choices so we don’t ask on every page.',
+    duration: '6 months',
   },
 ];
 
@@ -27,6 +27,25 @@ export const VENDORS = {
       { name: '_ga', purpose: 'Tells visits from different browsers apart', duration: '2 years' },
       { name: '_ga_<ID>', purpose: 'Keeps track of your current visit', duration: '2 years' },
     ],
+  },
+  clarity: {
+    label: 'Microsoft Clarity',
+    company: 'Microsoft Corporation',
+    category: 'analytics',
+    processorPurpose: 'Heatmaps and session analytics, only if you allow analytics cookies',
+    location: 'USA / global',
+    cookies: [
+      { name: '_clck', purpose: 'Recognises your browser across visits', duration: '1 year' },
+      { name: '_clsk', purpose: 'Groups page views into one session', duration: '1 day' },
+    ],
+  },
+  gtm: {
+    label: 'Google Tag Manager',
+    company: 'Google LLC',
+    category: 'analytics',
+    processorPurpose: 'Loads our measurement tags, only if you allow analytics cookies',
+    location: 'USA / global',
+    cookies: [],
   },
   googleAds: {
     label: 'Google Ads',
@@ -66,6 +85,6 @@ export const VENDORS = {
 
 /** Cookie name prefixes cleared when someone withdraws consent. */
 export const CLEARABLE_COOKIES = {
-  analytics: ['_ga', '_gid'],
-  marketing: ['_gcl_', '_fbp', '_fbc', 'li_sugr', 'UserMatchHistory', 'AnalyticsSyncHistory'],
+  analytics: ['_ga', '_gid', '_gat', '_clck', '_clsk'],
+  marketing: ['_gcl_', '_fbp', '_fbc', '_uet', 'li_sugr', 'UserMatchHistory', 'AnalyticsSyncHistory'],
 };

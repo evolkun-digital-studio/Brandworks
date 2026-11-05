@@ -77,9 +77,9 @@ function mount(initialPath: string, options: { strict?: boolean } = {}) {
 }
 
 describe('RouteAnalytics — initial mount', () => {
-  it('calls initAnalytics() and applyGscVerification() once', () => {
+  it('applies GSC verification once and never loads providers itself (cookie consent does that)', () => {
     mount('/')
-    expect(initAnalyticsMock).toHaveBeenCalledTimes(1)
+    expect(initAnalyticsMock).not.toHaveBeenCalled()
     expect(applyGscVerificationMock).toHaveBeenCalledTimes(1)
   })
 
@@ -92,7 +92,7 @@ describe('RouteAnalytics — initial mount', () => {
   it('does not double-track the initial page view under React StrictMode', () => {
     mount('/', { strict: true })
     expect(trackPageViewMock).toHaveBeenCalledTimes(1)
-    expect(initAnalyticsMock).toHaveBeenCalledTimes(1)
+    expect(initAnalyticsMock).not.toHaveBeenCalled()
   })
 })
 

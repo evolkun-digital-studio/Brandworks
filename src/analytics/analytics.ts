@@ -9,35 +9,56 @@ import type { AnalyticsProvider, BlogArticleViewEvent, GenericEvent, PageViewEve
 
 const providers: AnalyticsProvider[] = [ga4Provider, gtmProvider, clarityProvider, metaPixelProvider]
 
-let initialized = false
+export type ConsentCategories = { analytics: boolean; marketing: boolean }
+
+/** Which consent category each provider needs before it may load or receive anything. */
+const CATEGORY: Record<string, keyof ConsentCategories> = {
+  ga4: 'analytics',
+  gtm: 'analytics',
+  clarity: 'analytics',
+  'meta-pixel': 'marketing',
+}
+
+const started = new Set<AnalyticsProvider>()
+let allowed: ConsentCategories = { analytics: false, marketing: false }
+
+const isActive = (provider: AnalyticsProvider) => started.has(provider) && allowed[CATEGORY[provider.name] ?? 'marketing']
 
 /**
- * The single entry point every enabled provider's setup funnels
- * through — called once from analytics/RouteAnalytics.tsx, itself
- * only ever mounted inside PublicLayout (never on /admin/*, Phase 12
- * Part 6/12). This is also the one place a future consent mechanism
- * would need to gate (Part 13): wrapping this single call site in
- * `if (consentGranted) initAnalytics()` is enough on its own — no
- * other code in the app would need to change. No consent platform
- * exists yet; whether/how consent is required is a deployment- and
- * legal-policy-dependent decision outside this codebase's scope (see
- * the Phase 12 report's Cookie/Consent section) — nothing here claims
- * any particular regulation is satisfied.
+ * The consent gate for every env-configured provider (NEXT_PUBLIC_* IDs).
+ * Called by the cookie consent provider (legacy-pages/legal/consent) when
+ * the saved choice is read and whenever the visitor changes it. A
+ * provider's script loads only once its category is allowed; events and
+ * page views reach only providers that are loaded *and* still allowed, so
+ * withdrawing consent stops tracking from that moment.
  *
- * A provider that isn't configured (no env var set) never has its
- * `init()` do anything at all — see each provider file's own guard.
+ * `currentPage` is sent to providers that start now, because the page
+ * view for the page the visitor is on happened before they allowed it.
  */
-export function initAnalytics(): void {
-  if (initialized || !anyProviderEnabled) return
-  initialized = true
+export function setAnalyticsConsent(next: ConsentCategories, currentPage?: PageViewEvent): void {
+  allowed = { analytics: Boolean(next.analytics), marketing: Boolean(next.marketing) }
+  if (!anyProviderEnabled) return
   for (const provider of providers) {
+    if (started.has(provider) || !allowed[CATEGORY[provider.name] ?? 'marketing']) continue
+    started.add(provider)
     safely(() => provider.init())
+    if (currentPage) safely(() => provider.trackPageView(currentPage))
   }
 }
 
-/** Fans a page view out to every enabled provider. See RouteAnalytics.tsx for the one call site driving this from React Router. */
+/**
+ * Starts every enabled provider as if all categories were allowed. Kept
+ * for tests and tooling; the site itself goes through setAnalyticsConsent,
+ * so nothing loads before the visitor has agreed.
+ */
+export function initAnalytics(): void {
+  setAnalyticsConsent({ analytics: true, marketing: true })
+}
+
+/** Fans a page view out to every provider the visitor has allowed. See RouteAnalytics.tsx for the one call site driving this from React Router. */
 export function trackPageView(event: PageViewEvent): void {
   for (const provider of providers) {
+    if (!isActive(provider)) continue
     safely(() => provider.trackPageView(event))
   }
 }
@@ -45,6 +66,7 @@ export function trackPageView(event: PageViewEvent): void {
 /** Fans a named event out to every enabled provider — the low-level primitive behind trackBlogArticleView and any future conversion event (Part 5). */
 export function trackEvent(event: GenericEvent): void {
   for (const provider of providers) {
+    if (!isActive(provider)) continue
     safely(() => provider.trackEvent(event))
   }
 }
