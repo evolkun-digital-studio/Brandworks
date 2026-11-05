@@ -60,7 +60,6 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   // Hide on scroll down / show on scroll up. Position only — never colour.
   // rAF-throttled, ignores tiny deltas, and only sets state when it 
   useEffect(() => {
-    if (pathname === '/services') return // the services header never hides
     let frame = 0
     lastScrollY.current = window.scrollY
     const update = () => {
@@ -121,8 +120,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
     }
   }, [pathname])
 
-  // /services keeps an opaque white header bar, so its capsules always use dark ink.
-  const tone = overDark && pathname !== '/services' ? 'is-on-dark' : 'is-on-light'
+  const tone = overDark ? 'is-on-dark' : 'is-on-light'
 
   // Keep the mobile menu usable like a modal layer: it owns the viewport while
   // open (page scroll locked, Lenis included), traps Tab focus between the
@@ -203,7 +201,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   }
 
   return (
-    <header className={`site-header ${hidden && !menuOpen && pathname !== "/services" ? "is-hidden" : ""} ${menuOpen ? "is-menu-open" : ""} ${pathname === "/services" ? "site-header--services" : ""} ${scrolled ? "is-scrolled" : ""}`}>
+    <header className={`site-header ${hidden && !menuOpen ? "is-hidden" : ""} ${menuOpen ? "is-menu-open" : ""} ${scrolled ? "is-scrolled" : ""}`}>
       {/* Desktop Layout */}
       <div
         className={`site-header__surface ${tone} hidden lg:grid w-full h-[64px] items-center px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}

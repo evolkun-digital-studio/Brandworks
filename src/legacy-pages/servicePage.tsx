@@ -194,7 +194,7 @@ export default function ServicesPage() {
           <div>
             <div className="mb-8 flex items-end justify-between gap-6 border-b border-neutral-200 pb-5 sm:mb-10">
               <div>
-                <SectionLabel>What we do</SectionLabel>
+                {/* <SectionLabel>What we do</SectionLabel> */}
 
                 <h1
                   id="services-index-title"
@@ -227,7 +227,7 @@ export default function ServicesPage() {
       {/* 
           INTEGRATED AGENCY MESSAGE */}
 
-      <section className="border-t border-neutral-200 bg-neutral-950 text-white">
+      <section data-nav-theme="dark" className="border-t border-neutral-200 bg-neutral-950 text-white">
         <div className="mx-auto grid w-full max-w-[1440px] gap-10 px-5 py-16 sm:px-7 sm:py-20 md:grid-cols-[0.8fr_1.2fr] lg:px-10 lg:py-24">
           <SectionLabel>
            <span className='text-white/80'>One creative direction</span> 
@@ -259,13 +259,11 @@ export default function ServicesPage() {
 
       {/*  CLOSING / INTERNAL LINKING */}
 
-      <section className="border-t border-neutral-800 bg-neutral-950 text-white">
+      {/* <section className="border-t border-neutral-800 bg-neutral-950 text-white">
         <div className="mx-auto w-full max-w-[1440px] px-5 py-14 sm:px-7 sm:py-16 lg:px-10">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-[650px]">
-              {/* <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
-                Explore BrandWorks
-              </p> */}
+            
 
               <p className="mt-4 text-[24px] font-medium leading-tight tracking-[-0.03em] sm:text-[28px]">
                 Explore the discipline that matters most to
@@ -293,7 +291,7 @@ export default function ServicesPage() {
             </nav>
           </div>
         </div>
-      </section>
+      </section> */}
     </main>
   )
 }

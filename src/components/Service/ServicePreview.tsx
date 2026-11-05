@@ -12,8 +12,8 @@ type Props = {
 export default function ServicePreview({ activeIndex, titles, onImageReady }: Props) {
   return (
     <aside aria-hidden="true" className="hidden lg:block lg:-translate-x-10 transition-transform duration-500 ease-out motion-reduce:transition-none">
-      <div className="sticky top-28">
-        <div className="service-preview relative h-[clamp(620px,72vh,780px)] overflow-hidden rounded-[18px] ml-[5rem] w-[clamp(400px,40vw,560px)]">
+      <div className="sticky top-[10svh]">
+        <div className="service-preview relative h-[80svh] overflow-hidden rounded-[18px] ml-[5rem] w-[clamp(400px,40vw,560px)]">
           {titles.map((title, index) => (
             <Image key={title} {...images[index]} alt="" fill
               sizes="(max-width: 1023px) 1px, (max-width: 1280px) 40vw, 456px"

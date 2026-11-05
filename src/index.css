@@ -1634,6 +1634,40 @@ body {
     font-size: 16px !important;
     line-height: 1.55 !important;
   }
+
+  /* Mobile section headers are centred: page/section titles, the label
+     just above them, and their descriptions. margin-inline: auto centres
+     the box too, so narrow max-width text sits in the middle, not the left.
+     Long-form reading (articles, legal), forms, dialogs, cards and list
+     items keep their own alignment. */
+  :is(
+      h1,
+      h2,
+      [class*="section-description"],
+      [class*="hero-description"],
+      [class*="-intro"]:is(p),
+      [class*="lede"],
+      [class*="__lead"],
+      .pm-lead,
+      :is(h1, h2) ~ p,
+      p:has(~ :is(h1, h2))
+    ):not(
+      .admin-app *,
+      .ed-prose *,
+      .markdown-rich-content *,
+      form *,
+      dialog *,
+      [role="dialog"] *,
+      .project-modal *,
+      article *,
+      li *,
+      footer *,
+      nav *,
+      .sr-only
+    ) {
+    text-align: center !important;
+    margin-inline: auto !important;
+  }
 }
 
 /* Project popup (shared by every project): all headings use the 400 weight.
