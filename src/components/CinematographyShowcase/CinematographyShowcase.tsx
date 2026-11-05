@@ -303,7 +303,7 @@ export default function CinematographyShowcase() {
           onKeyDown={onStageKeyDown}
         >
           <motion.div
-            className="relative isolate size-full touch-pan-y overflow-hidden rounded-[14px] bg-[#111] sm:rounded-[18px] lg:rounded-3xl"
+            className="group relative isolate size-full touch-pan-y overflow-hidden rounded-[14px] bg-[#111] sm:rounded-[18px] lg:rounded-3xl"
             drag={finePointer ? false : 'x'}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.15}
@@ -327,6 +327,7 @@ export default function CinematographyShowcase() {
                 playing={canPlay && settled === active}
                 muted={muted}
                 reducedMotion={reducedMotion}
+                hoverZoom={finePointer}
                 videos={videos}
                 onEntered={finishTransition}
                 onPlaybackChange={setIsPlaying}
@@ -381,14 +382,14 @@ export default function CinematographyShowcase() {
               aria-hidden="true"
             />
 
-            <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-[4] sm:bottom-8 sm:left-8 sm:right-1/2 lg:bottom-10 lg:left-10">
+            <div className="pointer-events-none absolute bottom-16 left-4 right-4 z-[4] sm:bottom-8 sm:left-8 sm:right-1/2 lg:bottom-10 lg:left-10">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div key={current.id} {...textMotion}>
                   <div className="min-w-0">
                     <h3 className="mb-2 font-secondary text-sm  leading-5 tracking-normal text-white sm:text-base">
                       {current.title}
                     </h3>
-                    <p className="m-0 line-clamp-2 max-w-[46ch] text-xs leading-5 text-white/80 sm:text-[15px] sm:leading-[1.5]">
+                    <p className="m-0 hidden line-clamp-2 max-w-[46ch] text-xs leading-5 text-white/80 sm:block sm:text-[15px] sm:leading-[1.5]">
                       {current.description}
                     </p>
                   </div>
@@ -397,7 +398,7 @@ export default function CinematographyShowcase() {
             </div>
 
             <motion.div
-              className="absolute bottom-3 left-3 right-3 z-[5] flex h-10 items-center justify-between gap-1 rounded-full border border-white/15 bg-black/55 p-1 text-white shadow-[0_1px_12px_rgb(0_0_0/0.16)] backdrop-blur-[8px] sm:left-auto sm:right-6 sm:h-auto sm:w-auto sm:justify-start sm:gap-1.5 sm:bg-black/20 sm:p-1.5 lg:bottom-8 lg:right-8"
+              className="absolute bottom-3 right-3 z-[5] flex h-10 w-fit max-w-[calc(100%-24px)] items-center justify-start gap-1 rounded-full border border-white/15 bg-black/55 p-1 text-white shadow-[0_1px_12px_rgb(0_0_0/0.16)] backdrop-blur-[8px] sm:right-6 sm:h-auto sm:max-w-none sm:gap-1.5 sm:bg-black/20 sm:p-1.5 lg:bottom-8 lg:right-8"
               initial={{ opacity: 0, y: reducedMotion ? 0 : 4 }}
               animate={{ opacity: inView ? 1 : 0, y: 0 }}
               transition={{ duration: reducedMotion ? 0 : 0.28, ease: EASE_OUT }}
@@ -429,7 +430,7 @@ export default function CinematographyShowcase() {
               >
                 {muted ? <VolumeX className="size-3.5" aria-hidden="true" strokeWidth={1.8} /> : <Volume2 className="size-3.5" aria-hidden="true" strokeWidth={1.8} />}
               </button>
-              <span className="ml-1 border-l border-white/20 pl-2 font-mono text-[9px] font-medium leading-none tracking-[0.08em] text-white/70 sm:text-[10px]" aria-hidden="true">60FPS</span>
+              <span className="ml-1 hidden border-l border-white/20 pl-2 font-mono text-[9px] font-medium leading-none tracking-[0.08em] text-white/70 sm:inline sm:text-[10px]" aria-hidden="true">60FPS</span>
               <output className="w-[4.8rem] font-mono text-[10px] tabular-nums leading-none tracking-[0.06em] text-white sm:w-[5.25rem] sm:text-[11px]" aria-label={`Current time ${formatTimecode(currentTime)}`}>
                 {formatTimecode(currentTime)}
               </output>
@@ -540,6 +541,7 @@ function Slide({
   playing,
   muted,
   reducedMotion,
+  hoverZoom,
   videos,
   onEntered,
   onPlaybackChange,
@@ -554,6 +556,7 @@ function Slide({
   playing: boolean
   muted: boolean
   reducedMotion: boolean
+  hoverZoom: boolean
   videos: RefObject<Map<string, HTMLVideoElement>>
   onEntered: (index: number) => void
   onPlaybackChange: (playing: boolean) => void
@@ -602,59 +605,61 @@ function Slide({
         if (definition === 'center' && isPresent) onEntered(index)
       }}
     >
-      {loaded ? (
-        <video
-          ref={(node) => {
-            videoRef.current = node
-            if (!node) return
-            videos.current.set(project.id, node)
-            return () => {
-              videoRef.current = null
-              if (videos.current.get(project.id) === node) videos.current.delete(project.id)
-            }
-          }}
-          className="pointer-events-none absolute inset-0 size-full object-cover"
-          style={mediaStyle}
-          src={inlineSource(project)}
-          poster={project.poster}
-          muted={muted}
-          loop
-          playsInline
-          preload={playing ? 'auto' : 'metadata'}
-          aria-label={project.title}
-          onLoadedMetadata={(event) => {
-            if (isPresent) onTimeChange(0)
-            if (!DEV) return
-            const { videoWidth, videoHeight } = event.currentTarget
-            const ratio = videoWidth / videoHeight
-            // Not 16:9 means cover crops it; it may need a zoom/objectPosition in data.
-            if (Math.abs(ratio / SIXTEEN_NINE - 1) > 0.03) {
-              console.info(`[cinematography] "${project.title}" is ${videoWidth}×${videoHeight} (${ratio.toFixed(3)}:1), not 16:9`)
-            }
-          }}
-          onPlay={() => {
-            if (isPresent) onPlaybackChange(true)
-          }}
-          onPause={() => {
-            if (isPresent) onPlaybackChange(false)
-          }}
-          onVolumeChange={(event) => {
-            if (isPresent) onMuteChange(event.currentTarget.muted)
-          }}
-          onTimeUpdate={(event) => {
-            if (isPresent) onTimeChange(event.currentTarget.currentTime)
-          }}
-        />
-      ) : project.poster ? (
-        <img
-          className="pointer-events-none absolute inset-0 size-full object-cover"
-          style={mediaStyle}
-          src={project.poster}
-          alt=""
-          loading="lazy"
-          decoding="async"
-        />
-      ) : null}
+      <div className={hoverZoom ? 'relative size-full transition-transform duration-700 ease-out group-hover:scale-[1.035]' : 'relative size-full'}>
+        {loaded ? (
+          <video
+            ref={(node) => {
+              videoRef.current = node
+              if (!node) return
+              videos.current.set(project.id, node)
+              return () => {
+                videoRef.current = null
+                if (videos.current.get(project.id) === node) videos.current.delete(project.id)
+              }
+            }}
+            className="pointer-events-none absolute inset-0 size-full object-cover"
+            style={mediaStyle}
+            src={inlineSource(project)}
+            poster={project.poster}
+            muted={muted}
+            loop
+            playsInline
+            preload={playing ? 'auto' : 'metadata'}
+            aria-label={project.title}
+            onLoadedMetadata={(event) => {
+              if (isPresent) onTimeChange(0)
+              if (!DEV) return
+              const { videoWidth, videoHeight } = event.currentTarget
+              const ratio = videoWidth / videoHeight
+              // Not 16:9 means cover crops it; it may need a zoom/objectPosition in data.
+              if (Math.abs(ratio / SIXTEEN_NINE - 1) > 0.03) {
+                console.info(`[cinematography] "${project.title}" is ${videoWidth}×${videoHeight} (${ratio.toFixed(3)}:1, not 16:9)`)
+              }
+            }}
+            onPlay={() => {
+              if (isPresent) onPlaybackChange(true)
+            }}
+            onPause={() => {
+              if (isPresent) onPlaybackChange(false)
+            }}
+            onVolumeChange={(event) => {
+              if (isPresent) onMuteChange(event.currentTarget.muted)
+            }}
+            onTimeUpdate={(event) => {
+              if (isPresent) onTimeChange(event.currentTarget.currentTime)
+            }}
+          />
+        ) : project.poster ? (
+          <img
+            className="pointer-events-none absolute inset-0 size-full object-cover"
+            style={mediaStyle}
+            src={project.poster}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        ) : null}
+      </div>
     </motion.div>
   )
 }

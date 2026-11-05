@@ -1125,9 +1125,10 @@ export default function QuestionnairePage() {
                 </div>
               )}
               {framed ? (
-                <div className="grid *:col-start-1 *:row-start-1">
-                  {/* An invisible copy of the tallest step sets the height at every width. */}
-                  <div aria-hidden="true" inert className="invisible">
+                <div className="grid sm:[&>*]:col-start-1 sm:[&>*]:row-start-1">
+                  {/* Keep the stable frame on larger screens; phones use the current
+                      question's natural height so navigation does not drift below it. */}
+                  <div aria-hidden="true" inert className="invisible hidden sm:block">
                     <p className={`m-0 min-h-[2em] ${formStepHeadingCompact}`}>{workTypeStep.title}</p>
                     {workTypeStep.kind === 'single' && (
                       <div className="mt-6">
@@ -1135,7 +1136,7 @@ export default function QuestionnairePage() {
                       </div>
                     )}
                   </div>
-                  <div className="min-w-0">{stage}</div>
+                  <div className="min-w-0 sm:col-start-1 sm:row-start-1">{stage}</div>
                 </div>
               ) : stage}
               {footer}
