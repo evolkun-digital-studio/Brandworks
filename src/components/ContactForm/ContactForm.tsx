@@ -16,7 +16,7 @@ export const EASE = [0.22, 1, 0.36, 1] as const
 /* -------------------------------------------------------------------------- */
 
 export const formPage = 'min-h-screen overflow-x-clip bg-white text-[#111] antialiased'
-export const formSection = 'mx-auto w-full max-w-[1720px] px-5 pb-20 pt-28 sm:px-8 sm:pt-32 lg:px-12 lg:pb-28 lg:pt-40 xl:px-16'
+export const formSection = 'mx-auto w-full max-w-[1400px] px-5 pb-20 pt-28 sm:px-8 sm:pt-32 lg:px-12 lg:pb-28 lg:pt-40 xl:px-16'
 export const formDisplayHeading = 'font-(--font-primary) text-[clamp(44px,5.6vw,92px)] font-normal leading-[0.92] tracking-[-0.045em]'
 export const formStepHeading = 'font-(--font-primary) text-[clamp(28px,3vw,44px)] leading-[1] tracking-[-0.03em]'
 export const formBody = 'text-[16px] leading-[1.65] text-black/60'

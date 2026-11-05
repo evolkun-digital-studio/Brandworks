@@ -214,7 +214,7 @@ export default function ContactPage() {
           {/* ------------------------------------------------------------ */}
           <aside className="lg:col-span-5 lg:pr-12 xl:pr-20">
             <div className="lg:sticky lg:top-32">
-              <h1 className="max-w-[12ch] font-(--font-primary) text-[clamp(44px,5.6vw,92px)] font-normal leading-[0.92] tracking-[-0.045em]">
+              <h1 className="max-w-[12ch] font-(--font-primary) text-[clamp(28px,4vw,52px)] font-normal leading-[0.92] tracking-[-0.045em]">
                 <span className="sr-only">{headline}</span>
                 <span aria-hidden="true">
                   {headline.split(' ').map((word, i) => (
@@ -545,9 +545,9 @@ export default function ContactPage() {
       </section>
 
       {/* Prefer email? */}
-      <section className="mx-auto w-full max-w-[1720px] px-5 sm:px-8 lg:px-12 xl:px-16">
+      <section className="mx-auto w-full max-w-[1400px] px-5 sm:px-8 lg:px-12 xl:px-16">
         <a href={`mailto:${EMAIL}`} className="group grid min-h-[200px] grid-cols-[1fr_auto] items-end gap-10 border-t border-black/15 py-9 lg:min-h-[260px]">
-          <span className="font-(--font-primary) text-[clamp(40px,6vw,104px)] font-normal leading-[0.9] tracking-[-0.045em]">
+          <span className="font-(--font-primary) text-[clamp(30px,5vw,60px)] font-normal leading-[0.9] tracking-[-0.045em]">
             <span className="grid overflow-hidden">
               <span className="col-start-1 row-start-1 block transition-transform duration-[650ms] ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-full">Prefer email?</span>
               <span className="col-start-1 row-start-1 block translate-y-full self-end text-[0.62em] transition-transform duration-[650ms] ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:translate-y-0">{EMAIL}</span>

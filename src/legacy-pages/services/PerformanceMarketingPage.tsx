@@ -258,7 +258,8 @@ export default function PerformanceMarketingPage() {
 
   return <main ref={rootRef} className="pm-page font-secondary">
     <section className="pm-hero pm-container" aria-labelledby="pm-title">
-      <div><p className="pm-label">Performance Marketing</p><h1 id="pm-title">Media spend should create momentum, not just impressions.</h1><p className="pm-lead">We combine paid media, creative, data and conversion strategy to turn advertising budgets into measurable business growth.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="#pm-approach" className="pm-text-link">Explore Our Approach <span aria-hidden="true">↓</span></Link></div><p className="pm-hero-signature">BrandWorks / Strategy + Design + Technology</p></div>
+      <div><p className="pm-label">Performance Marketing</p><h1 id="pm-title">Media spend should create momentum, not just impressions.</h1><p className="pm-lead">We combine paid media, creative, data and conversion strategy to turn advertising budgets into measurable business growth.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="#pm-approach" className="pm-text-link">Explore Our Approach <span aria-hidden="true">↓</span></Link></div>
+      </div>
       <CampaignField />
     </section>
 
@@ -280,12 +281,12 @@ export default function PerformanceMarketingPage() {
       </ol>
     </Section>
 
-    <Section number="04" label="Channels" title="Choose the channel for the job.">
+    {/* <Section number="04" label="Channels" title="Choose the channel for the job.">
       <div className="pm-channel pm-channel-meta"><div><span className="pm-label">Discovery / Facebook + Instagram</span><h3>Meta Ads</h3><p>Introduce an offer in the feed, build interest and reconnect with people who already know you. Creative and audience strategy are planned together.</p></div><Words items={['Awareness', 'Traffic', 'Leads', 'Purchases', 'Remarketing', 'Catalogue sales', 'Lookalike audiences', 'Custom audiences']} /></div>
       <div className="pm-channel pm-channel-google"><div className="pm-search-concept"><span className="pm-label">The moment of intent</span><p>“A solution to my problem”<span aria-hidden="true">↗</span></p></div><div><h3>Google Ads</h3><p>Capture active demand with Search and Shopping. Use Display, YouTube and remarketing to support the wider journey. Performance Max connects eligible inventory around defined conversion goals and useful creative assets.</p><Words items={['Search', 'Display', 'Shopping', 'YouTube', 'Performance Max', 'Remarketing']} /></div></div>
       <div className="pm-channel pm-channel-linkedin"><h3>LinkedIn Ads</h3><div><p>Reach professional audiences with a proposition that respects a longer buying process. Build B2B lead generation around the role, organization and buying context.</p><Words items={['Decision-makers', 'Account targeting', 'Professional audiences', 'B2B leads']} /></div><span className="pm-channel-mark" aria-hidden="true">Business<br />to business.</span></div>
       <p className="pm-channel-note">For app promotion, we connect the campaign objective to installs and meaningful in-app actions. Platform choice, deep links and measurement are scoped around the app and its customer journey.</p>
-    </Section>
+    </Section> */}
 
     <Section number="05" label="The performance system" title="One campaign. Multiple systems working together." className="pm-dark pm-system" id="pm-system">
       <div className="pm-system-layout"><div className="pm-system-aside"><div className="pm-system-orbit" aria-hidden="true"><span /><span /><span /><strong data-pm-active-stage>Research</strong></div><p>Creative, media and technology move together. A weak link affects everything that follows.</p><Link to="/contact" className="pm-text-link">Build your system <span aria-hidden="true">↗</span></Link></div>
@@ -293,16 +294,16 @@ export default function PerformanceMarketingPage() {
       </div>
     </Section>
 
-    <Section number="06" label="Creative performance" title="Media buying cannot rescue weak creative." className="pm-creative">
+    {/* <Section number="06" label="Creative performance" title="Media buying cannot rescue weak creative." className="pm-creative">
       <div className="pm-split"><p className="pm-lead">The creative is part of the strategy.</p><p>Photography, videography, motion, graphics and copy work together to make the offer understood. We use hooks, formats and performance insights to build the next creative brief, rather than endlessly adjusting the same ad.</p></div>
       <CreativeLab />
       <Words items={['Static ads', 'Video ads', 'UGC-style creatives', 'Carousels', 'Product-focused ads', 'Founder-led content', 'Motion ads']} />
-    </Section>
+    </Section> */}
 
-    <Section number="07" label="Audience strategy" title="The right message still needs the right audience.">
+    {/* <Section number="07" label="Audience strategy" title="The right message still needs the right audience.">
       <div className="pm-audience-layout"><div className="pm-audience-art" role="img" aria-label="Audience layers: market reach, intent signals, first-party data and warm audiences"><div><span>Market reach</span><div><span>Intent signals</span><div><span>First-party data</span><div><span>Warm<br />audiences</span></div></div></div></div></div><div><p>We separate discovery from intent and follow-up. Segments reflect what people need, what they have done and where they are in the decision.</p><Words items={['Broad targeting', 'Interest targeting', 'Keyword intent', 'First-party data', 'Website visitors', 'Customer lists', 'Lookalike audiences', 'Retargeting audiences', 'High-intent segments', 'B2B job-title / company targeting', 'Geographic targeting', 'Device targeting', 'Funnel-stage segmentation']} /><p className="pm-small">Targeting choices depend on the platform, campaign objective and available audience data.</p></div></div>
-    </Section>
-
+    </Section> */}
+{/* 
     <Section number="08" label="Campaign funnel" title="Different moments. Different measures.">
       <div className="pm-funnel">{[
         ['Awareness', 'Introduce the brand or the problem.', 'Reach · CPM · Video Views · Engagement'],
@@ -310,72 +311,64 @@ export default function PerformanceMarketingPage() {
         ['Conversion', 'Turn intent into a meaningful business action.', 'Leads · Sales · CPA · Conversion Rate · ROAS'],
         ['Retention / Remarketing', 'Reconnect with warm audiences and support repeat value.', 'Repeat Purchases · Revenue · Frequency · Customer Value'],
       ].map(([title, copy, kpis], index) => <div key={title}><span className="pm-step-number">0{index + 1}</span><h3>{title}</h3><p>{copy}</p><span className="pm-funnel-bar" style={{ width: `${100 - index * 17}%` }} aria-hidden="true" /><p className="pm-small">{kpis}</p></div>)}</div>
-    </Section>
-
+    </Section> */}
+{/* 
     <Section number="09" label="Landing page optimization" title="Clicks do not create revenue. Conversions do.">
       <div className="pm-split pm-landing-layout"><div><p>Performance does not stop at the advertisement. The landing page should answer the question the ad creates, make the next step obvious and work well on the device in someone’s hand.</p><Words items={['Page speed', 'Message match', 'Headline clarity', 'Mobile responsiveness', 'Visual hierarchy', 'CTA placement', 'Forms', 'Trust indicators', 'Friction reduction', 'Product positioning', 'Checkout flow', 'Lead qualification', 'A/B testing']} /></div><LandingComparison /></div>
-    </Section>
-
-    <Section number="10" label="Tracking & analytics" title="Good optimization starts with reliable data." className="pm-tracking">
-      <p className="pm-measure">Define the action. Verify the signal. Connect it to the business.</p><Flow items={['Ad Click', 'Landing Page', 'Product / Form Interaction', 'Conversion', 'Analytics', 'Ad Platform', 'Optimization']} />
-      <div className="pm-split"><p>We plan events and custom conversions, verify them through the journey and connect lead-source or ecommerce data where applicable. UTM conventions keep campaign sources legible. CRM feedback helps distinguish an enquiry from a customer.</p><div><Words items={['GA4', 'Google Tag Manager', 'Meta Pixel', 'Conversions API', 'Google Ads Conversion Tracking', 'UTM tracking', 'Events', 'Custom conversions', 'Attribution', 'CRM tracking', 'Lead-source tracking', 'Ecommerce events', 'Server-side tracking when required']} /><p className="pm-small">We account for consent, event deduplication and attribution differences. Platform reporting and business records are reconciled rather than treated as identical.</p></div></div>
-    </Section>
-
-    <Section number="11" label="KPIs we watch" title="The number matters. So does its meaning.">
+    </Section> */}
+/
+    {/* <Section number="11" label="KPIs we watch" title="The number matters. So does its meaning.">
       <p className="pm-measure">The right KPI depends on the business model and campaign objective. We agree definitions before comparing results.</p><dl className="pm-metrics">{metrics.map(([name, full, copy]) => <div key={name}><dt>{name}</dt><dd><strong>{full}</strong><p>{copy}</p></dd></div>)}</dl>
       <div className="pm-commercial-note"><h3>Efficiency has to survive the economics.</h3><p>ROAS helps assess attributed revenue. CPA measures the agreed action. CAC connects acquisition costs to new customers. We read them alongside revenue, margin, cash flow and customer value before recommending more spend.</p></div>
-    </Section>
+    </Section> */}
 
-    <Section number="12" label="Testing framework" title="Performance comes from structured experimentation.">
+    {/* <Section number="12" label="Testing framework" title="Performance comes from structured experimentation.">
       <ol className="pm-testing-list">{tests.map(([title, question, copy], index) => <li key={title}><span className="pm-label">Test 0{index + 1}</span><h3>{title}</h3><div><strong>{question}</strong><p>{copy}</p></div></li>)}</ol><p className="pm-learning-line">Hypothesis <span aria-hidden="true">→</span> Controlled test <span aria-hidden="true">→</span> Enough evidence <span aria-hidden="true">→</span> Next campaign cycle</p><p className="pm-small">We define the primary measure, comparison and review window before launch. A short-term fluctuation is not automatically a winning test.</p>
-    </Section>
+    </Section> */}
 
-    <Section number="13" label="Retargeting" title="Not every customer converts on the first visit.">
+    {/* <Section number="13" label="Retargeting" title="Not every customer converts on the first visit.">
       <p className="pm-measure">Follow-up should move the conversation forward: answer an objection, show relevant proof or make it easier to return. Exclude converted audiences where appropriate and watch frequency.</p><Flow items={['First Impression', 'Website Visit', 'Product / Service Interest', 'Exit', 'Retargeting', 'Return', 'Conversion']} /><Words items={['Website visitors', 'Product viewers', 'Cart abandoners', 'Video viewers', 'Social engagers', 'Form visitors', 'Previous customers', 'Lead database', 'High-intent users']} />
-    </Section>
-
-    <Section number="14" label="Ecommerce performance" title="Acquire the customer. Understand the value." className="pm-commerce">
-      <div className="pm-split"><p className="pm-lead">A purchase is a signal.<br />A profitable customer is the goal.</p><div><p>Connect product campaigns, catalogue ads, Shopping and Performance Max to accurate feeds and a clear offer. Use dynamic remarketing and cart-abandonment campaigns to reconnect with product interest.</p><p>We plan creative testing, seasonal campaigns and offer strategy around acquisition and repeat purchase. AOV, ROAS and MER are reviewed with margins and returns, so a revenue increase is assessed in business terms.</p><Words items={['Product feed optimization', 'Customer acquisition', 'Repeat purchase', 'Cart abandonment', 'Seasonal campaigns', 'Creative testing']} /></div></div>
-    </Section>
-
+    </Section> */}
+?
+{/* 
     <Section number="15" label="Lead generation" title="A cheap lead is not automatically a good lead.">
       <div className="pm-split"><div><p>For service businesses, the question is what happens after the form. We connect Search, Meta lead generation and LinkedIn campaigns with qualification, CRM handoff and remarketing.</p><p>Landing forms, WhatsApp and call conversions are used where they fit the buying journey. Lead-source tracking and sales feedback help optimize toward cost per qualified lead and eventual customers.</p></div><div className="pm-lead-path"><span>Enquiry</span><span aria-hidden="true">↓</span><span>Qualified lead</span><span aria-hidden="true">↓</span><span>Sales conversation</span><span aria-hidden="true">↓</span><strong>Customer</strong><p className="pm-small">Track quality through the handoff.</p></div></div>
-    </Section>
+    </Section> */}
 
-    <Section number="16" label="B2B performance marketing" title="Work with the buying cycle, not against it.">
+    {/* <Section number="16" label="B2B performance marketing" title="Work with the buying cycle, not against it.">
       <div className="pm-split"><p>High-intent search, LinkedIn decision-maker targeting and account-based audiences need an offer appropriate to the stage of the conversation. A lead magnet, case study or consultation can create a useful next step before a sale is realistic.</p><div><Words items={['High-intent search', 'Decision-maker targeting', 'Account-based targeting', 'LinkedIn', 'Lead magnets', 'Case study promotion', 'Demo / consultation campaigns', 'Remarketing', 'Lead nurturing']} /><p className="pm-small">Long conversion cycles require a shared view of lead quality, pipeline progression and sales follow-up.</p></div></div>
-    </Section>
+    </Section> */}
 
-    <Section number="17" label="SEO + paid media" title="Paid media captures demand. SEO compounds it." className="pm-seo">
+    <Section number="17"  title="Paid media captures demand. SEO compounds it." className="pm-seo">
       <div className="pm-split"><p>Paid campaign data can reveal converting keywords, strong landing pages, audience language, useful offers and market intent. Those lessons can inform organic content and the pages you build next.</p><div><p>SEO develops a longer-term source of discovery and can reduce dependence on paid acquisition. We share insights between both disciplines instead of treating them as separate plans.</p><Link to="/services/seo" className="pm-text-link">Explore BrandWorks SEO <span aria-hidden="true">↗</span></Link></div></div>
     </Section>
 
-    <Section number="18" label="Optimization cycle" title="A campaign is a starting point." className="pm-dark pm-cycle">
+    {/* <Section number="18" label="Optimization cycle" title="A campaign is a starting point." className="pm-dark pm-cycle">
       <p className="pm-measure">Optimization is continuous. Campaigns should evolve as the data changes.</p><Flow items={['Launch', 'Measure', 'Analyse', 'Test', 'Improve', 'Scale', 'Repeat']} className="pm-loop" /><p className="pm-small">Scaling follows evidence: increase budgets in controlled steps, monitor marginal CPA and ROAS, and check that sales, stock or service capacity can support the demand.</p>
-    </Section>
+    </Section> */}
 
-    <Section number="19" label="Reporting" title="Reports should explain decisions, not decorate spreadsheets.">
+    {/* <Section number="19" label="Reporting" title="Reports should explain decisions, not decorate spreadsheets.">
       <div className="pm-report"><div className="pm-report-heading"><span>BrandWorks / Performance review</span><span>Report structure</span></div><div className="pm-report-row"><span>01 / Outcomes</span><p>Campaign spend, conversions, CPA, CPL, revenue and ROAS, using the agreed definitions and attribution context.</p></div><div className="pm-report-row"><span>02 / What changed</span><p>Channel comparison, creative performance, audience performance, funnel health and landing-page performance.</p></div><div className="pm-report-row"><span>03 / What happens next</span><p>Decisions, next actions, tests planned and the budget implications. Each recommendation connects to an observation.</p></div><div className="pm-report-foot">Clear measures. Shared context. A useful next decision.</div></div>
-    </Section>
+    </Section> */}
 
-    <Section number="20" label="Why campaigns underperform" title="Media buying is only one part of the system.">
+    {/* <Section number="20" label="Why campaigns underperform" title="Media buying is only one part of the system.">
       <ul className="pm-failure-list">{['Weak offer', 'Poor creative', 'Wrong objective', 'Broad messaging', 'Bad landing experience', 'Slow page speed', 'Incorrect tracking', 'Insufficient data', 'Audience fatigue', 'No retargeting', 'Premature scaling', 'Poor lead quality', 'Disconnected sales process', 'No testing framework'].map((item, index) => <li key={item}><span>{String(index + 1).padStart(2, '0')}</span>{item}</li>)}</ul><p className="pm-measure">We diagnose the full journey before deciding that a higher budget or a different bidding strategy is the answer.</p>
-    </Section>
+    </Section> */}
 
     <Section number="21" label="Our approach" title="A clear engagement. A shared growth plan." id="pm-approach">
-      <ol className="pm-engagement">{process.map(([title, copy], index) => <li key={title}><span className="pm-step-number">0{index + 1}</span><h3>{title}</h3><p>{copy}</p></li>)}</ol><p className="pm-small">We agree scope, account access, creative responsibilities, reporting cadence and success measures before launch.</p>
+      <ol className="pm-engagement">{process.map(([title, copy], index) => <li key={title}><h3>{title}</h3><p>{copy}</p></li>)}</ol><p className="pm-small">We agree scope, account access, creative responsibilities, reporting cadence and success measures before launch.</p>
     </Section>
 
     <Section number="22" label="Business models" title="Built around how your business grows.">
       <p className="pm-measure">Performance marketing can be structured for different buying cycles and business models. The channel mix, conversion definition and creative approach are scoped to your business.</p><Words items={['E-commerce', 'Real Estate', 'Hospitality', 'Healthcare', 'Education', 'Fashion', 'Beauty', 'SaaS', 'Professional Services', 'B2B', 'Local Businesses', 'Consumer Brands']} />
     </Section>
 
-    <Section number="23" label="FAQs" title="Before we start, a few useful answers." className="pm-faq">
+    {/* <Section number="23" label="FAQs" title="Before we start, a few useful answers." className="pm-faq">
       <div className="pm-faq-list">{faqs.map(([question, answer]) => <details key={question} name="pm-faq"><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div>
-    </Section>
+    </Section> */}
 
     <Section number="24" label="Build a more measurable growth system" title="Spend with a reason. Scale with evidence." className="pm-final">
-      <p className="pm-lead" data-pm-reveal>Let’s build a performance strategy around the numbers that actually matter to your business.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="/contact" className="pm-text-link">Contact BrandWorks <span aria-hidden="true">↗</span></Link></div><p className="pm-final-signature">Strategy + Design + Technology</p>
+      <p className="pm-lead" data-pm-reveal>Let’s build a performance strategy around the numbers that actually matter to your business.</p><div className="pm-actions"><Link to="/contact" className="pm-button">Discuss Your Growth <span aria-hidden="true">↗</span></Link><Link to="/contact" className="pm-text-link">Contact BrandWorks <span aria-hidden="true">↗</span></Link></div>
     </Section>
   </main>
 }
