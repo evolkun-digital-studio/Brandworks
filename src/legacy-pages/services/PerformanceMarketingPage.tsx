@@ -339,7 +339,7 @@ export default function PerformanceMarketingPage() {
       <div className="pm-split"><p>High-intent search, LinkedIn decision-maker targeting and account-based audiences need an offer appropriate to the stage of the conversation. A lead magnet, case study or consultation can create a useful next step before a sale is realistic.</p><div><Words items={['High-intent search', 'Decision-maker targeting', 'Account-based targeting', 'LinkedIn', 'Lead magnets', 'Case study promotion', 'Demo / consultation campaigns', 'Remarketing', 'Lead nurturing']} /><p className="pm-small">Long conversion cycles require a shared view of lead quality, pipeline progression and sales follow-up.</p></div></div>
     </Section> */}
 
-    <Section number="17"  title="Paid media captures demand. SEO compounds it." className="pm-seo">
+    <Section number="17" label="Paid media and SEO" title="Paid media captures demand. SEO compounds it." className="pm-seo">
       <div className="pm-split"><p>Paid campaign data can reveal converting keywords, strong landing pages, audience language, useful offers and market intent. Those lessons can inform organic content and the pages you build next.</p><div><p>SEO develops a longer-term source of discovery and can reduce dependence on paid acquisition. We share insights between both disciplines instead of treating them as separate plans.</p><Link to="/services/seo" className="pm-text-link">Explore BrandWorks SEO <span aria-hidden="true">↗</span></Link></div></div>
     </Section>
 
