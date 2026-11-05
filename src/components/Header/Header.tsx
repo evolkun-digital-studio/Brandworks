@@ -58,7 +58,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   }, [])
 
   // Hide on scroll down / show on scroll up. Position only — never colour.
-  // rAF-throttled, ignores tiny deltas, and only sets state when it changes.
+  // rAF-throttled, ignores tiny deltas, and only sets state when it 
   useEffect(() => {
     if (pathname === '/services') return // the services header never hides
     let frame = 0
