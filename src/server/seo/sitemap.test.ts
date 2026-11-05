@@ -1,6 +1,26 @@
+import { readdirSync, statSync } from 'node:fs'
+import { join, relative, sep } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 vi.mock('server-only',()=>({}))
-import { buildSitemapXml, composeSitemapEntries, resolveSitemapLoc } from './sitemap'
+vi.mock('../repositories/blog.repository',()=>({listSitemapEligibleBlogs:vi.fn()}))
+import { listSitemapEligibleBlogs } from '../repositories/blog.repository'
+import { SITEMAP_EXCLUDED_PATHS, STATIC_PUBLIC_PATHS, buildSitemapEntries, buildSitemapXml, composeSitemapEntries, resolveSitemapLoc } from './sitemap'
+
+/** Static page routes under app/(public): every page.tsx outside a [dynamic] segment. */
+function publicPageRoutes(root=join(process.cwd(),'app','(public)')):string[]{
+  const routes:string[]=[]
+  const walk=(dir:string)=>{
+    for(const name of readdirSync(dir)){
+      const full=join(dir,name)
+      if(statSync(full).isDirectory()){if(!name.startsWith('['))walk(full);continue}
+      if(name!=='page.tsx')continue
+      const segments=relative(root,dir).split(sep).filter(seg=>seg&&!/^\(.*\)$/.test(seg))
+      routes.push('/'+segments.join('/'))
+    }
+  }
+  walk(root)
+  return routes.sort()
+}
 
 describe('sitemap composition',()=>{
   const origin='https://site.example.test'
@@ -12,7 +32,7 @@ describe('sitemap composition',()=>{
       {slug:'duplicate',canonicalUrl:origin+'/blog/custom',updatedAt},
     ],origin)
     expect(entries).toEqual([
-      {loc:origin+'/'},{loc:origin+'/blog'},{loc:origin+'/news'},
+      ...STATIC_PUBLIC_PATHS.map(path=>({loc:origin+path})),
       {loc:origin+'/blog/one',lastmod:updatedAt.toISOString()},
       {loc:origin+'/blog/custom',lastmod:updatedAt.toISOString()},
     ])
@@ -27,5 +47,22 @@ describe('sitemap composition',()=>{
     expect(xml).toContain('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"')
     expect(xml).toContain('&amp;')
     expect(xml).toContain('<lastmod>2026-01-02T03:04:05.000Z</lastmod>')
+  })
+  it('lists every public page route (add new pages to STATIC_PUBLIC_PATHS)',()=>{
+    const listed=new Set<string>([...STATIC_PUBLIC_PATHS,...SITEMAP_EXCLUDED_PATHS])
+    const missing=publicPageRoutes().filter(route=>!listed.has(route))
+    expect(missing).toEqual([])
+  })
+  it('lists no route that does not exist',()=>{
+    const routes=new Set(publicPageRoutes())
+    expect(STATIC_PUBLIC_PATHS.filter(path=>!routes.has(path))).toEqual([])
+  })
+  it('still serves the static pages when blog posts cannot be loaded',async()=>{
+    vi.mocked(listSitemapEligibleBlogs).mockRejectedValueOnce(new Error('mongo down'))
+    const error=vi.spyOn(console,'error').mockImplementation(()=>{})
+    const entries=await buildSitemapEntries(origin)
+    expect(entries.map(entry=>entry.loc)).toEqual(STATIC_PUBLIC_PATHS.map(path=>origin+path))
+    expect(error).toHaveBeenCalledOnce()
+    error.mockRestore()
   })
 })
