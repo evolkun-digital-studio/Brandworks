@@ -85,7 +85,7 @@ export const ABOUT_JOURNEY = {
   stages: [
     {
       title: 'The Beginning',
-      text: 'BrandWorks began with one goal — to close the gap between good creative work and clear brand thinking.',
+      text: 'BrandWorks began with one goal to close the gap between good creative work and clear brand thinking.',
     },
     {
       title: 'Building the Studio',
