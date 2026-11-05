@@ -948,9 +948,9 @@ export default function PRReputationPage({ siteUrl }: { siteUrl?: string }) {
       <PitchExample />
       <Process />
       <IfSomethingWentWrong />
-      <PhotoStrip />
+      {/* <PhotoStrip /> */}
       {/* <Faq /> */}
-      <Sources />
+      {/* <Sources /> */}
       <FinalCta />
     </main>
   )
