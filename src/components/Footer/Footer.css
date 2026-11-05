@@ -26,18 +26,19 @@
   transition: color 0.2s ease, opacity 0.2s ease;
 }
 
-/* Large logo: the header wordmark, scaled to the container width. */
+/* Large logo (below the info row): the header wordmark, scaled to the container width. */
 .footer-wordmark {
   display: block;
   width: 100%;
-  padding-bottom: clamp(16px, 2.4vw, 32px);
-  border-bottom: 1px solid var(--footer-line);
+  padding-block: clamp(24px, 3vw, 40px);
+  border-top: 1px solid var(--footer-line);
 }
 
 .brandworks-footer .footer-wordmark__logo {
   display: block;
   width: 100%;
   height: auto;
+  opacity: 0.6;
 }
 
 /* Contact | links */
@@ -46,7 +47,7 @@
   grid-template-columns: 1fr auto;
   align-items: start;
   gap: 32px;
-  padding: clamp(32px, 4vw, 56px) 0;
+  padding: 0 0 clamp(32px, 4vw, 56px);
 }
 
 .footer-col {

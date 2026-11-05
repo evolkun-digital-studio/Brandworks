@@ -833,7 +833,7 @@ function FinalCta() {
     <section className="bg-neutral-950 text-white">
       <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[1fr_auto] lg:items-end lg:py-28`}>
         <FadeIn>
-          <h2 className="section-heading max-w-[16ch]">
+          <h2 className="section-heading max-w-[16ch] !text-white">
             Have a story worth <Mark dark>telling?</Mark>
           </h2>
           <p className="mt-6 max-w-[50ch] text-[15px] leading-[1.75] text-white/65">
