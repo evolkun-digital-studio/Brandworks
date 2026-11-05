@@ -34,6 +34,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   // Server render and first client render both start "not scrolled, shown".
   const [hidden, setHidden] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const lastScrollY = useRef(0)
   const { pathname } = useLocation()
 
@@ -122,6 +123,25 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   // /services keeps an opaque white header bar, so its capsules always use dark ink.
   const tone = overDark && pathname !== '/services' ? 'is-on-dark' : 'is-on-light'
 
+  // Keep the mobile menu usable like a modal layer: it owns the viewport while
+  // open and closes on Escape. Navigation links close it before routing.
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    if (!menuOpen) {
+      return
+    }
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [menuOpen])
+
   // The project planner keeps only the logo so the questionnaire stays focused.
   if (pathname === '/start-project') {
     return (
@@ -136,7 +156,7 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   }
 
   return (
-    <header className={`site-header ${hidden && pathname !== "/services" ? "is-hidden" : ""} ${pathname === "/services" ? "site-header--services" : ""} ${scrolled ? "is-scrolled" : ""}`}>
+    <header className={`site-header ${hidden && !menuOpen && pathname !== "/services" ? "is-hidden" : ""} ${menuOpen ? "is-menu-open" : ""} ${pathname === "/services" ? "site-header--services" : ""} ${scrolled ? "is-scrolled" : ""}`}>
       {/* Desktop Layout */}
       <div
         className={`site-header__surface ${tone} hidden lg:grid w-full h-[64px] items-center px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}
@@ -194,9 +214,55 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
           </Link>
         </div>
 
-        <button aria-label="Open menu" className="nav-pill" data-nav-reveal>
-          Menu
+        <button
+          type="button"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-navigation"
+          className="nav-pill site-menu-toggle"
+          data-nav-reveal
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <span className="site-menu-toggle__icon" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
         </button>
+      </div>
+
+      <div
+        id="mobile-navigation"
+        className={`site-mobile-menu ${tone} ${menuOpen ? 'is-open' : ''}`}
+        aria-hidden={!menuOpen}
+      >
+        <div className="site-mobile-menu__backdrop" onClick={() => setMenuOpen(false)} />
+        <nav className="site-mobile-menu__panel" aria-label="Mobile primary navigation">
+          <div className="site-mobile-menu__links">
+            {navLinks.map((link, index) => (
+              <Link
+                key={link.label}
+                to={link.href}
+                tabIndex={menuOpen ? 0 : -1}
+                className="site-mobile-menu__link"
+                aria-current={link.href === "/" ? (pathname === "/" ? "page" : undefined) : pathname.startsWith(link.href) ? "page" : undefined}
+                onClick={() => setMenuOpen(false)}
+                style={{ transitionDelay: menuOpen ? `${index * 35 + 80}ms` : '0ms' }}
+              >
+                <span>{navLabels?.[link.label.toLowerCase() as keyof SiteNavigationLabels] ?? link.label}</span>
+                <span aria-hidden="true">↗</span>
+              </Link>
+            ))}
+          </div>
+          <Link
+            to="/start-project"
+            tabIndex={menuOpen ? 0 : -1}
+            className="site-mobile-menu__cta"
+            onClick={() => setMenuOpen(false)}
+          >
+            {"Let's Talk"} <span aria-hidden="true">↗</span>
+          </Link>
+        </nav>
       </div>
     </header>
   )
