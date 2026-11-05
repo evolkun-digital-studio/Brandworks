@@ -3,6 +3,8 @@ import 'server-only'
 import { NextResponse, type NextRequest } from 'next/server'
 import { errorResponse, forbidden, unauthorized, badRequest } from '../http/errors'
 import { getActiveAdmin, verifyAdminToken } from './auth'
+import { clientIp } from '../http/clientIp'
+import { resolvePublicOrigin } from '../config/env'
 import type { AdminDocument } from './types'
 
 const COOKIE = 'admin_session'
@@ -12,9 +14,9 @@ type LimiterGlobal = typeof globalThis & { __brandworksLoginAttempts?: Map<strin
 const state = globalThis as LimiterGlobal
 const attempts = state.__brandworksLoginAttempts ?? (state.__brandworksLoginAttempts = new Map())
 
+/** Proxy-aware: a spoofed first X-Forwarded-For entry cannot reset the limit. */
 function requestIp(request: NextRequest) {
-  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || request.headers.get('x-real-ip')?.trim() || 'unknown'
+  return clientIp(request)
 }
 
 /** Matches the source Express limiter's per-process 10/15-minute policy. */
@@ -37,11 +39,49 @@ export async function readJsonObject(request: Request): Promise<Record<string, u
   return body as Record<string,unknown>
 }
 
+const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
+
+function configuredOrigin(): string | null {
+  try { return resolvePublicOrigin() } catch { return null }
+}
+
+/** The origin the browser used, as seen through the reverse proxy. */
+function forwardedOrigin(headers: Headers): string | null {
+  const host = headers.get('x-forwarded-host')?.split(',')[0]?.trim() || headers.get('host')?.trim()
+  if (!host) return null
+  const proto = headers.get('x-forwarded-proto')?.split(',')[0]?.trim() || 'http'
+  return `${proto}://${host}`
+}
+
+/**
+ * CSRF guard for cookie-authenticated writes. SameSite=Lax already keeps the
+ * session cookie off cross-site POSTs, but not off *same-site* ones (another
+ * app on a brandworks.me subdomain).
+ *
+ * Modern browsers label every request with Sec-Fetch-Site, which page scripts
+ * cannot forge: only 'same-origin' (or 'none', a typed URL) is accepted.
+ * Without that header (older browsers) the Origin must match this site, as
+ * configured (PUBLIC_ORIGIN) or as reached through the proxy. Requests with
+ * neither header (curl, server jobs) are not browser CSRF and fall through to
+ * the normal session check.
+ */
+export function isCrossSiteWrite(request: Pick<NextRequest, 'method' | 'headers' | 'nextUrl'>): boolean {
+  if (SAFE_METHODS.has(request.method.toUpperCase())) return false
+  const site = request.headers.get('sec-fetch-site')
+  if (site) return site !== 'same-origin' && site !== 'none'
+  const origin = request.headers.get('origin')
+  if (!origin) return false
+  return origin !== configuredOrigin()
+    && origin !== forwardedOrigin(request.headers)
+    && origin !== request.nextUrl.origin
+}
+
 export async function withAdmin(
   request: NextRequest,
   handler: (admin: AdminDocument) => Promise<Response>,
 ): Promise<Response> {
   try {
+    if (isCrossSiteWrite(request)) throw forbidden('Cross-site request rejected.')
     const token = request.cookies.get(COOKIE)?.value
     if (!token) throw unauthorized()
     const payload = verifyAdminToken(token)

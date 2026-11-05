@@ -3,10 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:standalone": "node .next/standalone/server.js",
+    "build:release": "node scripts/build-release.mjs",
+    "smoke": "node scripts/smoke-test.mjs",
     "jobs:publish-due": "tsx src/server/jobs/publish-due.ts",
     "cms:migrate-editorial": "tsx src/server/jobs/migrate-editorial.ts",
     "media:seed": "tsx src/server/jobs/seed-site-media.ts",

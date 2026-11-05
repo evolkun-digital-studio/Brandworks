@@ -69,9 +69,18 @@ export function buildSitemapXml(entries:SitemapUrlEntry[]):string{
  * A database outage must not take the static pages out of the sitemap with
  * it: log the failure and serve the static entries alone until it recovers.
  */
-export async function buildSitemapEntries(publicOrigin:string){
+/** Crawlers give up quickly; never make them wait on a slow database. */
+export const SITEMAP_DB_TIMEOUT_MS=5000
+
+export async function buildSitemapEntries(publicOrigin:string,timeoutMs=SITEMAP_DB_TIMEOUT_MS){
   let cmsPosts:SitemapBlogProjection[]=[]
-  try{cmsPosts=await listSitemapEligibleBlogs()}
-  catch(error){console.error('[sitemap] blog posts unavailable, serving static pages only:',error)}
+  let timer:ReturnType<typeof setTimeout>|undefined
+  try{
+    cmsPosts=await Promise.race([
+      listSitemapEligibleBlogs(),
+      new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error(`timed out after ${timeoutMs}ms`)),timeoutMs)}),
+    ])
+  }catch(error){console.error('[sitemap] blog posts unavailable, serving static pages only:',error instanceof Error?error.message:error)}
+  finally{clearTimeout(timer)}
   return composeSitemapEntries(cmsPosts,publicOrigin)
 }

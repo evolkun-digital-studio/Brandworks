@@ -32,13 +32,16 @@ export function validatePassword(value: string) {
 
 export interface SessionPayload { sub: string }
 
+/** Pinned so a token can never select its own verification algorithm. */
+const JWT_ALGORITHM = 'HS256' as const
+
 export function signAdminToken(adminId: string) {
-  return jwt.sign({ sub: adminId }, requireJwtSecret(), { expiresIn: jwtExpiresIn() as SignOptions['expiresIn'] })
+  return jwt.sign({ sub: adminId }, requireJwtSecret(), { algorithm: JWT_ALGORITHM, expiresIn: jwtExpiresIn() as SignOptions['expiresIn'] })
 }
 
 export function verifyAdminToken(token: string): SessionPayload | null {
   try {
-    const payload = jwt.verify(token, requireJwtSecret())
+    const payload = jwt.verify(token, requireJwtSecret(), { algorithms: [JWT_ALGORITHM] })
     if (typeof payload === 'object' && payload !== null && typeof payload.sub === 'string') return { sub: payload.sub }
     return null
   } catch { return null }

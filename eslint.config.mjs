@@ -9,6 +9,8 @@ export default defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    // Release output from `npm run build:release` (minified, generated).
+    "dist/**",
     "coverage/**",
     "next-env.d.ts",
   ]),

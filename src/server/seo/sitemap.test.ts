@@ -57,6 +57,13 @@ describe('sitemap composition',()=>{
     const routes=new Set(publicPageRoutes())
     expect(STATIC_PUBLIC_PATHS.filter(path=>!routes.has(path))).toEqual([])
   })
+  it('serves the static pages within the timeout when the database hangs',async()=>{
+    vi.mocked(listSitemapEligibleBlogs).mockReturnValueOnce(new Promise(()=>{}))
+    const error=vi.spyOn(console,'error').mockImplementation(()=>{})
+    const entries=await buildSitemapEntries(origin,20)
+    expect(entries.map(entry=>entry.loc)).toEqual(STATIC_PUBLIC_PATHS.map(path=>origin+path))
+    error.mockRestore()
+  })
   it('still serves the static pages when blog posts cannot be loaded',async()=>{
     vi.mocked(listSitemapEligibleBlogs).mockRejectedValueOnce(new Error('mongo down'))
     const error=vi.spyOn(console,'error').mockImplementation(()=>{})

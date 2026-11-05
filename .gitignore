@@ -22,6 +22,7 @@ playwright-report/
 .env
 .env.*
 !.env.example
+!.env.production.example
 .env.local
 # Editor directories and files
 .claude/

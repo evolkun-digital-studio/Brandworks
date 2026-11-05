@@ -4,12 +4,14 @@
  * client hammering the AI endpoint, not a shared limiter for multi-instance
  * deployments.
  */
+import { clientIp } from '../http/clientIp'
+
 const buckets = new Map<string, number[]>()
 let lastSweep = 0
 
+/** Proxy-aware client IP; see src/server/http/clientIp.ts for why not the first X-Forwarded-For entry. */
 export function clientKey(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  return forwarded || request.headers.get('x-real-ip')?.trim() || 'unknown'
+  return clientIp(request)
 }
 
 /** Records a hit and reports whether it is within `limit` per `windowMs`. */

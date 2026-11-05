@@ -1,5 +1,7 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { pingDatabase } from '../../../src/server/db/client'
-import { resolvePublicOrigin } from '../../../src/server/config/env'
+import { requireJwtSecret, resolvePublicOrigin } from '../../../src/server/config/env'
 
 export const runtime = 'nodejs'
 // Always run at request time: a cached health answer is a wrong one.
@@ -9,6 +11,24 @@ export const dynamic = 'force-dynamic'
 const DB_TIMEOUT_MS = 3000
 
 const NO_STORE = { 'Cache-Control': 'no-store, max-age=0' }
+
+/**
+ * The deployed commit: release.json (written by scripts/build-release.mjs next
+ * to server.js, which is the working directory in production), else the CI
+ * environment, else 'dev'. Read once; only the hash is exposed.
+ */
+let releaseCommit: string | undefined
+function deployedCommit(): string {
+  if (releaseCommit === undefined) {
+    try {
+      const manifest = JSON.parse(readFileSync(join(process.cwd(), 'release.json'), 'utf8')) as { commit?: unknown }
+      releaseCommit = typeof manifest.commit === 'string' && /^[0-9a-f]{7,40}$/.test(manifest.commit) ? manifest.commit : ''
+    } catch {
+      releaseCommit = ''
+    }
+  }
+  return releaseCommit || process.env.GITHUB_SHA || process.env.VERCEL_GIT_COMMIT_SHA || 'dev'
+}
 
 async function checkDatabase(): Promise<boolean> {
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -32,20 +52,31 @@ function checkPublicOrigin(): boolean {
   }
 }
 
+/** Admin login needs a present (and, in production, long enough) JWT_SECRET. Only pass/fail is reported. */
+function checkJwtSecret(): boolean {
+  try {
+    requireJwtSecret()
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function runChecks() {
-  const [database, publicOrigin] = [await checkDatabase(), checkPublicOrigin()]
-  return { database, publicOrigin, healthy: database && publicOrigin }
+  const [database, publicOrigin, adminAuth] = [await checkDatabase(), checkPublicOrigin(), checkJwtSecret()]
+  return { database, publicOrigin, adminAuth, healthy: database && publicOrigin && adminAuth }
 }
 
 export async function GET(): Promise<Response> {
-  const { database, publicOrigin, healthy } = await runChecks()
+  const { database, publicOrigin, adminAuth, healthy } = await runChecks()
   const body = {
     status: healthy ? 'ok' : 'degraded',
     server: 'running',
     mongodb: database ? 'connected' : 'disconnected',
     publicOrigin: publicOrigin ? 'configured' : 'missing-or-invalid',
+    adminAuth: adminAuth ? 'configured' : 'missing-or-weak-secret',
     environment: process.env.NODE_ENV ?? 'development',
-    commit: process.env.GITHUB_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev',
+    commit: deployedCommit(),
     uptime: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
   }
