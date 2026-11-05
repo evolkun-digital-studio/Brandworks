@@ -148,8 +148,9 @@
   aspect-ratio: var(--aspect);
 }
 
+/* Phones: about 60vw at most, and still bounded by height in landscape. */
 .bw-pl.is-compact .bw-pl__word {
-  width: 86vw;
+  width: min(60vw, calc(30vh * var(--aspect)));
 }
 
 .bw-pl__solid,

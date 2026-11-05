@@ -1,6 +1,7 @@
 import { Link, useLocation } from '../../routing'
 import { useState, useEffect, useRef } from 'react'
 import Logo from '../Logo/Logo'
+import { getSmoothScroll } from '../../lib/smoothScroll'
 import './Header.css'
 import type { SiteNavigationLabels } from '../../server/site-settings/types'
 
@@ -124,22 +125,68 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
   const tone = overDark && pathname !== '/services' ? 'is-on-dark' : 'is-on-light'
 
   // Keep the mobile menu usable like a modal layer: it owns the viewport while
-  // open and closes on Escape. Navigation links close it before routing.
+  // open (page scroll locked, Lenis included), traps Tab focus between the
+  // close button and the menu links, and closes on Escape. Navigation links
+  // close it before routing; focus returns to the menu button on close.
+  const toggleRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
+    if (!menuOpen) return
+    const html = document.documentElement
     const previousOverflow = document.body.style.overflow
-    if (!menuOpen) {
-      return
+    const previousHtmlOverflow = html.style.overflow
+    const lenis = getSmoothScroll()
+    const toggle = toggleRef.current
+
+    const focusables = () => [
+      ...(toggle ? [toggle] : []),
+      ...Array.from(menuRef.current?.querySelectorAll<HTMLElement>('a[href], button') ?? []),
+    ]
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false)
+        return
+      }
+      if (event.key !== 'Tab') return
+      const items = focusables()
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      const index = items.indexOf(document.activeElement as HTMLElement)
+      if (event.shiftKey && (index <= 0)) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && (index === -1 || index === items.length - 1)) {
+        event.preventDefault()
+        first.focus()
+      }
     }
 
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false)
-    }
     document.body.style.overflow = 'hidden'
-    document.addEventListener('keydown', closeOnEscape)
+    html.style.overflow = 'hidden'
+    lenis?.stop()
+    document.addEventListener('keydown', onKeyDown)
+    // Move focus into the menu once its links are focusable.
+    const frame = requestAnimationFrame(() => menuRef.current?.querySelector<HTMLElement>('a[href]')?.focus({ preventScroll: true }))
     return () => {
+      cancelAnimationFrame(frame)
       document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', closeOnEscape)
+      html.style.overflow = previousHtmlOverflow
+      lenis?.start()
+      document.removeEventListener('keydown', onKeyDown)
+      toggle?.focus({ preventScroll: true })
     }
+  }, [menuOpen])
+
+  // The menu exists only below lg; growing past it closes the menu so the
+  // page is never left scroll-locked behind a hidden layer.
+  useEffect(() => {
+    if (!menuOpen || typeof window.matchMedia !== 'function') return
+    const desktop = window.matchMedia('(min-width: 1024px)')
+    const close = () => { if (desktop.matches) setMenuOpen(false) }
+    close()
+    desktop.addEventListener('change', close)
+    return () => desktop.removeEventListener('change', close)
   }, [menuOpen])
 
   // The project planner keeps only the logo so the questionnaire stays focused.
@@ -210,11 +257,13 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
       <div className={`site-header__surface ${tone} flex lg:hidden w-full h-[64px] items-center justify-between px-[var(--hero-gutter)] mt-[18px] lg:mt-[20px]`}>
         <div className="flex items-center">
           <Link to="/" aria-label="Brandworks home" className="block">
-            <Logo className="site-header__logo block h-[25px]" />
+            {/* ~120px wide on phones, ~150px on tablets (the artwork is 176×30). */}
+            <Logo className="site-header__logo block h-[20.5px] md:h-[25.5px]" />
           </Link>
         </div>
 
         <button
+          ref={toggleRef}
           type="button"
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={menuOpen}
@@ -232,9 +281,15 @@ function Header({ navLabels }: { navLabels?: SiteNavigationLabels }) {
       </div>
 
       <div
+        ref={menuRef}
         id="mobile-navigation"
         className={`site-mobile-menu ${tone} ${menuOpen ? 'is-open' : ''}`}
+        role="dialog"
+        aria-modal={menuOpen ? true : undefined}
+        aria-label="Site menu"
         aria-hidden={!menuOpen}
+        inert={!menuOpen}
+        data-lenis-prevent
       >
         <div className="site-mobile-menu__backdrop" onClick={() => setMenuOpen(false)} />
         <nav className="site-mobile-menu__panel" aria-label="Mobile primary navigation">

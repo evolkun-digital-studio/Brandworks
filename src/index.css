@@ -109,6 +109,22 @@
   }
 }
 
+/* Side padding: 16px on phones, 32px on tablets; desktop (lg+) keeps the
+   fluid values above. */
+@media (max-width: 767px) {
+  :root {
+    --hero-gutter: 16px;
+    --media-pad: 16px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --hero-gutter: 32px;
+    --media-pad: 32px;
+  }
+}
+
 @font-face {
   font-family: "Grimblade";
   src: url("./components/brandWorkFONT/creative-agency-font-grimblade-2026-04-07-06-20-57-utc/Grimblade.woff")
@@ -238,6 +254,9 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Safety net only: nothing on the page is meant to be wider than the
+     viewport. clip (not hidden) keeps position: sticky working. */
+  overflow-x: clip;
 }
 
 /* Keep semantic headings on the display face even when a component uses

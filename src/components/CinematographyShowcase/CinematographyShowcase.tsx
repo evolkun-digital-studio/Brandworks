@@ -28,6 +28,8 @@ import { getSmoothScroll } from '../../lib/smoothScroll'
 import { CINEMATOGRAPHY_PROJECTS, type CinematographyProject } from '../../data/cinematography'
 
 const FINE_POINTER = '(hover: hover) and (pointer: fine)'
+// Phones: the films are full-length, so they wait for a tap instead of autoplaying.
+const PHONE = '(max-width: 767px)'
 const SWIPE_DISTANCE = 50
 const SWIPE_VELOCITY = 400
 const EASE_OUT = [0.22, 1, 0.36, 1] as const
@@ -122,6 +124,7 @@ export default function CinematographyShowcase() {
 
   const reducedMotion = useReducedMotion() ?? false
   const finePointer = useMediaQuery(FINE_POINTER)
+  const phone = useMediaQuery(PHONE)
   const pageVisible = useSyncExternalStore(subscribeVisibility, () => document.visibilityState === 'visible', () => true)
   const framingDebug = useFramingDebug()
 
@@ -191,7 +194,7 @@ export default function CinematographyShowcase() {
     }
   }, [])
 
-  const shouldPlay = inView && pageVisible && lightbox === null && !reducedMotion
+  const shouldPlay = inView && pageVisible && lightbox === null && !reducedMotion && !phone
   const canPlay = (shouldPlay || userRequestedPlayback) && !userPaused
 
   const togglePlayback = () => {
@@ -448,7 +451,7 @@ export default function CinematographyShowcase() {
 
           <button
             type="button"
-            className="absolute right-full top-1/2 mr-[var(--arrow-gap)] z-[5] hidden size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 sm:grid"
+            className="absolute right-full top-1/2 mr-[var(--arrow-gap)] z-[5] hidden size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 md:grid"
             aria-label="Previous film"
             disabled={active === 0}
             onClick={() => goTo(active - 1)}
@@ -457,7 +460,7 @@ export default function CinematographyShowcase() {
           </button>
           <button
             type="button"
-            className="absolute left-full top-1/2 ml-[var(--arrow-gap)] z-[5] hidden size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 sm:grid"
+            className="absolute left-full top-1/2 ml-[var(--arrow-gap)] z-[5] hidden size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 md:grid"
             aria-label="Next film"
             disabled={active === count - 1}
             onClick={() => goTo(active + 1)}

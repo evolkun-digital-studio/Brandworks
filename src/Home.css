@@ -113,14 +113,16 @@
    narrower canvas and taller portrait viewport. */
 @media (min-width: 48rem) and (max-width: 63.9375rem) {
   .home-page {
-    --home-section-gap: clamp(7rem, 14vw, 9rem);
+    /* 96px between sections on tablets. */
+    --home-section-gap: 6rem;
   }
 }
 
 @media (max-width: 47.9375rem) {
   .home-page {
     /* Mobile needs a clear chapter break without wasting most of a screen. */
-    --home-section-gap: clamp(5rem, 21vw, 6rem);
+    /* 64px between sections on phones. */
+    --home-section-gap: 4rem;
   }
 
   .home-page .home-section--before-cinematography {
