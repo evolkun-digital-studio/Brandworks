@@ -19,6 +19,15 @@ function mediaManagerPattern(): RemotePattern[] {
 const nextConfig: NextConfig = {
   // Hide the dev-only route badge; compile and runtime errors still surface.
   devIndicators: false,
+  // Keep the admin panel and its API out of search results. Covers the JSON
+  // API responses too, which have no HTML <meta name="robots"> to carry it.
+  async headers() {
+    const noindex = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }]
+    return [
+      { source: '/admin/:path*', headers: noindex },
+      { source: '/api/admin/:path*', headers: noindex },
+    ]
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
