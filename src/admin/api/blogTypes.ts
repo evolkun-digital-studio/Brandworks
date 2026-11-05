@@ -45,6 +45,7 @@ export interface CustomMetaTag {
 export type TwitterCardType = 'summary' | 'summary_large_image' | 'player'
 
 export interface AdminBlogPost {
+  contentType?: import('../../blog/contentType').ContentType
   id: string
   title: string
   slug: string

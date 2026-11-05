@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { contentPath } from '../../../blog/contentType'
 import { Copy, ExternalLink, FileText, Pencil, Search, Trash2, Undo2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Link, useNavigate, useSearchParams } from '../../../routing'
@@ -162,7 +163,7 @@ export function BlogRow({ post, isAdmin, trashView, onChanged, onRemoved, onDupl
                     </button>
                   )}
                   {post.status === 'published' && (
-                    <a className={rowAction} href={`/blog/${post.slug}`} target="_blank" rel="noreferrer">
+                    <a className={rowAction} href={`${contentPath(post.contentType)}/${post.slug}`} target="_blank" rel="noreferrer">
                       <ExternalLink size={12} aria-hidden="true" /> View
                     </a>
                   )}
@@ -188,6 +189,7 @@ export function BlogRow({ post, isAdmin, trashView, onChanged, onRemoved, onDupl
       <td>
         <div className="flex flex-col items-start gap-1">
           <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs text-a-ink-2">{post.contentType === 'newsroom' ? 'Newsroom' : 'Journal'}</span>
             <StatusBadge status={post.status} />
             {post.reviewStatus === 'in_review' && <AdminStatusBadge tone="accent">In review</AdminStatusBadge>}
             {post.reviewStatus === 'changes_requested' && <AdminStatusBadge tone="warning">Changes requested</AdminStatusBadge>}
@@ -221,6 +223,7 @@ function BlogList() {
   ))
   const [scheduledView, setScheduledView] = useState(() => searchParams.get('scheduled') === 'true')
   const [trashView, setTrashView] = useState(false)
+  const [contentTypeFilter, setContentTypeFilter] = useState<'journal' | 'newsroom' | ''>(() => { const value = searchParams.get('contentType'); return value === 'journal' || value === 'newsroom' ? value : '' })
   const [sortOrder, setSortOrder] = useState<AdminBlogSort>(() => isSort(initialSort) ? initialSort : 'updated_desc')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [bulkBusy, setBulkBusy] = useState(false)
@@ -243,25 +246,26 @@ function BlogList() {
   useEffect(() => {
     setPage(1)
     setSelectedIds([])
-  }, [debouncedSearch, statusFilter, scheduledView, trashView, sortOrder])
+  }, [debouncedSearch, statusFilter, scheduledView, trashView, sortOrder, contentTypeFilter])
 
   useEffect(() => {
     const next = new URLSearchParams()
+    if (contentTypeFilter) next.set('contentType', contentTypeFilter)
     if (statusFilter && !scheduledView && !trashView) next.set('status', statusFilter)
     if (scheduledView && !trashView) next.set('scheduled', 'true')
     if (debouncedSearch && !trashView) next.set('search', debouncedSearch)
     if (sortOrder !== 'updated_desc' && !trashView) next.set('sort', sortOrder)
     if (page > 1 && !trashView) next.set('page', String(page))
     if (next.toString() !== searchParams.toString()) setSearchParams(next, { replace: true })
-  }, [debouncedSearch, page, searchParams, setSearchParams, sortOrder, statusFilter, scheduledView, trashView])
+  }, [debouncedSearch, page, searchParams, setSearchParams, sortOrder, statusFilter, scheduledView, trashView, contentTypeFilter])
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setLoadError(null)
     const request = trashView
-      ? blogApi.listBlogPosts({ includeDeleted: true, limit: 100 })
-      : blogApi.listBlogPosts({ status: scheduledView ? undefined : statusFilter || undefined, scheduled: scheduledView || undefined, search: debouncedSearch || undefined, sort: scheduledView ? 'scheduled_asc' : sortOrder, page, limit: PAGE_SIZE })
+      ? blogApi.listBlogPosts({ contentType: contentTypeFilter || undefined, includeDeleted: true, limit: 100 })
+      : blogApi.listBlogPosts({ contentType: contentTypeFilter || undefined, status: scheduledView ? undefined : statusFilter || undefined, scheduled: scheduledView || undefined, search: debouncedSearch || undefined, sort: scheduledView ? 'scheduled_asc' : sortOrder, page, limit: PAGE_SIZE })
 
     request
       .then((result) => {
@@ -283,7 +287,7 @@ function BlogList() {
       })
 
     return () => { cancelled = true }
-  }, [statusFilter, scheduledView, debouncedSearch, page, sortOrder, trashView])
+  }, [statusFilter, scheduledView, debouncedSearch, page, sortOrder, trashView, contentTypeFilter])
 
   const selectedPosts = useMemo(() => items?.filter((item) => selectedIds.includes(item.id)) ?? [], [items, selectedIds])
   const allVisibleSelected = Boolean(items?.length && items.every((item) => selectedIds.includes(item.id)))
@@ -345,6 +349,7 @@ function BlogList() {
         coverImageCaption: post.coverImageCaption,
         coverImageDescription: post.coverImageDescription,
         category: post.category,
+        contentType: post.contentType ?? 'journal',
         tags: post.tags,
         seoTitle: post.seoTitle,
         seoDescription: post.seoDescription,
@@ -417,6 +422,10 @@ function BlogList() {
                 className="admin-input pl-9"
               />
             </label>
+            <label className="sr-only" htmlFor="blog-content-type">Content Type</label>
+            <select id="blog-content-type" className="admin-select w-auto" value={contentTypeFilter} onChange={(event) => setContentTypeFilter(event.target.value as typeof contentTypeFilter)}>
+              <option value="">All content types</option><option value="journal">Journal</option><option value="newsroom">Newsroom</option>
+            </select>
             <label className="sr-only" htmlFor="blog-sort">Sort articles</label>
             <select id="blog-sort" className="admin-select w-auto" value={sortOrder} onChange={(event) => setSortOrder(event.target.value as AdminBlogSort)}>
               {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}

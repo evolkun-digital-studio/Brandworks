@@ -1,5 +1,39 @@
 # BRANDWORKS
 
+## Insights CMS (Next.js)
+
+The current Next.js routes `/blog`, `/blog/[slug]`, `/news`, and `/news/[slug]`
+read the existing MongoDB `blogs` collection. In `/admin/blogs`, choose
+**Content Type → Journal or Newsroom** under **Document → Organize**. Existing
+records without a content type remain Journal articles. Categories, images,
+author, publication date, Markdown/rich text, and SEO fields use the same editor,
+authentication, media library, and database as before.
+
+Only published, non-deleted records with a publication date at or before now
+are public. Drafts and unpublished records return 404 on their detail routes.
+Saving, publishing, unpublishing, restoring, or deleting content invalidates
+both section routes and the sitemap. Public API responses use `no-store`;
+server pages retain the existing 60-second revalidation policy. Scheduled
+publishing still uses the existing `jobs:publish-due` worker.
+
+Migrate the original static stories into this CMS before deploying these routes:
+
+```sh
+npm run cms:migrate-editorial -- --dry-run
+npm run cms:migrate-editorial
+```
+
+The migration loads `.env.local`, reuses `MONGODB_URI`, and only inserts missing
+slugs. Existing articles (including drafts and deleted records) are preserved.
+It can be repeated safely. Legacy photo filenames that referenced missing R2
+objects resolve to the same original Unsplash photo IDs. For untouched records
+imported before that correction, run `npm run cms:migrate-editorial -- --repair-image-urls`;
+edited records are excluded from this optional repair. Public pages never fall
+back to the static migration source.
+
+The Vite preview also reads the public CMS APIs; the older Vite/Express setup
+notes below remain for that workflow.
+
 The BRANDWORKS marketing site and blog: a React 19 + TypeScript + Vite
 single-page app (this directory) backed by a separate Node.js/Express/MongoDB
 API in [`../backend/`](../backend/README.md). Client-rendered throughout — there is

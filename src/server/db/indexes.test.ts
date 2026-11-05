@@ -22,6 +22,7 @@ describe('ensureDatabaseIndexes', () => {
       { collection: 'admins', keys: { username: 1 }, options: { unique: true } },
       { collection: 'blogs', keys: { slug: 1 }, options: { unique: true } },
       { collection: 'blogs', keys: { status: 1, publishedAt: -1 }, options: undefined },
+      { collection: 'blogs', keys: { contentType: 1, status: 1, deletedAt: 1, publishedAt: -1 }, options: undefined },
       { collection: 'blog_revisions', keys: { blogId: 1, createdAt: -1 }, options: undefined },
       { collection: 'blog_redirects', keys: { fromSlug: 1 }, options: { unique: true } },
       { collection: 'media_assets', keys: { deletedAt: 1, createdAt: -1 }, options: undefined },

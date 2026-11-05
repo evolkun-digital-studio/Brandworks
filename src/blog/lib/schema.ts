@@ -21,6 +21,7 @@
  */
 
 import type { PublicBlogDetail } from '../api/types'
+import { contentPath } from '../contentType'
 
 export interface SiteContext {
   /** The public site's own origin, e.g. `window.location.origin` — never hardcoded, never the backend API origin. */
@@ -38,7 +39,7 @@ export function resolveCanonicalUrl(post: PublicBlogDetail, site: SiteContext): 
       // Invalid canonical values fall back to the generated article URL.
     }
   }
-  return `${site.origin}/blog/${post.slug}`
+  return `${site.origin}${contentPath(post.contentType)}/${post.slug}`
 }
 
 function effectiveTitle(post: PublicBlogDetail): string {
@@ -121,7 +122,7 @@ export function buildArticleSchemaGraph(
   // entity) only because BlogPosting is itself an Article subtype —
   // this is one node describing one page, with two applicable types.
   graph.push({
-    '@type': ['BlogPosting', 'Article'],
+    '@type': [post.contentType === 'newsroom' ? 'NewsArticle' : 'BlogPosting', 'Article'],
     '@id': blogPostingId,
     headline: title,
     description,
@@ -142,7 +143,7 @@ export function buildArticleSchemaGraph(
       '@id': breadcrumbId,
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: site.origin },
-        { '@type': 'ListItem', position: 2, name: 'Blog', item: `${site.origin}/blog` },
+        { '@type': 'ListItem', position: 2, name: post.contentType === 'newsroom' ? 'Newsroom' : 'Blog', item: `${site.origin}${contentPath(post.contentType)}` },
         { '@type': 'ListItem', position: 3, name: post.title, item: canonicalUrl },
       ],
     })

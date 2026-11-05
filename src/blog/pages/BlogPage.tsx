@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from '../../routing'
 import BlogCard from '../components/BlogCard'
+import InsightsNavigation from '../../editorial/InsightsNavigation'
 import { getBlogs } from '../api/blogApi'
 import { PublicApiError } from '../api/client'
 import { removeLinkTag, removeMetaTag, setDocumentTitle, setLinkTag, setMetaTag } from '../lib/documentHead'
@@ -117,6 +118,9 @@ function BlogPage() {
       </div>
 
       <div className="mt-14 w-full max-w-[1280px]">
+        <div className="insights-navigation-row">
+          <InsightsNavigation />
+        </div>
         {error && (
           <p role="alert" className="py-16 text-center text-[15px] text-neutral-500">
             {error}

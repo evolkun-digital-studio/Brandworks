@@ -12,7 +12,7 @@ describe('sitemap composition',()=>{
       {slug:'duplicate',canonicalUrl:origin+'/blog/custom',updatedAt},
     ],origin)
     expect(entries).toEqual([
-      {loc:origin+'/'},{loc:origin+'/blog'},
+      {loc:origin+'/'},{loc:origin+'/blog'},{loc:origin+'/news'},
       {loc:origin+'/blog/one',lastmod:updatedAt.toISOString()},
       {loc:origin+'/blog/custom',lastmod:updatedAt.toISOString()},
     ])

@@ -35,6 +35,7 @@ import AdminStatusBadge from '../../components/AdminStatusBadge'
 import FormMessage from '../../components/FormMessage'
 import { useConfirm } from '../../components/ConfirmDialog'
 import { useAdminAuth } from '../../context/useAdminAuth'
+import { contentPath } from '../../../blog/contentType'
 import DocumentPanel from './components/DocumentPanel'
 import EnrichPanel from './components/EnrichPanel'
 import ImageDetailsDialog from './components/ImageDetailsDialog'
@@ -513,6 +514,7 @@ function BlogEditor() {
     const seoDescription = form.seoDescription.trim() || null
 
     const structuredFields = {
+      contentType: form.publicationType,
       authorName: form.authorName.trim(),
       coverImageTitle: form.coverImageTitle.trim() || null,
       coverImageCaption: form.coverImageCaption.trim() || null,
@@ -539,6 +541,9 @@ function BlogEditor() {
 
     if (isEditing && id) {
       const { blog } = await blogApi.updateBlogPost(id, {
+        ...(form.publishDate !== (publishedAtDisplay?.slice(0, 10) ?? '')
+          ? { publishedAt: form.publishDate ? new Date(form.publishDate).toISOString() : null }
+          : {}),
         title: form.title,
         slug: form.slug.trim() || undefined,
         excerpt: form.excerpt,
@@ -734,7 +739,7 @@ function BlogEditor() {
 
   function copyLink() {
     setMoreOpen(false)
-    const url = `${window.location.origin}/blog/${form.slug}`
+    const url = `${window.location.origin}${contentPath(form.publicationType)}/${form.slug}`
     navigator.clipboard.writeText(url).then(
       () => toast.success('Link copied.'),
       () => toast.error('Could not copy the link.'),
@@ -884,7 +889,7 @@ function BlogEditor() {
                 <div className="admin-menu__sep" />
                 {status === 'published' && form.slug && (
                   <>
-                    <a role="menuitem" className="admin-menu__item" href={`/blog/${form.slug}`} target="_blank" rel="noreferrer"><ExternalLink size={15} aria-hidden="true" /> View on website</a>
+                    <a role="menuitem" className="admin-menu__item" href={`${contentPath(form.publicationType)}/${form.slug}`} target="_blank" rel="noreferrer"><ExternalLink size={15} aria-hidden="true" /> View on website</a>
                     <button type="button" role="menuitem" className="admin-menu__item" onClick={copyLink}><Link2 size={15} aria-hidden="true" /> Copy link</button>
                   </>
                 )}
@@ -944,7 +949,7 @@ function BlogEditor() {
               {touched.title && fieldError(form, 'title') && <p className="admin-field-error" role="alert">{fieldError(form, 'title')}</p>}
 
               <div className="admin-ed-permalink">
-                <span className="text-a-ink-3">{host}/blog/</span>
+                <span className="text-a-ink-3">{host}{contentPath(form.publicationType)}/</span>
                 {slugEditing ? (
                   <>
                     <label htmlFor="slug" className="sr-only">Slug</label>

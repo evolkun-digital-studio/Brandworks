@@ -19,7 +19,7 @@ describe('GET /api/blogs', () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.get('content-type')).toContain('application/json')
-    expect(response.headers.get('cache-control')).toBe('public, max-age=60')
+    expect(response.headers.get('cache-control')).toBe('no-store')
     expect(await response.json()).toEqual(result)
     expect(listPublicBlogs).toHaveBeenCalledWith(new URLSearchParams('page=1&limit=9'))
   })

@@ -58,6 +58,9 @@ export async function getBlogForAdmin(actor: AdminDocument, id: string) {
 }
 
 export async function listBlogsForAdmin(actor: AdminDocument, params: URLSearchParams) {
+  const rawContentType = params.get('contentType') || undefined
+  if (rawContentType !== undefined && rawContentType !== 'journal' && rawContentType !== 'newsroom') throw badRequest('Content type must be Journal or Newsroom.')
+  const contentType = rawContentType as 'journal' | 'newsroom' | undefined
   const rawStatus = params.get('status') ?? undefined
   const scheduled = params.get('scheduled') === 'true'
   const includeDeleted = params.get('includeDeleted') === 'true'
@@ -71,7 +74,7 @@ export async function listBlogsForAdmin(actor: AdminDocument, params: URLSearchP
   const rawSort = params.get('sort') ?? undefined
   const validSorts = ['updated_desc', 'published_desc', 'title_asc', 'scheduled_asc'] as const
   if (rawSort && !validSorts.includes(rawSort as typeof validSorts[number])) throw badRequest(`Sort must be one of: ${validSorts.join(', ')}.`)
-  const result = await queryAdminBlogs({ status: rawStatus as AdminBlogStatus|undefined, scheduled, includeDeleted, search: params.get('search')?.trim() || undefined, sort: rawSort as typeof validSorts[number] | undefined, page, limit })
+  const result = await queryAdminBlogs({ contentType, status: rawStatus as AdminBlogStatus|undefined, scheduled, includeDeleted, search: params.get('search')?.trim() || undefined, sort: rawSort as typeof validSorts[number] | undefined, page, limit })
   return { items: result.items.map(mapBlog), page: result.page, limit: result.limit, total: result.total, totalPages: result.totalPages }
 }
 
@@ -100,7 +103,7 @@ export async function createBlogForAdmin(actor: AdminDocument, input: Record<str
     if (Number.isNaN(publishedAt.getTime())) throw badRequest('Publish date is not a valid date.')
   }
   const doc: Record<string, unknown> = {
-    title, slug, excerpt, content, coverImage, coverImageAlt, authorName, authorId: actor._id,
+    title, slug, excerpt, content, coverImage, coverImageAlt, authorName, authorId: actor._id, contentType: 'journal',
     status:'draft', publishedAt, scheduledAt:null, deletedAt:null, seoTitle,
     reviewStatus: 'draft', reviewNote: null, reviewedBy: null, reviewedAt: null,
     seoDescription, coverImageTitle:null, coverImageCaption:null,
@@ -123,6 +126,13 @@ export async function updateBlogForAdmin(actor: AdminDocument, id: string, input
   const old = await findAdminBlog(id)
   if (!old) throw notFound('Blog post not found.')
   const patch: Record<string, unknown> = {}
+  if (input.publishedAt !== undefined) {
+    if (input.publishedAt !== null && (typeof input.publishedAt !== 'string' || !input.publishedAt.trim())) throw badRequest('Publish date must be a date string or null.')
+    const date = input.publishedAt === null ? null : new Date(input.publishedAt as string)
+    if (date && Number.isNaN(date.getTime())) throw badRequest('Publish date is not a valid date.')
+    if (old.status === 'published' && !date) throw badRequest('Published articles require a publish date.')
+    patch.publishedAt = date
+  }
   for (const [key,max] of [['title',200],['excerpt',500],['content',100000],['coverImageAlt',300]] as const) {
     const value = optionalText(input[key],key)
     if (value !== undefined) patch[key] = requiredText(value,key,max)
@@ -195,6 +205,7 @@ export async function restoreBlogRevision(actor: AdminDocument, id: string, revi
   await createAdminBlogRevision(blog, actor._id)
   const restored = await patchAdminBlog(id, {
     title: snapshot.title,
+    contentType: snapshot.contentType ?? 'journal',
     slug: snapshot.slug,
     excerpt: snapshot.excerpt,
     content: snapshot.content,

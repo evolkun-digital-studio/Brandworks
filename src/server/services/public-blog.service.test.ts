@@ -45,6 +45,8 @@ describe('public blog service', () => {
 
     expect(result).toEqual({
       items: [{
+        contentType: 'journal',
+        category: null,
         id: '64b000000000000000000001',
         title: 'Published article',
         slug: 'published-article',
@@ -116,12 +118,30 @@ describe('public blog service', () => {
     await expect(getPublicBlogPage('published-article')).rejects.toMatchObject({ status: 404 })
   })
 
-  it('keeps the legacy page resolver available when no CMS record exists', async () => {
+  it('does not resurrect static content when a CMS record is absent', async () => {
     vi.mocked(findBlogBySlug).mockResolvedValue(null)
 
-    const result = await getPublicBlogPage('why-brand-photography-changes-perceived-value')
+    await expect(getPublicBlogPage('why-brand-photography-changes-perceived-value')).rejects.toMatchObject({ status: 404 })
+  })
 
-    expect(result.source).toBe('legacy')
-    expect(result.blog.slug).toBe('why-brand-photography-changes-perceived-value')
+  it('enforces the content type for direct article URLs as well as lists', async () => {
+    vi.mocked(findBlogBySlug).mockResolvedValue(document({ contentType: 'newsroom' }))
+    await expect(getPublicBlogPage('published-article')).rejects.toMatchObject({ status: 404 })
+    await expect(getPublicBlogPage('published-article', undefined, 'newsroom')).resolves.toMatchObject({ blog: { contentType: 'newsroom' }, source: 'cms' })
+    vi.mocked(findBlogBySlug).mockResolvedValue(document())
+    await expect(getPublicBlogPage('published-article', undefined, 'newsroom')).rejects.toMatchObject({ status: 404 })
+  })
+
+  it.each(['draft', 'unpublished', 'published'] as const)('hides future newsroom articles with status %s', async (status) => {
+    vi.mocked(findBlogBySlug).mockResolvedValue(document({ contentType: 'newsroom', status, publishedAt: new Date(Date.now() + 86400000) }))
+    await expect(getPublicBlogPage('published-article', undefined, 'newsroom')).rejects.toMatchObject({ status: 404 })
+  })
+
+  it('passes the same newsroom type to list and count queries', async () => {
+    vi.mocked(listPublicBlogDocuments).mockResolvedValue([])
+    vi.mocked(countPublicBlogDocuments).mockResolvedValue(0)
+    await listPublicBlogs(new URLSearchParams(), undefined, 'newsroom')
+    expect(listPublicBlogDocuments).toHaveBeenCalledWith(expect.objectContaining({ contentType: 'newsroom' }))
+    expect(countPublicBlogDocuments).toHaveBeenCalledWith(expect.any(Date), 'newsroom')
   })
 })

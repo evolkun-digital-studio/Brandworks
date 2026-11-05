@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { contentPath } from '../../../../blog/contentType'
 import { CalendarClock, CheckCircle2, ExternalLink, History, Image as ImageIcon, ListTree, MessageSquareWarning, RotateCcw, Tags } from 'lucide-react'
 import * as blogApi from '../../../api/blogAdminApi'
 import type { AdminBlogRevision } from '../../../api/blogAdminApi'
@@ -230,7 +231,7 @@ function DocumentPanel(props: DocumentPanelProps) {
         </p>
 
         {status === 'published' && form.slug && (
-          <a className="admin-link self-start" href={`/blog/${form.slug}`} target="_blank" rel="noreferrer">
+          <a className="admin-link self-start" href={`${contentPath(form.publicationType)}/${form.slug}`} target="_blank" rel="noreferrer">
             View on the website <ExternalLink size={12} aria-hidden="true" />
           </a>
         )}
@@ -268,12 +269,17 @@ function DocumentPanel(props: DocumentPanelProps) {
       {isEditing && <ReviewBlock reviewStatus={props.reviewStatus} reviewNote={props.reviewNote} isAdmin={isAdmin} busy={busy} onReview={props.onReview} />}
 
       <CollapsibleSection title="Organize" icon={Tags} defaultOpen>
+        <div>
+          <label htmlFor="publicationType" className="mb-1.5 block text-[13px] font-semibold">Content Type</label>
+          <select id="publicationType" className="admin-select" value={form.publicationType} onChange={(event) => update('publicationType', event.target.value as FormState['publicationType'])}>
+            <option value="journal">Journal</option>
+            <option value="newsroom">Newsroom</option>
+          </select>
+        </div>
         <TextField id="category" label="Category" value={form.category} onChange={(next) => update('category', next)} max={CATEGORY_MAX} placeholder="e.g. Branding" />
         <TagInput label="Tags" values={form.tags} onChange={(next) => update('tags', next)} placeholder="Add a tag" maxItems={TAGS_MAX_ITEMS} maxItemLength={TAG_MAX} />
         <TextField id="authorName" label="Author" value={form.authorName} onChange={(next) => update('authorName', next)} max={EDITOR_NAME_MAX} hint="Shown in the article byline." />
-        {!isEditing && (
-          <TextField id="publishDate" label="Publish date" type="date" value={form.publishDate} onChange={(next) => update('publishDate', next)} hint="Optional. Used the first time it’s published; leave blank to use that moment." />
-        )}
+        <TextField id="publishDate" label="Publish date" type="date" value={form.publishDate} onChange={(next) => update('publishDate', next)} hint="Shown on the website. Leave blank on drafts to use the moment they are published." />
       </CollapsibleSection>
 
       <CollapsibleSection title="Image details" icon={ImageIcon}>

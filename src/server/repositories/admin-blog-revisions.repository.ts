@@ -40,7 +40,7 @@ export async function findAdminBlogRevision(blogId: string, revisionId: string) 
 export async function compareAdminBlogRevisions(blogId: string, leftId: string, rightId: string) {
   const [left, right] = await Promise.all([findAdminBlogRevision(blogId, leftId), findAdminBlogRevision(blogId, rightId)])
   if (!left || !right) return null
-  const fields = ['title', 'slug', 'excerpt', 'content', 'coverImage', 'coverImageAlt', 'seoTitle', 'seoDescription', 'category', 'tags', 'aiSummary', 'keyTakeaways', 'faq', 'entitySeo', 'canonicalUrl', 'robotsIndex'] as const
+  const fields = ['contentType', 'publishedAt', 'title', 'slug', 'excerpt', 'content', 'coverImage', 'coverImageAlt', 'seoTitle', 'seoDescription', 'category', 'tags', 'aiSummary', 'keyTakeaways', 'faq', 'entitySeo', 'canonicalUrl', 'robotsIndex'] as const
   const changedFields = fields.filter((field) => JSON.stringify(left.snapshot[field]) !== JSON.stringify(right.snapshot[field]))
   return { left: { id: left._id.toHexString(), createdAt: left.createdAt.toISOString(), title: left.snapshot.title }, right: { id: right._id.toHexString(), createdAt: right.createdAt.toISOString(), title: right.snapshot.title }, changedFields }
 }

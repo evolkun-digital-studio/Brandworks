@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { validateStructuredBlogFields } from './blog-validation'
 
 describe('admin blog structured-field validation',()=>{
+  it('accepts only the two publication types, independently of the AI content format', () => {
+    expect(validateStructuredBlogFields({ contentType: 'newsroom', aiContext: { contentType: 'Guide' } })).toMatchObject({ contentType: 'newsroom', aiContext: { contentType: 'Guide' } })
+    expect(validateStructuredBlogFields({ contentType: 'journal' })).toEqual({ contentType: 'journal' })
+    for (const contentType of ['', 'blog', null, {}, ['journal']]) {
+      expect(() => validateStructuredBlogFields({ contentType })).toThrow(expect.objectContaining({ status: 400 }))
+    }
+  })
   it('normalizes optional strings and case-insensitive tags',()=>{
     expect(validateStructuredBlogFields({category:'  Editorial  ',tags:['SEO','seo',' Brand ']})).toEqual({category:'Editorial',tags:['SEO','Brand']})
   })

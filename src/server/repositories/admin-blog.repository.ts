@@ -40,12 +40,14 @@ export async function restoreAdminBlog(id: string, clearSchedule: boolean) {
 }
 export type AdminBlogSort = 'updated_desc' | 'published_desc' | 'title_asc' | 'scheduled_asc'
 
-export async function queryAdminBlogs(options: {status?:AdminBlogStatus;includeDeleted:boolean;search?:string;scheduled?:boolean;sort?:AdminBlogSort;page:number;limit:number}) {
+export async function queryAdminBlogs(options: {contentType?:import('../../blog/contentType').ContentType;status?:AdminBlogStatus;includeDeleted:boolean;search?:string;scheduled?:boolean;sort?:AdminBlogSort;page:number;limit:number}) {
   const filter: Filter<AdminBlogDocument> = options.scheduled
     ? { status: 'draft', deletedAt: null, scheduledAt: { $type: 'date', $gt: new Date() } }
     : { ...(options.status ? { status: options.status } : {}), ...(options.includeDeleted ? {} : { deletedAt: null }) }
   if (options.search) filter.title = { $regex: options.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' }
   const col = await blogs()
+  if (options.contentType === 'newsroom') filter.contentType = 'newsroom'
+  if (options.contentType === 'journal') filter.$or = [{ contentType: 'journal' }, { contentType: { $exists: false } }]
   const sort = options.scheduled || options.sort === 'scheduled_asc'
     ? { scheduledAt: 1 as const }
     : options.sort === 'published_desc'

@@ -37,10 +37,11 @@ describe('public blog repository', () => {
     expect(collection).toHaveBeenCalledWith('blogs')
     expect(find).toHaveBeenCalledWith({
       status: 'published',
-      publishedAt: { $lte: cutoff },
+      $or: [{ contentType: 'journal' }, { contentType: { $exists: false } }],
+      publishedAt: { $type: 'date', $lte: cutoff },
       deletedAt: null,
     })
-    expect(sort).toHaveBeenCalledWith({ publishedAt: -1 })
+    expect(sort).toHaveBeenCalledWith({ publishedAt: -1, _id: -1 })
     expect(skip).toHaveBeenCalledWith(18)
     expect(limit).toHaveBeenCalledWith(9)
   })
@@ -53,7 +54,8 @@ describe('public blog repository', () => {
 
     expect(countDocuments).toHaveBeenCalledWith({
       status: 'published',
-      publishedAt: { $lte: cutoff },
+      $or: [{ contentType: 'journal' }, { contentType: { $exists: false } }],
+      publishedAt: { $type: 'date', $lte: cutoff },
       deletedAt: null,
     })
   })
@@ -64,5 +66,16 @@ describe('public blog repository', () => {
     await findBlogBySlug('story')
 
     expect(findOne).toHaveBeenCalledWith({ slug: 'story', deletedAt: null })
+  })
+
+  it('requires an explicit newsroom type for both list and count queries', async () => {
+    const cutoff = new Date()
+    toArray.mockResolvedValue([])
+    countDocuments.mockResolvedValue(0)
+    await listPublicBlogDocuments({ publishedAtOrBefore: cutoff, contentType: 'newsroom', skip: 0, limit: 20 })
+    await countPublicBlogDocuments(cutoff, 'newsroom')
+    const filter = { contentType: 'newsroom', status: 'published', publishedAt: { $type: 'date', $lte: cutoff }, deletedAt: null }
+    expect(find).toHaveBeenCalledWith(filter)
+    expect(countDocuments).toHaveBeenCalledWith(filter)
   })
 })

@@ -14,6 +14,7 @@ export type BlogStatus = 'draft' | 'published' | 'unpublished'
 
 /** Fields used by the public service and exact public response mappers. */
 export interface BlogDocument {
+  contentType?: import('../../blog/contentType').ContentType
   _id: ObjectId
   title: string
   slug: string
@@ -50,6 +51,8 @@ export interface BlogDocument {
 
 export function toPublicBlogListItem(doc: BlogDocument): PublicBlogListItem {
   return {
+    contentType: doc.contentType ?? 'journal',
+    category: doc.category ?? null,
     id: doc._id.toHexString(),
     title: doc.title,
     slug: doc.slug,
@@ -63,6 +66,7 @@ export function toPublicBlogListItem(doc: BlogDocument): PublicBlogListItem {
 
 export function toPublicBlogDetail(doc: BlogDocument): PublicBlogDetail {
   return {
+    contentType: doc.contentType ?? 'journal',
     id: doc._id.toHexString(),
     title: doc.title,
     slug: doc.slug,

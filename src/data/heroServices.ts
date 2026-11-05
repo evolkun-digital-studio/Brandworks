@@ -1,5 +1,7 @@
 import { mediaUrl } from '../lib/media'
 import { assetUrl } from '../lib/assetUrl'
+import handsPortrait from '../assets/photography/hero-hands-portrait-1200.webp'
+import handsPortraitSmall from '../assets/photography/hero-hands-portrait-480.webp'
 import redFashion from '../assets/photography/hero-fashion-study-1200.webp'
 import redFashionSmall from '../assets/photography/hero-fashion-study-480.webp'
 import luxuryDuffle from '../assets/photography/hero-luxury-duffle-full.webp'
@@ -123,10 +125,11 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
         },
         {
           id: 'hands-framed-editorial',
-          src: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_31_57%20PM.png',
+          src: assetUrl(handsPortrait),
+          srcSet: `${assetUrl(handsPortraitSmall)} 480w, ${assetUrl(handsPortrait)} 1086w`,
           width: 1086,
           height: 1448,
-          alt: 'Editorial photography composition',
+          alt: 'Editorial portrait of a woman in gold-rimmed glasses and cream knitwear framing her face with her hands',
         },
         {
           id: 'red-fashion-editorial',

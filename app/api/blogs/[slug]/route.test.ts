@@ -22,7 +22,7 @@ describe('GET /api/blogs/[slug]', () => {
     )
 
     expect(response.status).toBe(200)
-    expect(response.headers.get('cache-control')).toBe('public, max-age=60')
+    expect(response.headers.get('cache-control')).toBe('no-store')
     expect(await response.json()).toEqual({ blog })
   })
 

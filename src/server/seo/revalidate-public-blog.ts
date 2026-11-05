@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache'
 export function revalidatePublicBlogContent(): void {
   revalidatePath('/blog')
   revalidatePath('/blog/[slug]', 'page')
+  revalidatePath('/news')
+  revalidatePath('/news/[slug]', 'page')
   revalidatePath('/sitemap.xml')
 }
 

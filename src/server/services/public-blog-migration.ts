@@ -1,29 +1,15 @@
-import 'server-only'
-
-import { blogPosts } from '../../editorial/data'
+import { blogPosts, newsPosts } from '../../editorial/data'
+import type { ContentType } from '../../blog/contentType'
 import type { PublicBlogDetail, PublicBlogListItem } from '../../blog/api/types'
 import type { ArticleBlock, EditorialPost } from '../../editorial/types'
 
-/**
- * The public site is migrated in two reversible steps:
- *
- * 1. Published MongoDB content is authoritative whenever it exists.
- * 2. Until the migration is confirmed complete, the old static journal is
- *    available as a fallback when MongoDB has no published content and for
- *    legacy slugs that have not yet been created in the CMS.
- *
- * Set PUBLIC_BLOG_LEGACY_FALLBACK=false after the editorial team has verified
- * the migrated slugs. No stored content is deleted by this switch.
- */
-export function isLegacyPublicBlogFallbackEnabled(source: NodeJS.ProcessEnv = process.env): boolean {
-  return source.PUBLIC_BLOG_LEGACY_FALLBACK?.trim().toLowerCase() !== 'false'
-}
+// Migration input only. Public pages never import or fall back to these records.
 
 function blockToMarkdown(block: ArticleBlock): string {
   if (block.type === 'p') return block.text
   if (block.type === 'h2') return `## ${block.text}`
   if (block.type === 'h3') return `### ${block.text}`
-  if (block.type === 'quote') return `> ${block.text}`
+  if (block.type === 'quote') return `> ${block.text}${block.cite ? `\n>\n> — ${block.cite}` : ''}`
   if (block.type === 'list') {
     return block.items
       .map((item, index) => `${block.ordered ? `${index + 1}.` : '-'} ${item}`)
@@ -51,10 +37,11 @@ function legacyListItem(post: EditorialPost): PublicBlogListItem {
   }
 }
 
-function legacyDetail(post: EditorialPost): PublicBlogDetail {
+function legacyDetail(post: EditorialPost, contentType: ContentType): PublicBlogDetail {
   const publishedAt = legacyListItem(post).publishedAt
   return {
     ...legacyListItem(post),
+    contentType,
     content: legacyContent(post),
     coverImageTitle: null,
     coverImageCaption: post.imageCaption ?? null,
@@ -80,14 +67,21 @@ function legacyDetail(post: EditorialPost): PublicBlogDetail {
   }
 }
 
-export function getLegacyPublicBlogList(): PublicBlogListItem[] {
-  return blogPosts
-    .map(legacyListItem)
-    .sort((left, right) => right.publishedAt.localeCompare(left.publishedAt))
+/** Original photo IDs were copied into R2 paths without uploading the files. */
+function originalImageUrl(url: string): string {
+  const match = url.match(/\/Photography\/(photo-\d+-[a-z0-9]+)\.jpg$/)
+  return match ? `https://images.unsplash.com/${match[1]}?auto=format&fit=crop&w=1600&q=85` : url
 }
 
-export function getLegacyPublicBlogBySlug(slug: string): PublicBlogDetail | null {
-  const post = blogPosts.find((candidate) => candidate.slug === slug)
-  return post ? legacyDetail(post) : null
+export function legacyEditorialRecords(repairImages = true): PublicBlogDetail[] {
+  const records = [
+    ...blogPosts.map((post) => legacyDetail(post, 'journal')),
+    ...newsPosts.map((post) => legacyDetail(post, 'newsroom')),
+  ]
+  return repairImages ? records.map((post) => ({
+    ...post,
+    coverImage: originalImageUrl(post.coverImage),
+    content: post.content.replace(/https:\/\/[^\s)]+\/Photography\/photo-\d+-[a-z0-9]+\.jpg/g, originalImageUrl),
+  })) : records
 }
 

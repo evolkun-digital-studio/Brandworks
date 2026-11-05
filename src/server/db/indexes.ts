@@ -6,6 +6,7 @@ export async function ensureDatabaseIndexes(db: Db): Promise<void> {
   await db.collection('admins').createIndex({ username: 1 }, { unique: true })
   await db.collection('blogs').createIndex({ slug: 1 }, { unique: true })
   await db.collection('blogs').createIndex({ status: 1, publishedAt: -1 })
+  await db.collection('blogs').createIndex({ contentType: 1, status: 1, deletedAt: 1, publishedAt: -1 })
   await db.collection('blog_revisions').createIndex({ blogId: 1, createdAt: -1 })
   await db.collection('blog_redirects').createIndex({ fromSlug: 1 }, { unique: true })
   await db.collection('media_assets').createIndex({ deletedAt: 1, createdAt: -1 })

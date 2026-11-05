@@ -1,4 +1,5 @@
 import 'server-only'
+import { contentPath } from '../../blog/contentType'
 
 import { classifyLink, parseMarkdown } from '../../lib/markdownMetrics'
 import { analyzeBlog, type AnalyzerInput } from '../../admin/pages/blogs/lib/blogAnalyzer'
@@ -40,7 +41,7 @@ function normalizeInternalPath(raw: string) {
 
 async function auditInternalLinks(posts: AdminBlogDocument[]) {
   const known = new Set(STATIC_PATHS)
-  for (const post of posts) if (post.status === 'published' && post.deletedAt === null) known.add(`/blog/${post.slug}`)
+  for (const post of posts) if (post.status === 'published' && post.deletedAt === null) known.add(`${contentPath(post.contentType)}/${post.slug}`)
   const broken: Array<{ articleId: string; articleTitle: string; url: string }> = []
   for (const post of posts) {
     for (const link of parseMarkdown(post.content).links) {

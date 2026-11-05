@@ -24,6 +24,7 @@ export interface AdminBlogRevision {
 }
 
 export interface ListBlogPostsParams {
+  contentType?: import('../../blog/contentType').ContentType
   status?: BlogStatus
   /**
    * "Scheduled" (Phase 16) — a distinct filter dimension from
@@ -40,6 +41,7 @@ export interface ListBlogPostsParams {
 
 function buildQueryString(params: ListBlogPostsParams): string {
   const search = new URLSearchParams()
+  if (params.contentType) search.set('contentType', params.contentType)
   if (params.status) search.set('status', params.status)
   if (params.scheduled) search.set('scheduled', 'true')
   if (params.search) search.set('search', params.search)
@@ -98,6 +100,7 @@ export function restoreBlogRevision(id: string, revisionId: string) {
  * sent and, on create, fills in defaults for whatever's omitted.
  */
 interface StructuredFields {
+  contentType?: import('../../blog/contentType').ContentType
   coverImageTitle?: string | null
   coverImageCaption?: string | null
   coverImageDescription?: string | null
@@ -144,6 +147,7 @@ export function createBlogPost(input: CreateBlogPostInput) {
 }
 
 export interface UpdateBlogPostInput extends StructuredFields {
+  publishedAt?: string | null
   title?: string
   authorName?: string
   slug?: string
@@ -153,8 +157,6 @@ export interface UpdateBlogPostInput extends StructuredFields {
   coverImageAlt?: string
   seoTitle?: string | null
   seoDescription?: string | null
-  // No publishedAt — the backend never accepts it through update; see
-  // src/admin/pages/blogs/BlogEditor.tsx for how a publish date is set.
 }
 
 export function updateBlogPost(id: string, input: UpdateBlogPostInput) {

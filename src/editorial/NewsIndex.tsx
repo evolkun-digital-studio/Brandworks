@@ -1,4 +1,4 @@
-import { newsPosts } from './data'
+import type { EditorialPost } from './types'
 import { Masthead, NewsRow, QuietCta } from './components'
 import { useEditorialMeta, useScrollToTop } from './head'
 
@@ -8,7 +8,7 @@ const DESCRIPTION = 'Campaigns, collaborations, productions and developments fro
  * A chronological press index rather than another grid: date,
  * category, headline and a small thumbnail per row, divided by rules.
  */
-function NewsIndex({ manageMetadata = true }: { manageMetadata?: boolean }) {
+function NewsIndex({ manageMetadata = true, posts = [], pagination }: { manageMetadata?: boolean; posts?: EditorialPost[]; pagination?: React.ReactNode }) {
   useScrollToTop('/news')
   useEditorialMeta(manageMetadata ? {
     title: 'Newsroom | BRANDWORKS',
@@ -25,7 +25,6 @@ function NewsIndex({ manageMetadata = true }: { manageMetadata?: boolean }) {
     }),
   } : null)
 
-  const posts = [...newsPosts].sort((a, b) => b.date.localeCompare(a.date))
 
   return (
     <main className="ed-page">
@@ -53,6 +52,8 @@ function NewsIndex({ manageMetadata = true }: { manageMetadata?: boolean }) {
               </li>
             ))}
           </ol>
+          {posts.length === 0 && <p className="ed-intro__dek" role="status">No newsroom updates published yet — check back soon.</p>}
+          {pagination}
         </section>
 
         <QuietCta

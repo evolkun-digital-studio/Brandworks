@@ -1,6 +1,7 @@
 import { createElement, useEffect, useState } from 'react'
 import type { HTMLAttributes, ReactNode } from 'react'
-import { Link, NavLink } from '../routing'
+import { Link } from '../routing'
+import InsightsNavigation from './InsightsNavigation'
 import { EditorialImage } from './EditorialImage'
 import { formatDate, hrefFor, readingTime } from './format'
 import type { EditorialKind, EditorialPost } from './types'
@@ -60,14 +61,7 @@ export function Masthead({ kind }: { kind: EditorialKind }) {
   return (
     <div className="ed-masthead">
       <p className="ed-masthead__title">{kind === 'blog' ? 'BrandWorks Journal' : 'BrandWorks Newsroom'}</p>
-      <nav aria-label="Journal and Newsroom" className="ed-masthead__nav">
-        <NavLink to="/blog" end>
-          Journal
-        </NavLink>
-        <NavLink to="/news" end>
-          Newsroom
-        </NavLink>
-      </nav>
+      <InsightsNavigation />
     </div>
   )
 }

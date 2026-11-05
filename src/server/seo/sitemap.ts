@@ -1,12 +1,12 @@
 import type { SitemapBlogProjection } from '../repositories/blog.repository'
 import { listSitemapEligibleBlogs } from '../repositories/blog.repository'
-import { getLegacyPublicBlogList, isLegacyPublicBlogFallbackEnabled } from '../services/public-blog-migration'
+import { contentPath } from '../../blog/contentType'
 
 export interface SitemapUrlEntry { loc: string; lastmod?: string }
-const STATIC_PUBLIC_PATHS = ['/','/blog']
+const STATIC_PUBLIC_PATHS = ['/','/blog','/news']
 
-export function resolveSitemapLoc(post: Pick<SitemapBlogProjection,'slug'|'canonicalUrl'>, publicOrigin: string): string|null {
-  const generated=`${publicOrigin}/blog/${post.slug}`
+export function resolveSitemapLoc(post: Pick<SitemapBlogProjection,'slug'|'canonicalUrl'|'contentType'>, publicOrigin: string): string|null {
+  const generated=`${publicOrigin}${contentPath(post.contentType)}/${post.slug}`
   if(!post.canonicalUrl)return generated
   let canonical:URL
   try{canonical=new URL(post.canonicalUrl)}catch{return generated}
@@ -34,13 +34,5 @@ export function buildSitemapXml(entries:SitemapUrlEntry[]):string{
 
 export async function buildSitemapEntries(publicOrigin:string){
   const cmsPosts = await listSitemapEligibleBlogs()
-  if (cmsPosts.length > 0 || !isLegacyPublicBlogFallbackEnabled()) {
-    return composeSitemapEntries(cmsPosts,publicOrigin)
-  }
-  const legacyPosts: SitemapBlogProjection[] = getLegacyPublicBlogList().map((post) => ({
-    slug: post.slug,
-    canonicalUrl: null,
-    updatedAt: new Date(post.publishedAt),
-  }))
-  return composeSitemapEntries(legacyPosts,publicOrigin)
+  return composeSitemapEntries(cmsPosts,publicOrigin)
 }

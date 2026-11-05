@@ -1,6 +1,6 @@
-import { connection } from 'next/server'
 import type { Metadata } from 'next'
-import EditorialIndexClient from '../../../src/next/EditorialIndexClient'
+import PublicNewsIndex from '../../../src/next/PublicNewsIndex'
+import { listPublicBlogPage } from '../../../src/server/services/public-blog.service'
 import { editorialIndexMetadata, getEditorialIndexSchema, serializeJsonLd } from '../../../src/editorial/seo'
 
 export const metadata: Metadata = {
@@ -20,12 +20,17 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function NewsPage() {
-  await connection()
+export const revalidate = 60
+
+export default async function NewsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const { page } = await searchParams
+  const params = new URLSearchParams({ limit: '20' })
+  if (page) params.set('page', Array.isArray(page) ? page[0] : page)
+  const { result } = await listPublicBlogPage(params, 'newsroom')
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(getEditorialIndexSchema('news')) }} />
-      <EditorialIndexClient kind="news" />
+      <PublicNewsIndex result={result} />
     </>
   )
 }

@@ -4,6 +4,7 @@ import type { AiContext, EntitySeo, ExpertQuote, FaqItem, TwitterCardType } from
 export type AdminBlogStatus = 'draft' | 'published' | 'unpublished'
 export type AdminReviewStatus = 'draft' | 'in_review' | 'changes_requested' | 'approved'
 export interface AdminBlogDocument {
+  contentType?: import('../../blog/contentType').ContentType
   _id: ObjectId; title: string; slug: string; excerpt: string; content: string
   coverImage: string; coverImageAlt: string; coverImageTitle?: string | null
   coverImageCaption?: string | null; coverImageDescription?: string | null
@@ -20,6 +21,7 @@ export interface AdminBlogDocument {
 
 export function toAdminBlogResponse(doc: AdminBlogDocument) {
   return {
+    contentType: doc.contentType ?? 'journal',
     id: doc._id.toHexString(), title: doc.title, slug: doc.slug, excerpt: doc.excerpt, content: doc.content,
     coverImage: doc.coverImage, coverImageAlt: doc.coverImageAlt, coverImageTitle: doc.coverImageTitle ?? null,
     coverImageCaption: doc.coverImageCaption ?? null, coverImageDescription: doc.coverImageDescription ?? null,

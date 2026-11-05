@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "jobs:publish-due": "tsx src/server/jobs/publish-due.ts",
+    "cms:migrate-editorial": "tsx src/server/jobs/migrate-editorial.ts",
     "media:seed": "tsx src/server/jobs/seed-site-media.ts",
     "media:check-storage": "tsx src/server/jobs/check-storage.ts",
     "lint": "eslint .",

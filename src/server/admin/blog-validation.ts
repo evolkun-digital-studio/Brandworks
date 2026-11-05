@@ -26,6 +26,10 @@ function bool(value:unknown,label:string){if(typeof value!=='boolean')throw badR
 /** Same structured-field allowlist and validations as the Express blog service. */
 export function validateStructuredBlogFields(input:Record<string,unknown>):Record<string,unknown>{
   const patch:Record<string,unknown>={}
+  if (input.contentType !== undefined) {
+    if (input.contentType !== 'journal' && input.contentType !== 'newsroom') throw badRequest('Content type must be Journal or Newsroom.')
+    patch.contentType = input.contentType
+  }
   const optionalStrings:Array<[string,string,number]>=[['coverImageTitle','Cover image title',200],['coverImageCaption','Cover image caption',500],['coverImageDescription','Cover image description',1000],['category','Category',200],['aiSummary','AI summary',300],['focusKeyword','Focus keyword',200],['ogTitle','Open Graph title',200],['ogDescription','Open Graph description',500]]
   for(const [key,label,max]of optionalStrings)if(input[key]!==undefined)patch[key]=text(input[key],label,max)
   if(input.tags!==undefined)patch.tags=strings(input.tags,'Tag',20,100,true)

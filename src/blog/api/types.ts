@@ -4,6 +4,8 @@
 // public API doesn't actually return.
 
 export interface PublicBlogListItem {
+  contentType?: import('../contentType').ContentType
+  category?: string | null
   id: string
   title: string
   slug: string
@@ -58,6 +60,7 @@ export type TwitterCardType = 'summary' | 'summary_large_image' | 'player'
  * (rendering explicitly deferred to a future phase).
  */
 export interface PublicBlogDetail {
+  contentType?: import('../contentType').ContentType
   id: string
   title: string
   slug: string

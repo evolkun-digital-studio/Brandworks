@@ -1,13 +1,13 @@
-import BlogIndex from './BlogIndex'
-import NewsIndex from './NewsIndex'
-import ArticlePage from './ArticlePage'
+import BlogPage from '../blog/pages/BlogPage'
+import BlogDetailPage from '../blog/pages/BlogDetailPage'
+import CmsNewsPage from './CmsNewsPage'
 import type { EditorialKind } from './types'
 import './Editorial.css'
 
 export function EditorialIndexPage({ kind, manageMetadata = true }: { kind: EditorialKind; manageMetadata?: boolean }) {
-  return kind === 'blog' ? <BlogIndex manageMetadata={manageMetadata} /> : <NewsIndex manageMetadata={manageMetadata} />
+  return kind === 'blog' ? <BlogPage /> : <CmsNewsPage manageMetadata={manageMetadata} />
 }
 
 export function EditorialArticlePage({ kind, manageMetadata = true }: { kind: EditorialKind; manageMetadata?: boolean }) {
-  return <ArticlePage kind={kind} manageMetadata={manageMetadata} />
+  return kind === 'blog' ? <BlogDetailPage /> : <CmsNewsPage article manageMetadata={manageMetadata} />
 }

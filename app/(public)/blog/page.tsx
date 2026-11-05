@@ -33,11 +33,11 @@ function toSearchParams(input: Record<string, string | string[] | undefined>) {
 }
 
 export default async function BlogPage({ searchParams }: Props) {
-  const { result, legacyFallback } = await listPublicBlogPage(toSearchParams(await searchParams))
+  const { result } = await listPublicBlogPage(toSearchParams(await searchParams))
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(getEditorialIndexSchema('blog')) }} />
-      <PublicBlogIndex result={result} legacyFallback={legacyFallback} />
+      <PublicBlogIndex result={result} />
     </>
   )
 }

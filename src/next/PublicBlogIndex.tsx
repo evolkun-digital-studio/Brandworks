@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import BlogCard from '../blog/components/BlogCard'
+import InsightsNavigation from '../editorial/InsightsNavigation'
 import type { PublicBlogListItem, PublicBlogListResult } from '../blog/api/types'
 
 function CardSkeleton() {
@@ -14,10 +15,8 @@ function CardSkeleton() {
 
 export default function PublicBlogIndex({
   result,
-  legacyFallback = false,
 }: {
   result: PublicBlogListResult
-  legacyFallback?: boolean
 }) {
   const page = result.page
   const hasPosts = result.items.length > 0
@@ -33,6 +32,9 @@ export default function PublicBlogIndex({
       </div>
 
       <div className="mt-14 w-full max-w-[1280px]">
+        <div className="insights-navigation-row">
+          <InsightsNavigation />
+        </div>
         {!hasPosts ? (
           <div className="py-16 text-center">
             <p className="text-[15px] text-neutral-500">No posts published yet — check back soon.</p>
@@ -46,12 +48,6 @@ export default function PublicBlogIndex({
           </div>
         )}
       </div>
-
-      {legacyFallback && (
-        <p className="mt-10 max-w-[680px] text-center text-[12px] leading-[1.6] text-neutral-400">
-          This journal is transitioning to the BRANDWORKS publishing system. Existing stories remain available while their records are migrated.
-        </p>
-      )}
 
       {hasPosts && result.totalPages > 1 && (
         <nav aria-label="Blog pagination" className="mt-14 flex items-center gap-4">

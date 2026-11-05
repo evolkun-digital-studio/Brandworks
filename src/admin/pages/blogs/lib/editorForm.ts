@@ -71,6 +71,7 @@ export const CONTENT_INTENTS = ['Informational', 'Commercial', 'Transactional', 
 export const TWITTER_CARD_OPTIONS: TwitterCardType[] = ['summary', 'summary_large_image', 'player']
 
 export interface FormState {
+  publicationType: import('../../../../blog/contentType').ContentType
   title: string
   slug: string
   excerpt: string
@@ -86,7 +87,7 @@ export interface FormState {
   coverImageDescription: string
   category: string
   tags: string[]
-  /** yyyy-mm-dd for <input type="date"> — create mode only. */
+  /** yyyy-mm-dd for <input type="date">. */
   publishDate: string
 
   aiSummary: string
@@ -122,6 +123,7 @@ export interface FormState {
 }
 
 export const EMPTY_FORM: FormState = {
+  publicationType: 'journal',
   title: '',
   slug: '',
   excerpt: '',
@@ -173,6 +175,7 @@ export const EMPTY_FORM: FormState = {
 
 export function formFromPost(post: AdminBlogPost): FormState {
   return {
+    publicationType: post.contentType ?? 'journal',
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
