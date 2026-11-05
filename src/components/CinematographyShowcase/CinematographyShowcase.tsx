@@ -23,7 +23,7 @@ import {
   type Transition,
   type Variants,
 } from 'motion/react'
-import { ChevronLeft, ChevronRight, Pause, SkipForward, Volume2, VolumeX, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Pause, Volume2, VolumeX, X } from 'lucide-react'
 import { getSmoothScroll } from '../../lib/smoothScroll'
 import { CINEMATOGRAPHY_PROJECTS, type CinematographyProject } from '../../data/cinematography'
 
@@ -295,7 +295,7 @@ export default function CinematographyShowcase() {
 
       <div className="mx-auto flex w-full max-w-[var(--media-max-width)] flex-col [--arrow:clamp(2.25rem,3.6vw,3.25rem)] [--arrow-gap:clamp(0.25rem,1vw,1rem)] px-[max(var(--media-pad),calc(var(--arrow)_+_2_*_var(--arrow-gap)_-_max(0px,(100cqw_-_var(--media-max-width))_/_2)))]">
         <div
-          className="relative aspect-video w-full outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111]"
+          className="relative aspect-[4/3] w-full outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:aspect-video"
           role="region"
           aria-roledescription="carousel"
           aria-label="Cinematography projects"
@@ -397,14 +397,23 @@ export default function CinematographyShowcase() {
             </div>
 
             <motion.div
-              className="absolute bottom-3 right-3 z-[5] flex items-center gap-1 rounded-full border border-white/15 bg-black/20 p-1 text-white shadow-[0_1px_12px_rgb(0_0_0/0.16)] backdrop-blur-[8px] sm:bottom-6 sm:right-6 sm:gap-1.5 sm:p-1.5 lg:bottom-8 lg:right-8"
+              className="absolute bottom-3 left-3 right-3 z-[5] flex h-10 items-center justify-between gap-1 rounded-full border border-white/15 bg-black/55 p-1 text-white shadow-[0_1px_12px_rgb(0_0_0/0.16)] backdrop-blur-[8px] sm:left-auto sm:right-6 sm:h-auto sm:w-auto sm:justify-start sm:gap-1.5 sm:bg-black/20 sm:p-1.5 lg:bottom-8 lg:right-8"
               initial={{ opacity: 0, y: reducedMotion ? 0 : 4 }}
               animate={{ opacity: inView ? 1 : 0, y: 0 }}
               transition={{ duration: reducedMotion ? 0 : 0.28, ease: EASE_OUT }}
             >
               <button
                 type="button"
-                className="grid size-8 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
+                className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
+                aria-label="Previous film"
+                disabled={active === 0}
+                onClick={() => goTo(active - 1, -1)}
+              >
+                <ChevronLeft className="size-3.5" aria-hidden="true" strokeWidth={1.8} />
+              </button>
+              <button
+                type="button"
+                className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
                 aria-label={isPlaying ? 'Pause film' : 'Play film'}
                 aria-pressed={isPlaying}
                 onClick={togglePlayback}
@@ -413,7 +422,7 @@ export default function CinematographyShowcase() {
               </button>
               <button
                 type="button"
-                className="grid size-8 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
+                className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
                 aria-label={muted ? 'Unmute film' : 'Mute film'}
                 aria-pressed={!muted}
                 onClick={toggleMute}
@@ -426,11 +435,12 @@ export default function CinematographyShowcase() {
               </output>
               <button
                 type="button"
-                className="grid size-8 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
+                className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
                 aria-label="Next film"
-                onClick={() => goTo((active + 1) % count, 1)}
+                disabled={active === count - 1}
+                onClick={() => goTo(active + 1, 1)}
               >
-                <SkipForward className="size-3.5" aria-hidden="true" strokeWidth={1.8} />
+                <ChevronRight className="size-3.5" aria-hidden="true" strokeWidth={1.8} />
               </button>
             </motion.div>
 
@@ -438,7 +448,7 @@ export default function CinematographyShowcase() {
 
           <button
             type="button"
-            className="absolute right-full top-1/2 mr-[var(--arrow-gap)] z-[5] grid size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
+            className="absolute right-full top-1/2 mr-[var(--arrow-gap)] z-[5] hidden size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 sm:grid"
             aria-label="Previous film"
             disabled={active === 0}
             onClick={() => goTo(active - 1)}
@@ -447,7 +457,7 @@ export default function CinematographyShowcase() {
           </button>
           <button
             type="button"
-            className="absolute left-full top-1/2 ml-[var(--arrow-gap)] z-[5] grid size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35"
+            className="absolute left-full top-1/2 ml-[var(--arrow-gap)] z-[5] hidden size-[var(--arrow)] -translate-y-1/2 cursor-pointer place-items-center border-0 bg-transparent p-0 text-[#0a0a0a]/55 transition-colors duration-200 hover:not-disabled:text-[#0a0a0a] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-35 sm:grid"
             aria-label="Next film"
             disabled={active === count - 1}
             onClick={() => goTo(active + 1)}
