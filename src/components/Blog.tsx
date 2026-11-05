@@ -42,9 +42,9 @@ function Blog() {
         <sup className="text-[10px]">&reg;</sup>
       </span>
 
-      <h2 className="site-display mt-4 text-neutral-900 uppercase">
+      <h1 className="site-display mt-4 text-neutral-900 uppercase">
         Insights &amp; Perspectives
-      </h2>
+      </h1>
 
       <p className="site-copy mt-4 max-w-[620px] text-neutral-600">
         Thoughts, ideas and perspectives on branding, creativity, digital

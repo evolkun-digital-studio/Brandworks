@@ -202,9 +202,9 @@ function ArticlePage({ kind, manageMetadata = true }: { kind: EditorialKind; man
         {related.length > 0 && (
           <Reveal as="section" className="ed-related" aria-labelledby="ed-related-heading">
             <div className="ed-section-head">
-              <h2 id="ed-related-heading" className="ed-section-title">
+              <h1 id="ed-related-heading" className="ed-section-title">
                 {kind === 'blog' ? 'Related reading' : 'More from the Newsroom'}
-              </h2>
+              </h1>
             </div>
             {kind === 'blog' ? (
               <div className="ed-grid ed-grid--related">

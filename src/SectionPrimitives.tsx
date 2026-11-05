@@ -20,9 +20,9 @@ export function SectionLabel({ className, ...props }: HTMLMotionProps<'p'>) {
   return <motion.p className={cx('section-label', className)} {...props} />
 }
 
-/** H2 — a section's statement. */
-export function SectionHeading({ className, ...props }: HTMLMotionProps<'h2'>) {
-  return <motion.h2 className={cx('section-heading', className)} {...props} />
+/** H1 — a section's statement. */
+export function SectionHeading({ className, ...props }: HTMLMotionProps<'h1'>) {
+  return <motion.h1 className={cx('section-heading', className)} {...props} />
 }
 
 /** P1 — the supporting paragraph under a section heading. */

@@ -168,9 +168,9 @@ function BlogIndex({ manageMetadata = true }: { manageMetadata?: boolean }) {
         {morePosts.length > 0 && (
           <Reveal as="section" className="ed-more" aria-labelledby="ed-more-heading">
             <div className="ed-section-head">
-              <h2 id="ed-more-heading" className="ed-section-title">
+              <h1 id="ed-more-heading" className="ed-section-title">
                 More from the Journal
-              </h2>
+              </h1>
             </div>
             <ul className="ed-compact-list">
               {morePosts.map((post) => (

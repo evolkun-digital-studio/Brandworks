@@ -271,7 +271,7 @@ export default function PhotographyPage({ siteUrl, frameImages }: {
       </section>
 
       <section className="bwp-cta" aria-labelledby="bwp-cta-heading">
-        <h2 id="bwp-cta-heading">Have something worth shooting?</h2>
+        <h1 id="bwp-cta-heading">Have something worth shooting?</h1>
         <Link className="bwp-cta-link" to="/contact">Start a project <span aria-hidden="true">{'→'}</span></Link>
       </section>
 

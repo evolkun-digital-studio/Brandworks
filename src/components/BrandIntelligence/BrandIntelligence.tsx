@@ -128,7 +128,7 @@ function BrandIntelligence() {
       <div ref={stickyRef} className="brand-intelligence__sticky">
         <header className="brand-intelligence__header">
           <p className="section-label brand-intelligence__eyebrow">{BRAND_INTELLIGENCE_COPY.eyebrow}</p>
-          <h2 className="brand-intelligence__heading">{BRAND_INTELLIGENCE_COPY.heading}</h2>
+          <h1 className="brand-intelligence__heading">{BRAND_INTELLIGENCE_COPY.heading}</h1>
         </header>
 
         <motion.div

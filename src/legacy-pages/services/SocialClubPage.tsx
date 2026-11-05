@@ -113,7 +113,7 @@ function Opening() {
         <div className="sc-say sc-say--r">{clubData.statement.right}</div>
 
         <div className="sc-electric sc-electric--l">
-          <h2><Mask lines={clubData.electric.title} /></h2>
+          <h1><Mask lines={clubData.electric.title} /></h1>
         </div>
         <div className="sc-electric sc-electric--r">
           <strong>{clubData.electric.lead}</strong>
@@ -153,7 +153,7 @@ function Projects() {
   return (
     <section ref={root} className="sc-projects" id="club-projects" aria-label="Projects">
       <div className="sc-projects__stage">
-        <h2 className="sc-projects__title"><Mask lines={clubData.projects.title} /></h2>
+        <h1 className="sc-projects__title"><Mask lines={clubData.projects.title} /></h1>
         <div className="sc-track">
           {clubData.projects.items.map((p, i) => (
             <article key={p.title} className="sc-project">
@@ -203,7 +203,7 @@ function Expertise() {
     <section ref={root} className="sc-expertise" aria-label="Expertise">
       <div className="sc-expertise__stage">
         <div className="sc-expertise__left">
-          <h2><Mask lines={clubData.expertise.title} /></h2>
+          <h1><Mask lines={clubData.expertise.title} /></h1>
           <p>{clubData.expertise.copy}</p>
         </div>
         <div className="sc-expertise__photos">
@@ -251,7 +251,7 @@ function Process() {
   return (
     <section ref={root} className="sc-process" aria-label="Method and process">
       <div className="sc-process__stage">
-        <h2 className="sc-process__title"><Mask lines={clubData.process.title} /></h2>
+        <h1 className="sc-process__title"><Mask lines={clubData.process.title} /></h1>
         <div className="sc-process__deck">
           {clubData.process.steps.map(([n, title, copy], i) => (
             <article key={n} className={`sc-step ${i % 2 ? 'is-green' : 'is-pink'}`}>
@@ -291,7 +291,7 @@ function Why() {
 
   return (
     <section ref={root} className="sc-why" aria-labelledby="sc-why-title">
-      <h2 id="sc-why-title" className="sc-why__title"><Mask lines={clubData.why.title} /></h2>
+      <h1 id="sc-why-title" className="sc-why__title"><Mask lines={clubData.why.title} /></h1>
       <div className="sc-why__cards">
         {clubData.why.cards.map(([title, copy]) => (
           <article key={title} className="sc-why__card"><h3>{title}</h3><p>{copy}</p></article>

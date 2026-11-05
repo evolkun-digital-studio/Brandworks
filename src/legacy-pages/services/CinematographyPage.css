@@ -177,7 +177,7 @@
   text-transform: uppercase;
 }
 
-.videography-cta h2 {
+.videography-cta :is(h1, h2) {
   max-width: 950px;
   margin: 0;
   font-size: var(--section-title-size);

@@ -292,7 +292,7 @@ export default function LegalPage({ title, description, path, source, lastUpdate
           </div>
 
           <section className="border-t border-black py-16 md:py-24">
-            <h2 className="font-primary text-[clamp(2rem,5vw,3.75rem)] leading-none">{contactHeading}</h2>
+            <h1 className="font-primary text-[clamp(2rem,5vw,3.75rem)] leading-none">{contactHeading}</h1>
             <a
               href={`mailto:${contactEmail}`}
               className="mt-8 inline-block break-all text-xl underline decoration-1 underline-offset-[6px] hover:decoration-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black md:text-3xl"

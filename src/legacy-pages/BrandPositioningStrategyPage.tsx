@@ -138,7 +138,7 @@ function Steps() {
   return (
     <section id="approach" className="scroll-mt-24 border-y border-neutral-200">
       <div className={`${shell} ${section}`}>
-        <h2 className="section-heading max-w-[16ch]">Four steps from random to on-purpose.</h2>
+        <h1 className="section-heading max-w-[16ch]">Four steps from random to on-purpose.</h1>
         <ol className="m-0 mt-12 grid list-none gap-10 p-0 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4 lg:gap-8">
           {STEPS.map((s) => (
             <li key={s.name}>
@@ -156,7 +156,7 @@ function Deliverables() {
   return (
     <section className="border-b border-neutral-200">
       <div className={`${shell} ${section} grid gap-10 lg:grid-cols-2 lg:gap-16`}>
-        <h2 className="section-heading">What you get</h2>
+        <h1 className="section-heading">What you get</h1>
         <ul className="m-0 list-none p-0">
           {DELIVERABLES.map((item) => (
             <li key={item} className="flex items-center gap-4 border-b border-neutral-200 py-4 text-[16px] text-neutral-900">
@@ -177,7 +177,7 @@ function Faq() {
     <section id="faq" className="scroll-mt-24">
       <div className={`${shell} ${section}`}>
         <div className="max-w-[720px]">
-          <h2 className="section-heading">Questions</h2>
+          <h1 className="section-heading">Questions</h1>
           <div className="mt-10 border-t border-neutral-200">
             {FAQS.map((f, i) => {
               const isOpen = i === open
@@ -217,9 +217,9 @@ function Cta() {
   return (
     <section id="contact" className="scroll-mt-24 border-t border-neutral-200">
       <div className={`${shell} ${section} flex flex-col items-center text-center`}>
-        <h2 className="section-heading max-w-[18ch]">
+        <h1 className="section-heading max-w-[18ch]">
           Stop guessing. <Mark>Start positioning.</Mark>
-        </h2>
+        </h1>
         <p className="section-description mt-6">Tell us where your brand is today. We’ll take it from there.</p>
         <Link to="/contact" className={`${button} mt-8`}>
           Book a strategy call

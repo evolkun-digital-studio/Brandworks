@@ -40,9 +40,9 @@ function FAQs() {
   return (
     <section className="faq-section" aria-labelledby="faq-heading">
       <header className="faq-header">
-        <h2 id="faq-heading" className="faq-title capitalize">
+        <h1 id="faq-heading" className="faq-title capitalize">
           Questions, answered.
-        </h2>
+        </h1>
 
         <p className="faq-intro">
           Practical answers about how BRANDWORKS works,

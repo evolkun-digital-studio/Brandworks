@@ -184,8 +184,8 @@ export default function GraphicMotionSection() {
     <section ref={rootRef} className="bwgm" id="graphic-motion" aria-labelledby="bwgm-title">
       <div className="bwgm-wrap">
         <header className="bwgm-head">
-          <h2 id="bwgm-title" className="section-heading capitalize">Graphic &amp; Motion</h2>
-          <p className="section-description bwgm-lede text-lg leading-7">Visual systems built to communicate, move and stay memorable — from campaign graphics to motion-led content.</p>
+          <h1 id="bwgm-title" className="section-heading capitalize">Graphic &amp; Motion</h1>
+          <p className="section-description bwgm-lede text-lg leading-7">Visual systems built to communicate, move and stay memorable from campaign graphics to motion-led content.</p>
         </header>
 
         <div className="bwgm-grid">

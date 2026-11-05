@@ -220,7 +220,7 @@ export default function SocialReelsCarousel({ reels = socialReels, autoplay = tr
     <section ref={sectionRef} className="bw-reels" aria-labelledby={`${id}-heading`}>
       <header className="bw-reels__header">
         <p className="bw-reels__eyebrow">Made for the feed</p>
-        <h2 id={`${id}-heading`}>Content that moves.</h2>
+        <h1 id={`${id}-heading`}>Content that moves.</h1>
         <p>From the first frame to the next conversation.</p>
       </header>
       <div className="bw-reels__carousel" role="region" aria-roledescription="carousel" aria-label="Social media content formats"

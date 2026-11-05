@@ -470,7 +470,7 @@ function SerpCompare() {
       <div className="grid gap-8 lg:grid-cols-[0.8fr_1.5fr] lg:gap-20">
         <div>
           <FadeIn>
-            <h2 className={h2}>The same page, <Mark>fixed.</Mark></h2>
+            <h1 className={h2}>The same page, <Mark>fixed.</Mark></h1>
           </FadeIn>
           <FadeIn delay={80}>
             <p className="mt-6 max-w-[40ch] text-[15px] leading-[1.7] text-neutral-500">
@@ -568,7 +568,7 @@ function Problem() {
       <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[1fr_1fr] lg:gap-20 lg:py-28`}>
         <div>
           <FadeIn>
-            <h2 className={`${h2} max-w-[16ch]`}>Most pages never get a <Mark>single visit</Mark> from Google.</h2>
+            <h1 className={`${h2} max-w-[16ch]`}>Most pages never get a <Mark>single visit</Mark> from Google.</h1>
           </FadeIn>
 
           <FadeIn delay={80}>
@@ -626,7 +626,7 @@ function Services() {
       <div className="grid gap-12 lg:grid-cols-[0.8fr_1.5fr] lg:gap-20">
         <div className="lg:sticky lg:top-24 lg:self-start">
           <FadeIn>
-            <h2 className={h2}>What our SEO service <Mark>covers</Mark></h2>
+            <h1 className={h2}>What our SEO service <Mark>covers</Mark></h1>
           </FadeIn>
           <FadeIn delay={80}>
             <p className="mt-6 max-w-[40ch] text-[15px] leading-[1.7] text-neutral-500">
@@ -717,7 +717,7 @@ function AiSearch() {
     <section className="bg-neutral-950 text-white">
       <div className={`${shell} py-20 lg:py-32`}>
         <FadeIn>
-          <h2 className={`${h2} max-w-[18ch] text-white`}>Search now <Mark dark>answers</Mark> before it sends anyone to you.</h2>
+          <h1 className={`${h2} max-w-[18ch] text-white`}>Search now <Mark dark>answers</Mark> before it sends anyone to you.</h1>
         </FadeIn>
 
         <div className="mt-14 grid gap-14 lg:mt-20 lg:grid-cols-[1fr_1fr] lg:gap-20">
@@ -781,7 +781,7 @@ function Process() {
     <section className={`${shell} py-20 lg:py-32`}>
       <div className="grid gap-8 lg:grid-cols-[0.8fr_1.5fr] lg:gap-20">
         <FadeIn>
-          <h2 className={h2}>How an engagement <Mark>runs</Mark></h2>
+          <h1 className={h2}>How an engagement <Mark>runs</Mark></h1>
         </FadeIn>
         <FadeIn delay={80}>
           <p className="max-w-[56ch] text-[15px] leading-[1.75] text-neutral-500 lg:pt-3">
@@ -840,7 +840,7 @@ function Faq() {
     <section className="border-t border-neutral-200 bg-[#f6f6f3]">
       <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[0.8fr_1.5fr] lg:gap-20 lg:py-28`}>
         <FadeIn>
-          <h2 className={h2}>Questions we get asked</h2>
+          <h1 className={h2}>Questions we get asked</h1>
         </FadeIn>
         <div className="border-t border-neutral-950">
           {FAQS.map((item) => (
@@ -885,9 +885,9 @@ function FinalCta() {
     <section className="bg-neutral-950 text-white">
       <div className={`${shell} flex flex-col gap-10 py-20 lg:flex-row lg:items-end lg:justify-between lg:py-28`}>
         <FadeIn>
-          <h2 className="section-heading max-w-[18ch]">
+          <h1 className="section-heading max-w-[18ch]">
             Want to know what’s <Mark dark>holding your site back?</Mark>
-          </h2>
+          </h1>
           <p className="mt-6 max-w-[48ch] text-[15px] leading-[1.75] text-white/65">
             Send us your website address. We’ll take a look and tell you honestly whether SEO is the right investment for you right now.
           </p>

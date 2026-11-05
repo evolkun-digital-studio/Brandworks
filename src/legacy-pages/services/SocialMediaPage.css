@@ -335,7 +335,7 @@ a:hover>.bwsm-arrow {
   color: #cb2486;
 }
 
-.bwsm-projectrail__cream-left h2 {
+.bwsm-projectrail__cream-left :is(h1, h2) {
   margin: 0;
   font-family: var(--font-primary);
   font-size: clamp(48px, 5.5vw, 92px);
@@ -377,7 +377,7 @@ a:hover>.bwsm-arrow {
   will-change: transform, opacity;
 }
 
-.bwsm-projectrail__rail-intro h2 {
+.bwsm-projectrail__rail-intro :is(h1, h2) {
   margin: 0;
   color: inherit;
   font-family: var(--font-primary);
@@ -691,7 +691,7 @@ a:hover>.bwsm-arrow {
 
 }
 
-.bwsm-impact h2 {
+.bwsm-impact :is(h1, h2) {
 
   position: relative;
 
@@ -721,7 +721,7 @@ a:hover>.bwsm-arrow {
 
 }
 
-.bwsm-impact h2 span {
+.bwsm-impact :is(h1, h2) span {
 
   display: block;
 
@@ -729,7 +729,7 @@ a:hover>.bwsm-arrow {
 
 }
 
-.bwsm-impact h2 i {
+.bwsm-impact :is(h1, h2) i {
 
   display: block;
 
@@ -789,9 +789,9 @@ a:hover>.bwsm-arrow {
 
 }
 
-.bwsm-expertise__intro h2,
+.bwsm-expertise__intro :is(h1, h2),
 
-.bwsm-process__intro h2 {
+.bwsm-process__intro :is(h1, h2) {
 
   margin-top: 22px;
 
@@ -809,7 +809,7 @@ a:hover>.bwsm-arrow {
 
 }
 
-.bwsm-expertise__intro h2 .bwsm-expertise__resonating {
+.bwsm-expertise__intro :is(h1, h2) .bwsm-expertise__resonating {
 
   display: inline-block;
 
@@ -1343,7 +1343,7 @@ a:hover>.bwsm-arrow {
 
 }
 
-.bwsm-process__intro h2 span {
+.bwsm-process__intro :is(h1, h2) span {
 
   color: var(--bwsm-lime);
 
@@ -1521,7 +1521,7 @@ a:hover>.bwsm-arrow {
   overflow: hidden;
 }
 
-.bwsm-why__sticky>h2 {
+.bwsm-why__sticky>:is(h1, h2) {
   position: absolute;
   z-index: 1;
   top: 49%;
@@ -1802,7 +1802,7 @@ a:hover>.bwsm-arrow {
 
   }
 
-  .bwsm-impact h2 {
+  .bwsm-impact :is(h1, h2) {
 
     padding: 20px;
 
@@ -1810,7 +1810,7 @@ a:hover>.bwsm-arrow {
 
   }
 
-  .bwsm-impact h2 i {
+  .bwsm-impact :is(h1, h2) i {
 
     opacity: 1;
 
@@ -1830,9 +1830,9 @@ a:hover>.bwsm-arrow {
 
   }
 
-  .bwsm-expertise__intro h2,
+  .bwsm-expertise__intro :is(h1, h2),
 
-  .bwsm-process__intro h2 {
+  .bwsm-process__intro :is(h1, h2) {
 
     font-size: clamp(54px, 15vw, 92px);
 
@@ -1972,7 +1972,7 @@ a:hover>.bwsm-arrow {
 
   }
 
-  .bwsm-why__sticky>h2 {
+  .bwsm-why__sticky>:is(h1, h2) {
 
     position: relative;
 
@@ -2080,4 +2080,4 @@ body.bwsm-route:not(.bwsm-nav-open) .site-header { display: none; }
 body.bwsm-route.bwsm-nav-open .site-header { z-index: 1100; }
 
 /* Why choose: three giant lines, all cream */
-.bwsm-why__sticky>h2 { max-width: none; color: #f7e0dd; }
+.bwsm-why__sticky>:is(h1, h2) { max-width: none; color: #f7e0dd; }

@@ -136,9 +136,9 @@ function FaqSection({ items }: { items: { question: string; answer: string }[] }
   if (valid.length === 0) return null
   return (
     <section aria-labelledby="faq-heading" className="my-14 w-full border-t border-neutral-200 pt-10">
-      <h2 id="faq-heading" className="section-heading">
+      <h1 id="faq-heading" className="section-heading">
         Frequently Asked Questions
-      </h2>
+      </h1>
       <div className="mt-6 flex flex-col divide-y divide-neutral-100">
         {valid.map((item, index) => (
           <div key={index} className="py-4">
@@ -193,9 +193,9 @@ function MoreFromBlog({ excludeSlug }: { excludeSlug: string }) {
 
   return (
     <div className="mt-20 w-full max-w-[1280px] border-t border-neutral-200 pt-14">
-      <h2 className="section-heading">
+      <h1 className="section-heading">
         More from the blog
-      </h2>
+      </h1>
       <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map((post) => (
           <BlogCard key={post.id} post={post} />

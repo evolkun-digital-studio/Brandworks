@@ -67,7 +67,7 @@
 
 /* expertise */
 .sc-expertise__stage { position: relative; display: grid; grid-template-columns: 1fr var(--card-w) 1fr; align-items: center; gap: clamp(20px, 4vw, 80px); height: 100svh; padding: 0 var(--bwsm-gutter); overflow: hidden; background: var(--lav); }
-.sc-expertise__left h2 { font-size: clamp(54px, 6.2vw, 116px); line-height: 0.84; }
+.sc-expertise__left :is(h1, h2) { font-size: clamp(54px, 6.2vw, 116px); line-height: 0.84; }
 .sc-expertise__left .sc-mask:last-child { color: var(--cream); }
 .sc-expertise__left p { margin-top: 18px; max-width: 30ch; font-size: clamp(12px, 1vw, 16px); font-weight: 800; }
 .sc-expertise__photos { position: relative; width: var(--card-w); height: var(--card-h); border-radius: var(--bwsm-radius); overflow: hidden; }

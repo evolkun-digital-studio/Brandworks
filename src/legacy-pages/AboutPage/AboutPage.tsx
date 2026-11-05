@@ -89,7 +89,7 @@ function MaskLine({ children, className }: { children: string; className?: strin
 function Feature({
   id,
   heading,
-  as: Heading = 'h2',
+  as: Heading = 'h1',
   image,
   caption,
   mediaSide,
@@ -146,7 +146,7 @@ function AboutHero() {
     <section className="about-green box-border h-svh pt-[max(104px,calc(88px+env(safe-area-inset-top)))] pb-[max(16px,3svh,env(safe-area-inset-bottom))] bg-[#dcff52] text-(--ink)" aria-labelledby="about-hero-heading">
       <div className="mx-auto grid h-full w-full max-w-(--page-max-width) grid-rows-[auto_minmax(0,1fr)] gap-[clamp(16px,3svh,32px)] px-(--page-gutter) md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:items-center md:gap-x-(--grid-gap) min-[480px]:landscape:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] min-[480px]:landscape:grid-rows-[minmax(0,1fr)] min-[480px]:landscape:items-center min-[480px]:landscape:gap-x-(--grid-gap)" data-reveal-group>
         <div className="grid min-w-0 content-center gap-[clamp(12px,2svh,24px)]">
-          <h1 id="about-hero-heading" className="m-0 font-[family-name:var(--section-title-font)] text-[clamp(56px,16.5vw,96px)] font-(--section-title-weight) leading-[0.92] tracking-[-0.04em] text-balance md:text-[clamp(60px,7.4vw,84px)] lg:text-[clamp(28px,4vw,48px)] lg:leading-[1.05] lg:tracking-(--section-title-tracking)">
+          <h1 id="about-hero-heading" className="m-0 font-[family-name:var(--section-title-font)] text-[32px] font-(--section-title-weight) leading-[1.1] tracking-(--section-title-tracking) text-balance md:text-[clamp(60px,7.4vw,84px)] md:leading-[0.92] md:tracking-[-0.04em] lg:text-[clamp(28px,4vw,48px)] lg:leading-[1.05] lg:tracking-(--section-title-tracking)">
             <MaskLine>{ABOUT_HERO.heading}</MaskLine>
           </h1>
           <div data-reveal="fade" className="grid gap-[clamp(8px,1.6svh,16px)] font-secondary text-[clamp(16px,4.3vw,19px)] font-normal leading-[1.5] text-pretty [&_p]:m-0 [&_p]:max-w-[34ch] [&_p:first-child]:font-medium md:text-[clamp(17px,2.2vw,19px)] lg:text-[clamp(14px,2vw,18px)] lg:[&_p]:max-w-[58ch] lg:[&_p:first-child]:font-normal">
@@ -172,9 +172,9 @@ function AboutIntro() {
     <section className="py-(--about-space) bg-white" aria-labelledby="about-intro-heading">
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
         <div data-reveal-group>
-          <h2 id="about-intro-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) max-w-[22em]">
+          <h1 id="about-intro-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) max-w-[22em]">
             <MaskLine>{ABOUT_INTRO.statement.lead}</MaskLine>
-          </h2>
+          </h1>
         </div>
 
         <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch mt-(--content-gap) md:gap-y-(--content-gap)" data-reveal-group>
@@ -245,9 +245,9 @@ function AboutPrinciples() {
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
         <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch md:gap-y-(--content-gap)">
           <header className="grid content-start gap-(--text-gap) col-span-full lg:col-start-1 lg:col-end-5" data-reveal-group>
-            <h2 id="about-principles-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
+            <h1 id="about-principles-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
               <MaskLine>{ABOUT_PRINCIPLES.heading}</MaskLine>
-            </h2>
+            </h1>
           </header>
 
           <ol className="col-span-full m-0 grid list-none grid-cols-1 gap-x-(--grid-gap) gap-y-9 p-0 md:grid-cols-2 md:gap-y-12 lg:gap-y-10 lg:col-start-6 lg:col-end-13" data-reveal-group>
@@ -302,9 +302,9 @@ function AboutTeam() {
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
         <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch md:gap-y-(--media-gap)">
           <header className="col-span-full grid self-start gap-(--text-gap) max-lg:max-w-[560px] lg:sticky lg:top-[clamp(112px,14vh,160px)] lg:col-start-1 lg:col-end-5" data-reveal-group>
-            <h2 id="about-team-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
+            <h1 id="about-team-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
               <MaskLine>{ABOUT_TEAM.heading}</MaskLine>
-            </h2>
+            </h1>
             <p data-reveal="fade" className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6] max-w-[28ch]!">
               {ABOUT_TEAM.description}
             </p>
@@ -331,9 +331,9 @@ function AboutClosing() {
   return (
     <section className="py-(--about-space) bg-white" aria-labelledby="about-closing-heading" data-reveal-group>
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter) grid justify-items-center gap-(--content-gap) text-center">
-        <h2 id="about-closing-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) text-center">
+        <h1 id="about-closing-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) text-center">
           <MaskLine className="text-[rgba(17,17,17,0.64)]">{first}</MaskLine> <MaskLine>{second}</MaskLine>
-        </h2>
+        </h1>
         <a data-reveal="fade" href={ABOUT_CLOSING.cta.href} className="group/link inline-flex items-center gap-3 border-b border-current pb-2 font-secondary text-[14px] font-semibold leading-none tracking-[0.12em] text-(--ink) uppercase min-h-11 lg:min-h-0 lg:text-[13px] focus-visible:outline-2 focus-visible:outline-(--ink) focus-visible:outline-offset-6">
           <span>{ABOUT_CLOSING.cta.label}</span>
           <span className="text-[1.2em] tracking-normal transition-transform duration-[450ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1 motion-reduce:transition-none" aria-hidden="true">

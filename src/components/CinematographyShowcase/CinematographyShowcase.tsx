@@ -296,9 +296,9 @@ export default function CinematographyShowcase() {
         </p>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[var(--media-max-width)] flex-col [--arrow:clamp(2.25rem,3.6vw,3.25rem)] [--arrow-gap:clamp(0.25rem,1vw,1rem)] px-[max(var(--media-pad),calc(var(--arrow)_+_2_*_var(--arrow-gap)_-_max(0px,(100cqw_-_var(--media-max-width))_/_2)))]">
+      <div className="mx-auto flex w-full max-w-[var(--media-max-width)] flex-col [--arrow:clamp(2.25rem,3.6vw,3.25rem)] [--arrow-gap:clamp(0.25rem,1vw,1rem)] px-[var(--media-pad)] md:px-[max(var(--media-pad),calc(var(--arrow)_+_2_*_var(--arrow-gap)_-_max(0px,(100cqw_-_var(--media-max-width))_/_2)))]">
         <div
-          className="relative aspect-[4/3] w-full outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:aspect-video"
+          className="relative h-[50vw] w-full outline-none min-[480px]:h-auto min-[480px]:aspect-[4/3] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111] sm:aspect-video"
           role="region"
           aria-roledescription="carousel"
           aria-label="Cinematography projects"
@@ -353,22 +353,17 @@ export default function CinematographyShowcase() {
             <div className="pointer-events-none absolute inset-0 z-[2]" aria-hidden="true">
               {finePointer ? (
                 <span
-                  className={`absolute left-1/2 top-1/2 grid size-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white backdrop-blur-[10px] transition-opacity duration-200 ${cursorVisible ? 'opacity-0' : 'opacity-100'}`}
+                  className={`absolute left-1/2 top-1/2 hidden size-14 -translate-x-1/2 lg:grid -translate-y-1/2 place-items-center rounded-full bg-white/20 text-white backdrop-blur-[10px] transition-opacity duration-200 ${cursorVisible ? 'opacity-0' : 'opacity-100'}`}
                 >
                   <PlayGlyph className="ml-[3px] h-4 w-3.5" />
                 </span>
-              ) : (
-                <span className="absolute right-3 top-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-[13px] font-medium leading-none text-[#0a0a0a]">
-                  <PlayGlyph className="h-2.5 w-[9px]" />
-                  Watch
-                </span>
-              )}
+              ) : null}
             </div>
 
             <button
               ref={hitRef}
               type="button"
-              className={`absolute inset-0 z-[3] size-full rounded-[inherit] border-0 bg-transparent p-0 outline-none [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white ${finePointer ? 'cursor-none' : 'cursor-pointer'}`}
+              className={`absolute inset-0 z-[3] size-full rounded-[inherit] border-0 bg-transparent p-0 outline-none [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white ${finePointer ? 'cursor-pointer lg:cursor-none' : 'cursor-pointer'}`}
               aria-label={`Watch ${current.title}`}
               aria-haspopup="dialog"
               onClick={() => {
@@ -381,11 +376,11 @@ export default function CinematographyShowcase() {
 
             {/* Bottom scrim keeps the overlaid text readable over moving footage. */}
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] h-3/5 bg-[linear-gradient(to_top,rgb(0_0_0/0.6),rgb(0_0_0/0.25)_45%,transparent)]"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] hidden h-3/5 lg:block bg-[linear-gradient(to_top,rgb(0_0_0/0.6),rgb(0_0_0/0.25)_45%,transparent)]"
               aria-hidden="true"
             />
 
-            <div className="pointer-events-none absolute bottom-16 left-4 right-4 z-[4] sm:bottom-8 sm:left-8 sm:right-1/2 lg:bottom-10 lg:left-10">
+            <div className="pointer-events-none absolute bottom-16 left-4 right-4 z-[4] hidden lg:block sm:bottom-8 sm:left-8 sm:right-1/2 lg:bottom-10 lg:left-10">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div key={current.id} {...textMotion}>
                   <div className="min-w-0">
@@ -503,7 +498,7 @@ export default function CinematographyShowcase() {
                 aria-hidden="true"
               >
                 <motion.span
-                  className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-white px-[18px] py-2.5 font-secondary text-sm font-medium leading-none text-[#0a0a0a] [translate:-50%_-50%]"
+                  className="hidden items-center gap-2 whitespace-nowrap rounded-full bg-white px-[18px] py-2.5 lg:inline-flex font-secondary text-sm font-medium leading-none text-[#0a0a0a] [translate:-50%_-50%]"
                   initial={{ opacity: 0, scale: reducedMotion ? 1 : 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: reducedMotion ? 1 : 0.9 }}

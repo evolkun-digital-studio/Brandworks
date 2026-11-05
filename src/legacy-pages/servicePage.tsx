@@ -196,12 +196,12 @@ export default function ServicesPage() {
               <div>
                 <SectionLabel>What we do</SectionLabel>
 
-                <h2
+                <h1
                   id="services-index-title"
                   className="section-heading mt-3"
                 >
                   Capabilities
-                </h2>
+                </h1>
               </div>
 
               {/* <p className="hidden max-w-[320px] text-right text-sm leading-6 text-neutral-500 md:block">
@@ -234,9 +234,9 @@ export default function ServicesPage() {
           </SectionLabel>
 
           <div className="max-w-[720px]">
-            <h2 className="text-[2rem] text-white">
+            <h1 className="text-[2rem] text-white">
               The work rarely belongs to one discipline.
-            </h2>
+            </h1>
 
             <p className="mt-6 max-w-[610px] text-[15px] leading-7 text-neutral-400 sm:text-base">
               A campaign may begin with strategy, move through

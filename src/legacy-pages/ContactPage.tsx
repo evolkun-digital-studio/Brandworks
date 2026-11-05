@@ -324,9 +324,9 @@ export default function ContactPage() {
                         />
                       </svg>
                     </motion.div>
-                    <h2 className="section-heading">
+                    <h1 className="section-heading">
                       Thanks{sentName ? `, ${sentName}` : ''}. We’ve got it.
-                    </h2>
+                    </h1>
                     <p className="mt-6 max-w-[46ch] text-[16px] leading-[1.65] text-black/60">
                       We’ll read your note, look at your website if you shared one, and reply to {form.email || 'your email'}. If it’s urgent, email us directly and mention your enquiry.
                     </p>
@@ -416,7 +416,7 @@ export default function ContactPage() {
 
                         {step === 1 && (
                           <div>
-                            <h2 className="section-heading mb-8">Tell us about the project</h2>
+                            <h1 className="section-heading mb-8">Tell us about the project</h1>
 
                             <div className="border-b border-black/15 pb-7">
                               <Label htmlFor="message">What are you working on?</Label>
@@ -494,7 +494,7 @@ export default function ContactPage() {
 
                         {step === 2 && (
                           <div>
-                            <h2 className="section-heading mb-2">How do we reach you?</h2>
+                            <h1 className="section-heading mb-2">How do we reach you?</h1>
                             <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-8">
                               <TextField label="Name" name="name" placeholder="Your name" autoComplete="name" value={form.name} onChange={(v) => set('name', v)} error={errors.name} />
                               <TextField label="Work email" name="email" type="email" placeholder="you@company.com" autoComplete="email" value={form.email} onChange={(v) => set('email', v)} error={errors.email} />

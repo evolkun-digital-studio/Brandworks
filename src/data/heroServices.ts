@@ -270,8 +270,8 @@ export const heroServices: Record<HeroServiceId, HeroService> = {
   social: {
     id: 'social',
     label: 'Social & Content', 
-    headline: 'Culture Moves Through Content.',
-    text: 'Stories, visuals, and ideas made to spark conversations, express identity, and become part of the culture.',
+    headline: 'Culture Moves Through Content',
+    text: 'Stories, visuals, and ideas made to spark conversations, express identity, and become part of the culture',
     serviceList: 'Strategy · Reels · Campaigns · Daily Content',
     media: {
       kind: 'showcase',

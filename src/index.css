@@ -1602,6 +1602,40 @@ body {
   font-family: var(--section-title-font) !important;
 }
 
+/* Mobile page titles: every public h1 is 28px, growing to 32px at most on
+   larger phones. !important because each page sets its own h1 size with
+   Tailwind utilities. Admin is untouched. */
+@media (max-width: 767px) {
+  h1:not(.admin-app *) {
+    font-size: clamp(28px, 7.5vw, 32px) !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Mobile body copy: paragraphs and descriptions read at 16px.
+     Labels, kickers, eyebrows, captions, meta lines, counters, badges and
+     uppercase / monospace / numeric text keep their own small sizes; the
+     mock store screens inside project popups keep the live sites' type. */
+  :is(p, [class*="description"], [class*="__lead"], .pm-lead):not(
+      .admin-app *,
+      .mrw-site-screen *,
+      .evg-site-screen *,
+      .sr-only,
+      [class*="label"],
+      [class*="kicker"],
+      [class*="eyebrow"],
+      [class*="caption"],
+      [class*="meta"],
+      [class*="counter"],
+      [class*="badge"],
+      [class*="uppercase"],
+      [class*="font-mono"],
+      [class*="tabular-nums"]
+    ) {
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+  }
+}
+
 /* Project popup (shared by every project): all headings use the 400 weight.
    The mock store screens inside the Mr.Rework / Evergreen browser frames keep their own
    weights, since they reproduce the live site's typography. */

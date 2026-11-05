@@ -1279,13 +1279,13 @@ function WorkCanvas() {
         >
           <div data-intro-kicker />
 
-          <h2
+          <h1
             data-intro-heading
             id="featured-work-heading"
             className={`${HEADING_CLASS} mt-2 sm:mt-3 lg:mt-4`}
           >
             Across the studio.
-          </h2>
+          </h1>
 
           <p data-intro-copy className={COPY_CLASS}>
             {COPY}
@@ -1320,12 +1320,12 @@ function WorkMobile() {
           data-intro
           className="flex w-full flex-col items-center px-4 sm:px-6"
         >
-          <h2
+          <h1
             id="featured-work-heading"
             className={`${HEADING_CLASS} mt-1 max-w-[92vw] text-[clamp(38px,11vw,62px)]`}
           >
             Across the studio.
-          </h2>
+          </h1>
 
           <p
             className={`${COPY_CLASS} max-w-[88vw] text-[12px] sm:text-[13px]`}
@@ -1363,12 +1363,12 @@ function WorkStatic() {
       aria-labelledby="featured-work-heading"
       className="flex flex-col items-center bg-white px-4 pb-16 pt-14 text-center sm:px-6 sm:pb-24 sm:pt-18 lg:px-8 lg:pb-28 lg:pt-20"
     >
-      <h2
+      <h1
         id="featured-work-heading"
         className={`${HEADING_CLASS} mt-2 max-w-[95vw]`}
       >
         Across the studio.
-      </h2>
+      </h1>
 
       <p className={COPY_CLASS}>{COPY}</p>
 
