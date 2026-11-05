@@ -3,7 +3,40 @@ import { listSitemapEligibleBlogs } from '../repositories/blog.repository'
 import { contentPath } from '../../blog/contentType'
 
 export interface SitemapUrlEntry { loc: string; lastmod?: string }
-const STATIC_PUBLIC_PATHS = ['/','/blog','/news']
+/**
+ * Every indexable page under app/(public). Kept in step with the routes by
+ * sitemap.test.ts, which fails when a page is added without being listed here
+ * (or excluded on purpose in SITEMAP_EXCLUDED_PATHS).
+ */
+export const STATIC_PUBLIC_PATHS = [
+  '/',
+  '/about',
+  '/work',
+  '/services',
+  '/services/brand-positioning-strategy',
+  '/services/concept-creation',
+  '/services/content-creation',
+  '/services/graphic-design',
+  '/services/photography',
+  '/services/videography',
+  '/services/social-media',
+  '/services/pr-founder-reputation',
+  '/services/performance-marketing',
+  '/services/seo',
+  '/services/technology',
+  '/blog',
+  '/news',
+  '/contact',
+  '/start-project',
+  '/privacy-policy',
+  '/terms-of-use',
+  '/cookie-policy',
+] as const
+
+/** Public routes deliberately left out of the sitemap. */
+export const SITEMAP_EXCLUDED_PATHS: readonly string[] = [
+  '/services/social-club', // switched off: the route returns 404
+]
 
 export function resolveSitemapLoc(post: Pick<SitemapBlogProjection,'slug'|'canonicalUrl'|'contentType'>, publicOrigin: string): string|null {
   const generated=`${publicOrigin}${contentPath(post.contentType)}/${post.slug}`
@@ -32,7 +65,13 @@ export function buildSitemapXml(entries:SitemapUrlEntry[]):string{
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+(blocks.length?`${blocks.join('\n')}\n`:'')+'</urlset>\n'
 }
 
+/**
+ * A database outage must not take the static pages out of the sitemap with
+ * it: log the failure and serve the static entries alone until it recovers.
+ */
 export async function buildSitemapEntries(publicOrigin:string){
-  const cmsPosts = await listSitemapEligibleBlogs()
+  let cmsPosts:SitemapBlogProjection[]=[]
+  try{cmsPosts=await listSitemapEligibleBlogs()}
+  catch(error){console.error('[sitemap] blog posts unavailable, serving static pages only:',error)}
   return composeSitemapEntries(cmsPosts,publicOrigin)
 }

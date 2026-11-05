@@ -16,7 +16,7 @@ import PhotographyPage from "./legacy-pages/services/PhotographyPage";
 import GraphicDesignPage from "./legacy-pages/services/GraphicDesignPage";
 import SeoPage from "./legacy-pages/services/SeoPage";
 import SocialMediaPage from "./legacy-pages/services/SocialMediaPage";
-import SocialClubPage from "./legacy-pages/services/SocialClubPage";
+// import SocialClubPage from "./legacy-pages/services/SocialClubPage"; // Social Club switched off
 import PerformanceMarketingPage from "./legacy-pages/services/PerformanceMarketingPage";
 import { legalRoutes } from "./legacy-pages/legal";
 import ContactPage from "./legacy-pages/ContactPage";
@@ -49,7 +49,7 @@ function App() {
         <Route path="/services/graphic-design" element={<GraphicDesignPage />} />
         <Route path="/services/seo" element={<SeoPage />} />
         <Route path="/services/social-media" element={<SocialMediaPage />} />
-        <Route path="/services/social-club" element={<SocialClubPage />} />
+        {/* <Route path="/services/social-club" element={<SocialClubPage />} /> */}
         {/* <Route path="/services/SocialaPage" element={<SocialaPage />} /> */}
         <Route path="/services/performance-marketing" element={<PerformanceMarketingPage />} />
         {legalRoutes.map((r) => (

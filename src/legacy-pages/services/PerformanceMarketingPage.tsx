@@ -89,11 +89,11 @@ const faqs = [
   ['Do you guarantee results?', 'No. We can influence performance through strategy, creative, testing and optimization, but advertising outcomes should not be guaranteed. Demand, competition, budgets, offers, platform changes and your sales process all affect results.'],
 ] as const
 
-function Section({ number, label, title, children, className = '', id }: { number: string; label: string; title?: string; children: ReactNode; className?: string; id?: string }) {
+function Section({ number, label, title, children, className = '', id }: { number: string; label?: string; title?: string; children: ReactNode; className?: string; id?: string }) {
   const sectionId = id ?? `pm-section-${number}`
   return <section id={sectionId} className={`pm-section ${className}`} aria-labelledby={`${sectionId}-title`} tabIndex={-1}>
     <div className="pm-container">
-      <p className="pm-label">{label}</p>
+      {label && <p className="pm-label">{label}</p>}
       {title ? <h1 id={`${sectionId}-title`}>{title}</h1> : <h2 id={`${sectionId}-title`} className="sr-only">{label}</h2>}
       {children}
     </div>
