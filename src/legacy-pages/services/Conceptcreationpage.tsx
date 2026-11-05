@@ -156,7 +156,7 @@ function TheConnection() {
     <section className="border-y border-[#e2e3db] bg-white" aria-labelledby="connection-heading">
       <div className={`${shell} py-14 sm:py-20`}>
         <div data-concept-reveal className="grid gap-6 md:grid-cols-2 md:gap-16">
-          <h2 id="connection-heading" className={`${heading} max-w-[18ch]`}>A concept is the connection.<br /><span className="text-[#92958b]">The work grows from it.</span></h2>
+          <h1 id="connection-heading" className={`${heading} max-w-[18ch]`}>A concept is the connection.<br /><span className="text-[#92958b]">The work grows from it.</span></h1>
           <p className={`${body} max-w-[48ch] md:self-end`}>An image can catch your eye. A line can make you smile. A concept gives them a shared purpose, so every piece of the campaign feels like part of the same thought.</p>
         </div>
         <div className="mt-12 grid gap-8 md:grid-cols-3 md:gap-10">
@@ -234,7 +234,7 @@ function AnIdeaInTheWorld() {
   return (
     <section id="concept-in-action" className={`${shell} scroll-mt-24 py-16 sm:py-24`} aria-labelledby="campaign-heading">
       <div data-concept-reveal className="mb-9 grid items-end gap-7 md:grid-cols-[1fr_auto]">
-        {/* <div><p className={`${label} mb-4 mt-0 text-[#7b8070]`}>One thought, out in the world</p><h2 id="campaign-heading" className={heading}>An idea should have legs.</h2><p className={`${body} mt-4 max-w-[55ch]`}>The format changes. The feeling stays. Here’s how our sunshine thought could become a campaign.</p></div> */}
+        {/* <div><p className={`${label} mb-4 mt-0 text-[#7b8070]`}>One thought, out in the world</p><h1 id="campaign-heading" className={heading}>An idea should have legs.</h1><p className={`${body} mt-4 max-w-[55ch]`}>The format changes. The feeling stays. Here’s how our sunshine thought could become a campaign.</p></div> */}
         <div className="flex gap-1 rounded-full border border-[#dfe1d6] p-1 justify-self-start" role="group" aria-label="Choose a campaign format">
           {CAMPAIGN_FORMATS.map((name, i) => <button key={name} type="button" aria-pressed={format === i} aria-controls="campaign-preview" onClick={() => setFormat(i)} className={`min-h-10 cursor-pointer rounded-full px-4 text-[11px]! transition-colors duration-500 motion-reduce:transition-none ${focus} ${format === i ? 'bg-[#343c2b] text-white' : 'text-[#626859] hover:bg-[#eeeee7]'}`}>{name}</button>)}
           {!reducedMotion && (
@@ -272,7 +272,7 @@ function TheProcess() {
       <div className={`${shell} grid gap-12 py-16 sm:py-24 lg:grid-cols-[1fr_1fr] lg:gap-20`}>
         <div data-concept-reveal>
           {/*  */}
-          <h2 id="process-heading" className={`${heading} max-w-[18ch]`}>We ask a little more.<br />To make something matter.</h2>
+          <h1 id="process-heading" className={`${heading} max-w-[18ch]`}>We ask a little more.<br />To make something matter.</h1>
           <div className="relative mt-10 grid aspect-[5/4] max-w-[480px] place-items-center overflow-hidden bg-[#dedfd3]">
             <img src={PHOTOS.grove} alt="Ripe oranges among green leaves: looking closely at the real product before inventing a story" width="1000" height="1500" loading="lazy" className="absolute left-6 top-7 h-[73%] w-[56%] -rotate-6 object-cover shadow-sm sm:left-9" />
             <div className="absolute right-[7%] top-[24%] w-[53%] rotate-5 bg-[#faf8ed] p-5 shadow-[0_5px_18px_#33381712] sm:p-7">
@@ -298,7 +298,7 @@ function TheProcess() {
 function TheTakeaway() {
   return (
     <section className={`${shell} grid gap-10 py-16 sm:py-24 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20`} aria-labelledby="takeaway-heading">
-      <div data-concept-reveal><h2 id="takeaway-heading" className={heading}>More than a good line.</h2><p className={`${body} mt-5 max-w-[38ch]`}>You leave with a clear creative direction and the tools to carry it forward. We shape the exact scope around your brief.</p></div>
+      <div data-concept-reveal><h1 id="takeaway-heading" className={heading}>More than a good line.</h1><p className={`${body} mt-5 max-w-[38ch]`}>You leave with a clear creative direction and the tools to carry it forward. We shape the exact scope around your brief.</p></div>
       <dl className="m-0 grid gap-x-10 sm:grid-cols-2">
         {[
           ['Creative routes', 'Different ways into the same challenge.'],
@@ -317,14 +317,14 @@ function QuestionsAndNextThought() {
   return (
     <>
       <section className={`${shell} grid gap-8 border-t border-[#e1e4d8] py-14 md:grid-cols-[0.9fr_1.1fr] md:gap-20`} aria-labelledby="questions-heading">
-        <h2 id="questions-heading" className="m-0 text-[24px] font-medium tracking-[-0.025em]">A few things you might ask.</h2>
+        <h1 id="questions-heading" className="m-0 text-[24px] font-medium tracking-[-0.025em]">A few things you might ask.</h1>
         <div>{FAQS.map(([question, answer]) => <details key={question} className="group border-b border-[#e1e4d8] first:border-t"><summary className={`flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-5 text-[13px] font-medium transition-colors hover:text-[#b33e14] [&::-webkit-details-marker]:hidden ${focus}`}>{question}<Plus size={14} strokeWidth={1.5} className="shrink-0 transition-transform group-open:rotate-45 motion-reduce:transition-none" aria-hidden="true" /></summary><p className={`${body} max-w-[53ch] pb-6 text-[13px]`}>{answer}</p></details>)}</div>
       </section>
       <section className={`${shell} pb-16 pt-8 sm:pb-24`} aria-labelledby="next-thought-heading">
         <div data-concept-reveal className="relative overflow-hidden bg-[#d5fa76] px-7 py-12 sm:px-12 sm:py-16">
           <Sun className="pointer-events-none absolute -right-12 -top-9 size-[260px] text-[#5c7134]/15 sm:right-[3%] sm:top-[-80px] sm:size-[380px]" />
           <div className="relative grid items-end gap-8 md:grid-cols-[1fr_auto]">
-            <div><h2 id="next-thought-heading" className={`${heading} max-w-[19ch]`}>Bring us the<br />unfinished thought.</h2><p className="mb-0 mt-5 max-w-[39ch] text-[14px] leading-relaxed text-[#4f6030]">A new launch. An old problem. A scribble on a napkin. We can start there.</p></div>
+            <div><h1 id="next-thought-heading" className={`${heading} max-w-[19ch]`}>Bring us the<br />unfinished thought.</h1><p className="mb-0 mt-5 max-w-[39ch] text-[14px] leading-relaxed text-[#4f6030]">A new launch. An old problem. A scribble on a napkin. We can start there.</p></div>
             <Link to="/start-project" className={`inline-flex min-h-12 items-center justify-between gap-10 rounded-full bg-[#343c2b] px-6 text-[12px] font-medium text-white transition-colors hover:bg-[#4e5a3c] md:mb-1 ${focus}`}>Let’s find your idea <ArrowUpRight size={17} strokeWidth={1.5} /></Link>
           </div>
         </div>

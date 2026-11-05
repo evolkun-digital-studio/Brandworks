@@ -218,9 +218,9 @@ function Intro() {
           {technologyIntro.label}
         </p>
         <div className="bwt-intro__body col-span-full lg:col-start-4">
-          <h2 id="bwt-intro-title" className={`bwt-intro__statement max-w-[18em] ${sectionHeadingClasses}`} data-reveal>
+          <h1 id="bwt-intro-title" className={`bwt-intro__statement max-w-[18em] ${sectionHeadingClasses}`} data-reveal>
             {technologyIntro.statement}
-          </h2>
+          </h1>
           <p className={`bwt-intro__copy mt-[clamp(32px,3.6vw,52px)] ml-auto max-w-[36em] text-[#111]/66 ${sectionCopyClasses}`} data-reveal>
             {technologyIntro.copy}
           </p>
@@ -473,13 +473,13 @@ function AutomationStory({ reduced }: { reduced: boolean }) {
         ">
           <div className="bwt-story__copy">
             <p className={`bwt-label ${sectionLabelClasses}`}>Automation</p>
-            <h2 id="bwt-story-title" className={`bwt-story__title mt-[22px] grid ${sectionHeadingClasses}`}>
+            <h1 id="bwt-story-title" className={`bwt-story__title mt-[22px] grid ${sectionHeadingClasses}`}>
               {automationStory.stages.map((stage) => (
                 <span key={stage.word} className="bwt-story__word block">
                   {stage.word}.
                 </span>
               ))}
-            </h2>
+            </h1>
             <div className="bwt-story__lines mt-[clamp(28px,3vw,44px)] grid gap-2.5 group-data-[animated=true]/story:gap-0">
               {automationStory.stages.map((stage) => (
                 <p key={stage.word} className="
@@ -552,9 +552,9 @@ function WorkflowExample({ reduced }: { reduced: boolean }) {
           {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
             Business automation
           </p> */}
-          <h2 id="bwt-flow-title" className={`mt-[22px] ${sectionHeadingClasses}`}>
+          <h1 id="bwt-flow-title" className={`mt-[22px] ${sectionHeadingClasses}`}>
             <MaskedLines lines={workflowExample.heading} />
-          </h2>
+          </h1>
         </div>
 
         <div ref={trackRef} className="bwt-flow__track relative mt-[clamp(72px,8vw,120px)] [--p:1]">
@@ -668,9 +668,9 @@ function DataSection({ reduced }: { reduced: boolean }) {
           {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
             {dataSection.label}
           </p> */}
-          <h2 id="bwt-data-title" className={`mt-[22px] ${sectionHeadingClasses}`}>
+          <h1 id="bwt-data-title" className={`mt-[22px] ${sectionHeadingClasses}`}>
             <MaskedLines lines={dataSection.heading} />
-          </h2>
+          </h1>
           <p className={`bwt-data__copy mt-[clamp(24px,2.6vw,36px)] max-w-[30em] text-[#111]/66 ${sectionCopyClasses}`} data-reveal>
             {dataSection.copy}
           </p>
@@ -799,9 +799,9 @@ function ErpSection({ reduced }: { reduced: boolean }) {
           {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
             ERP / Custom systems
           </p> */}
-          <h2 id="bwt-erp-title" data-reveal className={`max-w-[11em] mt-[22px] ${sectionHeadingClasses}`}>
+          <h1 id="bwt-erp-title" data-reveal className={`max-w-[11em] mt-[22px] ${sectionHeadingClasses}`}>
             {erpSection.heading}
-          </h2>
+          </h1>
           <p className={`bwt-erp__copy mt-[clamp(24px,2.6vw,36px)] max-w-[30em] text-[#111]/66 ${sectionCopyClasses}`} data-reveal>
             {erpSection.copy}
           </p>
@@ -826,9 +826,9 @@ function EvolkunSection() {
         {/* <p className="bwt-label font-secondary text-[13px] font-semibold leading-normal tracking-[0.06em] text-[#111]/52" data-reveal>
           {evolkunSection.label}
         </p> */}
-        <h2 id="bwt-partner-title" className={`bwt-partner__title mt-5 max-w-[14em] ${sectionHeadingClasses}`} data-reveal>
+        <h1 id="bwt-partner-title" className={`bwt-partner__title mt-5 max-w-[14em] ${sectionHeadingClasses}`} data-reveal>
           {evolkunSection.heading}
-        </h2>
+        </h1>
         <div className="
           bwt-partner__foot mt-[clamp(40px,5vw,72px)] flex items-end justify-between gap-8 border-t border-[#111]/10 pt-7
           max-[761px]:flex-col max-[761px]:items-start

@@ -168,12 +168,33 @@
     font-size: 32px;
   }
 
+  /* Swipe row, like Testimonials: full-bleed, snapping, next card peeking. */
   .grid {
-    grid-template-columns: 1fr;
-    row-gap: 28px;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 80vw;
+    gap: 12px;
+    margin-inline: calc(-1 * var(--media-pad));
+    padding: 0 var(--media-pad) 10px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: var(--media-pad);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .grid::-webkit-scrollbar {
+    display: none;
   }
 
   .card {
-    padding-left: 18px;
+    scroll-snap-align: start;
+    padding: 24px 20px 26px 18px;
+    border-left: 1px solid rgba(0, 0, 0, 0.14);
+  }
+
+  .cardDescription {
+    max-width: none;
   }
 }

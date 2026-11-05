@@ -32,7 +32,7 @@ export default function SocialContact() {
         <img className="bwsm-contact__photo" src={socialContact.image} alt="" loading="lazy" draggable={false} />
         <div className="bwsm-contact__card">
           <p>{socialContact.label}</p>
-          <h2 id="bwsm-contact-title">{socialContact.heading}</h2>
+          <h1 id="bwsm-contact-title">{socialContact.heading}</h1>
           <p>{socialContact.copy}</p>
           <Link to={socialContact.to}>{socialContact.cta}</Link>
         </div>

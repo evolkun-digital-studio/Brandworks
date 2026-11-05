@@ -268,13 +268,13 @@ function ServiceScrollIndex() {
           <div className="relative flex shrink-0 items-start pt-[14svh] lg:h-full lg:pt-[29vh]">
             <div className="flex w-full items-center gap-x-[var(--svc-gap)] lg:w-auto">
               <div className="relative w-full">
-                <h2
+                <h1
                   ref={headingRef}
                   id="our-services-heading"
                   className={`${TITLE_CLASS} text-center max-lg:whitespace-normal`}
                 >
                   The studio works across.
-                </h2>
+                </h1>
 
                 <div
                   aria-hidden="true"
@@ -412,9 +412,9 @@ function ServiceStack({ animated }: { animated: boolean }) {
     <div className="mx-auto w-full max-w-[var(--media-max-width)] px-[var(--media-pad)] pb-24 md:pb-32 lg:grid lg:grid-cols-12 lg:gap-x-6 lg:pb-36">
       <div className="lg:sticky lg:top-[30vh] lg:col-span-5 lg:self-start">
         <span className={LABEL_CLASS}>What we do</span>
-        <h2 id="our-services-heading" className={`mt-3 text-center ${TITLE_CLASS}`}>
+        <h1 id="our-services-heading" className={`mt-3 text-center ${TITLE_CLASS}`}>
           The studio works across.
-        </h2>
+        </h1>
       </div>
 
       <ul className="m-0 mt-12 list-none space-y-10 p-0 sm:mt-14 sm:space-y-11 lg:col-span-6 lg:col-start-7 lg:mt-0 lg:space-y-14">

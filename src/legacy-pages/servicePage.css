@@ -17,7 +17,7 @@
 }
 
 .bw-services__hero h1,
-.bw-services__section-heading h2,
+.bw-services__section-heading :is(h1, h2),
 .bw-services__name {
   font-family: var(--font-primary);
   font-weight: 400;
@@ -68,7 +68,7 @@
   text-transform: uppercase;
 }
 
-.bw-services__section-heading h2 {
+.bw-services__section-heading :is(h1, h2) {
   margin: 15px 0 0;
   font-size: var(--section-title-size);
   line-height: 1;

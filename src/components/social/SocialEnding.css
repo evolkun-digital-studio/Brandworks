@@ -165,7 +165,7 @@
   font-weight: 600;
   line-height: 1.35;
 }
-.bwsm-contact__card h2 {
+.bwsm-contact__card :is(h1, h2) {
   font-family: var(--font-primary);
   font-size: clamp(40px, 5vw, 78px);
   font-weight: 400;

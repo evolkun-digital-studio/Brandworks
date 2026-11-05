@@ -14,22 +14,18 @@ type Testimonial = {
   id: string
   quote: string
   name: string
-  designation: string
-  company: string
   image: StaticImageData
   imageAlt: string
 }
 
-// Placeholder attribution: swap in approved client names, roles, companies
-// and portraits before publishing.
+// Dummy clients: swap in approved client names and portraits before
+// publishing. Attribution is the name only — no role or company.
 const testimonials: Testimonial[] = [
   {
     id: 'client-placeholder-01',
     quote:
       'Brandworks didn’t just design our logo, they gave our brand a real personality.',
-    name: '[Client Name]',
-    designation: '[Role]',
-    company: '[Company]',
+    name: 'Aarav Mehta',
     image: teamPortrait,
     imageAlt: 'Portrait of a Brandworks client',
   },
@@ -37,9 +33,7 @@ const testimonials: Testimonial[] = [
     id: 'client-placeholder-02',
     quote:
       'Our new website by Brandworks doubled our enquiries within the first month.',
-    name: '[Client Name]',
-    designation: '[Role]',
-    company: '[Company]',
+    name: 'Riya Kapoor',
     image: redPortrait,
     imageAlt: 'Portrait of a Brandworks client',
   },
@@ -47,9 +41,7 @@ const testimonials: Testimonial[] = [
     id: 'client-placeholder-03',
     quote:
       'From strategy to visuals, Brandworks made the whole rebrand feel effortless.',
-    name: '[Client Name]',
-    designation: '[Role]',
-    company: '[Company]',
+    name: 'Sana Qureshi',
     image: lavenderPortrait,
     imageAlt: 'Portrait of a Brandworks client',
   },
@@ -57,9 +49,7 @@ const testimonials: Testimonial[] = [
     id: 'client-placeholder-04',
     quote:
       'Fast, sharp and genuinely creative. Brandworks gets it right the first time.',
-    name: '[Client Name]',
-    designation: '[Role]',
-    company: '[Company]',
+    name: 'Meera Joshi',
     image: handsPortrait,
     imageAlt: 'Portrait of a Brandworks client framing the camera with her hands',
   },
@@ -111,9 +101,9 @@ export default function Testimonials() {
           variants={headerVariants}
           {...reveal}
         >
-          <h2 id="testimonials-heading" className="site-display testimonials-title capitalize">
+          <h1 id="testimonials-heading" className="site-display testimonials-title capitalize">
             What clients say.
-          </h2>
+          </h1>
           <p className="site-copy testimonials-intro">
             Feedback from people we have worked with.
           </p>
@@ -151,11 +141,6 @@ export default function Testimonials() {
                   />
                   <figcaption className="testimonial-client">
                     <span className="testimonial-name">{item.name}</span>
-                    <span className="testimonial-role">
-                      {item.designation},
-                      <br />
-                      {item.company}
-                    </span>
                   </figcaption>
                 </div>
               </figure>

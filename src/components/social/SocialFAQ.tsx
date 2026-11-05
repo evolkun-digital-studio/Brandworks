@@ -32,9 +32,9 @@ export default function SocialFAQ() {
 
   return (
     <section ref={sectionRef} className="bwsm-faq" aria-labelledby="bwsm-faq-title">
-      <h2 id="bwsm-faq-title" className="bwsm-faq__title">
+      <h1 id="bwsm-faq-title" className="bwsm-faq__title">
         <b><span>Small</span></b><b><span>questions,</span></b><b className="is-soft"><span>big</span></b><b className="is-soft"><span>answers</span></b>
-      </h2>
+      </h1>
       <ul className="bwsm-faq__list">
         {socialFaq.map(([question, answer], index) => {
           const isOpen = open === index

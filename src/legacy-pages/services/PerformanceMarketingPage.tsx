@@ -94,7 +94,7 @@ function Section({ number, label, title, children, className = '', id }: { numbe
   return <section id={sectionId} className={`pm-section ${className}`} aria-labelledby={`${sectionId}-title`} tabIndex={-1}>
     <div className="pm-container">
       <p className="pm-label">{label}</p>
-      {title ? <h2 id={`${sectionId}-title`}>{title}</h2> : <h2 id={`${sectionId}-title`} className="sr-only">{label}</h2>}
+      {title ? <h1 id={`${sectionId}-title`}>{title}</h1> : <h2 id={`${sectionId}-title`} className="sr-only">{label}</h2>}
       {children}
     </div>
   </section>

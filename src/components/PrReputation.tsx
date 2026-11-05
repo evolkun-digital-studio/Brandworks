@@ -95,12 +95,12 @@ export default function PRReputation() {
             variants={rise(28, 0.04)}
             className="md:col-span-8 lg:col-span-8"
           >
-            <h2
+            <h1
               id="pr-reputation-heading"
               className="max-w-[1050px] font-primary text-[clamp(2rem,6.2vw,3rem)] leading-[0.9] tracking-[-0.055em] sm:leading-[0.88] md:tracking-[-0.06em] lg:leading-[0.86]"
             >
               A founder is part of the brand.
-            </h2>
+            </h1>
 
             <p className="mt-5 max-w-[720px] text-[14px] font-normal leading-[1.55] tracking-[-0.015em] text-black/60 sm:mt-6 sm:text-[15px] md:text-[16px] lg:max-w-[760px] lg:text-[17px]">
               What people find when they search your name, read an interview,

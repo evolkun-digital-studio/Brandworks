@@ -15,9 +15,9 @@ export default function GraphicsMotionExperience() {
     >
       <div className="gm-shell">
         <header className="gm-head">
-          <h2 id="graphics-motion-heading" className="section-heading gm-heading">
+          <h1 id="graphics-motion-heading" className="section-heading gm-heading">
             {GRAPHICS_SECTION.heading}
-          </h2>
+          </h1>
         </header>
 
         <ul className="gm-grid">

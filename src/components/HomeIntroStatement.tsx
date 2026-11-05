@@ -177,7 +177,7 @@ export default function HomeIntroStatement() {
       >
         <div className={styles.inner}>
           <div className={styles.statementBlock}>
-            <h2
+            <h1
               ref={statementRef}
               id="brandworks-intro-statement"
               className={styles.statement}
@@ -210,7 +210,7 @@ export default function HomeIntroStatement() {
                 className={styles.caret}
                 aria-hidden="true"
               />
-            </h2>
+            </h1>
           </div>
         </div>
       </section>

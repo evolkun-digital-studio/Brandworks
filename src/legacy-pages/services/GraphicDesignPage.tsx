@@ -534,7 +534,7 @@ export default function GraphicDesignPage() {
           className="mx-auto grid w-full max-w-[1440px] gap-9 px-[clamp(20px,5vw,80px)] md:grid-cols-12"
         >
           <div className="md:col-span-8 md:col-start-5">
-            <h2
+            <h1
               data-intro-child
               className="m-0 max-w-[880px] section-heading"
             >
@@ -543,7 +543,7 @@ export default function GraphicDesignPage() {
               <span className="text-black/40">
                 Recognition is harder.
               </span>
-            </h2>
+            </h1>
 
             <div
               data-intro-child
@@ -586,11 +586,11 @@ export default function GraphicDesignPage() {
                 What we make
               </p> */}
 
-              <h2 className="mb-0 mt-5 max-w-[400px] section-heading">
+              <h1 className="mb-0 mt-5 max-w-[400px] section-heading">
                 One idea.
                 <br />
                 Many forms.
-              </h2>
+              </h1>
 
               <p className="mt-7 max-w-[350px] text-[15px] leading-[1.75] text-black/55">
                 We can build the full visual system or focus on the part that
@@ -646,12 +646,12 @@ export default function GraphicDesignPage() {
                 </p>
               </div> */}
 
-            <h2
+            <h1
               data-intro-child
               className="m-0 md:col-span-8 md:whitespace-nowrap section-heading"
             >
               From first thought to final frame.
-            </h2>
+            </h1>
           </div>
 
           <div className="mt-[clamp(36px,4vw,56px)] border-t border-black/20">
@@ -688,11 +688,11 @@ export default function GraphicDesignPage() {
             </div>
 
             <div className="md:col-span-8 md:col-start-5">
-              <h2 className="m-0 max-w-[850px] section-heading">
+              <h1 className="m-0 max-w-[850px] section-heading">
                 What should your brand
                 <br />
                 look like next?
-              </h2>
+              </h1>
 
               <div className="mt-[clamp(42px,5vw,64px)] flex flex-wrap items-end justify-between gap-8 border-t border-black/25 pt-5">
                 <p className="m-0 max-w-[390px] text-[15px] leading-[1.7] text-black/60">

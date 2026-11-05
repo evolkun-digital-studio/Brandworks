@@ -195,7 +195,7 @@ export default function PhotographyWall({ page = false }: { page?: boolean }) {
       <div className="bww-stage">
         <header className="bww-heading">
           <p>Photography</p>
-          {page ? <h1 id={headingId}>Selected work</h1> : <h2 id={headingId}>Selected work</h2>}
+          <h1 id={headingId}>Selected work</h1>
         </header>
         <div className="bww-perspective">
           <div className="bww-mouse-plane"><div className="bww-scroll-plane">

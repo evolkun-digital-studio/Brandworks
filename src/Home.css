@@ -58,7 +58,7 @@
   text-indent: 0;
 } */
 
-.home-page h2:not(#brandworks-intro-statement, .hero-mask) {
+.home-page :is(h1, h2):not(#brandworks-intro-statement, .hero-mask) {
   font-family: var(--font-primary);
   font-size: var(--home-section-title-size);
   font-weight: 500;
@@ -121,8 +121,8 @@
 @media (max-width: 47.9375rem) {
   .home-page {
     /* Mobile needs a clear chapter break without wasting most of a screen. */
-    /* 64px between sections on phones. */
-    --home-section-gap: 4rem;
+    /* 112px between sections on phones (56px top + 56px bottom). */
+    --home-section-gap: 7rem;
   }
 
   .home-page .home-section--before-cinematography {

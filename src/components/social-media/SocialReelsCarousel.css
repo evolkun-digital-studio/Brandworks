@@ -8,7 +8,7 @@
 }
 .bw-reels .bw-reels__header { margin-bottom: 32px; }
 .bwsm-page .bw-reels__eyebrow, .bw-reels .bw-reels__eyebrow { margin-bottom: 14px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #656565; }
-.bw-reels .bw-reels__header h2 { font-family: var(--font-primary, sans-serif); font-size: clamp(32px, 3.5vw, 52px); font-weight: 400; line-height: 1.08; letter-spacing: -.025em; }
+.bw-reels .bw-reels__header :is(h1, h2) { font-family: var(--font-primary, sans-serif); font-size: clamp(32px, 3.5vw, 52px); font-weight: 400; line-height: 1.08; letter-spacing: -.025em; }
 .bw-reels .bw-reels__header > p:last-child { margin-top: 14px; color: #686868; font-size: 15px; line-height: 1.6; }
 .bw-reels .bw-reels__carousel { min-width: 0; }
 .bw-reels .bw-reels__viewport {

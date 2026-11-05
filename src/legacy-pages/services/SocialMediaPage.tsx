@@ -1298,9 +1298,9 @@ function StoryProjectPreview({
               >
               <aside className="self-start lg:sticky lg:top-[18svh]">
                 <span className="inline-flex rounded-full bg-[#f7e0dd] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#cb2486]">Social case</span>
-                <h2 id="bwsm-project-preview-title" className="bwsm-story-title mt-5 whitespace-pre-line text-[clamp(58px,7.2vw,138px)] uppercase leading-[0.76] tracking-[-0.055em]">
+                <h1 id="bwsm-project-preview-title" className="bwsm-story-title mt-5 whitespace-pre-line text-[clamp(58px,7.2vw,138px)] uppercase leading-[0.76] tracking-[-0.055em]">
                   {activeGroup.title}
-                </h2>
+                </h1>
                 <p className="mt-6 max-w-[42ch] text-[clamp(14px,1.05vw,18px)] font-semibold leading-[1.5] opacity-85">{activeGroup.description}</p>
                 <div className="mt-7 flex flex-wrap gap-2">
                   {socialCaseOfMonth.tags.map((tag) => <span key={tag} className="rounded-full border border-current/25 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.04em]">{tag}</span>)}
@@ -1926,16 +1926,16 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             </span>
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[12vh] max-w-[28vw]">
               <span className="mb-4 block h-[62px]" aria-hidden="true" />
-              <h2 className="font-primary text-[clamp(48px,4.8vw,112px)] uppercase leading-[0.8]">
+              <h1 className="font-primary text-[clamp(48px,4.8vw,112px)] uppercase leading-[0.8]">
                 <Lines lines={['We are the', <Hl key="c">current</Hl>]} />
-              </h2>
+              </h1>
             </div>
           </div>
           <div data-flow="pink-right" className={`${flowBox} text-[#e993bc]`}>
             <div className="absolute right-[clamp(28px,3vw,58px)] top-[calc(6vh+44px)] max-w-[28vw] text-left">
-              <h2 className="font-primary text-[clamp(44px,4vw,76px)] uppercase leading-[0.8]">
+              <h1 className="font-primary text-[clamp(44px,4vw,76px)] uppercase leading-[0.8]">
                 <Lines lines={['You are', <Hl key="s">the story.</Hl>]} />
-              </h2>
+              </h1>
             </div>
           </div>
 
@@ -1946,9 +1946,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
             </span>
             <div className="absolute left-[clamp(28px,3vw,58px)] top-[4vh] max-w-[29vw]">
               <span className="mb-5 block h-[62px]" aria-hidden="true" />
-              <h2 className="font-primary text-[clamp(36px,4vw,90px)] uppercase leading-[0.8] tracking-[-0.025em]">
+              <h1 className="font-primary text-[clamp(36px,4vw,90px)] uppercase leading-[0.8] tracking-[-0.025em]">
                 <Lines lines={['We', 'electrify your', <Hl key="n" className="text-[#e993bc]">networks,</Hl>]} />
-              </h2>
+              </h1>
             </div>
           </div>
           <div data-flow="electric-right" className={`${flowBox} text-[#cb2486]`}>
@@ -1972,9 +1972,9 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
               <AppleEmojiRow names={['phone', 'heart', 'sunglasses']} className="bwsm-emoji-bubble bwsm-emoji-float -rotate-[7deg] rounded-[28px] bg-[#f7e0dd] px-8 py-6 text-[34px] shadow-[0_12px_28px_rgba(16,17,15,.1)]" />
             </span>
             <div className="absolute left-[clamp(28px,2vw,44px)] top-[clamp(150px,25vh,220px)] max-w-[26vw]">
-              <h2 className="font-primary text-[clamp(44px,4.6vw,84px)] uppercase leading-[0.8] tracking-[-0.055em]">
+              <h1 className="font-primary text-[clamp(44px,4.6vw,84px)] uppercase leading-[0.8] tracking-[-0.055em]">
                 <Lines lines={['We', 'make them', <Hl key="s">social</Hl>]} />
-              </h2>
+              </h1>
               <p data-social-fade className="mt-6 max-w-[250px] text-[13px] font-semibold leading-[1.45] opacity-80">
                 Stories, reels and campaigns made to live on the feed.
               </p>
@@ -2036,17 +2036,17 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         </div>
 
         <div className="bg-[#cb2486] px-5 py-16 text-[#10110f]">
-          <h2 className="font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[6vw]">We are the<br />current,</h2>
+          <h1 className="font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[6vw]">We are the<br />current,</h1>
           {playlist.length > 0 && (
             <div className="mx-auto my-10 aspect-[9/16] w-full max-w-[281.25px]">
               <HeroVideoPlayer reels={playlist} autoPlayInView />
             </div>
           )}
-          <h2 className="text-right font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] text-[#10110f] lg:text-[7vw]">You are<br /><span className={textHighlight}>the story.</span></h2>
+          <h1 className="text-right font-primary text-[14vw] uppercase leading-[0.78] tracking-[-0.06em] text-[#10110f] lg:text-[7vw]">You are<br /><span className={textHighlight}>the story.</span></h1>
         </div>
 
         <div className="bg-[#fff5f3] px-5 py-16 text-[#10110f]">
-          <h2 className="font-primary text-[11vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[5vw]">We electrify<br /><span className={`${textHighlight} mt-[0.12em]`}>your networks,</span></h2>
+          <h1 className="font-primary text-[11vw] uppercase leading-[0.78] tracking-[-0.06em] lg:text-[5vw]">We electrify<br /><span className={`${textHighlight} mt-[0.12em]`}>your networks,</span></h1>
           <p className="mt-6 max-w-[420px] text-[14px] leading-[1.55] text-[#10110f]/75">
             Social is not a few posts a week. It&apos;s a story to tell, a strategy to build and an image to live up to.
           </p>
@@ -2056,7 +2056,7 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
         </div>
 
         <div className="bg-[#2f89b4] px-5 py-16 text-[#10110f]">
-          <h2 className="font-primary text-[14vw] uppercase leading-[0.76]  lg:text-[10rem]">We make<br />them social.</h2>
+          <h1 className="font-primary text-[14vw] uppercase leading-[0.76]  lg:text-[10rem]">We make<br />them social.</h1>
           <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none]">
             {storyGroups.map((group) => (
               <StoryGroupCard
@@ -2193,11 +2193,11 @@ function CenterImpactTransition() {
         <div data-impact-base className="absolute inset-0 bg-[#cb2486]" />
 
         <div data-impact-statement className="pointer-events-none absolute inset-0 z-20 grid place-items-center px-8 text-[#fff5f3]">
-          <h2 className="bwsm-story-title text-center text-[clamp(54px,7vw,132px)] uppercase leading-[0.82] tracking-[-0.05em]">
+          <h1 className="bwsm-story-title text-center text-[clamp(54px,7vw,132px)] uppercase leading-[0.82] tracking-[-0.05em]">
             {['It is the impact', 'of your sincerity', 'It is aiming true'].map((line) => (
               <span key={line} className="block overflow-hidden py-[0.04em]"><span data-impact-line className="block">{line}</span></span>
             ))}
-          </h2>
+          </h1>
         </div>
 
         <img
@@ -2223,17 +2223,17 @@ function CenterImpactTransition() {
         />
 
         <div className="pointer-events-none absolute inset-0 z-50 grid place-items-center text-[#cb2486]">
-          <h2 className="bwsm-story-title text-center text-[clamp(66px,9vw,164px)] uppercase leading-[0.76] tracking-[-0.055em]">
+          <h1 className="bwsm-story-title text-center text-[clamp(66px,9vw,164px)] uppercase leading-[0.76] tracking-[-0.055em]">
             {['And', 'hit', 'strong.'].map((line) => (
               <span key={line} className="block overflow-hidden py-[0.04em]"><span data-impact-final-line className="block">{line}</span></span>
             ))}
-          </h2>
+          </h1>
         </div>
       </div>
 
       <div className="relative grid min-h-[100svh] place-items-center overflow-hidden bg-[#d0cce2] px-6 py-24 text-center text-[#cb2486] lg:hidden">
         <img src={impactStarAsset} alt="" className="absolute h-[82svh] w-auto opacity-15" aria-hidden="true" />
-        <h2 className="bwsm-story-title relative text-[18vw] uppercase leading-[0.78] tracking-[-0.055em]">It is aiming true.<br />And hit strong.</h2>
+        <h1 className="bwsm-story-title relative text-[18vw] uppercase leading-[0.78] tracking-[-0.055em]">It is aiming true.<br />And hit strong.</h1>
       </div>
     </section>
   )
@@ -2327,11 +2327,11 @@ function ExpertiseSection() {
       <div className="bwsm-expertise__sticky">
         <div className="bwsm-expertise__intro">
           <Label>Our expertise</Label>
-          <h2 id="bwsm-expertise-title">
+          <h1 id="bwsm-expertise-title">
             Reasoning<br />
             to better:<br />
             <span className="bwsm-expertise__resonating">resonating.</span>
-          </h2>
+          </h1>
           <span className="bwsm-expertise__emoji-sticker bwsm-emoji-bubble bwsm-emoji-float" data-expertise-emoji aria-hidden="true">
             <AppleEmoji name="camera" />
             <AppleEmoji name="phone" />
@@ -2427,9 +2427,9 @@ function ProcessSection() {
     <section ref={sectionRef} className="bwsm-process" id="social-process" aria-labelledby="bwsm-process-title">
       <div className="bwsm-process__sticky">
         <div className="bwsm-process__intro">
-          <h2 id="bwsm-process-title">
+          <h1 id="bwsm-process-title">
             We will<br />always prefer<br /><span>this order.</span>
-          </h2>
+          </h1>
         </div>
         <div className="bwsm-process__deck">
           {processSteps.map(([number, title, description], index) => (
@@ -2534,7 +2534,7 @@ function WhySection() {
   return (
     <section ref={sectionRef} className="bwsm-why" aria-labelledby="bwsm-why-title">
       <div className="bwsm-why__sticky">
-        <h2 id="bwsm-why-title">Why<br />choose<br />BrandWorks?</h2>
+        <h1 id="bwsm-why-title">Why<br />choose<br />BrandWorks?</h1>
         <div className="bwsm-why__cards">
           {benefits.map(({ title, copy, icon }) => (
             <article key={title} data-why-card>

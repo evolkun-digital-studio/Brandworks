@@ -420,7 +420,7 @@ function SearchYourself() {
       <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[0.85fr_1.4fr] lg:gap-20 lg:py-28`}>
         <div>
           <FadeIn>
-            <h2 className={h2}>Search your own name. <Mark>Then</Mark> imagine an investor doing it.</h2>
+            <h1 className={h2}>Search your own name. <Mark>Then</Mark> imagine an investor doing it.</h1>
           </FadeIn>
           <FadeIn delay={80}>
             <p className="mt-6 max-w-[42ch] text-[15px] leading-[1.75] text-neutral-600">
@@ -512,7 +512,7 @@ function WhyItMatters() {
     <section className={`${shell} py-20 lg:py-32`}>
       <div className="grid gap-8 lg:grid-cols-[0.85fr_1.4fr] lg:gap-20">
         <FadeIn>
-          <h2 className={h2}>People judge the company by the person <Mark>running it.</Mark></h2>
+          <h1 className={h2}>People judge the company by the person <Mark>running it.</Mark></h1>
         </FadeIn>
         <FadeIn delay={80}>
           <p className="max-w-[52ch] text-[15px] leading-[1.75] text-neutral-600 lg:pt-3">
@@ -562,7 +562,7 @@ function Services() {
       <div className={`${shell} py-20 lg:py-32`}>
         <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:gap-20">
           <FadeIn>
-            <h2 className={`${h2} text-white`}>What we <Mark dark>do</Mark></h2>
+            <h1 className={`${h2} text-white`}>What we <Mark dark>do</Mark></h1>
           </FadeIn>
           <FadeIn delay={80}>
             <p className="max-w-[48ch] text-[15px] leading-[1.75] text-white/65 lg:pt-3">
@@ -634,7 +634,7 @@ function PitchExample() {
       <div className="grid gap-12 lg:grid-cols-[0.85fr_1.4fr] lg:gap-20">
         <div>
           <FadeIn>
-            <h2 className={h2}>We send pitches, <Mark>not press releases.</Mark></h2>
+            <h1 className={h2}>We send pitches, <Mark>not press releases.</Mark></h1>
           </FadeIn>
           <FadeIn delay={80}>
             <p className="mt-6 max-w-[42ch] text-[15px] leading-[1.75] text-neutral-600">
@@ -680,7 +680,7 @@ function Process() {
       <div className={`${shell} py-20 lg:py-32`}>
         <div className="grid gap-8 lg:grid-cols-[0.85fr_1.4fr] lg:gap-20">
           <FadeIn>
-            <h2 className={h2}>How we <Mark>work together</Mark></h2>
+            <h1 className={h2}>How we <Mark>work together</Mark></h1>
           </FadeIn>
         
         </div>
@@ -719,7 +719,7 @@ function IfSomethingWentWrong() {
       <FadeIn>
         <div className="grid gap-10 bg-[#CCFF00] p-8 sm:p-12 lg:grid-cols-[1.2fr_1fr] lg:items-end lg:gap-20 lg:p-16">
           <div>
-            <h2 className={`${h2} max-w-[18ch]`}>Something already gone wrong?</h2>
+            <h1 className={`${h2} max-w-[18ch]`}>Something already gone wrong?</h1>
             <p className="mt-6 max-w-[50ch] text-[15px] leading-[1.75] text-neutral-800">
               A bad story, a viral complaint or a misquote moves fast. Call us before you respond publicly. The first statement usually shapes the coverage that follows, and it’s much easier to get right than to fix later.
             </p>
@@ -750,7 +750,7 @@ function PhotoStrip() {
     <section className="overflow-hidden border-t border-neutral-200 py-20 lg:py-28">
       <div className={`${shell} grid gap-8 lg:grid-cols-[0.85fr_1.4fr] lg:gap-20`}>
         <FadeIn>
-          <h2 className={h2}>Photos that look like you, <Mark>on a good day.</Mark></h2>
+          <h1 className={h2}>Photos that look like you, <Mark>on a good day.</Mark></h1>
         </FadeIn>
         <FadeIn delay={80}>
           <p className="max-w-[52ch] text-[15px] leading-[1.75] text-neutral-600 lg:pt-3">
@@ -782,7 +782,7 @@ function Faq() {
     <section className="border-t border-neutral-200 bg-[#f6f6f3]">
       <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[0.85fr_1.4fr] lg:gap-20 lg:py-28`}>
         <FadeIn>
-          <h2 className={h2}>Questions founders ask us</h2>
+          <h1 className={h2}>Questions founders ask us</h1>
         </FadeIn>
         <div className="border-t border-neutral-950">
           {FAQS.map((item) => (
@@ -833,9 +833,9 @@ function FinalCta() {
     <section className="bg-neutral-950 text-white">
       <div className={`${shell} grid gap-12 py-20 lg:grid-cols-[1fr_auto] lg:items-end lg:py-28`}>
         <FadeIn>
-          <h2 className="section-heading max-w-[16ch]">
+          <h1 className="section-heading max-w-[16ch]">
             Have a story worth <Mark dark>telling?</Mark>
-          </h2>
+          </h1>
           <p className="mt-6 max-w-[50ch] text-[15px] leading-[1.75] text-white/65">
             Tell us a little about you and your company. We’ll come back with an honest view of where you could be covered and what it would take to get there.
           </p>

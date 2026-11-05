@@ -122,9 +122,9 @@ export default function BrandworksPhilosophy() {
         <header className={styles.header}>
           <div className={styles.headerLeft}>
             <p className={styles.eyebrow}></p>
-            <h2 id="core-philosophy-title" className={styles.title}>
+            <h1 id="core-philosophy-title" className={styles.title}>
               BrandWorks&apos; Core Philosophy
-            </h2>
+            </h1>
           </div>
 
           {/* <p className={styles.intro}>

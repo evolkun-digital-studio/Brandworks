@@ -38,7 +38,7 @@ export default function PublicNewsArticle({ post, related }: { post: PublicBlogD
                 : <a href={href} rel="noopener noreferrer">{children}</a>,
             }}>{post.content}</ReactMarkdown>
             {post.faq.length > 0 && <section aria-label="Frequently asked questions">
-              <h2>Frequently asked questions</h2>
+              <h1>Frequently asked questions</h1>
               {post.faq.map((item, index) => <div key={index}><h3>{item.question}</h3><p>{item.answer}</p></div>)}
             </section>}
             {post.expertQuote && <blockquote><p>{post.expertQuote.quote}</p><cite>{post.expertQuote.personName}{post.expertQuote.organization && `, ${post.expertQuote.organization}`}</cite></blockquote>}
@@ -48,7 +48,7 @@ export default function PublicNewsArticle({ post, related }: { post: PublicBlogD
       <div className="ed-container">
         {related.length > 0 && (
           <Reveal as="section" className="ed-related" aria-labelledby="ed-related-heading">
-            <div className="ed-section-head"><h2 id="ed-related-heading" className="ed-section-title">More from the Newsroom</h2></div>
+            <div className="ed-section-head"><h1 id="ed-related-heading" className="ed-section-title">More from the Newsroom</h1></div>
             <ol className="ed-news__list ed-news__list--related">
               {related.map((item) => <li key={item.id}><NewsRow post={editorialPostFromCms(item)} /></li>)}
             </ol>

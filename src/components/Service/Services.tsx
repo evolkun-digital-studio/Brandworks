@@ -162,9 +162,9 @@ export default function Services() {
       aria-labelledby="services-heading"
     >
       <header className="services-showcase__header">
-        <h2 id="services-heading" className="services-showcase__title">
+        <h1 id="services-heading" className="services-showcase__title">
           BrandWorks gives you
-        </h2>
+        </h1>
         <p className="services-showcase__description">
           {/* Bringing strategy, creativity and execution together to build brands that grow. */}
           We work with a limited number of businesses so every project receives the strategic attention and execution it deserves.
