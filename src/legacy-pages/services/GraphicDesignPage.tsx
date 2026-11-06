@@ -523,57 +523,10 @@ export default function GraphicDesignPage() {
           </div>
         </div>
       </section>
-
-      {/* =========================================================
-          POINT OF VIEW
-      ========================================================= */}
-
-      <section className="relative pb-10 md:pb-14">
-        <div
-          data-section-intro
-          className="mx-auto grid w-full max-w-[1440px] gap-9 px-[clamp(20px,5vw,80px)] md:grid-cols-12"
-        >
-          <div className="md:col-span-8 md:col-start-5">
-            <h1
-              data-intro-child
-              className="m-0 max-w-[880px] section-heading"
-            >
-              Attention is easy to get.
-              <br />
-              <span className="text-black/40">
-                Recognition is harder.
-              </span>
-            </h1>
-
-            <div
-              data-intro-child
-              className="mt-[clamp(42px,6vw,72px)] grid gap-8 border-t border-black/15 pt-6 sm:grid-cols-2"
-            >
-              <p className="m-0 max-w-[400px] text-[16px] leading-[1.75] text-black/65">
-                We create graphic systems with enough character to be
-                remembered and enough structure to keep working across
-                different formats.
-              </p>
-
-              <p className="m-0 max-w-[400px] text-[16px] leading-[1.75] text-black/65">
-                Sometimes that means an identity. Sometimes a campaign, title
-                sequence, packaging system or one visual idea strong enough to
-                hold everything together.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================
-          WORK — pinned cylinder gallery (swipe row on mobile)
-      ========================================================= */}
+ 
 
       <CylinderGallery projects={projects} />
-
-      {/* =========================================================
-          CAPABILITIES
-      ========================================================= */}
+ 
 
       <section
         data-capabilities
@@ -607,16 +560,14 @@ export default function GraphicDesignPage() {
                   key={title}
                   className="group relative grid min-h-[92px] grid-cols-[1fr_auto] items-center gap-5 overflow-hidden border-b border-black/15"
                 >
-                  <div className="absolute inset-0 origin-left scale-x-0 bg-[#ccff00] transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-x-100" />
+                  <div className="absolute inset-0 origin-left scale-x-0 bg-[#dcff52] transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-x-100" />
 
                   <strong className="relative z-10 font-[400] text-[clamp(18px,2vw,25px)] tracking-[-0.025em]">
                     {title}
                   </strong>
 
-                  <div className="relative z-10 flex items-center gap-7">
-                    <span className="hidden text-[9px] uppercase tracking-[0.13em] text-black/45 sm:block">
-                      {label}
-                    </span>
+                  <div className="relative z-5 flex items-center gap-7 mr-3">
+                    
 
                     <Arrow />
                   </div>
@@ -661,11 +612,11 @@ export default function GraphicDesignPage() {
                 data-process-row
                 className="grid gap-x-6 gap-y-5 border-b border-black/20 py-[clamp(30px,4vw,48px)] md:grid-cols-12 md:items-start"
               >
-                <h3 className="m-0 font-[400] text-[clamp(25px,2.6vw,34px)] leading-none tracking-[-0.04em] md:col-span-5">
+                <h3 className="m-0 font-[400] text-[clamp(24px,2.6vw,32px)] leading-none tracking-[-0.04em] md:col-span-5">
                   {step.title}
                 </h3>
 
-                <p className="m-0 max-w-[540px] text-[15px] leading-[1.75] text-black/55 md:col-span-5 md:col-start-8">
+                <p className="m-0 max-w-[540px] text-[16px] leading-[1.75] text-black/55 md:col-span-5 md:col-start-8">
                   {step.text}
                 </p>
               </article>
@@ -678,13 +629,11 @@ export default function GraphicDesignPage() {
           CTA
       ========================================================= */}
 
-      <section className="relative bg-[#ccff00]">
+      <section className="relative bg-[#dcff52]">
         <div className="mx-auto w-full max-w-[1440px] px-[clamp(20px,5vw,80px)]">
           <div className="grid min-h-[clamp(460px,52vw,700px)] items-center gap-12 py-[clamp(80px,10vw,140px)] md:grid-cols-12">
             <div className="md:col-span-3">
-              <p className="m-0 text-[10px] uppercase tracking-[0.16em]">
-                Start a project
-              </p>
+    
             </div>
 
             <div className="md:col-span-8 md:col-start-5">

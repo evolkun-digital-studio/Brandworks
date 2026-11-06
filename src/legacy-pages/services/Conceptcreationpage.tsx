@@ -140,7 +140,7 @@ function ConceptHero() {
       </div> */}
       <div className="grid items-center gap-10 lg:grid-cols-[0.85fr_1.35fr] lg:gap-16">
         <div data-concept-reveal>
-          <h1 id="concept-heading" className="m-0 max-w-[16ch] text-[clamp(32px,3.3vw,44px)] font-medium leading-[1.12] tracking-[-0.04em]">Same fruit.<br />Different thought.</h1>
+          <h1 id="concept-heading" className="m-0 max-w-[16ch] text-[clamp(32px,3.8vw,44px)] font-medium leading-[1.12] tracking-[-0.04em]">Same fruit.<br />Different thought.</h1>
           <p className={`${body} mt-6 max-w-[36ch]`}>The world has enough content. We find the idea that gives yours a reason to exist.</p>
           <p className={`${body} mt-4 max-w-[37ch]`}>Concept creation connects a brand truth with a human feeling. Then gives that connection a life of its own.</p>
           <a href="#concept-in-action" className={`mt-8 inline-flex min-h-11 items-center gap-5 border-b border-[#383d30] pb-1 text-[12px] font-medium text-[#343c2b] transition-colors hover:text-[#b33e14] ${focus}`}>Follow a thought <ArrowDown size={15} strokeWidth={1.5} /></a>

@@ -56,19 +56,21 @@ export const ABOUT_INTRO = {
     // idea: 'great brands become stronger when strategy, creativity and technology work together.',
   },
   studio:
-    'BrandWorks is a creative and marketing studio. We bring every discipline a brand needs into one process, under one roof:',
+    'BrandWorks is a creative and marketing studio. We bring every discipline a brand needs into one process.',
+  // Read as one sentence on the page, so related disciplines sit together.
   disciplines: [
     'Strategy',
+    'PR',
     'Design',
     'Content',
     'Photography',
     'Videography',
     'Social Media',
-    'PR',
     'Performance Marketing',
     'SEO',
     'Technology',
   ],
+  servicesLink: { label: 'Explore our services', href: '/services' },
   // The Vite reference currently renders no label here. Keep that output while
   // making the property explicit for Next's route-scoped typecheck.
   approachLabel: undefined as string | undefined,

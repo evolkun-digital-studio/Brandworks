@@ -125,7 +125,7 @@ function Hero() {
           <p className="section-description mt-6 max-w-[44ch]">
             That’s why everything feels random. We define who you’re for and what you stand for, so every choice after that is easy.
           </p>
-          <Link to="/contact" className={`${button} mt-8`}>
+          <Link to="/contact" className={`${button} mt-8 self-center md:self-start`}>
             Get a clear strategy
           </Link>
         </div>

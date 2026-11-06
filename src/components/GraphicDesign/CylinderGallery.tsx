@@ -225,12 +225,12 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
             >
               Client work. Studio work.
               <br />
-              <span className="text-black/85">Same level of intent.</span>
+              <span className="text-black/85">Same level of intent</span>
             </h2>
 
             <p
               data-intro-child
-              className="mt-7 max-w-[450px] text-[14px] leading-[1.7] text-black/55"
+              className="mt-7 max-w-[450px] text-[16px] leading-[1.7] text-black/55"
             >
               A changing collection of identities, campaigns, digital
               graphics, motion experiments and visual directions.
@@ -269,9 +269,7 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
                   <span data-cyl-veil className="cyl__veil" aria-hidden="true" />
 
                   <div className="cyl__reveal" aria-hidden="true">
-                    <span className="text-[9px] uppercase tracking-[0.15em] text-white/70">
-                      {project.type}
-                    </span>
+                    
                     <span className="max-w-[90%] text-[clamp(18px,1.6vw,24px)] leading-[1] tracking-[-0.035em] [font-family:var(--section-title-font)]">
                       {project.title}
                     </span>
@@ -279,10 +277,7 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
                 </div>
 
                 <div className="cyl__meta">
-                  <p className="m-0 flex justify-between gap-4 text-[9px] uppercase tracking-[0.14em] text-black/45">
-                    <span>{project.type}</span>
-                    {/* <span>{project.year}</span> */}
-                  </p>
+                  
                   <h3 className="mb-0 mt-3 font-[400] text-[clamp(22px,2.4vw,30px)] leading-[0.98] tracking-[-0.04em]">
                     {project.title}
                   </h3>
@@ -297,9 +292,7 @@ export default function CylinderGallery({ projects }: { projects: GalleryProject
                 <p className="m-0 text-[clamp(22px,2vw,30px)] leading-[1] tracking-[-0.04em] [font-family:var(--section-title-font)]">
                   {project.title}
                 </p>
-                <p className="m-0 mt-2 text-[9px] uppercase tracking-[0.14em] text-black/45">
-                  {project.type} 
-                </p>
+              
               </div>
             ))}
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
@@ -167,29 +167,110 @@ function AboutHero() {
   )
 }
 
+/**
+ * One discipline at a time, rolling up through a one-line mask. The list is
+ * followed by a copy of its first word, so the roll can land on that copy
+ * and snap back to the real one unseen: an endless loop with no rewind.
+ * Pauses on hover, off screen and in a hidden tab; never moves with reduced
+ * motion. Screen readers get the full list once, as text.
+ */
+function DisciplineRoll({ words }: { words: readonly string[] }) {
+  const [index, setIndex] = useState(0)
+  const [snapping, setSnapping] = useState(false)
+  const [paused, setPaused] = useState(false)
+  const [inView, setInView] = useState(false)
+  const [reduced, setReduced] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const update = () => setReduced(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (paused || !inView || reduced) return undefined
+    const timer = window.setInterval(() => {
+      if (document.hidden) return
+      setSnapping(false)
+      setIndex((i) => i + 1)
+    }, 2200)
+    return () => window.clearInterval(timer)
+  }, [paused, inView, reduced])
+
+  return (
+    <span
+      ref={ref}
+      className="block h-[1.2em] overflow-hidden"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <span className="sr-only">{words.join(', ')}</span>
+      <span
+        aria-hidden="true"
+        className={`block ${snapping ? '' : 'transition-transform duration-[900ms] ease-[cubic-bezier(0.76,0,0.24,1)]'}`}
+        style={{ transform: `translateY(${-index * 1.2}em)` }}
+        onTransitionEnd={() => {
+          if (index === words.length) {
+            setSnapping(true)
+            setIndex(0)
+          }
+        }}
+      >
+        {[...words, words[0]].map((word, i) => (
+          <span key={`${word}-${i}`} className="block h-[1.2em] whitespace-nowrap">
+            {word}
+          </span>
+        ))}
+      </span>
+    </span>
+  )
+}
+
 function AboutIntro() {
+  const { disciplines, servicesLink } = ABOUT_INTRO
+
   return (
     <section className="py-(--about-space) bg-white" aria-labelledby="about-intro-heading">
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
-        <div data-reveal-group>
+        {/* <div data-reveal-group>
           <h1 id="about-intro-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-normal leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) max-w-[22em]">
             <MaskLine>{ABOUT_INTRO.statement.lead}</MaskLine>
           </h1>
-        </div>
+        </div> */}
 
-        <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch mt-(--content-gap) md:gap-y-(--content-gap)" data-reveal-group>
-          <div data-reveal="fade" className="grid content-start gap-(--text-gap) md:col-span-4 lg:col-start-1 lg:col-end-7">
-            <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6]">{ABOUT_INTRO.studio}</p>
-            <ul className="m-0 grid list-none grid-cols-2 gap-x-(--grid-gap) p-0 max-[380px]:grid-cols-1 [&_li]:border-t [&_li]:border-(--about-rule) [&_li]:py-2.5 [&_li]:font-secondary [&_li]:text-[16px] [&_li]:leading-[1.35] [&_li]:text-(--ink) lg:[&_li]:text-[15px]" aria-label="Disciplines">
-              {ABOUT_INTRO.disciplines.map((discipline) => (
-                <li key={discipline}>{discipline}</li>
-              ))}
-            </ul>
+        <div className="mt-(--content-gap) flex flex-col gap-y-12 gap-x-(--grid-gap) lg:grid lg:grid-cols-12 lg:items-end [&>*]:min-w-0" data-reveal-group>
+          {/* 28px on mobile and tablet; on desktop 4vw, up to 58px.
+              "Performance Marketing" (~9.6em) fits on one line at every size. */}
+          <div data-reveal="fade" className="@container lg:col-span-8">
+            <div className="font-[family-name:var(--section-title-font)] text-[28px] lg:text-[min(58px,4vw)] font-normal leading-[1.2] tracking-[-0.035em] text-(--ink) max-lg:text-center">
+            <span className="block text-(--about-copy)">We do</span>
+            <DisciplineRoll words={disciplines} />
+            <span className="block text-(--about-copy)">all under one roof.</span>
+            </div>
           </div>
 
-          <div data-reveal="fade" className="grid content-start gap-4 md:col-span-4 lg:col-start-8 lg:col-end-13">
-            <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6] text-(--ink)!">{ABOUT_INTRO.approach[0]}</p>
-          </div>
+          {/* <div className="grid justify-items-center gap-8 max-lg:text-center lg:col-start-10 lg:col-end-13 lg:justify-items-start lg:pb-6">
+            <p data-reveal="fade" className="m-0 max-w-[40ch] font-secondary text-[16px] font-normal leading-[1.6] text-pretty text-(--about-copy)">
+              {ABOUT_INTRO.studio}
+            </p>
+            <a data-reveal="fade" href={servicesLink.href} className="group/link inline-flex items-center gap-3 border-b border-current pb-2 font-secondary text-[14px] font-semibold leading-none tracking-[0.12em] text-(--ink) uppercase min-h-11 lg:min-h-0 lg:text-[13px] focus-visible:outline-2 focus-visible:outline-(--ink) focus-visible:outline-offset-6">
+              <span>{servicesLink.label}</span>
+              <span className="text-[1.2em] tracking-normal transition-transform duration-[450ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1 motion-reduce:transition-none" aria-hidden="true">
+                →
+              </span>
+            </a>
+          </div> */}
         </div>
       </div>
     </section>
