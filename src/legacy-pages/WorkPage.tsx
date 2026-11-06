@@ -46,6 +46,7 @@ const kinikhInfraImages = [
 ] as const
 
 const delhi6Images = [
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/d6_bucket.webp',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%201.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_14.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/D6_Front.png',
@@ -91,7 +92,7 @@ const projects: Project[] = [
   { id: 3, title: 'Kinikh Infra', featuredVideo: { youtubeId: '1Lb4K9gLEbM', startSeconds: 37 },media: kinikhInfraImages[0], thumbnail: kinikhInfraImages[0], mediaType: 'image', ratio: 'portrait', category: 'Brand Identity', previewImages: kinikhInfraImages.slice(1, 4), gallery: kinikhInfraImages.slice(4) },
   { id: 4, title: 'Evergreen', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Evergreen.png', mediaType: 'image', ratio: 'square', category: 'Digital Platform', previewImages: [...evergreenImages], gallery: [] },
   { id: 5, title: 'Delhi-6', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/delhi_6home.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/delhi_6home.png', mediaType: 'image', ratio: 'landscape', category: 'Brand Identity', previewImages: delhi6Images.slice(0, 3), gallery: delhi6Images.slice(3) },
-  { id: 6, title: 'BrandWorks', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', mediaType: 'image', ratio: 'square', category: 'Graphic Design', previewImages: [mediaUrl('moisturizer mock up.png'), mediaUrl('Artboard 12@3x.png'), mediaUrl('vcvcvcvcv.jpg')], gallery: ['https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202.png', 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_38_07%20PM.png', 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Sage%20Glow%20Serum%20Still%20Life.png'] },
+  { id: 6, title: 'BrandWorks', media: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', thumbnail: 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website%20.png', mediaType: 'image', ratio: 'square', category: 'Graphic Design', previewImages: ['https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/3tshirt.png', 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/DSC06887.JPG', mediaUrl('moisturizer mock up.png'), mediaUrl('Artboard 12@3x.png'), mediaUrl('vcvcvcvcv.jpg')], gallery: ['https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Artboard%202.png', 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/ChatGPT%20Image%20Sep%2030%2C%202026%2C%2002_38_07%20PM.png', 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Sage%20Glow%20Serum%20Still%20Life.png'] },
 ]
 
 const projectHeroImages = [
@@ -558,6 +559,7 @@ function OverlayGallery({ project, slotRef, scrollRoot }: { project: Project; sl
 
   const images = Array.from(new Set([...(project.previewImages ?? []), ...(project.gallery ?? [])]))
     .filter((src) => src !== project.media)
+  const alignedShowcase = project.id === 5 || project.id === 6
 
   return (
     <div className="culture-reels pb-[clamp(16px,3vh,40px)]">
@@ -580,15 +582,15 @@ function OverlayGallery({ project, slotRef, scrollRoot }: { project: Project; sl
           </div>
         )}
 
-        {/* Natural-ratio masonry keeps the gallery compact at every image count. */}
-        <div className="columns-1 gap-4 md:columns-2 xl:columns-3">
+        {/* Delhi-6 and BrandWorks use equal-height frames so every image shares a bottom edge. */}
+        <div className={alignedShowcase ? 'grid grid-cols-1 items-end gap-4 md:grid-cols-2 xl:grid-cols-3' : 'columns-1 gap-4 md:columns-2 xl:columns-3'}>
           <div ref={slotRef} className="relative mb-4 break-inside-avoid aspect-[4/5] overflow-hidden rounded-[20px] bg-[#111] will-change-transform">
             <div data-ov-media key={project.id} className="absolute inset-0">
               <ProjectMedia project={project} autoPlay />
             </div>
           </div>
           {images.map((src, i) => (
-            <div key={src} data-ov-fade className="mb-4 break-inside-avoid overflow-hidden rounded-[20px] bg-[#f1f1ed]">
+            <div key={src} data-ov-fade className={`mb-4 break-inside-avoid overflow-hidden rounded-[20px] bg-[#f1f1ed] ${alignedShowcase ? 'aspect-[4/5] [&>img]:h-full [&>img]:object-cover' : ''}`}>
               <img src={src} alt={`${project.title} â€” photo ${i + 2}`} loading="lazy" decoding="async" className="block h-auto w-full" />
             </div>
           ))}

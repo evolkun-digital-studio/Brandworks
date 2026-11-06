@@ -3,7 +3,7 @@ import 'server-only'
 import { NextResponse, type NextRequest } from 'next/server'
 import { errorResponse, forbidden, unauthorized, badRequest } from '../http/errors'
 import { getActiveAdmin, verifyAdminToken } from './auth'
-import { clientIp } from '../http/clientIp'
+import { rateLimitKey } from '../http/clientIp'
 import { resolvePublicOrigin } from '../config/env'
 import type { AdminDocument } from './types'
 
@@ -14,14 +14,21 @@ type LimiterGlobal = typeof globalThis & { __brandworksLoginAttempts?: Map<strin
 const state = globalThis as LimiterGlobal
 const attempts = state.__brandworksLoginAttempts ?? (state.__brandworksLoginAttempts = new Map())
 
-/** Proxy-aware: a spoofed first X-Forwarded-For entry cannot reset the limit. */
-function requestIp(request: NextRequest) {
-  return clientIp(request)
+/** Drop buckets with no attempt inside the window once the map grows, so it cannot grow without bound. */
+const SWEEP_AT = 1000
+function sweep(now: number) {
+  if (attempts.size < SWEEP_AT) return
+  for (const [key, times] of attempts) if (!times.some((t) => now - t < WINDOW_MS)) attempts.delete(key)
 }
 
-/** Matches the source Express limiter's per-process 10/15-minute policy. */
-export function checkLoginRateLimit(request: NextRequest): Response | null {
-  const now = Date.now(); const key = requestIp(request)
+/**
+ * Matches the source Express limiter's per-process 10/15-minute policy.
+ * Keyed by the proxy-aware client address (src/server/http/clientIp.ts): a
+ * forged X-Forwarded-For or X-Real-IP header cannot reset or dodge the limit.
+ */
+export function checkLoginRateLimit(request: Pick<Request, 'headers'>, now = Date.now()): Response | null {
+  sweep(now)
+  const key = rateLimitKey(request)
   const recent = (attempts.get(key) ?? []).filter((timestamp) => now - timestamp < WINDOW_MS)
   if (recent.length >= LIMIT) {
     attempts.set(key,recent)
@@ -45,35 +52,31 @@ function configuredOrigin(): string | null {
   try { return resolvePublicOrigin() } catch { return null }
 }
 
-/** The origin the browser used, as seen through the reverse proxy. */
-function forwardedOrigin(headers: Headers): string | null {
-  const host = headers.get('x-forwarded-host')?.split(',')[0]?.trim() || headers.get('host')?.trim()
-  if (!host) return null
-  const proto = headers.get('x-forwarded-proto')?.split(',')[0]?.trim() || 'http'
-  return `${proto}://${host}`
-}
-
 /**
- * CSRF guard for cookie-authenticated writes. SameSite=Lax already keeps the
- * session cookie off cross-site POSTs, but not off *same-site* ones (another
- * app on a brandworks.me subdomain).
+ * CSRF guard for cookie-authenticated writes. SameSite=Lax keeps the session
+ * cookie off cross-site POSTs, but not off same-site ones (another app on a
+ * brandworks.me subdomain), so writes also have to prove they came from this
+ * origin.
  *
- * Modern browsers label every request with Sec-Fetch-Site, which page scripts
- * cannot forge: only 'same-origin' (or 'none', a typed URL) is accepted.
- * Without that header (older browsers) the Origin must match this site, as
- * configured (PUBLIC_ORIGIN) or as reached through the proxy. Requests with
- * neither header (curl, server jobs) are not browser CSRF and fall through to
- * the normal session check.
+ * Browsers label requests with Sec-Fetch-Site, which page scripts cannot
+ * forge: only 'same-origin' (or 'none', user-initiated) is accepted. Without
+ * it (older browsers) the Origin must equal PUBLIC_ORIGIN or the URL the app
+ * was addressed by. Origins rebuilt from X-Forwarded-Host/-Proto are NOT
+ * accepted: those are request headers anyone can send. Requests carrying
+ * neither header are not browser CSRF (curl, jobs) and fall through to the
+ * normal session check.
  */
-export function isCrossSiteWrite(request: Pick<NextRequest, 'method' | 'headers' | 'nextUrl'>): boolean {
+export function isCrossSiteWrite(request: Pick<Request, 'method' | 'headers'> & { nextUrl: Pick<URL, 'origin'> }): boolean {
   if (SAFE_METHODS.has(request.method.toUpperCase())) return false
   const site = request.headers.get('sec-fetch-site')
   if (site) return site !== 'same-origin' && site !== 'none'
   const origin = request.headers.get('origin')
   if (!origin) return false
-  return origin !== configuredOrigin()
-    && origin !== forwardedOrigin(request.headers)
-    && origin !== request.nextUrl.origin
+  return origin !== configuredOrigin() && origin !== request.nextUrl.origin
+}
+
+export function crossSiteRejected(): Response {
+  return errorResponse(forbidden('Cross-site request rejected.'))
 }
 
 export async function withAdmin(

@@ -32,7 +32,7 @@ export function validatePassword(value: string) {
 
 export interface SessionPayload { sub: string }
 
-/** Pinned so a token can never select its own verification algorithm. */
+/** Pinned on both sides, so a token can never choose its own verification algorithm (e.g. alg: none). */
 const JWT_ALGORITHM = 'HS256' as const
 
 export function signAdminToken(adminId: string) {

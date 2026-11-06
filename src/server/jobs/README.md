@@ -34,5 +34,6 @@ per IP) is not migrated. If production is confirmed to run exactly one app
 process, the per-process login limit can initially match the old single-process
 deployment intent; it does not replace the missing global limiter. Before
 running multiple instances, move both counters to a shared store (for example,
-Redis) and configure trusted proxy/IP extraction for the actual cPanel/CDN hop
-topology. Do not trust arbitrary forwarded headers.
+Redis). Client IPs come from src/server/http/clientIp.ts, which trusts no
+forwarding header until `TRUSTED_PROXY_HOPS` is set for the verified proxy
+topology (docs/PRODUCTION_DEPLOYMENT.md, "Client IP behind the proxy").

@@ -52,7 +52,7 @@ function checkPublicOrigin(): boolean {
   }
 }
 
-/** Admin login needs a present (and, in production, long enough) JWT_SECRET. Only pass/fail is reported. */
+/** Admin login needs JWT_SECRET (in production at least MIN_JWT_SECRET_LENGTH chars). Only pass/fail is reported. */
 function checkJwtSecret(): boolean {
   try {
     requireJwtSecret()

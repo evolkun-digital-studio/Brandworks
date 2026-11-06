@@ -470,16 +470,10 @@
 .hero-description {
   display: block;
   font-family: var(--font-secondary);
-  font-size: clamp(14px, 1.1vw, 15px);
+  font-size: 16fpx;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.86);
   text-wrap: pretty;
-}
-
-@media (min-width: 1024px) {
-  .hero-description {
-    font-size: 11px;
-  }
 }
 
 /* Desktop: a 12-column grid inside the content container (logo → "Let's
@@ -900,6 +894,10 @@
     --social-sheet-w: calc(100vw - var(--hero-gutter) * 2);
   }
 
+  .hero-description {
+    display: none;
+  }
+
   .social-showcase__stage {
     --showcase-gap: 12px;
     --showcase-rise: 6px;
@@ -1008,7 +1006,7 @@
   .hero-aside { gap: 10px; }
   .hero-caption__pane { gap: 8px; }
   .hero-mask--title { font-size: clamp(22px, 3vw, 32px); }
-  .hero-description { font-size: 12px; line-height: 1.35; }
+  .hero-description { line-height: 1.35; }
   .hero-capsule { min-height: 32px; padding: 8px 10px; font-size: 11px; }
 }
 
