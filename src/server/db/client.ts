@@ -17,8 +17,7 @@ function getClientPromise(): Promise<MongoClient> {
   }
 
   const client = new MongoClient(requireMongoUri())
-  let pending: Promise<MongoClient>
-  pending = client.connect()
+  const pending: Promise<MongoClient> = client.connect()
     .then(async (connectedClient) => {
       try {
         await connectedClient.db().command({ ping: 1 })
@@ -45,8 +44,7 @@ export function getDatabase(): Promise<Db> {
     return mongoGlobal.__brandworksMongoDbPromise
   }
 
-  let pending: Promise<Db>
-  pending = getClientPromise()
+  const pending: Promise<Db> = getClientPromise()
     .then(async (client) => {
       const db = client.db()
       await ensureDatabaseIndexes(db)

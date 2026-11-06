@@ -46,11 +46,12 @@ function ImageDetailsDialog({ src, mode, initial, onSubmit, onCancel, onReplace 
   const surface = useRef<HTMLElement>(null)
   const [useOriginal, setUseOriginal] = useState(false)
   const onCancelRef = useRef(onCancel)
-  onCancelRef.current = onCancel
+  useEffect(() => { onCancelRef.current = onCancel })
   const canBeDecorative = mode !== 'cover'
   const altMissing = !decorative && !alt.trim()
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setFailed(false)
     setUseOriginal(false)
   }, [src])

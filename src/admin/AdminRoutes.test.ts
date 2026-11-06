@@ -11,5 +11,7 @@ describe('AdminRoutes', () => {
   it('resolves to a valid React component (default export)', async () => {
     const mod = await import('./AdminRoutes')
     expect(typeof mod.default).toBe('function')
-  })
+    // A cold import transforms the whole admin module graph, which can
+    // exceed the 5s default when the full suite runs in parallel.
+  }, 30_000)
 })

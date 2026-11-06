@@ -57,6 +57,7 @@ function ActivityLog() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
   useEffect(() => { void load() }, [])
 
   const filteredItems = useMemo(() => actionFilter === 'all' ? items : items.filter((item) => item.action === actionFilter), [actionFilter, items])

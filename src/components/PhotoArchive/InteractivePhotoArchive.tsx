@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability -- react-three-fiber frame loop: three.js objects and the shared field/view refs are mutated in useFrame, effects and pointer handlers by design (no React state per frame). */
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { PerspectiveCamera } from '@react-three/drei'

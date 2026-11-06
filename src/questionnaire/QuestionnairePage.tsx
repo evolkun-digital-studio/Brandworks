@@ -432,6 +432,7 @@ export default function QuestionnairePage() {
   const step: Step | undefined = STEPS[stepId]
   const index = path.indexOf(stepId)
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
   useEffect(() => { setDraft(readDraft()) }, [])
   useEffect(() => {
     if (stepId === INTRO || stepId === DONE || stepId === 'redesignExit') return
@@ -637,6 +638,7 @@ export default function QuestionnairePage() {
     const key = uspKey
     if (aiText[key] && !aiText[key].streaming) return
     const controller = new AbortController()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
     setAiText((t) => ({ ...t, [key]: { text: '', streaming: true, ai: true } }))
     streamAssist('usp-reply', answers, {
       signal: controller.signal,
@@ -654,6 +656,7 @@ export default function QuestionnairePage() {
   useEffect(() => {
     if (!wantsRecommendation || (recommendation?.key === recKey && !recommendation.streaming)) return
     const controller = new AbortController()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
     setRecommendation({ key: recKey, suggestion: null, message: '', streaming: true, ai: true })
     streamAssist('recommend-type', answers, {
       signal: controller.signal,
@@ -702,6 +705,7 @@ export default function QuestionnairePage() {
     if (!scanId || scanFinished) return
     const controller = new AbortController()
     const startedAt = Date.now()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
     setScanTarget((t) => (t && t.id === scanId ? t : { id: scanId, domain: t?.domain || displayDomain(str(answers.currentUrl) || str(answers.redesignUrl)) }))
     void watchSiteScan(scanId, {
       signal: controller.signal,

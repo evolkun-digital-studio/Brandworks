@@ -3,7 +3,7 @@ import { setMetaTag } from '../blog/lib/documentHead'
 
 /**
  * Applies the Google Search Console ownership-verification meta tag
- * (Phase 12, Part 10) when VITE_GSC_VERIFICATION is configured.
+ * (Phase 12, Part 10) when NEXT_PUBLIC_GSC_VERIFICATION is configured.
  * Unlike title/canonical/OG (which change per page and are cleaned up
  * on unmount — see BlogDetailPage.tsx/BlogPage.tsx), this is a
  * site-wide, route-independent token: it's applied once, from

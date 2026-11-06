@@ -36,6 +36,7 @@ export function useSpeech(onFinal: (text: string) => void) {
   const onFinalRef = useRef(onFinal)
   useEffect(() => { onFinalRef.current = onFinal })
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
   useEffect(() => { setSupported(Boolean(getCtor())) }, [])
   useEffect(() => () => recRef.current?.stop(), [])
 

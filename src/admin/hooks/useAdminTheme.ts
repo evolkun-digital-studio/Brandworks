@@ -24,6 +24,7 @@ export function useAdminTheme() {
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY)
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
       if (isAdminTheme(saved)) setThemeState(saved)
     } catch {
       // Storage can be unavailable (private browsing); the default still works.

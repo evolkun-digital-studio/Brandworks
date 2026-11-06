@@ -8,15 +8,35 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 // Home renders every homepage section — none of them are relevant to
 // what this file tests (its own title/description/canonical effect),
-// and several do real data fetching (Blog.tsx) or use
-// IntersectionObserver (Hero.tsx/About.tsx/Videography.tsx's videos, unavailable in
-// jsdom) — mocked out to keep this test scoped and deterministic.
-for (const mod of ['Hero', 'Services', 'About', 'Work', 'components/PhotographyTransition/PhotographyTransition', 'components/BrandIntelligence/BrandIntelligence', 'Videography', 'PRReputation', 'components/SocialMedia/SocialMedia', 'Capabilities', 'FAQs', 'Blog', 'Industries', 'Testimonials']) {
+// and several do real data fetching or use IntersectionObserver / WebGL
+// (unavailable in jsdom) — mocked out to keep this test scoped and
+// deterministic. Paths mirror Home.tsx's current imports; the sections
+// moved under src/components/ during the Next.js migration.
+for (const mod of [
+  'components/Hero/Hero',
+  'components/HomeIntroStatement',
+  'components/HumanLedBrandIntelligence',
+  'components/About',
+  'components/WorkWithImpact',
+  'components/CinematographyShowcase/CinematographyShowcase',
+  'components/GraphicsMotion/GraphicsMotionExperience',
+  'components/SocialMedia/SocialMedia',
+  'components/WebDevelopment/WebDevelopment',
+  'components/Capabilities',
+  'components/GraphicMotion/GraphicMotionSection',
+  'components/Faq/FAQs',
+  'components/Industries',
+  'components/Testimonial/Testimonials',
+  'components/Seo',
+  'components/Photography/PhotographyEditorial',
+  'components/SocialContent/SocialContentSection',
+]) {
   vi.doMock(`./${mod}`, () => ({ default: () => null }))
 }
 
 const { Home } = await import('./Home')
 const { default: NotFound } = await import('./NotFound')
+const { ViteNavigationProvider } = await import('./routing/vite')
 
 let container: HTMLDivElement | null = null
 let root: Root | null = null
@@ -40,13 +60,22 @@ function mount(node: ReactElement) {
   return container
 }
 
+/** Shared components read routing through the router bindings, which the app supplies via ViteNavigationProvider (or the Next provider). */
+function withRouter(node: ReactElement, path = '/') {
+  return (
+    <MemoryRouter initialEntries={[path]}>
+      <ViteNavigationProvider>{node}</ViteNavigationProvider>
+    </MemoryRouter>
+  )
+}
+
 function canonicalHref(): string | null {
   return document.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? null
 }
 
 describe('Home — static SEO fallback replaced by a real per-mount effect (Phase 13, Part 5/14)', () => {
   it('sets title, description, and a canonical pointing at the origin root on mount', () => {
-    mount(<Home />)
+    mount(withRouter(<Home />))
     expect(document.title).toBe('BRANDWORKS')
     expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toContain(
       'We help brands build a stronger presence',
@@ -55,7 +84,7 @@ describe('Home — static SEO fallback replaced by a real per-mount effect (Phas
   })
 
   it('removes description and canonical on unmount, so a page that navigates away and never sets its own leaves nothing stale', () => {
-    const el = mount(<Home />)
+    const el = mount(withRouter(<Home />))
     act(() => root?.unmount())
     root = null
     el.remove()
@@ -71,7 +100,7 @@ describe('Public catch-all route (Phase 13, Part 1/15)', () => {
       <MemoryRouter initialEntries={['/this-page-does-not-exist']}>
         <Routes>
           <Route path="/blog" element={<div>blog</div>} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<ViteNavigationProvider><NotFound /></ViteNavigationProvider>} />
         </Routes>
       </MemoryRouter>,
     )
@@ -82,7 +111,7 @@ describe('Public catch-all route (Phase 13, Part 1/15)', () => {
     mount(
       <MemoryRouter initialEntries={['/nope']}>
         <Routes>
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<ViteNavigationProvider><NotFound /></ViteNavigationProvider>} />
         </Routes>
       </MemoryRouter>,
     )
@@ -95,7 +124,7 @@ describe('Public catch-all route (Phase 13, Part 1/15)', () => {
       <MemoryRouter initialEntries={['/blog']}>
         <Routes>
           <Route path="/blog" element={<div>the real blog page</div>} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<ViteNavigationProvider><NotFound /></ViteNavigationProvider>} />
         </Routes>
       </MemoryRouter>,
     )
