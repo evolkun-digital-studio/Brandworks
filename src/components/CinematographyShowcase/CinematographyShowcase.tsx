@@ -23,7 +23,7 @@ import {
   type Transition,
   type Variants,
 } from 'motion/react'
-import { ChevronLeft, ChevronRight, Pause, Volume2, VolumeX, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Volume2, VolumeX, X } from 'lucide-react'
 import { getSmoothScroll } from '../../lib/smoothScroll'
 import { CINEMATOGRAPHY_PROJECTS, type CinematographyProject } from '../../data/cinematography'
 
@@ -116,9 +116,6 @@ export default function CinematographyShowcase() {
   const [nearView, setNearView] = useState(false)
   const [inView, setInView] = useState(false)
   const [cursorVisible, setCursorVisible] = useState(false)
-  const [userPaused, setUserPaused] = useState(false)
-  const [userRequestedPlayback, setUserRequestedPlayback] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [muted, setMuted] = useState(true)
   const [currentTime, setCurrentTime] = useState(0)
 
@@ -155,9 +152,6 @@ export default function CinematographyShowcase() {
       transitioningRef.current = true
       fallbackTimer.current = window.setTimeout(() => finishTransition(next), TRANSITION_FALLBACK_MS)
       videos.current.get(projects[active].id)?.pause()
-      setUserPaused(false)
-      setUserRequestedPlayback(false)
-      setIsPlaying(false)
       setCurrentTime(0)
       setDirection(requestedDirection ?? (next > active ? 1 : -1))
       setActive(next)
@@ -195,20 +189,7 @@ export default function CinematographyShowcase() {
   }, [])
 
   const shouldPlay = inView && pageVisible && lightbox === null && !reducedMotion && !phone
-  const canPlay = (shouldPlay || userRequestedPlayback) && !userPaused
-
-  const togglePlayback = () => {
-    const video = videos.current.get(current.id)
-    if (!video) return
-    if (video.paused) {
-      setUserPaused(false)
-      setUserRequestedPlayback(true)
-      void video.play().catch(() => setIsPlaying(false))
-    } else {
-      setUserPaused(true)
-      video.pause()
-    }
-  }
+  const canPlay = shouldPlay
 
   const toggleMute = () => {
     const video = videos.current.get(current.id)
@@ -333,7 +314,6 @@ export default function CinematographyShowcase() {
                 hoverZoom={finePointer}
                 videos={videos}
                 onEntered={finishTransition}
-                onPlaybackChange={setIsPlaying}
                 onMuteChange={setMuted}
                 onTimeChange={setCurrentTime}
               />
@@ -396,7 +376,7 @@ export default function CinematographyShowcase() {
             </div>
 
             <motion.div
-              className="absolute bottom-3 right-3 z-[5] flex h-10 w-fit max-w-[calc(100%-24px)] items-center justify-start gap-1 rounded-full border border-white/15 bg-black/55 p-1 text-white shadow-[0_1px_12px_rgb(0_0_0/0.16)] backdrop-blur-[8px] sm:right-6 sm:h-auto sm:max-w-none sm:gap-1.5 sm:bg-black/20 sm:p-1.5 lg:bottom-8 lg:right-8"
+              className="absolute bottom-3 left-1/2 z-[5] flex h-10 w-fit max-w-[calc(100%-24px)] -translate-x-1/2 items-center justify-start gap-1 rounded-full border border-white/15 bg-black/55 p-1 text-white shadow-[0_1px_12px_rgb(0_0_0/0.16)] backdrop-blur-[8px] sm:left-auto sm:right-6 sm:h-auto sm:max-w-none sm:translate-x-0 sm:gap-1.5 sm:bg-black/20 sm:p-1.5 lg:bottom-8 lg:right-8"
               initial={{ opacity: 0, y: reducedMotion ? 0 : 4 }}
               animate={{ opacity: inView ? 1 : 0, y: 0 }}
               transition={{ duration: reducedMotion ? 0 : 0.28, ease: EASE_OUT }}
@@ -409,15 +389,6 @@ export default function CinematographyShowcase() {
                 onClick={() => goTo(active - 1, -1)}
               >
                 <ChevronLeft className="size-3.5" aria-hidden="true" strokeWidth={1.8} />
-              </button>
-              <button
-                type="button"
-                className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-transparent p-0 text-white/90 transition-[background-color,transform,color] duration-200 hover:bg-white/15 hover:text-white active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:size-9"
-                aria-label={isPlaying ? 'Pause film' : 'Play film'}
-                aria-pressed={isPlaying}
-                onClick={togglePlayback}
-              >
-                {isPlaying ? <Pause className="size-3.5" aria-hidden="true" strokeWidth={1.8} /> : <PlayGlyph className="ml-px h-3.5 w-3" />}
               </button>
               <button
                 type="button"
@@ -542,7 +513,6 @@ function Slide({
   hoverZoom,
   videos,
   onEntered,
-  onPlaybackChange,
   onMuteChange,
   onTimeChange,
 }: {
@@ -557,7 +527,6 @@ function Slide({
   hoverZoom: boolean
   videos: RefObject<Map<string, HTMLVideoElement>>
   onEntered: (index: number) => void
-  onPlaybackChange: (playing: boolean) => void
   onMuteChange: (muted: boolean) => void
   onTimeChange: (time: number) => void
 }) {
@@ -633,12 +602,6 @@ function Slide({
               if (Math.abs(ratio / SIXTEEN_NINE - 1) > 0.03) {
                 console.info(`[cinematography] "${project.title}" is ${videoWidth}×${videoHeight} (${ratio.toFixed(3)}:1, not 16:9)`)
               }
-            }}
-            onPlay={() => {
-              if (isPresent) onPlaybackChange(true)
-            }}
-            onPause={() => {
-              if (isPresent) onPlaybackChange(false)
             }}
             onVolumeChange={(event) => {
               if (isPresent) onMuteChange(event.currentTarget.muted)

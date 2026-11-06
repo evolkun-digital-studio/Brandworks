@@ -43,6 +43,8 @@ const kinikhInfraImages = [
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k5.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k6.png',
   'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/k7.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Modern%20Neutral%20Hallway.png',
+  'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/Bright%20Minimalist%20Room.png',
 ] as const
 
 const delhi6Images = [
@@ -559,7 +561,7 @@ function OverlayGallery({ project, slotRef, scrollRoot }: { project: Project; sl
 
   const images = Array.from(new Set([...(project.previewImages ?? []), ...(project.gallery ?? [])]))
     .filter((src) => src !== project.media)
-  const alignedShowcase = project.id === 5 || project.id === 6
+  const alignedShowcase = project.id === 3 || project.id === 5 || project.id === 6
 
   return (
     <div className="culture-reels pb-[clamp(16px,3vh,40px)]">
@@ -583,7 +585,7 @@ function OverlayGallery({ project, slotRef, scrollRoot }: { project: Project; sl
         )}
 
         {/* Delhi-6 and BrandWorks use equal-height frames so every image shares a bottom edge. */}
-        <div className={alignedShowcase ? 'grid grid-cols-1 items-end gap-4 md:grid-cols-2 xl:grid-cols-3' : 'columns-1 gap-4 md:columns-2 xl:columns-3'}>
+        <div className={alignedShowcase ? 'grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3' : 'columns-1 gap-4 md:columns-2 xl:columns-3'}>
           <div ref={slotRef} className="relative mb-4 break-inside-avoid aspect-[4/5] overflow-hidden rounded-[20px] bg-[#111] will-change-transform">
             <div data-ov-media key={project.id} className="absolute inset-0">
               <ProjectMedia project={project} autoPlay />
@@ -717,8 +719,8 @@ function ProjectOverlay({ index, setIndex, onClose }: { index: number; setIndex:
               <h2 id="overlay-title" data-ov-fade className="section-heading min-w-0 capitalize">
                 {project.title}
               </h2>
-              <button ref={closeRef} data-ov-fade type="button" onClick={close} className="group inline-flex shrink-0 items-center gap-3 font-(--font-secondary) text-[13px] tracking-[0.08em] uppercase text-[#111] outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00]">
-                <span className="relative block size-3">
+              <button ref={closeRef} data-ov-fade type="button" onClick={close} aria-label="Close project showcase" className="group inline-flex h-9 shrink-0 items-center gap-[7px] rounded-full border border-[#111] bg-[#111] px-[18px] font-secondary text-[13px] font-normal leading-none text-white transition-[background-color,border-color,color] duration-200 hover:border-[#CCFF00] hover:bg-[#CCFF00] hover:text-[#111] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-current">
+                <span className="relative block size-4" aria-hidden="true">
                   <span className="absolute left-0 top-1/2 h-px w-full rotate-45 bg-current transition-transform duration-500 group-hover:rotate-[135deg]" />
                   <span className="absolute left-0 top-1/2 h-px w-full -rotate-45 bg-current transition-transform duration-500 group-hover:rotate-45" />
                 </span>
@@ -817,6 +819,38 @@ export default function WorkPage() {
 
   const [hovered, setHovered] = useState<Project | null>(null)
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const overlayHistory = useRef(false)
+
+  useEffect(() => {
+    const onPopState = () => {
+      if (!overlayHistory.current) return
+      overlayHistory.current = false
+      setOpenIndex(null)
+      setHovered(null)
+    }
+
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  const openProject = useCallback((index: number) => {
+    setOpenIndex(index)
+    window.history.pushState(
+      { ...window.history.state, workProjectOverlay: projects[index]?.id ?? null },
+      '',
+      window.location.href,
+    )
+    overlayHistory.current = true
+  }, [])
+
+  const closeProject = useCallback(() => {
+    if (overlayHistory.current) {
+      window.history.back()
+      return
+    }
+    setOpenIndex(null)
+    setHovered(null)
+  }, [])
 
   useEffect(() => {
     if (nativeMetadata) return
@@ -839,14 +873,14 @@ export default function WorkPage() {
       <Hero />
 
       <section id="project-index" aria-label="Selected project grid" className="bg-[#000] px-[var(--hero-gutter)] pb-[clamp(96px,10vw,160px)] pt-[clamp(72px,8vw,120px)] max-md:pb-20 max-md:pt-14">
-        <ProjectGrid onHover={setHovered} onOpen={setOpenIndex} hiddenId={openId} activeId={openIndex === null ? hovered?.id ?? null : null} />
+        <ProjectGrid onHover={setHovered} onOpen={openProject} hiddenId={openId} activeId={openIndex === null ? hovered?.id ?? null : null} />
       </section>
 
       {openIndex !== null && (
         <ProjectOverlay
           index={openIndex}
           setIndex={(i) => setOpenIndex(i)}
-          onClose={() => { setOpenIndex(null); setHovered(null) }}
+          onClose={closeProject}
         />
       )}
     </main>
