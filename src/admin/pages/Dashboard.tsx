@@ -135,6 +135,7 @@ function Dashboard() {
   const [hello, setHello] = useState('Welcome back')
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
     setHello(greeting(new Date().getHours()))
   }, [])
 
@@ -173,6 +174,7 @@ function Dashboard() {
 
     // A partial API double (tests) may not provide listBlogPosts.
     if (!('listBlogPosts' in blogAdminApi)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- settles the loading flag when there is no request to make
       setLibraryLoading(false)
       return () => {
         cancelled = true

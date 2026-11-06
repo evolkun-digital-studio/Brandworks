@@ -178,7 +178,7 @@ const fallback = {
  * `const { consent, acceptAll, rejectAll, save, openSettings } = useConsent()`.
  * `consent` is null until the visitor has chosen.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react/only-export-components -- the hook belongs with its provider.
 export function useConsent() {
   return useContext(ConsentContext) ?? fallback;
 }

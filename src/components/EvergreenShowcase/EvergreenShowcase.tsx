@@ -256,7 +256,7 @@ function EvergreenWebsiteScreen({ kind }: { kind: ScreenKind }) {
             <h4>Every kilogram stays in the loop.</h4>
             <p>
               Responsible material recovery that keeps toxic material out of
-              India's soil and water.
+              India&apos;s soil and water.
             </p>
           </div>
           <div className="evg-sustainability__stats">

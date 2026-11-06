@@ -1,0 +1,76 @@
+name: Brandworks Linux release artifact
+
+on:
+  push:
+    branches:
+      - chore/linux-release-artifact
+
+permissions:
+  contents: read
+
+jobs:
+  build-release:
+    name: Package verified production commit on Linux x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      # Public canonical URL, not a secret. No R2 or analytics variables required.
+      PUBLIC_ORIGIN: https://brandworks.me
+    steps:
+      - name: Check out the exact merged production commit
+        uses: actions/checkout@v4
+        with:
+          ref: 6915a83eb62cf9785e4da9136f6ff570d0fcb50c
+          persist-credentials: false
+
+      - name: Verify release source
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = '6915a83eb62cf9785e4da9136f6ff570d0fcb50c'
+          test -z "$(git status --porcelain)"
+          echo 'Source verified: production merge commit 6915a83'
+
+      - name: Configure Node.js 24.22.2
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.22.2
+          cache: npm
+
+      - name: Install exactly locked dependencies
+        run: npm ci
+
+      - name: Verify argon2 and sharp on Linux
+        shell: bash
+        run: |
+          node <<'NODE'
+          const argon2 = require('argon2');
+          const sharp = require('sharp');
+          Promise.all([
+            argon2.hash('linux-runtime-smoke'),
+            sharp({create: {width: 2, height: 2, channels: 3, background: '#ffffff'}}).png().toBuffer(),
+          ]).then(() => console.log('argon2 and sharp loaded and executed on Linux x64'))
+            .catch((error) => { console.error(error); process.exitCode = 1; });
+          NODE
+
+      - name: Build standalone production release and run packaged smoke test
+        run: npm run build:release
+
+      - name: Verify output checksums
+        shell: bash
+        run: |
+          cd dist
+          shopt -s nullglob
+          sums=(brandworks-next-*.tar.gz.sha256)
+          test "${#sums[@]}" -eq 1
+          sha256sum -c "${sums[0]}"
+
+      - name: Upload release archive and checksum (no deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: brandworks-linux-release-6915a83
+          path: |
+            dist/brandworks-next-*.tar.gz
+            dist/brandworks-next-*.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0

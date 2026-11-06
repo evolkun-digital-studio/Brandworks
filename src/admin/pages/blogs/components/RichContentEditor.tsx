@@ -1432,8 +1432,10 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
   const AlignIcon = ALIGN_OPTIONS.find((option) => option.id === format.align)?.icon ?? AlignLeft
   const isOpen = (id: PopoverId) => popover?.id === id
 
+  // menuItem only hands `action` to onClick; the compiler cannot see that and
+  // reports the ref reads inside those click handlers as render-time reads.
   const menuItem = (key: string, icon: ReactNode, label: string, action: () => void, extra?: ReactNode, checked?: boolean) => (
-    <button key={key} type="button" role="menuitem" aria-checked={checked} className="admin-menu__item" onMouseDown={(event) => event.preventDefault()} onClick={action}>
+    <button key={key} type="button" role={checked === undefined ? 'menuitem' : 'menuitemcheckbox'} aria-checked={checked} className="admin-menu__item" onMouseDown={(event) => event.preventDefault()} onClick={action}>
       {icon}
       <span className="flex-1 text-left">{label}</span>
       {extra}
@@ -1572,6 +1574,7 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
             <button type="button" role="menuitem" aria-label="Default colour" title="Default colour" className="admin-swatch admin-swatch--none" onMouseDown={(event) => event.preventDefault()} onClick={() => { applyData('color', null); closePopover() }} />
           </div>
           <div className="admin-menu__sep" />
+          {/* eslint-disable react-hooks/refs -- see menuItem: the handlers run on click, not during render */}
           {menuItem('highlight', <Highlighter size={15} strokeWidth={1.8} aria-hidden="true" />, format.mark ? 'Remove highlight' : 'Highlight', () => { toggleWrap('mark'); closePopover() })}
         </Floating>
       )}
@@ -1617,6 +1620,7 @@ function RichContentEditor({ value, onChange, onBlur, error, handleRef }: RichCo
             setHoveredImage(null)
             setMode('code')
           })}
+          {/* eslint-enable react-hooks/refs */}
         </Floating>
       )}
 

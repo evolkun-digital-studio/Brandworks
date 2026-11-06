@@ -16,7 +16,7 @@ function useDialogFocus(onClose: () => void, initial?: React.RefObject<HTMLEleme
   const surface = useRef<HTMLElement>(null)
   // The caller's onClose changes every render; keep the effect from re-running with it.
   const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
+  useEffect(() => { onCloseRef.current = onClose })
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null

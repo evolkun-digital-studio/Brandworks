@@ -17,7 +17,24 @@ const performanceImage = 'https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Ph
 
 const capabilities = ['Meta Ads', 'Google Search Ads', 'Google Display', 'YouTube Advertising', 'Performance Max', 'LinkedIn Ads', 'Remarketing', 'Lead Generation Campaigns', 'E-commerce Acquisition', 'App Promotion', 'Conversion Rate Optimization', 'Landing Page Strategy', 'Campaign Creative Strategy', 'Analytics & Tracking', 'Budget Scaling', 'Performance Reporting']
 
-const capabilitySections = ['04', '04', '04', '04', '04', '04', '13', '15', '14', '04', '09', '09', '06', '10', '18', '19']
+// The section that explains each offering (Channels, Retargeting, Lead
+// generation, Ecommerce, Landing page optimization, Creative, Tracking,
+// Optimization cycle, Reporting). Those sections were retired from the page
+// in commit de6ad02 and remain below only as commented-out JSX.
+const capabilityTargets = ['04', '04', '04', '04', '04', '04', '13', '15', '14', '04', '09', '09', '06', '10', '18', '19'].map(number => `pm-section-${number}`)
+
+/**
+ * Ids of the sections this page actually renders. An offering links to its
+ * section only when that section is in this set; otherwise it is plain text,
+ * so the index never contains a dead in-page link. PerformanceMarketingPage.test.tsx
+ * checks this set against the rendered DOM, so restoring a section without
+ * adding its id here (or the reverse) fails the test.
+ */
+export const RENDERED_SECTION_IDS: ReadonlySet<string> = new Set([
+  'pm-section-02', 'pm-section-03', 'pm-system', 'pm-section-17', 'pm-approach', 'pm-section-22', 'pm-section-24',
+])
+
+export const SERVICE_INDEX = capabilities.map((label, index) => ({ label, target: capabilityTargets[index] }))
 
 const stages = [
   ['Research', 'Understand the market, customer intent, competitors and demand. Find the problem worth solving before choosing a platform.'],
@@ -269,13 +286,21 @@ export default function PerformanceMarketingPage() {
 
     <Section number="03" label="What we manage" title="A connected scope. A clear responsibility.">
       <ol className="pm-service-index">
-        {capabilities.map((item, index) => (
-          <li key={item}>
-            <Link to={`#pm-section-${capabilitySections[index]}`}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <span>{item}</span>
-              <span className="pm-index-arrow" aria-hidden="true">↗</span>
-            </Link>
+        {SERVICE_INDEX.map(({ label, target }, index) => (
+          <li key={label}>
+            {RENDERED_SECTION_IDS.has(target) ? (
+              <Link to={`#${target}`}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <span>{label}</span>
+                <span className="pm-index-arrow" aria-hidden="true">↗</span>
+              </Link>
+            ) : (
+              // No section on this page explains the offering: list it as text, not a dead link.
+              <span className="pm-index-item">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <span>{label}</span>
+              </span>
+            )}
           </li>
         ))}
       </ol>

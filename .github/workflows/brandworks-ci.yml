@@ -1,0 +1,72 @@
+name: Brandworks Linux CI
+
+on:
+  pull_request:
+    branches: [production]
+  push:
+    branches: [production, chore/nextjs-production-ready]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: brandworks-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify on Linux x64 / Node 24
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@v4
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Verify platform
+        run: |
+          node --version
+          npm --version
+          uname -m
+          ldd --version | head -n 1
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Exercise Linux-native argon2 and sharp
+        run: |
+          node --input-type=module <<'JS'
+          import argon2 from 'argon2'
+          import sharp from 'sharp'
+          const sample = 'brandworks-linux-ci'
+          const hash = await argon2.hash(sample)
+          if (!(await argon2.verify(hash, sample))) {
+            throw new Error('argon2 hash/verify failed')
+          }
+          const image = await sharp({
+            create: { width: 2, height: 2, channels: 3, background: '#ffffff' }
+          }).png().toBuffer()
+          if (image.length === 0) throw new Error('sharp produced an empty image')
+          console.log('argon2 and sharp passed on Linux')
+          JS
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Compile Next.js (validation only; not a deployable release)
+        run: npm run build

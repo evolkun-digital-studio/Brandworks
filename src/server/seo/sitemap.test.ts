@@ -60,8 +60,21 @@ describe('sitemap composition',()=>{
   it('serves the static pages within the timeout when the database hangs',async()=>{
     vi.mocked(listSitemapEligibleBlogs).mockReturnValueOnce(new Promise(()=>{}))
     const error=vi.spyOn(console,'error').mockImplementation(()=>{})
+    const started=Date.now()
     const entries=await buildSitemapEntries(origin,20)
+    expect(Date.now()-started).toBeLessThan(1000)
     expect(entries.map(entry=>entry.loc)).toEqual(STATIC_PUBLIC_PATHS.map(path=>origin+path))
+    error.mockRestore()
+  })
+  it('logs only the error message, never the driver error object (it can carry connection details)',async()=>{
+    const driverError=Object.assign(new Error('connect ECONNREFUSED'),{connectionString:'mongodb://user:secret@db.internal'})
+    vi.mocked(listSitemapEligibleBlogs).mockRejectedValueOnce(driverError)
+    const error=vi.spyOn(console,'error').mockImplementation(()=>{})
+    await buildSitemapEntries(origin,1000)
+    const logged=error.mock.calls.flat()
+    expect(logged).not.toContain(driverError)
+    expect(JSON.stringify(logged)).not.toContain('secret')
+    expect(logged.join(' ')).toContain('connect ECONNREFUSED')
     error.mockRestore()
   })
   it('still serves the static pages when blog posts cannot be loaded',async()=>{

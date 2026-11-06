@@ -13,5 +13,12 @@ export default defineConfig([
     "dist/**",
     "coverage/**",
     "next-env.d.ts",
+    // Gitignored build/test artifacts (legacy Vite output, release bundles,
+    // Playwright reports) — generated code, not source.
+    "dist/**",
+    "dist-ssr/**",
+    "test-results/**",
+    "playwright-report/**",
+    ".media-storage/**",
   ]),
 ]);

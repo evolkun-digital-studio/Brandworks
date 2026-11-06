@@ -223,7 +223,7 @@ export default function GraphicMotionSection() {
               <div className="bwgm-track" data-bwgm-dup>
                 {[...LOGOS, ...LOGOS].map((brand, i) => (
                   <div key={i} className={brand.logo ? 'bwgm-logo bwgm-logo--img' : 'bwgm-logo'} style={brand.style}>
-                    {brand.logo ? <Image {...brand.logo} sizes="120px" style={brand.fit} /> : brand.content}
+                    {brand.logo ? <Image {...brand.logo} alt={brand.logo.alt} sizes="120px" style={brand.fit} /> : brand.content}
                   </div>
                 ))}
               </div>

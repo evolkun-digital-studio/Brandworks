@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { pingDatabase } from '../../../src/server/db/client'
 import { requireJwtSecret, resolvePublicOrigin } from '../../../src/server/config/env'
 
@@ -11,24 +9,6 @@ export const dynamic = 'force-dynamic'
 const DB_TIMEOUT_MS = 3000
 
 const NO_STORE = { 'Cache-Control': 'no-store, max-age=0' }
-
-/**
- * The deployed commit: release.json (written by scripts/build-release.mjs next
- * to server.js, which is the working directory in production), else the CI
- * environment, else 'dev'. Read once; only the hash is exposed.
- */
-let releaseCommit: string | undefined
-function deployedCommit(): string {
-  if (releaseCommit === undefined) {
-    try {
-      const manifest = JSON.parse(readFileSync(join(process.cwd(), 'release.json'), 'utf8')) as { commit?: unknown }
-      releaseCommit = typeof manifest.commit === 'string' && /^[0-9a-f]{7,40}$/.test(manifest.commit) ? manifest.commit : ''
-    } catch {
-      releaseCommit = ''
-    }
-  }
-  return releaseCommit || process.env.GITHUB_SHA || process.env.VERCEL_GIT_COMMIT_SHA || 'dev'
-}
 
 async function checkDatabase(): Promise<boolean> {
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -52,7 +32,7 @@ function checkPublicOrigin(): boolean {
   }
 }
 
-/** Admin login needs a present (and, in production, long enough) JWT_SECRET. Only pass/fail is reported. */
+/** Admin login needs JWT_SECRET (in production at least MIN_JWT_SECRET_LENGTH chars). Only pass/fail is reported. */
 function checkJwtSecret(): boolean {
   try {
     requireJwtSecret()
@@ -76,7 +56,7 @@ export async function GET(): Promise<Response> {
     publicOrigin: publicOrigin ? 'configured' : 'missing-or-invalid',
     adminAuth: adminAuth ? 'configured' : 'missing-or-weak-secret',
     environment: process.env.NODE_ENV ?? 'development',
-    commit: deployedCommit(),
+    commit: process.env.GITHUB_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev',
     uptime: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
   }

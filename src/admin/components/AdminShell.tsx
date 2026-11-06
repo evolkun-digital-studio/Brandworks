@@ -124,6 +124,7 @@ function AdminShell({ children }: { children?: ReactNode }) {
 
   useEffect(() => {
     try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
       setSidebarHidden(window.localStorage.getItem('brandworks.admin.sidebar.v3') === 'hidden')
     } catch {
       // Ignore storage restrictions.
@@ -154,6 +155,7 @@ function AdminShell({ children }: { children?: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setMobileOpen(false)
     setAccountOpen(false)
   }, [pathname])

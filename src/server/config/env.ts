@@ -7,7 +7,7 @@ export function requireMongoUri(source: NodeJS.ProcessEnv = process.env): string
   return uri
 }
 
-/** Minimum JWT_SECRET length in production: 32 characters (256 bits of a random hex/base64 string). */
+/** Minimum JWT_SECRET length in production: 32 characters (e.g. `openssl rand -base64 48` gives 64). */
 export const MIN_JWT_SECRET_LENGTH = 32
 
 /** JWT signing material is server-only and is read lazily by auth code. The value never appears in an error. */

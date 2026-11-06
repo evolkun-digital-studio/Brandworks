@@ -58,8 +58,8 @@ function NewsIndex({ manageMetadata = true, posts = [], pagination }: { manageMe
 
         <QuietCta
           text="Press and media enquiries."
-          label="hello@brandworks.com"
-          href="mailto:hello@brandworks.com?subject=Press%20enquiry"
+          label="socials@brandworks.me"
+          href="mailto:socials@brandworks.me?subject=Press%20enquiry"
         />
       </div>
     </main>

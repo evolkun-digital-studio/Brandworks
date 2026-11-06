@@ -1031,6 +1031,7 @@ export default function Videography() {
   const isLive = (index: number) => Math.abs(index - activeIndex) <= 1;
 
   const registerVideo = (index: number) => (node: HTMLVideoElement | null) => {
+    // eslint-disable-next-line react-hooks/refs -- runs as a callback ref at commit, never during render
     videoRefs.current[index] = node;
   };
 
@@ -1085,6 +1086,7 @@ export default function Videography() {
   // whichever scene is currently active. A new scene starts playing by
   // default; pausing only applies to the current scene.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setUserPaused(false);
 
     const video = videoRefs.current[activeIndex];

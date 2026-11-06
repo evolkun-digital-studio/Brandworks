@@ -75,18 +75,22 @@ describe('BlogDetailPage — article cover image (likely LCP candidate)', () => 
 })
 
 describe('Services.tsx — near-fold homepage images', () => {
-  const img = findImgBlock(read('Services.tsx'), 'src={category.image}')
+  const source = read('components/Service/Services.tsx')
+  const start = source.indexOf('<Image')
+  const img = source.slice(start, source.indexOf('/>', start) + 2)
 
-  // The reel used to be three cards, every one of them eager. It now
-  // carries six, only the first of which is on screen at first paint —
-  // so the eager/lazy split is per card rather than blanket, and the
-  // guard is that the front card keeps its eager load.
-  it('loads the front card eagerly — a plausible LCP candidate right after the hero', () => {
-    expect(img).toContain("loading={index === 0 ? 'eager' : 'lazy'}")
+  // The ring moved to next/image: `fill` + `sizes` reserves the box
+  // and lets Next pick a responsive candidate. Every card currently
+  // lazy-loads (the earlier "front card eager" split was dropped).
+  it('renders each card through next/image with fill and responsive sizes (no layout shift)', () => {
+    expect(source).toMatch(/^import Image from ['"]next\/image['"]/m)
+    expect(img).toContain('src={service.image}')
+    expect(img).toContain('fill')
+    expect(img).toMatch(/sizes="[^"]+"/)
   })
 
-  it('lazy-loads every card behind it', () => {
-    expect(img).toContain("'lazy'")
+  it('lazy-loads the cards', () => {
+    expect(img).toContain('loading="lazy"')
   })
 
   it('does not force async decoding on a plausible LCP image', () => {
@@ -129,50 +133,49 @@ describe('AdminRoutes — route-level code splitting (Phase 10, Part 13)', () =>
   // Node-context file (reading source text via `fs`) intentionally
   // doesn't use. See that file's own comment.
 
+  // /blog and /blog/:slug now render the shared editorial pages.
   it('public routes (/, /blog, /blog/:slug) are still statically imported — unaffected by the admin split', () => {
-    expect(appSource).toMatch(/^import BlogPage from/m)
-    expect(appSource).toMatch(/^import BlogDetailPage from/m)
+    expect(appSource).toMatch(/^import \{ Home \} from/m)
+    expect(appSource).toMatch(/^import \{\s*EditorialArticlePage,\s*EditorialIndexPage,?\s*\} from ["']\.\/editorial\/EditorialPages["']/m)
+    expect(appSource).not.toMatch(/lazy\(\s*\(\)\s*=>\s*import\(["']\.\/editorial/)
   })
 })
 
-describe('index.html — font loading (Phase 10, Part 11)', () => {
-  const html = read('../index.html')
+// Under Next the document <head> is app/layout.tsx; index.html is only
+// the legacy Vite shell, so the font guards follow the real entry point.
+describe('app/layout.tsx — font loading (Phase 10, Part 11)', () => {
+  const layout = read('../app/layout.tsx')
   const css = read('index.css')
+  const fontLinkHref = layout.match(/href="(https:\/\/fonts\.googleapis\.com\/css2\?[^"]+)"/)?.[1] ?? ''
 
   it('loads Google Fonts via a non-render-blocking <link>, not a CSS @import', () => {
-    expect(html).toMatch(/<link\s+rel="stylesheet"\s+href="https:\/\/fonts\.googleapis\.com/)
+    expect(layout).toMatch(/<link\s+rel="stylesheet"\s+href="https:\/\/fonts\.googleapis\.com/)
     expect(css).not.toMatch(/@import\s+url\(['"]https:\/\/fonts\.googleapis\.com/)
   })
 
   it('preconnects to both Google Fonts hosts', () => {
-    expect(html).toContain('rel="preconnect" href="https://fonts.googleapis.com"')
-    expect(html).toContain('rel="preconnect" href="https://fonts.gstatic.com"')
+    expect(layout).toContain('rel="preconnect" href="https://fonts.googleapis.com"')
+    expect(layout).toContain('rel="preconnect" href="https://fonts.gstatic.com"')
   })
 
   it('keeps font-display: swap for the Google-hosted families', () => {
-    expect(html).toContain('display=swap')
+    expect(fontLinkHref).toContain('display=swap')
   })
 
   it('does not request unused font families (Instrument Sans, Poppins were fetched but never used)', () => {
-    // Scoped to the actual font request URL, not the whole file — an
-    // explanatory HTML comment nearby is allowed to name the removed
-    // families without failing this check.
-    const fontLinkHref = html.match(/href="(https:\/\/fonts\.googleapis\.com\/css2\?[^"]+)"/)?.[1] ?? ''
-    // Instrument *Serif* is used (Videography section); only the
-    // never-used Instrument *Sans* is guarded against.
     expect(fontLinkHref).not.toContain('Instrument+Sans')
     expect(fontLinkHref).not.toContain('Poppins')
   })
 
-  it('still requests every font family actually referenced in the codebase', () => {
-    expect(html).toContain('Inter+Tight')
-    expect(html).toContain('Playfair+Display')
-    expect(html).toContain('family=Inter:')
-    expect(html).toContain('Instrument+Serif')
+  it('still requests every display face the hero mock sites and logo tiles reference', () => {
+    for (const family of ['Pacifico', 'Bungee', 'Abril+Fatface', 'Righteous', 'Figtree', 'Fraunces']) {
+      expect(fontLinkHref).toContain(`family=${family}`)
+    }
   })
 
-  it('keeps the local DEMO Picktea font self-hosted with font-display: swap (unchanged)', () => {
-    expect(css).toContain("font-family: 'DEMO Picktea'")
-    expect(css).toContain('font-display: swap')
+  it('every self-hosted @font-face keeps font-display: swap', () => {
+    const faces = css.match(/@font-face\s*\{[^}]*\}/g) ?? []
+    expect(faces.length).toBeGreaterThan(0)
+    for (const face of faces) expect(face).toContain('font-display: swap')
   })
 })

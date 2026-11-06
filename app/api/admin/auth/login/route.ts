@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { errorResponse, badRequest, forbidden } from '../../../../../src/server/http/errors'
+import { errorResponse, badRequest } from '../../../../../src/server/http/errors'
 import { loginAdmin } from '../../../../../src/server/admin/auth'
-import { checkLoginRateLimit, isCrossSiteWrite, readJsonObject, setSessionCookie, json } from '../../../../../src/server/admin/http'
+import { checkLoginRateLimit, crossSiteRejected, isCrossSiteWrite, readJsonObject, setSessionCookie, json } from '../../../../../src/server/admin/http'
 import { toPublicAdmin } from '../../../../../src/server/admin/types'
 
 export const runtime = 'nodejs'
 export async function POST(request: NextRequest) {
-  if (isCrossSiteWrite(request)) return errorResponse(forbidden('Cross-site request rejected.'))
+  // Before the limiter, so cross-site attempts neither log anyone in nor spend the budget.
+  if (isCrossSiteWrite(request)) return crossSiteRejected()
   const limited = checkLoginRateLimit(request)
   if (limited) return limited
   try {

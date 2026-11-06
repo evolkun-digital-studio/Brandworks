@@ -30,6 +30,7 @@ export default function AiMessage({ text, label, className = '', streaming, larg
 
   useEffect(() => {
     if (live) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     if (!text) { setTyped(''); return }
     if (reduce) { setTyped(text); return }
     let i = 0

@@ -145,6 +145,7 @@ function CoverImage({
   const fromLibrary = form.coverImage.includes('/api/media/')
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setFailed(false)
     setUseOriginal(false)
   }, [form.coverImage])
@@ -324,6 +325,7 @@ function BlogEditor() {
   const excerptRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
     setIsAppleDevice(/Mac|iPhone|iPad|iPod/.test(window.navigator.platform))
     // Phones start with the side panel closed so the page itself is what you see.
     if (window.matchMedia('(max-width: 1000px)').matches) setPanelOpen(false)
@@ -331,16 +333,19 @@ function BlogEditor() {
 
   useEffect(() => {
     if (isEditing || !admin?.username) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setForm((current) => (current.authorName ? current : { ...current, authorName: admin.username }))
   }, [admin?.username, isEditing])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setScheduleInput(scheduledAt ? toDatetimeLocalValue(scheduledAt) : '')
   }, [scheduledAt])
 
   useEffect(() => {
     if (!id) return
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
     setLoading(true)
     blogApi
       .fetchBlogPost(id)
@@ -373,6 +378,7 @@ function BlogEditor() {
       if (!raw) return
       const parsed = JSON.parse(raw) as { form?: Partial<FormState>; savedAt?: string }
       if (parsed.form && parsed.savedAt) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
         setRecoverySnapshot({
           form: { ...EMPTY_FORM, ...parsed.form, authorName: parsed.form.authorName || admin?.username || '' },
           savedAt: parsed.savedAt,
