@@ -34,10 +34,6 @@ function Footer({
 }) {
   return (
     <footer id="footer" className="brandworks-footer" data-nav-theme="light">
-      <Link to="/" className="footer-wordmark" aria-label="BrandWorks home">
-        <Logo alt="" className="footer-wordmark__logo" />
-      </Link>
-
       <div className="footer-body">
         <div className="footer-col footer-col--contact">
           <p className="footer-label">Contact</p>
@@ -79,6 +75,10 @@ function Footer({
           </div>
         </div>
       </div>
+
+      <Link to="/" className="footer-wordmark" aria-label="BrandWorks home">
+        <Logo alt="" className="footer-wordmark__logo" />
+      </Link>
 
       <div className="footer-bar">
         <span className="footer-bar__left">© 2026 BRANDWORKS</span>
