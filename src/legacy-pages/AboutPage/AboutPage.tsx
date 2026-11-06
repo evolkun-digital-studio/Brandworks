@@ -111,7 +111,7 @@ function Feature({
     <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
       <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch items-center md:gap-y-(--content-gap)" data-reveal-group>
         <div className={`grid content-start gap-(--text-gap) ${mediaSide === 'end' ? 'md:col-start-1 md:col-end-5 lg:col-end-7' : 'md:col-start-5 md:col-end-9 md:row-start-1 lg:col-start-7 lg:col-end-13 border-t border-(--about-rule) pt-(--text-gap)'}`}>
-          <Heading id={id} className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
+          <Heading id={id} className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-normal leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
             <MaskLine>{heading}</MaskLine>
           </Heading>
           <div data-reveal="fade" className="grid gap-4">
@@ -172,7 +172,7 @@ function AboutIntro() {
     <section className="py-(--about-space) bg-white" aria-labelledby="about-intro-heading">
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
         <div data-reveal-group>
-          <h1 id="about-intro-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) max-w-[22em]">
+          <h1 id="about-intro-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-normal leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) max-w-[22em]">
             <MaskLine>{ABOUT_INTRO.statement.lead}</MaskLine>
           </h1>
         </div>
@@ -245,7 +245,7 @@ function AboutPrinciples() {
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter)">
         <div className="flex flex-col gap-x-(--grid-gap) gap-y-8 md:grid md:grid-cols-8 lg:grid-cols-12 [&>*]:min-w-0 [&>*]:max-w-full max-md:[&>*]:self-stretch md:gap-y-(--content-gap)">
           <header className="grid content-start gap-(--text-gap) col-span-full lg:col-start-1 lg:col-end-5" data-reveal-group>
-            <h1 id="about-principles-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
+            <h1 id="about-principles-heading" className="m-0 font-normal font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink)">
               <MaskLine>{ABOUT_PRINCIPLES.heading}</MaskLine>
             </h1>
           </header>
@@ -253,8 +253,8 @@ function AboutPrinciples() {
           <ol className="col-span-full m-0 grid list-none grid-cols-1 gap-x-(--grid-gap) gap-y-9 p-0 md:grid-cols-2 md:gap-y-12 lg:gap-y-10 lg:col-start-6 lg:col-end-13" data-reveal-group>
             {ABOUT_PRINCIPLES.items.map((item) => (
               <li key={item.title} data-reveal="fade" className="grid content-start gap-3 border-t border-(--about-rule-strong) pt-5 md:pt-6 lg:gap-2 lg:pt-5">
-                <h3 className="m-0 text-[clamp(26px,7vw,34px)] font-medium leading-[1.05] tracking-[-0.025em] text-(--ink) md:text-[clamp(28px,3.6vw,34px)] lg:text-[clamp(20px,1.6vw,24px)] lg:leading-[1.15] lg:tracking-[-0.015em]">{item.title}</h3>
-                <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-normal leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6]">{item.text}</p>
+                <h3 className="m-0 text-[clamp(26px,7vw,34px)] font-normal leading-[1.05] tracking-[-0.025em] text-(--ink) md:text-[clamp(28px,3.6vw,34px)] lg:text-[clamp(20px,1.6vw,24px)] lg:leading-[1.15] lg:tracking-[-0.015em]">{item.title}</h3>
+                <p className="m-0 max-w-[58ch] font-secondary text-[17px] font-light leading-[1.55] text-pretty text-(--about-copy) md:text-[18px] md:leading-[1.6]">{item.text}</p>
               </li>
             ))}
           </ol>
@@ -331,7 +331,7 @@ function AboutClosing() {
   return (
     <section className="py-(--about-space) bg-white" aria-labelledby="about-closing-heading" data-reveal-group>
       <div className="w-full max-w-(--page-max-width) mx-auto px-(--page-gutter) grid justify-items-center gap-(--content-gap) text-center">
-        <h1 id="about-closing-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) text-center">
+        <h1 id="about-closing-heading" className="m-0 font-[family-name:var(--section-title-font)] text-(length:--section-title-size) font-(--section-title-weight) font-normal leading-[1.05] tracking-(--section-title-tracking) text-balance text-(--ink) text-center">
           <MaskLine className="text-[rgba(17,17,17,0.64)]">{first}</MaskLine> <MaskLine>{second}</MaskLine>
         </h1>
         <a data-reveal="fade" href={ABOUT_CLOSING.cta.href} className="group/link inline-flex items-center gap-3 border-b border-current pb-2 font-secondary text-[14px] font-semibold leading-none tracking-[0.12em] text-(--ink) uppercase min-h-11 lg:min-h-0 lg:text-[13px] focus-visible:outline-2 focus-visible:outline-(--ink) focus-visible:outline-offset-6">

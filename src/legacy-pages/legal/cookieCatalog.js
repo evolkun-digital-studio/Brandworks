@@ -10,7 +10,7 @@
 export const NECESSARY_STORAGE = [
   {
     name: null,
-    provider: 'Brand Works',
+    provider: 'BrandWorks',
     purpose: 'Remembers your cookie choices so we don’t ask on every page.',
     duration: '6 months',
   },

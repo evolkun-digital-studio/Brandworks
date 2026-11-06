@@ -4,7 +4,7 @@ import { Link, NavLink, useLocation } from '../../routing';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { MotionConfig, motion } from 'motion/react';
-import { ChevronDown } from 'lucide-react';
+import { ArrowUpRight, ChevronDown } from 'lucide-react';
 import { LEGAL_PAGES, legalConfig } from './legal.config';
 import { useNativeMetadata } from '../../routing/context';
 import { childrenToText, extractSections, fillTemplate, findTodos, formatDate, slugify } from './template';
@@ -13,8 +13,16 @@ import { useConsent } from './consent/ConsentProvider';
 const EASE = [0.22, 1, 0.36, 1];
 const HEADER_OFFSET = 112; // px; matches scroll-mt-28 on headings. Adjust to your fixed navbar height.
 
-const link =
-  'underline decoration-1 underline-offset-4 hover:decoration-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black';
+/*
+ * Typography follows the homepage (src/Home.css, src/components/Faq/FAQs.css):
+ * Google Sans Flex at weight 400 with tight tracking for headings, Open Sans
+ * for reading copy, #111 ink with a 0.64 muted tint, soft #f5f5f5 cards with
+ * a #e5e5e5 hairline, and the lime accent used only as a marker, never text.
+ */
+const heading = 'font-[family-name:var(--section-title-font)] font-normal text-(--ink)';
+const muted = 'text-(--ink-muted)';
+const focusRing = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--ink)';
+const link = `underline decoration-black/30 decoration-1 underline-offset-4 transition-colors hover:decoration-(--ink) ${focusRing}`;
 
 function scrollToSection(id) {
   const target = document.getElementById(id);
@@ -48,16 +56,17 @@ function useActiveSection(ids) {
       },
       { rootMargin: '-15% 0px -70% 0px' },
     );
-    headings.forEach((heading) => observer.observe(heading));
+    headings.forEach((h) => observer.observe(h));
     return () => observer.disconnect();
   }, [key]);
 
   return active;
 }
 
+
 function SectionList({ sections, active, onNavigate }) {
   return (
-    <ol className="space-y-2.5 text-[15px] leading-snug">
+    <ol className="grid gap-0.5 text-[15px] leading-snug">
       {sections.map((section) => {
         const isActive = section.id === active;
         return (
@@ -70,11 +79,16 @@ function SectionList({ sections, active, onNavigate }) {
                 onNavigate?.();
                 scrollToSection(section.id);
               }}
-              className={`flex gap-3 py-0.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
-                isActive ? 'font-semibold text-black' : 'text-black/55 hover:text-black'
+              className={`relative flex gap-3 rounded-lg py-1.5 pl-4 pr-2 transition-colors ${focusRing} ${
+                isActive ? 'bg-[#f5f5f5] text-(--ink)' : `${muted} hover:text-(--ink)`
               }`}
             >
-              <span className="w-5 shrink-0 tabular-nums">{section.number}</span>
+              <span
+                aria-hidden="true"
+                className={`absolute left-1.5 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-bw-lime transition-opacity ${
+                  isActive ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
               <span>{section.title}</span>
             </a>
           </li>
@@ -84,11 +98,10 @@ function SectionList({ sections, active, onNavigate }) {
   );
 }
 
-function useMarkdownComponents(sections) {
+function useMarkdownComponents() {
   const { openPreferences } = useConsent();
 
   return useMemo(() => {
-    const numbers = Object.fromEntries(sections.map((s) => [s.id, s.number]));
 
     return {
       h2: ({ children }) => {
@@ -97,33 +110,40 @@ function useMarkdownComponents(sections) {
           <h2
             id={id}
             tabIndex={-1}
-            className="font-primary mt-20 mb-6 flex scroll-mt-28 gap-4 text-[clamp(1.75rem,3.2vw,2.5rem)] leading-[1.05] outline-none first:mt-0"
+            className={`${heading} mt-16 mb-5 scroll-mt-28 border-t border-[#e5e5e5] pt-8 text-[clamp(26px,2.6vw,36px)] leading-[1.1] tracking-[-0.015em] text-balance outline-none first:mt-0 first:border-t-0 first:pt-0 md:mt-20`}
           >
-            <span className="tabular-nums text-black/35">{numbers[id]}</span>
-            <span>{children}</span>
+            {children}
           </h2>
         );
       },
-      h3: ({ children }) => <h3 className="mt-10 mb-3 text-lg font-semibold">{children}</h3>,
-      p: ({ children }) => <p className="mb-5">{children}</p>,
-      ul: ({ children }) => <ul className="mb-6 list-disc space-y-2 pl-5 marker:text-black">{children}</ul>,
-      ol: ({ children }) => <ol className="mb-6 list-decimal space-y-2 pl-5">{children}</ol>,
-      li: ({ children }) => <li className="pl-1">{children}</li>,
-      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+      h3: ({ children }) => (
+        <h3 className={`${heading} mt-10 mb-4 text-[20px] leading-snug tracking-[-0.01em]`}>{children}</h3>
+      ),
+      p: ({ children }) => <p className="mb-5 text-pretty">{children}</p>,
+      ul: ({ children }) => (
+        <ul className="mb-7 grid gap-2.5 pl-0 [&>li]:relative [&>li]:pl-6 [&>li]:before:absolute [&>li]:before:left-0 [&>li]:before:top-[0.72em] [&>li]:before:size-1.5 [&>li]:before:rounded-full [&>li]:before:bg-(--ink) [&>li]:before:content-['']">
+          {children}
+        </ul>
+      ),
+      ol: ({ children }) => <ol className="mb-7 grid list-decimal gap-2.5 pl-5">{children}</ol>,
+      li: ({ children }) => <li className="text-pretty">{children}</li>,
+      strong: ({ children }) => <strong className="font-semibold text-(--ink)">{children}</strong>,
       code: ({ children }) => (
-        <code className="whitespace-nowrap bg-black/[0.05] px-1.5 py-0.5 font-mono text-[0.9em]">{children}</code>
+        <code className="whitespace-nowrap rounded bg-[#f5f5f5] px-1.5 py-0.5 font-mono text-[0.85em] text-(--ink)">
+          {children}
+        </code>
       ),
       a: ({ href = '', children }) => {
         if (href === '#cookie-settings') {
           return (
-            <button type="button" onClick={openPreferences} className={link}>
+            <button type="button" onClick={openPreferences} className={`${link} text-(--ink)`}>
               {children}
             </button>
           );
         }
         if (href.startsWith('/')) {
           return (
-            <Link to={href} className={link}>
+            <Link to={href} className={`${link} text-(--ink)`}>
               {children}
             </Link>
           );
@@ -132,7 +152,7 @@ function useMarkdownComponents(sections) {
           return (
             <a
               href={href}
-              className={link}
+              className={`${link} text-(--ink)`}
               onClick={(event) => {
                 event.preventDefault();
                 scrollToSection(href.slice(1));
@@ -143,30 +163,50 @@ function useMarkdownComponents(sections) {
           );
         }
         return (
-          <a href={href} className={`${link} break-words`}>
+          <a href={href} className={`${link} break-words text-(--ink)`}>
             {children}
           </a>
         );
       },
       table: ({ children }) => (
         // Scrolls sideways on small screens; tabIndex lets keyboard users scroll it too.
-        <div className="-mx-4 mb-8 mt-2 overflow-x-auto px-4" tabIndex={0} role="region" aria-label="Table">
-          <table className="w-full min-w-[34rem] border-collapse text-[15px] leading-normal">{children}</table>
+        <div
+          className={`mb-8 mt-2 overflow-x-auto rounded-xl border border-[#e5e5e5] ${focusRing}`}
+          tabIndex={0}
+          role="region"
+          aria-label="Table"
+        >
+          <table className="w-full min-w-[36rem] border-collapse text-[15px] leading-normal">{children}</table>
         </div>
       ),
+      thead: ({ children }) => <thead className="bg-[#f5f5f5]">{children}</thead>,
       th: ({ children }) => (
-        <th className="border-b border-black py-3 pr-6 text-left align-bottom font-semibold last:pr-0">{children}</th>
+        <th className="border-b border-[#e5e5e5] px-4 py-3 text-left align-bottom text-[13px] font-semibold uppercase tracking-[0.06em] text-(--ink)">
+          {children}
+        </th>
       ),
-      td: ({ children }) => <td className="border-b border-black/15 py-3 pr-6 align-top last:pr-0">{children}</td>,
+      td: ({ children }) => (
+        <td className="border-b border-[#e5e5e5] px-4 py-3.5 align-top [tr:last-child_&]:border-b-0">{children}</td>
+      ),
     };
-  }, [sections, openPreferences]);
+  }, [openPreferences]);
 }
 
 /**
  * Shared layout for the legal pages.
  * `source` is the raw markdown from ./content, filled with values from legal.config.js.
  */
-export default function LegalPage({ title, description, path, source, lastUpdated, contactHeading, contactEmail }) {
+export default function LegalPage({
+  title,
+  description,
+  path,
+  source,
+  lastUpdated,
+  contactHeading,
+  contactEmail,
+  summary = [],
+  laws = [],
+}) {
   const nativeMetadata = useNativeMetadata();
   const { hash } = useLocation();
   // The consent config includes tracking IDs set in the CMS, so the cookie policy lists them.
@@ -174,10 +214,11 @@ export default function LegalPage({ title, description, path, source, lastUpdate
   const markdown = useMemo(() => fillTemplate(source, config), [source, config]);
   const sections = useMemo(() => extractSections(markdown), [markdown]);
   const active = useActiveSection(sections.map((s) => s.id));
-  const components = useMarkdownComponents(sections);
+  const components = useMarkdownComponents();
   const [menuOpen, setMenuOpen] = useState(false);
   const todos = process.env.NODE_ENV === 'development' ? findTodos(legalConfig) : [];
   const { brandName } = legalConfig.company;
+  const readingMinutes = Math.max(1, Math.round(markdown.split(/\s+/).length / 230));
 
   // Jump to a section when the page is opened with a #hash.
   useEffect(() => {
@@ -189,27 +230,30 @@ export default function LegalPage({ title, description, path, source, lastUpdate
   return (
     <MotionConfig reducedMotion="user">
       {/* React 19 moves these into <head>. */}
-      {!nativeMetadata && <>
-        <title>{`${title} | ${brandName}`}</title>
-        <meta name="description" content={description} />
-        <link rel="canonical" href={`${legalConfig.siteUrl}${path}`} />
-      </>}
+      {!nativeMetadata && (
+        <>
+          <title>{`${title} | ${brandName}`}</title>
+          <meta name="description" content={description} />
+          <link rel="canonical" href={`${legalConfig.siteUrl}${path}`} />
+        </>
+      )}
 
-      <main className="font-secondary bg-white text-black">
-        <div className="mx-auto w-full max-w-[90rem] px-4 sm:px-8 lg:px-12">
+      <main className="legal-page font-secondary overflow-x-clip bg-white text-(--ink-muted) [--font-primary:var(--section-title-font)]">
+        <div className="mx-auto w-full max-w-(--page-max-width) px-(--page-gutter)">
+          {/* ---------------------------------------------------------- header */}
           <header className="pb-12 pt-32 md:pb-16 md:pt-44">
             <nav aria-label="Legal pages" className="mb-10 md:mb-14">
-              <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[15px]">
+              <ul className="inline-flex max-w-full gap-0.5 rounded-full border border-[#e5e5e5] bg-[#f5f5f5] p-1">
                 {LEGAL_PAGES.map((page) => (
                   <li key={page.path}>
                     <NavLink
                       to={page.path}
                       end
                       className={({ isActive }) =>
-                        `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
+                        `inline-flex h-9 items-center whitespace-nowrap rounded-full px-3 text-[13px] transition-colors sm:px-4 sm:text-[14px] ${focusRing} ${
                           isActive
-                            ? 'underline decoration-2 underline-offset-[6px]'
-                            : 'text-black/55 transition-colors hover:text-black'
+                            ? 'bg-white text-(--ink) shadow-[0_1px_2px_rgba(23,23,23,0.08)]'
+                            : `${muted} hover:text-(--ink)`
                         }`
                       }
                     >
@@ -220,63 +264,133 @@ export default function LegalPage({ title, description, path, source, lastUpdate
               </ul>
             </nav>
 
-            {/* The mask reveals the title once on load. Bottom padding keeps descenders (y, p) inside the mask. */}
+            <p className="mb-5 flex items-center gap-2.5 text-[13px] uppercase tracking-[0.14em] text-(--ink)">
+              <span aria-hidden="true" className="size-2 rounded-full bg-bw-lime ring-1 ring-black/10" />
+              Legal
+            </p>
+
+            {/* The mask reveals the title once on load. Bottom padding keeps descenders inside the mask. */}
             <div className="overflow-hidden">
               <motion.h1
                 initial={{ y: '105%' }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.9, ease: EASE }}
-                className="font-primary pb-[0.16em] text-[clamp(3.25rem,10vw,9.5rem)] leading-[0.92] tracking-[-0.02em]"
+                className={`${heading} pb-[0.12em] text-[clamp(44px,7vw,96px)] leading-[0.98] tracking-[-0.035em]`}
               >
                 {title}
               </motion.h1>
             </div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="mt-5 text-[15px] text-black/60"
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.7, ease: EASE }}
+              className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"
             >
-              Last updated <time dateTime={lastUpdated}>{formatDate(lastUpdated)}</time>
-            </motion.p>
+              <p className="max-w-[46ch] text-[18px] leading-[1.6] text-pretty md:text-[20px]">{description}</p>
+              <dl className="flex flex-wrap gap-x-8 gap-y-3 text-[14px]">
+                <div>
+                  <dt className={muted}>Last updated</dt>
+                  <dd className="mt-1 text-(--ink)">
+                    <time dateTime={lastUpdated}>{formatDate(lastUpdated)}</time>
+                  </dd>
+                </div>
+                <div>
+                  <dt className={muted}>Reading time</dt>
+                  <dd className="mt-1 text-(--ink)">{readingMinutes} min</dd>
+                </div>
+              </dl>
+            </motion.div>
+
+            {laws.length > 0 && (
+              <motion.ul
+                aria-label="Laws this page follows"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.55, duration: 0.6 }}
+                className="mt-8 flex flex-wrap gap-2"
+              >
+                {laws.map((law) => (
+                  <li
+                    key={law}
+                    className="inline-flex h-8 items-center rounded-full border border-[#e5e5e5] px-3.5 text-[13px] text-(--ink)"
+                  >
+                    {law}
+                  </li>
+                ))}
+              </motion.ul>
+            )}
           </header>
 
-          <div className="border-t border-black lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-16 xl:grid-cols-[18rem_minmax(0,1fr)] xl:gap-24">
-            <aside className="lg:pt-14">
+          {/* ------------------------------------------------------ at a glance */}
+          {summary.length > 0 && (
+            <section aria-labelledby="legal-summary-heading" className="pb-16 md:pb-24">
+              <h2
+                id="legal-summary-heading"
+                className={`${heading} mb-6 text-[clamp(22px,2vw,28px)] leading-tight tracking-[-0.015em]`}
+              >
+                At a glance
+              </h2>
+              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 md:gap-4">
+                {summary.map((item, index) => (
+                  <motion.li
+                    key={item.title}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-10% 0px' }}
+                    transition={{ delay: index * 0.06, duration: 0.6, ease: EASE }}
+                    className="flex flex-col rounded-xl border border-[#e5e5e5] bg-[#f5f5f5] p-5 md:p-6"
+                  >
+                    <span aria-hidden="true" className="size-2 rounded-full bg-bw-lime ring-1 ring-black/10" />
+                    <h3 className={`${heading} mt-8 text-[20px] leading-tight tracking-[-0.015em] md:mt-14`}>
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-[15px] leading-[1.55]">{item.text}</p>
+                  </motion.li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* ------------------------------------------------------------- body */}
+          <div className="border-t border-[#e5e5e5] lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-16 xl:grid-cols-[19rem_minmax(0,1fr)] xl:gap-28">
+            <aside className="lg:pt-16">
               {/* Small screens: collapsible list */}
-              <div className="border-b border-black/15 lg:hidden">
+              <div className="mt-6 rounded-xl border border-[#e5e5e5] bg-[#f5f5f5] lg:hidden">
                 <button
                   type="button"
                   aria-expanded={menuOpen}
                   aria-controls="legal-sections-mobile"
                   onClick={() => setMenuOpen((open) => !open)}
-                  className="flex w-full items-center justify-between py-5 text-[15px] font-semibold focus-visible:outline-2 focus-visible:outline-black"
+                  className={`flex w-full items-center justify-between px-5 py-4 text-[15px] text-(--ink) ${focusRing}`}
                 >
-                  On this page
+                  <span>
+                    On this page <span className={`ml-1 tabular-nums ${muted}`}>({sections.length})</span>
+                  </span>
                   <ChevronDown
                     aria-hidden="true"
                     className={`size-5 transition-transform duration-300 ${menuOpen ? 'rotate-180' : ''}`}
                     strokeWidth={1.75}
                   />
                 </button>
-                <div id="legal-sections-mobile" hidden={!menuOpen} className="pb-6">
+                <div id="legal-sections-mobile" hidden={!menuOpen} className="px-2 pb-4">
                   {/* Collapse the list before scrolling, or the scroll target shifts. */}
                   <SectionList sections={sections} active={active} onNavigate={() => flushSync(() => setMenuOpen(false))} />
                 </div>
               </div>
 
               {/* Large screens: sticky list */}
-              <nav aria-label="On this page" className="sticky top-28 hidden lg:block">
-                <p className="mb-5 text-[15px] font-semibold">On this page</p>
+              <nav aria-label="On this page" className="sticky top-28 hidden max-h-[calc(100svh-8rem)] overflow-y-auto pb-8 lg:block">
+                <p className="mb-4 pl-4 text-[13px] uppercase tracking-[0.14em] text-(--ink)">On this page</p>
                 <SectionList sections={sections} active={active} />
               </nav>
             </aside>
 
-            <article className="max-w-[68ch] pb-24 pt-10 text-[17px] leading-[1.75] lg:pt-14 [&>p:first-of-type]:text-[1.25rem] [&>p:first-of-type]:leading-[1.6]">
+            <article className="max-w-[70ch] pb-24 pt-12 text-[17px] leading-[1.75] md:text-[18px] lg:pt-16 [&>p:first-of-type]:text-[19px] [&>p:first-of-type]:leading-[1.6] [&>p:first-of-type]:text-(--ink) md:[&>p:first-of-type]:text-[21px]">
               {todos.length > 0 && (
-                <div role="note" className="mb-12 border border-black bg-[#FFF3B0] p-5 text-[15px] leading-relaxed">
-                  <p className="font-semibold">Fill these in src/pages/legal/legal.config.js before launch</p>
-                  <p className="mt-1 text-black/70">This box only appears on the dev server.</p>
+                <div role="note" className="mb-12 rounded-xl border border-black/20 bg-[#FFF3B0] p-5 text-[15px] leading-relaxed text-(--ink)">
+                  <p className="font-semibold">Fill these in src/legacy-pages/legal/legal.config.js before launch</p>
+                  <p className="mt-1 opacity-70">This box only appears on the dev server.</p>
                   <ul className="mt-3 list-disc space-y-1 pl-5 font-mono text-[13px]">
                     {todos.map((todo) => (
                       <li key={todo}>{todo}</li>
@@ -291,14 +405,34 @@ export default function LegalPage({ title, description, path, source, lastUpdate
             </article>
           </div>
 
-          <section className="border-t border-black py-16 md:py-24">
-            <h1 className="font-primary text-[clamp(2rem,5vw,3.75rem)] leading-none">{contactHeading}</h1>
-            <a
-              href={`mailto:${contactEmail}`}
-              className="mt-8 inline-block break-all text-xl underline decoration-1 underline-offset-[6px] hover:decoration-2 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black md:text-3xl"
-            >
-              {contactEmail}
-            </a>
+          {/* ---------------------------------------------------------- contact */}
+          <section aria-labelledby="legal-contact-heading" className="pb-16 md:pb-24">
+            <div className="grid gap-10 rounded-[20px] bg-[#111] p-7 text-white md:grid-cols-[minmax(0,1fr)_auto] md:items-end md:p-12 lg:p-16">
+              <div>
+                <p className="mb-5 flex items-center gap-2.5 text-[13px] uppercase tracking-[0.14em] text-white/70">
+                  <span aria-hidden="true" className="size-2 rounded-full bg-bw-lime" />
+                  Contact
+                </p>
+                <h2
+                  id="legal-contact-heading"
+                  className="font-[family-name:var(--section-title-font)] text-[clamp(32px,4vw,56px)] font-normal leading-[1.02] tracking-[-0.025em] text-balance"
+                >
+                  {contactHeading}
+                </h2>
+                <p className="mt-4 max-w-[48ch] text-[16px] leading-[1.6] text-white/70 md:text-[17px]">
+                  Write to us and someone from the studio will reply personally. No forms, no bots.
+                </p>
+              </div>
+              <a
+                href={`mailto:${contactEmail}`}
+                className="group inline-flex h-14 max-w-full items-center gap-3 justify-self-start rounded-full bg-bw-lime pl-6 pr-2 text-[16px] font-medium text-black transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                <span className="truncate">{contactEmail}</span>
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-black text-white transition-transform group-hover:rotate-45">
+                  <ArrowUpRight aria-hidden="true" className="size-5" strokeWidth={1.75} />
+                </span>
+              </a>
+            </div>
           </section>
         </div>
       </main>

@@ -1,5 +1,5 @@
 /**
- * Brand Works: legal pages and cookie consent config.
+ * BrandWorks: legal pages and cookie consent config.
  *
  * This is the only file you need to edit for day-to-day changes.
  * Fill in every value that starts with "TODO" before going live. While you
@@ -15,9 +15,9 @@ export const legalConfig = {
   siteUrl: 'https://brandworks.me',
 
   company: {
-    brandName: 'Brand Works',
+    brandName: 'BrandWorks',
     // The legal entity behind the brand, exactly as registered.
-    // e.g. "Brand Works Private Limited", "Brand Works LLP", or "Rahul Sharma, trading as Brand Works"
+    // e.g. "BrandWorks Private Limited", "BrandWorks LLP", or "Rahul Sharma, trading as BrandWorks"
     legalName: 'TODO: registered legal name',
     address: 'TODO: registered business address',
     email: 'socials@brandworks.me',
@@ -27,7 +27,8 @@ export const legalConfig = {
     jurisdiction: 'TODO: city, e.g. New Delhi',
   },
 
-  // Required on the site under India's IT (SPDI) Rules 2011 and the DPDP Act.
+  // Named in the policies as required by the DPDP Act 2023 / DPDP Rules 2025
+  // (Rule 9: contact for privacy questions) and the IT Act 2000.
   // Can be the founder, but give a real name and an inbox someone checks.
   grievanceOfficer: {
     name: 'TODO: full name',
@@ -36,9 +37,9 @@ export const legalConfig = {
 
   // Change the date whenever you change that page's text (YYYY-MM-DD).
   lastUpdated: {
-    privacy: '2026-10-05',
-    cookies: '2026-10-05',
-    terms: '2026-10-05',
+    privacy: '2026-11-06',
+    cookies: '2026-11-06',
+    terms: '2026-11-06',
   },
 
   // Turn sections of the policies on or off.

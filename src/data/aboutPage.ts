@@ -5,13 +5,18 @@ import { mediaUrl } from '../lib/media'
 // rewriting the story or swapping a portrait never means touching the
 // layout.
 
-const beginningStill = mediaUrl("Beginning.jpg")
 const studioStill = mediaUrl("studio.jpg")
 const aboutHeroStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/about.png"
 const technologyStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/creative_2.jpg"
-const websiteDevStill = "https://pub-4a67635800e64547a1a4fd524f7a2783.r2.dev/Photography/website_dev.jpg"
 const bottleStill = mediaUrl("photo-04.webp")
 const bottleStillSmall = mediaUrl("photo-04-640.webp")
+
+// Real (documentary) Unsplash photographs, cropped to the 4:5 feature frame.
+function unsplashPortrait(photo: string) {
+  const url = (width: number) =>
+    `https://images.unsplash.com/${photo}?auto=format&fit=crop&w=${width}&h=${Math.round(width * 5 / 4)}&q=85`
+  return { src: url(1200), srcSet: `${url(480)} 480w, ${url(800)} 800w, ${url(1200)} 1200w`, width: 1200, height: 1500 }
+}
 
 
 export type AboutImage = {
@@ -102,10 +107,8 @@ export const ABOUT_JOURNEY = {
   ] satisfies JourneyStage[],
   images: {
     beginning: {
-      src: beginningStill,
-      width: 2656,
-      height: 3542,
-      alt: 'A traveller in a hat and dark coat, luggage beside him, raising a hand to hail a ride on a city street',
+      ...unsplashPortrait('photo-1512758017271-d7b84c2113f1'),
+      alt: 'Handwritten sticky notes mapping early ideas on a planning board',
     },
     studio: {
       src: studioStill,
@@ -128,10 +131,8 @@ export const ABOUT_STATEMENT = {
   text: "BrandWorks wasn't built to simply produce more content. It was built to make every piece of work matter.",
   // signature: 'The BrandWorks Studio',
   image: {
-    src: websiteDevStill,
-    width: 1600,
-    height: 1200,
-    alt: 'BrandWorks studio image showing the creative team and working environment',
+    ...unsplashPortrait('photo-1559136555-9303baea8ebd'),
+    alt: 'A creative team at work together in a bright loft studio',
   } satisfies AboutImage,
 }
 
