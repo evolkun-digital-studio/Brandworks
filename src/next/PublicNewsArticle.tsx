@@ -57,7 +57,7 @@ export default function PublicNewsArticle({ post, related }: { post: PublicBlogD
         {next && <Reveal as="nav" className="ed-next" aria-label="Next story">
           <Link to={`/news/${next.slug}`} className="ed-next__link"><span className="ed-kicker">Next story</span><span className="ed-next__title">{next.title}</span><Arrow /></Link>
         </Reveal>}
-        <QuietCta text="Press and media enquiries." label="hello@brandworks.com" href="mailto:hello@brandworks.com?subject=Press%20enquiry" />
+        <QuietCta text="Press and media enquiries." label="socials@brandworks.me" href="mailto:socials@brandworks.me?subject=Press%20enquiry" />
       </div>
     </main>
   )

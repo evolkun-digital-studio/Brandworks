@@ -52,7 +52,7 @@ import {
 import { SECTION_LABELS } from './flow'
 
 const DRAFT_KEY = 'bw-project-planner:v1'
-const EMAIL = 'hello@brandworks.me'
+const EMAIL = 'socials@brandworks.me'
 const INTRO = 'intro'
 
 const questionnaireSection = 'mx-auto w-full max-w-[1720px] px-[var(--hero-gutter)] pb-20 pt-28 sm:pt-32 lg:pb-28 lg:pt-40'

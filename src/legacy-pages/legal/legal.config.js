@@ -12,7 +12,7 @@
 
 export const legalConfig = {
   // Full URL of the live site, no trailing slash. Used in the policies and canonical tags.
-  siteUrl: 'https://TODO-yourdomain.com',
+  siteUrl: 'https://brandworks.me',
 
   company: {
     brandName: 'Brand Works',
@@ -20,8 +20,8 @@ export const legalConfig = {
     // e.g. "Brand Works Private Limited", "Brand Works LLP", or "Rahul Sharma, trading as Brand Works"
     legalName: 'TODO: registered legal name',
     address: 'TODO: registered business address',
-    email: 'TODO: hello@yourdomain.com',
-    privacyEmail: 'TODO: privacy@yourdomain.com',
+    email: 'socials@brandworks.me',
+    privacyEmail: 'socials@brandworks.me',
     phone: 'TODO: +91 00000 00000',
     // City whose courts handle disputes (Terms of Use).
     jurisdiction: 'TODO: city, e.g. New Delhi',
@@ -31,7 +31,7 @@ export const legalConfig = {
   // Can be the founder, but give a real name and an inbox someone checks.
   grievanceOfficer: {
     name: 'TODO: full name',
-    email: 'TODO: grievance@yourdomain.com',
+    email: 'socials@brandworks.me',
   },
 
   // Change the date whenever you change that page's text (YYYY-MM-DD).

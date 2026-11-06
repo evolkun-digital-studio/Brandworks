@@ -185,7 +185,7 @@ function BlogIndex({ manageMetadata = true }: { manageMetadata?: boolean }) {
         <QuietCta
           text="Building a brand that needs clearer direction?"
           label="Talk to BrandWorks"
-          href="mailto:hello@brandworks.com"
+          href="mailto:socials@brandworks.me"
         />
       </div>
     </main>
