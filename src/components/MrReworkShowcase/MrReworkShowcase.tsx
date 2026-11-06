@@ -103,7 +103,7 @@ function ScrubbedWebsite() {
         </div>
 
         <div className="mrw-scrub__label">
-          <span>{screen.label}</span>
+          {/* <span>{screen.label}</span> */}
         </div>
       </div>
     </section>
