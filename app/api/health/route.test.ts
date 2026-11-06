@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../../../src/server/db/client', () => ({ pingDatabase: vi.fn() }))
-vi.mock('../../../src/server/config/env', () => ({ resolvePublicOrigin: vi.fn(() => 'https://site.example.test') }))
+vi.mock('../../../src/server/config/env', () => ({
+  resolvePublicOrigin: vi.fn(() => 'https://site.example.test'),
+  requireJwtSecret: vi.fn(() => 'x'.repeat(32)),
+}))
 
 import { pingDatabase } from '../../../src/server/db/client'
-import { resolvePublicOrigin } from '../../../src/server/config/env'
+import { requireJwtSecret, resolvePublicOrigin } from '../../../src/server/config/env'
 import { GET, HEAD } from './route'
 
 describe('GET /api/health', () => {
@@ -75,5 +78,29 @@ describe('HEAD /api/health', () => {
 
     vi.mocked(pingDatabase).mockResolvedValue(false)
     expect((await HEAD()).status).toBe(503)
+  })
+})
+
+describe('GET /api/health admin auth config', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('reports degraded (503) without revealing the secret or the reason text when JWT_SECRET is missing or weak', async () => {
+    vi.mocked(pingDatabase).mockResolvedValue(true)
+    vi.mocked(requireJwtSecret).mockImplementationOnce(() => {
+      throw new Error('JWT_SECRET must be at least 32 characters in production.')
+    })
+
+    const response = await GET()
+    const text = await response.text()
+
+    expect(response.status).toBe(503)
+    expect(JSON.parse(text)).toMatchObject({ status: 'degraded', adminAuth: 'missing-or-weak-secret' })
+    expect(text).not.toContain('JWT_SECRET')
+  })
+
+  it('reports configured when the secret passes the policy', async () => {
+    vi.mocked(pingDatabase).mockResolvedValue(true)
+    const body = await (await GET()).json()
+    expect(body).toMatchObject({ status: 'ok', adminAuth: 'configured' })
   })
 })

@@ -7,10 +7,16 @@ export function requireMongoUri(source: NodeJS.ProcessEnv = process.env): string
   return uri
 }
 
-/** JWT signing material is server-only and is read lazily by auth code. */
+/** Minimum JWT_SECRET length in production: 32 characters (e.g. `openssl rand -base64 48` gives 64). */
+export const MIN_JWT_SECRET_LENGTH = 32
+
+/** JWT signing material is server-only and is read lazily by auth code. The value never appears in an error. */
 export function requireJwtSecret(source: NodeJS.ProcessEnv = process.env): string {
   const secret = source.JWT_SECRET?.trim()
   if (!secret) throw new Error('JWT_SECRET is required for admin authentication.')
+  if ((source.NODE_ENV || 'development') === 'production' && secret.length < MIN_JWT_SECRET_LENGTH) {
+    throw new Error(`JWT_SECRET must be at least ${MIN_JWT_SECRET_LENGTH} characters in production.`)
+  }
   return secret
 }
 

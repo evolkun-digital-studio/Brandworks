@@ -1,5 +1,5 @@
 import { pingDatabase } from '../../../src/server/db/client'
-import { resolvePublicOrigin } from '../../../src/server/config/env'
+import { requireJwtSecret, resolvePublicOrigin } from '../../../src/server/config/env'
 
 export const runtime = 'nodejs'
 // Always run at request time: a cached health answer is a wrong one.
@@ -32,18 +32,29 @@ function checkPublicOrigin(): boolean {
   }
 }
 
+/** Admin login needs JWT_SECRET (in production at least MIN_JWT_SECRET_LENGTH chars). Only pass/fail is reported. */
+function checkJwtSecret(): boolean {
+  try {
+    requireJwtSecret()
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function runChecks() {
-  const [database, publicOrigin] = [await checkDatabase(), checkPublicOrigin()]
-  return { database, publicOrigin, healthy: database && publicOrigin }
+  const [database, publicOrigin, adminAuth] = [await checkDatabase(), checkPublicOrigin(), checkJwtSecret()]
+  return { database, publicOrigin, adminAuth, healthy: database && publicOrigin && adminAuth }
 }
 
 export async function GET(): Promise<Response> {
-  const { database, publicOrigin, healthy } = await runChecks()
+  const { database, publicOrigin, adminAuth, healthy } = await runChecks()
   const body = {
     status: healthy ? 'ok' : 'degraded',
     server: 'running',
     mongodb: database ? 'connected' : 'disconnected',
     publicOrigin: publicOrigin ? 'configured' : 'missing-or-invalid',
+    adminAuth: adminAuth ? 'configured' : 'missing-or-weak-secret',
     environment: process.env.NODE_ENV ?? 'development',
     commit: process.env.GITHUB_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev',
     uptime: Math.round(process.uptime()),
