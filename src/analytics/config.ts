@@ -1,14 +1,14 @@
 import { publicAnalyticsEnvironment } from './environment'
 
 /**
- * All analytics/measurement configuration comes from VITE_* env vars —
+ * All analytics/measurement configuration comes from NEXT_PUBLIC_* env vars —
  * never hardcoded IDs (Phase 12, Part 2). An empty/unset value means
  * that provider is disabled, and the app must work identically either
  * way — nothing here is required for the site to function.
  *
- * VITE_* values are bundled into the public client build and are
+ * NEXT_PUBLIC_* values are bundled into the public client build and are
  * never secret (same convention already established by
- * VITE_API_BASE_URL in src/blog/api/client.ts) — only identifiers
+ * NEXT_PUBLIC_API_BASE_URL in src/blog/api/client.ts) — only identifiers
  * meant to be publicly visible belong here. No API keys, OAuth
  * secrets, or credentials of any kind are read this way.
  */

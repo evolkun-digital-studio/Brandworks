@@ -37,7 +37,7 @@ function MediaPicker({ title = 'Choose an image', onClose, onPick }: MediaPicker
   // Callers pass a fresh onClose every render. Keep it in a ref so the focus
   // setup below runs once, instead of re-focusing (and re-blurring) each render.
   const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
+  useEffect(() => { onCloseRef.current = onClose })
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -57,6 +57,7 @@ function MediaPicker({ title = 'Choose an image', onClose, onPick }: MediaPicker
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
     setLoading(true)
     const timer = window.setTimeout(() => {
       mediaApi.listMedia({ type: 'image', search: search.trim() || undefined, limit: 30 })

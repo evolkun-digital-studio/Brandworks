@@ -279,5 +279,5 @@ export const ABOUT_TEAM = {
 
 export const ABOUT_CLOSING = {
   lines: ['Different skills. Different perspectives.', 'One BrandWorks.'],
-  cta: { label: 'Work With Us', href: 'mailto:hello@brandworks.com' },
+  cta: { label: 'Work With Us', href: 'mailto:socials@brandworks.me' },
 }

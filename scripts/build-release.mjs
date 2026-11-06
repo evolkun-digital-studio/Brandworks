@@ -1,211 +1,307 @@
 #!/usr/bin/env node
 /**
- * Build a self-contained, secret-free deployment artifact.
+ * Build a self-contained, secret-free release of the standalone Next.js
+ * server for the production target: Linux x64 (glibc), Node.js 24.
  *
- *   npm run build:release                 # build + package (on the target OS)
- *   npm run build:release -- --skip-build # package an existing .next build
- *   npm run build:release -- --allow-platform-mismatch   # local dry run only
+ *   npm run build:release                  # next build + package
+ *   npm run build:release -- --skip-build  # package the existing .next build
+ *   npm run build:release -- --no-smoke    # skip the boot/HTTP smoke test
  *
- * Output (git-ignored):
- *   dist/release/brandworks-next-<sha>/        unpacked release
- *   dist/brandworks-next-<sha>.tar.gz          archive to upload
- *   dist/brandworks-next-<sha>.tar.gz.sha256   checksum
+ * Output (all git-ignored, under dist/):
+ *   dist/release/brandworks-next-<sha>/          unpacked release
+ *   dist/brandworks-next-<sha>.tar.gz            archive to upload
+ *   dist/brandworks-next-<sha>.tar.gz.sha256     checksum
  *
- * The release runs with `node server.js` from its own directory. It contains
- * the standalone server, the node_modules it traced, .next/static, public/,
- * scripts/smoke-test.mjs and release.json. It never contains .env files,
- * source maps, .git, or the build cache.
+ * Staging happens in a temp folder outside the repository (so module
+ * resolution cannot fall back to the repo's node_modules), where the release
+ * is checked: dependencies load, native binaries match the target, no
+ * secrets or forbidden files, and it boots and serves (scripts/smoke-release.mjs).
  *
- * Native modules (argon2, sharp) are compiled per OS/CPU, so the release must
- * be built on the same platform as the server (linux/x64 by default, override
- * with TARGET_PLATFORM / TARGET_ARCH). Build it in GitHub Actions on
- * ubuntu-latest, not on a developer Mac.
+ * The release contains server.js, the node_modules the build traced,
+ * .next/ (server output + static assets), public/ and release.json. Start it
+ * from its own directory with `node server.js`. It never contains .env files,
+ * .git, keys, source maps or the build cache.
+ *
+ * NEXT_PUBLIC_* values (and R2_PUBLIC_URL) are inlined during `next build`,
+ * so export them before running this. See .env.production.example.
+ *
+ * Native modules. JavaScript output is platform-independent; native binaries
+ * are not. For the target this script:
+ *   - argon2: keeps only prebuilds/linux-x64 and removes any build/ folder
+ *     (node-gyp-build would load a build/ binary first, and on a Mac that is a
+ *     macOS binary).
+ *   - sharp: when the build host is not linux-x64, replaces the host's @img
+ *     binaries with @img/sharp-linux-x64 + @img/sharp-libvips-linux-x64 at the
+ *     exact versions sharp requires, verifying each tarball against the
+ *     package-lock.json integrity hash.
+ *   - then fails unless every native file in the release is an x86-64 ELF.
+ * Building on a Linux x64 machine (e.g. CI) needs no swapping at all.
  */
 import { execFileSync, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const args = new Set(process.argv.slice(2))
-const TARGET_PLATFORM = process.env.TARGET_PLATFORM || 'linux'
-const TARGET_ARCH = process.env.TARGET_ARCH || 'x64'
-const TARGET_NODE_MAJOR = Number(process.env.TARGET_NODE_MAJOR || 22)
+const TARGET = { platform: 'linux', arch: 'x64', node: '24.22.2' }
+const HOST_IS_TARGET = process.platform === TARGET.platform && process.arch === TARGET.arch
 
-/** Server-only variable names that must never appear in browser JavaScript. */
-const SERVER_ONLY_NAMES = [
-  'MONGODB_URI', 'JWT_SECRET', 'R2_SECRET_ACCESS_KEY', 'R2_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY',
-  'CLOUDINARY_API_SECRET', 'CF_IMAGES_API_TOKEN', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY',
-  'DATAFORSEO_PASSWORD', 'MOZ_API_TOKEN', 'GA4_SERVICE_ACCOUNT_JSON', 'GSC_SERVICE_ACCOUNT_JSON',
+/** Server-only variables whose values must never be baked into a release. */
+const SERVER_SECRETS = [
+  'MONGODB_URI', 'JWT_SECRET', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'S3_ACCESS_KEY_ID',
+  'S3_SECRET_ACCESS_KEY', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET', 'CF_IMAGES_API_TOKEN',
+  'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'GOOGLE_PSI_API_KEY', 'MOZ_API_TOKEN', 'DATAFORSEO_LOGIN',
+  'DATAFORSEO_PASSWORD', 'GA4_SERVICE_ACCOUNT_JSON', 'GSC_SERVICE_ACCOUNT_JSON',
 ]
-/** Env names whose *values* are treated as secrets for the leak scan. */
-const SECRET_NAME = /(SECRET|PASSWORD|TOKEN|_KEY|_URI|SERVICE_ACCOUNT)/
-const FORBIDDEN = [/(^|\/)\.env(\..*)?$/, /(^|\/)\.git(\/|$)/, /\.map$/, /(^|\/)\.next\/cache(\/|$)/, /\.pem$/, /(^|\/)id_(rsa|ed25519)/]
+/** Never allowed in a release. */
+const FORBIDDEN = [/(^|\/)\.env(\.|$)/, /(^|\/)\.git(\/|$)/, /\.pem$/, /\.key$/, /(^|\/)id_(rsa|ed25519|ecdsa)/, /(^|\/)\.next\/cache(\/|$)/, /(^|\/)\.media-storage(\/|$)/]
+/** Removed from a release: no runtime use, and source maps would expose source. */
+const STRIP = [/\.map$/, /(^|\/)\.DS_Store$/, /(^|\/)\._[^/]*$/]
 
 const log = (msg) => console.log(`[release] ${msg}`)
+const warn = (msg) => console.warn(`[release] WARNING: ${msg}`)
 const fail = (msg) => { console.error(`[release] ERROR: ${msg}`); process.exit(1) }
-const rel = (p) => path.relative(ROOT, p)
+const relTo = (base, p) => path.relative(base, p).split(path.sep).join('/')
 const git = (...a) => { try { return execFileSync('git', a, { cwd: ROOT, encoding: 'utf8' }).trim() } catch { return '' } }
+const readJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'))
 
 function walk(dir, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name)
-    if (entry.isSymbolicLink()) out.push(full)
-    else if (entry.isDirectory()) walk(full, out)
+    if (entry.isDirectory() && !entry.isSymbolicLink()) walk(full, out)
     else out.push(full)
   }
   return out
 }
 
-// ----------------------------------------------------------------- preflight
-const nodeMajor = Number(process.versions.node.split('.')[0])
-if (nodeMajor !== TARGET_NODE_MAJOR) log(`warning: building on Node ${process.versions.node}; the server runs Node ${TARGET_NODE_MAJOR}.x. Use Node ${TARGET_NODE_MAJOR} in CI.`)
-const platformMatches = process.platform === TARGET_PLATFORM && process.arch === TARGET_ARCH
-if (!platformMatches) {
-  const msg = `building on ${process.platform}/${process.arch} but the target is ${TARGET_PLATFORM}/${TARGET_ARCH}: argon2 and sharp binaries would not load on the server.`
-  if (!args.has('--allow-platform-mismatch')) fail(`${msg} Build in CI on ${TARGET_PLATFORM}, or pass --allow-platform-mismatch for a local dry run (do NOT deploy that archive).`)
-  log(`warning: ${msg} Dry run only: do NOT deploy this archive.`)
+function run(cmd, cmdArgs, opts = {}) {
+  const result = spawnSync(cmd, cmdArgs, { cwd: ROOT, stdio: 'inherit', ...opts })
+  if (result.status !== 0) fail(`${cmd} ${cmdArgs.join(' ')} exited with ${result.status}`)
 }
 
-const commit = git('rev-parse', 'HEAD') || process.env.GITHUB_SHA || ''
-if (!/^[0-9a-f]{40}$/.test(commit)) fail('could not determine the Git commit (run inside the repository).')
-const short = commit.slice(0, 12)
+// ---------------------------------------------------------------- preflight
+if (process.versions.node !== TARGET.node) {
+  warn(`building with Node ${process.versions.node}; production runs Node ${TARGET.node}. Use \`nvm use\` (.nvmrc) for a matching build.`)
+}
+const sha = git('rev-parse', '--short=12', 'HEAD') || 'nogit'
 const dirty = git('status', '--porcelain') !== ''
-if (dirty) log('warning: the working tree has uncommitted changes; release.json records dirty=true.')
+if (dirty) warn('working tree has uncommitted changes; the release will not match any commit exactly.')
+const publicNames = Object.keys(process.env).filter((k) => k.startsWith('NEXT_PUBLIC_') && process.env[k]?.trim()).sort()
+log(`target ${TARGET.platform}-${TARGET.arch}, Node ${TARGET.node}; host ${process.platform}-${process.arch}, Node ${process.versions.node}`)
+log(`NEXT_PUBLIC_* set for this build: ${publicNames.length ? publicNames.join(', ') : '(none — analytics/public config will be disabled)'}`)
+if (!process.env.R2_PUBLIC_URL?.trim()) warn('R2_PUBLIC_URL is not set: Media Manager images will not be allowed by next/image in this build.')
 
-// --------------------------------------------------------------------- build
-// Clear earlier output first so the build's file tracer cannot pick it up.
-const DIST = path.join(ROOT, 'dist')
-fs.rmSync(path.join(DIST, 'release'), { recursive: true, force: true })
+// -------------------------------------------------------------------- build
 if (!args.has('--skip-build')) {
   log('running next build…')
-  const result = spawnSync('npx', ['next', 'build'], { cwd: ROOT, stdio: 'inherit', env: { ...process.env, NODE_ENV: 'production', NEXT_TELEMETRY_DISABLED: '1' } })
-  if (result.status !== 0) fail('next build failed.')
+  run('npm', ['run', 'build'])
+}
+const standalone = path.join(ROOT, '.next', 'standalone')
+if (!fs.existsSync(path.join(standalone, 'server.js'))) {
+  fail('.next/standalone/server.js not found. Is output: "standalone" set in next.config.ts?')
 }
 
-const NEXT = path.join(ROOT, '.next')
-const STANDALONE = path.join(NEXT, 'standalone')
-for (const [p, what] of [[path.join(STANDALONE, 'server.js'), 'standalone server.js (is output: "standalone" set?)'], [path.join(NEXT, 'static'), '.next/static'], [path.join(NEXT, 'BUILD_ID'), '.next/BUILD_ID'], [path.join(ROOT, 'public'), 'public/']]) {
-  if (!fs.existsSync(p)) fail(`missing ${what}`)
+// -------------------------------------------------------------------- stage
+const name = `brandworks-next-${sha}${dirty ? '-dirty' : ''}`
+// Stage OUTSIDE the repository. Node resolves modules by walking up parent
+// folders, so a release checked inside the repo silently borrows the repo's
+// own node_modules and hides anything the tracer missed.
+const stagingRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'brandworks-stage-'))
+for (let dir = stagingRoot; dir !== path.dirname(dir); dir = path.dirname(dir)) {
+  if (fs.existsSync(path.join(dir, 'node_modules'))) fail(`staging folder ${stagingRoot} has a node_modules above it (${dir}); set TMPDIR elsewhere.`)
 }
-const buildId = fs.readFileSync(path.join(NEXT, 'BUILD_ID'), 'utf8').trim()
+process.on('exit', () => fs.rmSync(stagingRoot, { recursive: true, force: true }))
+const releaseDir = path.join(stagingRoot, name)
+fs.mkdirSync(releaseDir, { recursive: true })
+log(`staging in ${releaseDir} (isolated from the repo's node_modules)`)
+fs.cpSync(standalone, releaseDir, { recursive: true, verbatimSymlinks: true })
+// The tracer copies only the public files server code touched; ship all of them.
+fs.rmSync(path.join(releaseDir, 'public'), { recursive: true, force: true })
+fs.cpSync(path.join(ROOT, 'public'), path.join(releaseDir, 'public'), { recursive: true })
+fs.cpSync(path.join(ROOT, '.next', 'static'), path.join(releaseDir, '.next', 'static'), { recursive: true })
+fs.mkdirSync(path.join(releaseDir, 'scripts'), { recursive: true })
+fs.copyFileSync(path.join(ROOT, 'scripts', 'smoke-release.mjs'), path.join(releaseDir, 'scripts', 'smoke-release.mjs'))
 
-// ------------------------------------------------------------------ assemble
-const NAME = `brandworks-next-${short}`
-const OUT = path.join(DIST, 'release', NAME)
-fs.rmSync(OUT, { recursive: true, force: true })
-fs.mkdirSync(OUT, { recursive: true })
-log(`assembling ${rel(OUT)}`)
-fs.cpSync(STANDALONE, OUT, { recursive: true, verbatimSymlinks: true })
-fs.cpSync(path.join(NEXT, 'static'), path.join(OUT, '.next', 'static'), { recursive: true })
-fs.cpSync(path.join(ROOT, 'public'), path.join(OUT, 'public'), { recursive: true })
-fs.mkdirSync(path.join(OUT, 'scripts'), { recursive: true })
-fs.copyFileSync(path.join(ROOT, 'scripts', 'smoke-test.mjs'), path.join(OUT, 'scripts', 'smoke-test.mjs'))
+const modules = path.join(releaseDir, 'node_modules')
 
-// Strip anything that must never ship (standalone may copy .env files in).
-let stripped = 0
-for (const file of walk(OUT)) {
-  const r = path.relative(OUT, file).split(path.sep).join('/')
-  if (FORBIDDEN.some((re) => re.test(r))) { fs.rmSync(file, { recursive: true, force: true }); stripped++ }
+// ----------------------------------------------------------------- argon2
+const argon2 = path.join(modules, 'argon2')
+if (!fs.existsSync(argon2)) fail('argon2 is not in the traced node_modules (admin login needs it).')
+fs.rmSync(path.join(argon2, 'build'), { recursive: true, force: true })
+const prebuilds = path.join(argon2, 'prebuilds')
+const targetPrebuild = `${TARGET.platform}-${TARGET.arch}`
+if (!fs.existsSync(path.join(prebuilds, targetPrebuild, 'argon2.glibc.node'))) {
+  fail(`argon2 prebuild ${targetPrebuild}/argon2.glibc.node missing — check outputFileTracingIncludes in next.config.ts.`)
 }
-fs.rmSync(path.join(OUT, '.next', 'cache'), { recursive: true, force: true })
-log(`stripped ${stripped} forbidden file(s) (.env*, source maps, caches, keys)`)
+for (const entry of fs.readdirSync(prebuilds)) {
+  if (entry !== targetPrebuild) fs.rmSync(path.join(prebuilds, entry), { recursive: true, force: true })
+}
+log(`argon2: kept prebuilds/${targetPrebuild} only`)
 
-// ------------------------------------------------------------------ validate
-const files = walk(OUT)
-const relFiles = files.map((f) => path.relative(OUT, f).split(path.sep).join('/'))
-const problems = []
-
-for (const required of ['server.js', 'package.json', '.next/BUILD_ID', '.next/server', '.next/static', 'public', 'node_modules/next']) {
-  if (!fs.existsSync(path.join(OUT, required))) problems.push(`missing ${required}`)
-}
-if (!relFiles.some((f) => f.startsWith('.next/static/chunks/'))) problems.push('.next/static/chunks is empty')
-const leftovers = relFiles.filter((f) => FORBIDDEN.some((re) => re.test(f)))
-if (leftovers.length) problems.push(`forbidden files remain: ${leftovers.slice(0, 5).join(', ')}`)
-
-// Native modules must be present for the target platform. argon2 bundles
-// prebuilt binaries for every platform, so its target binary can be checked
-// even on a dry run; sharp installs only the host's binary.
-if (!relFiles.some((f) => f.startsWith(`node_modules/argon2/prebuilds/${TARGET_PLATFORM}-${TARGET_ARCH}/`) && f.endsWith('.node'))) {
-  problems.push(`argon2 native binary for ${TARGET_PLATFORM}-${TARGET_ARCH} not in the release (admin login would fail)`)
-}
-if (relFiles.some((f) => /^src\/.*\.tsx?$/.test(f))) problems.push('TypeScript sources were traced into the release')
-for (const stray of ['dist/', 'scratch/', '.media-storage/', 'tests/', 'docs/']) {
-  if (relFiles.some((f) => f.startsWith(stray))) problems.push(`${stray} was traced into the release`)
-}
-if (platformMatches) {
-  const sharpTraced = relFiles.some((f) => f.startsWith('node_modules/sharp/'))
-  if (sharpTraced && !relFiles.some((f) => f.startsWith(`node_modules/@img/sharp-${TARGET_PLATFORM}-${TARGET_ARCH}`))) problems.push(`sharp binary for ${TARGET_PLATFORM}-${TARGET_ARCH} missing (image optimisation would fail)`)
-}
-
-// Load the server's external dependencies from inside the release, the way
-// server.js will. The file tracer can miss files (it once shipped
-// @mongodb-js/saslprep without its dist/), and a miss only shows up as a 500
-// at runtime, so prove they resolve here instead.
-{
-  const probes = ['mongodb', '@aws-sdk/client-s3', 'next/dist/server/next-server.js']
-  if (platformMatches) probes.push('argon2', 'sharp')
-  const script = `const r=require('node:module').createRequire(process.cwd()+'/server.js');const bad=[];for(const m of ${JSON.stringify(probes)}){try{r(m)}catch(e){bad.push(m+': '+String(e&&e.message).split('\\n')[0])}}if(bad.length){console.error(bad.join('\\n'));process.exit(1)}`
-  const probe = spawnSync(process.execPath, ['-e', script], { cwd: OUT, encoding: 'utf8', env: { PATH: process.env.PATH, NODE_ENV: 'production' } })
-  if (probe.status !== 0) problems.push(`runtime dependencies fail to load from the release:\n      ${(probe.stderr || '').trim().split('\n').join('\n      ')}`)
-}
-
-// 1) Server-only variable names must not appear in browser JavaScript.
-for (const file of files.filter((f) => /\.next\/static\/.*\.js$/.test(f.split(path.sep).join('/')))) {
-  const text = fs.readFileSync(file, 'utf8')
-  const hit = SERVER_ONLY_NAMES.find((name) => text.includes(name))
-  if (hit) problems.push(`server-only name ${hit} found in browser bundle ${path.relative(OUT, file)}`)
-}
-// 2) No secret *value* from the build environment may appear anywhere.
-const secretValues = Object.entries(process.env)
-  .filter(([name, value]) => SECRET_NAME.test(name) && !name.startsWith('NEXT_PUBLIC_') && typeof value === 'string' && value.length >= 12)
-  .map(([name, value]) => [name, value])
-if (secretValues.length) {
-  for (const file of files) {
-    let stat
-    try { stat = fs.statSync(file) } catch { continue }
-    if (!stat.isFile() || stat.size > 20 * 1024 * 1024) continue
-    const text = fs.readFileSync(file, 'latin1')
-    for (const [name, value] of secretValues) {
-      if (text.includes(value)) problems.push(`value of ${name} found in ${path.relative(OUT, file)}`)
-    }
+// ------------------------------------------------------------------ sharp
+const sharpPkg = readJson(path.join(ROOT, 'node_modules', 'sharp', 'package.json'))
+const lock = readJson(path.join(ROOT, 'package-lock.json')).packages
+const sharpTargets = [`@img/sharp-${targetPrebuild}`, `@img/sharp-libvips-${targetPrebuild}`]
+const imgDir = path.join(modules, '@img')
+if (!fs.existsSync(path.join(modules, 'sharp'))) fail('sharp is not in the traced node_modules (next/image needs it).')
+fs.mkdirSync(imgDir, { recursive: true })
+for (const entry of fs.readdirSync(imgDir)) {
+  // Drop every platform-specific @img package that is not the target's.
+  if (/^sharp-(libvips-)?/.test(entry) && !sharpTargets.includes(`@img/${entry}`)) {
+    fs.rmSync(path.join(imgDir, entry), { recursive: true, force: true })
+    log(`sharp: removed host binary package @img/${entry}`)
   }
 }
-
-if (problems.length) {
-  for (const p of problems) console.error(`[release]   - ${p}`)
-  fail(`release validation failed (${problems.length} problem(s)); nothing was packaged.`)
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'brandworks-release-'))
+try {
+  for (const pkg of sharpTargets) {
+    const dest = path.join(modules, pkg)
+    if (fs.existsSync(dest)) continue
+    const version = sharpPkg.optionalDependencies?.[pkg]
+    const locked = lock[`node_modules/${pkg}`]
+    if (!version || !locked?.integrity) fail(`${pkg} is not pinned in sharp's optionalDependencies / package-lock.json.`)
+    if (locked.version !== version) fail(`${pkg}: package-lock has ${locked.version}, sharp ${sharpPkg.version} needs ${version}.`)
+    log(`sharp: fetching ${pkg}@${version} for ${targetPrebuild}`)
+    const out = execFileSync('npm', ['pack', `${pkg}@${version}`, '--pack-destination', tmp, '--json', '--silent'], { cwd: tmp, encoding: 'utf8' })
+    const tarball = path.join(tmp, JSON.parse(out)[0].filename)
+    const [algo, expected] = locked.integrity.split('-')
+    const actual = createHash(algo).update(fs.readFileSync(tarball)).digest('base64')
+    if (actual !== expected) fail(`${pkg}@${version}: tarball integrity does not match package-lock.json.`)
+    const unpack = path.join(tmp, pkg.replace('/', '__'))
+    fs.mkdirSync(unpack)
+    execFileSync('tar', ['-xzf', tarball, '-C', unpack])
+    fs.cpSync(path.join(unpack, 'package'), dest, { recursive: true })
+    log(`sharp: installed ${pkg}@${version} (integrity verified)`)
+  }
+} finally {
+  fs.rmSync(tmp, { recursive: true, force: true })
 }
 
-// ------------------------------------------------------------------ manifest
-const nextVersion = JSON.parse(fs.readFileSync(path.join(ROOT, 'node_modules', 'next', 'package.json'), 'utf8')).version
+// ------------------------------------------------------- strip & forbidden
+let stripped = 0
+for (const file of walk(releaseDir)) {
+  const rel = relTo(releaseDir, file)
+  if (STRIP.some((re) => re.test(rel))) { fs.rmSync(file, { force: true }); stripped++ }
+}
+const files = walk(releaseDir)
+const forbidden = files.map((f) => relTo(releaseDir, f)).filter((rel) => FORBIDDEN.some((re) => re.test(rel)))
+if (forbidden.length) fail(`forbidden files in release:\n  ${forbidden.join('\n  ')}`)
+log(`removed ${stripped} source map / OS metadata files; no forbidden files`)
+
+// ---------------------------------------------------------- module loading
+// The tracer can copy a package's package.json without the files it loads
+// (seen with @mongodb-js/saslprep, which broke every database call). Load
+// each production dependency that ships in the release, from inside the
+// release, exactly as server.js would. Native modules can only load on the
+// target platform, so they are checked here only when building on it.
+const NATIVE = new Set(['argon2', 'sharp'])
+const deps = Object.keys(readJson(path.join(ROOT, 'package.json')).dependencies ?? {})
+  .filter((dep) => fs.existsSync(path.join(modules, dep, 'package.json')))
+  .filter((dep) => HOST_IS_TARGET || !NATIVE.has(dep))
+const loader = `
+const { createRequire } = require('node:module')
+const req = createRequire(${JSON.stringify(path.join(releaseDir, 'server.js'))})
+const failures = []
+;(async () => {
+  for (const dep of ${JSON.stringify(deps)}) {
+    try { req(dep) } catch (error) {
+      if (error.code === 'ERR_REQUIRE_ESM' || error.code === 'ERR_PACKAGE_PATH_NOT_EXPORTED') {
+        try { await import(req.resolve(dep)) } catch (inner) { failures.push(dep + ': ' + inner.message.split('\\n')[0]) }
+      } else failures.push(dep + ': ' + error.message.split('\\n')[0])
+    }
+  }
+  if (failures.length) { console.error(failures.join('\\n')); process.exit(1) }
+})()
+`
+const loaded = spawnSync(process.execPath, ['-e', loader], { cwd: releaseDir, encoding: 'utf8', env: { NODE_ENV: 'production', PATH: process.env.PATH } })
+if (loaded.status !== 0) fail(`production dependencies that fail to load from the release:\n  ${(loaded.stderr || loaded.stdout).trim().split('\n').join('\n  ')}`)
+log(`module loading: ${deps.length} production dependencies load from the release${HOST_IS_TARGET ? '' : ' (native argon2/sharp skipped: not on linux-x64)'}`)
+
+// --------------------------------------------------------- native binaries
+/** ELF, 64-bit, little-endian, x86-64 — what Linux x64 can load. */
+function nativeKind(file) {
+  const fd = fs.openSync(file, 'r')
+  const head = Buffer.alloc(20)
+  fs.readSync(fd, head, 0, 20, 0)
+  fs.closeSync(fd)
+  if (head.readUInt32BE(0) === 0x7f454c46) {
+    return head[4] === 2 && head[5] === 1 && head.readUInt16LE(18) === 0x3e ? 'elf-x64' : 'elf-other'
+  }
+  if ([0xfeedface, 0xfeedfacf, 0xcefaedfe, 0xcffaedfe, 0xcafebabe].includes(head.readUInt32BE(0))) return 'mach-o'
+  if (head.readUInt16BE(0) === 0x4d5a) return 'pe'
+  return 'unknown'
+}
+const natives = files.filter((f) => /\.(node|so(\.\d+)*|dylib|dll)$/.test(f))
+const wrong = natives.filter((f) => nativeKind(f) !== 'elf-x64')
+if (wrong.length) fail(`native files not built for linux-x64:\n  ${wrong.map((f) => `${relTo(releaseDir, f)} (${nativeKind(f)})`).join('\n  ')}`)
+if (!natives.length) fail('no native binaries found — argon2/sharp missing?')
+log(`native binaries (all linux x86-64 ELF):\n  ${natives.map((f) => relTo(releaseDir, f)).join('\n  ')}`)
+
+// --------------------------------------------------------------- leak scan
+const secrets = SERVER_SECRETS.map((k) => [k, process.env[k]?.trim()]).filter(([, v]) => v && v.length >= 8)
+if (secrets.length) {
+  const scanned = files.filter((f) => {
+    if (relTo(releaseDir, f).startsWith('node_modules/')) return false
+    const stat = fs.lstatSync(f)
+    return stat.isFile() && stat.size < 20 * 1024 * 1024
+  })
+  for (const file of scanned) {
+    const text = fs.readFileSync(file, 'latin1')
+    for (const [key, value] of secrets) {
+      if (text.includes(value)) fail(`the value of ${key} appears in ${relTo(releaseDir, file)}`)
+    }
+  }
+  log(`leak scan: ${secrets.length} secret value(s) from this environment found in none of ${scanned.length} files`)
+} else {
+  log('leak scan: no server secrets set in this environment (nothing to compare against)')
+}
+
+// ---------------------------------------------------------------- manifest
+const nextVersion = readJson(path.join(ROOT, 'node_modules', 'next', 'package.json')).version
 const manifest = {
-  name: NAME,
-  commit,
-  shortCommit: short,
-  branch: git('rev-parse', '--abbrev-ref', 'HEAD') || process.env.GITHUB_REF_NAME || '',
+  name,
+  commit: git('rev-parse', 'HEAD') || null,
+  branch: git('rev-parse', '--abbrev-ref', 'HEAD') || null,
   dirty,
-  buildId,
   builtAt: new Date().toISOString(),
-  builtWith: { node: process.versions.node, platform: process.platform, arch: process.arch },
-  target: { node: `${TARGET_NODE_MAJOR}.x`, platform: TARGET_PLATFORM, arch: TARGET_ARCH },
-  deployable: platformMatches,
-  nextVersion,
-  start: 'NODE_ENV=production PORT=3010 HOSTNAME=127.0.0.1 node server.js',
-  fileCount: relFiles.length,
+  next: nextVersion,
+  target: { ...TARGET, libc: 'glibc' },
+  buildHost: { platform: process.platform, arch: process.arch, node: process.versions.node, nativeSwap: !HOST_IS_TARGET },
+  publicEnv: publicNames,
+  start: 'node server.js',
 }
-fs.writeFileSync(path.join(OUT, 'release.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+fs.writeFileSync(path.join(releaseDir, 'release.json'), `${JSON.stringify(manifest, null, 2)}\n`)
 
-// ------------------------------------------------------------------- archive
-const archive = path.join(DIST, `${NAME}.tar.gz`)
+// ------------------------------------------------------------------- smoke
+// Boots the isolated release and requests pages, assets and the health
+// check. Runs with a scrubbed environment: no database or secrets, so a
+// build machine holding production credentials never connects anywhere.
+if (!args.has('--no-smoke')) {
+  log('smoke test (isolated release, no database configured)…')
+  const smokeEnv = { PATH: process.env.PATH, HOME: process.env.HOME, TMPDIR: os.tmpdir() }
+  run(process.execPath, [path.join(releaseDir, 'scripts', 'smoke-release.mjs'), releaseDir], { cwd: releaseDir, env: smokeEnv })
+}
+
+// ----------------------------------------------------------------- archive
+fs.mkdirSync(path.join(ROOT, 'dist', 'release'), { recursive: true })
+const archive = path.join(ROOT, 'dist', `${name}.tar.gz`)
 fs.rmSync(archive, { force: true })
-const tar = spawnSync('tar', ['-czf', archive, '-C', path.join(DIST, 'release'), NAME], { stdio: 'inherit' })
-if (tar.status !== 0) fail('tar failed.')
-const sha256 = createHash('sha256').update(fs.readFileSync(archive)).digest('hex')
-fs.writeFileSync(`${archive}.sha256`, `${sha256}  ${path.basename(archive)}\n`)
-
+const tarArgs = ['-czf', archive, '-C', stagingRoot, name]
+if (process.platform === 'darwin') tarArgs.unshift('--no-mac-metadata')
+run('tar', tarArgs, { env: { ...process.env, COPYFILE_DISABLE: '1' } })
+const digest = createHash('sha256').update(fs.readFileSync(archive)).digest('hex')
+fs.writeFileSync(`${archive}.sha256`, `${digest}  ${path.basename(archive)}\n`)
+// Unpacked copy for inspection only; deploy the archive.
+const unpacked = path.join(ROOT, 'dist', 'release', name)
+fs.rmSync(unpacked, { recursive: true, force: true })
+fs.cpSync(releaseDir, unpacked, { recursive: true, verbatimSymlinks: true })
 const mb = (fs.statSync(archive).size / 1024 / 1024).toFixed(1)
-log(`OK ${rel(archive)} (${mb} MB, ${relFiles.length} files, commit ${short}${dirty ? ', DIRTY' : ''})`)
-log(`sha256 ${sha256}`)
-if (!platformMatches) log('reminder: this archive was built for the wrong platform and is NOT deployable.')
+log(`archive ${relTo(ROOT, archive)} (${mb} MB)`)
+log(`sha256  ${digest}`)
+log(`unpacked copy (inspection only) ${relTo(ROOT, unpacked)}`)
+if (!HOST_IS_TARGET) {
+  warn(`built on ${process.platform}-${process.arch}: binaries were swapped for ${targetPrebuild}. Smoke-test on a Linux x64 host before switching traffic.`)
+}

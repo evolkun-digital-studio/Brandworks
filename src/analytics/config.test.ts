@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 /**
- * config.ts reads import.meta.env once at module load, so each
+ * config.ts reads process.env.NEXT_PUBLIC_* once at module load, so each
  * scenario here stubs the env, resets the module cache, and
  * dynamically re-imports — the only reliable way to test several
  * env-driven outcomes in one process (same pattern used by the
  * backend's config/env.test.ts in Phase 9, adapted for Vite's
- * import.meta.env via vi.stubEnv rather than child-process spawning,
+ * process.env via vi.stubEnv rather than child-process spawning,
  * since these values are read directly rather than validated at
  * startup with a possible throw).
  */
@@ -18,11 +18,11 @@ afterEach(() => {
 
 function stubAllEnvsEmpty() {
   for (const key of [
-    'VITE_GA_MEASUREMENT_ID',
-    'VITE_CLARITY_PROJECT_ID',
-    'VITE_GTM_CONTAINER_ID',
-    'VITE_META_PIXEL_ID',
-    'VITE_GSC_VERIFICATION',
+    'NEXT_PUBLIC_GA_MEASUREMENT_ID',
+    'NEXT_PUBLIC_CLARITY_PROJECT_ID',
+    'NEXT_PUBLIC_GTM_CONTAINER_ID',
+    'NEXT_PUBLIC_META_PIXEL_ID',
+    'NEXT_PUBLIC_GSC_VERIFICATION',
   ]) {
     vi.stubEnv(key, '')
   }
@@ -42,7 +42,7 @@ describe('analyticsConfig — provider disabled when env value absent', () => {
 
   it('whitespace-only values are also treated as unset', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', '   ')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', '   ')
     const { analyticsConfig } = await import('./config')
     expect(analyticsConfig.gaMeasurementId).toBeNull()
   })
@@ -51,7 +51,7 @@ describe('analyticsConfig — provider disabled when env value absent', () => {
 describe('analyticsConfig — GA4 initialization when configured', () => {
   it('gaDirectEnabled is true when a measurement ID is set and GTM is not configured', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
     const { analyticsConfig, gaDirectEnabled, anyProviderEnabled } = await import('./config')
     expect(analyticsConfig.gaMeasurementId).toBe('G-TEST123')
     expect(gaDirectEnabled).toBe(true)
@@ -62,8 +62,8 @@ describe('analyticsConfig — GA4 initialization when configured', () => {
 describe('analyticsConfig — GTM owns GA4 when both are configured (Part 8)', () => {
   it('gaOwnedByGtm is true and gaDirectEnabled is false when both IDs are set', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
-    vi.stubEnv('VITE_GTM_CONTAINER_ID', 'GTM-TEST')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', 'GTM-TEST')
     const { gaOwnedByGtm, gaDirectEnabled, gtmEnabled } = await import('./config')
     expect(gaOwnedByGtm).toBe(true)
     expect(gaDirectEnabled).toBe(false)
@@ -72,7 +72,7 @@ describe('analyticsConfig — GTM owns GA4 when both are configured (Part 8)', (
 
   it('gaDirectEnabled is true when GA4 is set but GTM is not', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
     const { gaOwnedByGtm, gaDirectEnabled } = await import('./config')
     expect(gaOwnedByGtm).toBe(false)
     expect(gaDirectEnabled).toBe(true)
@@ -80,7 +80,7 @@ describe('analyticsConfig — GTM owns GA4 when both are configured (Part 8)', (
 
   it('gtmEnabled is true when only GTM is set, independent of GA4', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GTM_CONTAINER_ID', 'GTM-TEST')
+    vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', 'GTM-TEST')
     const { gtmEnabled, gaOwnedByGtm, gaDirectEnabled } = await import('./config')
     expect(gtmEnabled).toBe(true)
     expect(gaOwnedByGtm).toBe(false)
@@ -91,7 +91,7 @@ describe('analyticsConfig — GTM owns GA4 when both are configured (Part 8)', (
 describe('analyticsConfig — Clarity / Meta Pixel / GSC independence', () => {
   it('each provider can be enabled independently of the others', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_CLARITY_PROJECT_ID', 'abc123')
+    vi.stubEnv('NEXT_PUBLIC_CLARITY_PROJECT_ID', 'abc123')
     const { clarityEnabled, gaDirectEnabled, metaPixelEnabled, gscEnabled } = await import('./config')
     expect(clarityEnabled).toBe(true)
     expect(gaDirectEnabled).toBe(false)
@@ -99,9 +99,9 @@ describe('analyticsConfig — Clarity / Meta Pixel / GSC independence', () => {
     expect(gscEnabled).toBe(false)
   })
 
-  it('gscEnabled reflects VITE_GSC_VERIFICATION alone', async () => {
+  it('gscEnabled reflects NEXT_PUBLIC_GSC_VERIFICATION alone', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GSC_VERIFICATION', 'token-value')
+    vi.stubEnv('NEXT_PUBLIC_GSC_VERIFICATION', 'token-value')
     const { analyticsConfig, gscEnabled } = await import('./config')
     expect(gscEnabled).toBe(true)
     expect(analyticsConfig.gscVerification).toBe('token-value')

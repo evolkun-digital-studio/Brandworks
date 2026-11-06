@@ -48,7 +48,7 @@ export const DEFAULT_TRACKING_SETTINGS: SiteTrackingSettings = { ga4MeasurementI
 export const DEFAULT_SITE_SETTINGS: PublicSiteSettings = {
   siteName: 'BRANDWORKS',
   siteDescription: 'We help brands build a stronger presence through strategic brand identity, social media, content, marketing, development and SEO.',
-  contactEmail: 'hello@brandworks.com',
+  contactEmail: 'socials@brandworks.me',
   footerTagline: 'Based in India, working worldwide.',
   socialLinks: [
     { label: 'Instagram', url: '#' },

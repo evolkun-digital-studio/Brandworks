@@ -124,6 +124,7 @@ function useMode() {
 
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
     setMode(currentMode());
     const queries = [REDUCED_MOTION].map((q) =>
       window.matchMedia(q),

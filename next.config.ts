@@ -1,5 +1,16 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { NextConfig } from 'next'
 import bundleAnalyzer from '@next/bundle-analyzer'
+
+/**
+ * This project's own directory. Pinned because Next otherwise infers the
+ * workspace root from the nearest lockfile, and a stray package-lock.json in
+ * a parent folder (e.g. the home directory) makes it pick that folder:
+ * Turbopack then warns and watches far too much, and the standalone server
+ * lands at a nested path that mirrors the build machine's directories.
+ */
+const projectRoot = path.dirname(fileURLToPath(import.meta.url))
 
 type RemotePattern = NonNullable<NonNullable<NextConfig['images']>['remotePatterns']>[number]
 
@@ -38,28 +49,36 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
-  // Self-contained server bundle (.next/standalone/server.js) with only the
-  // node_modules it needs, so a release never ships the dev toolchain.
-  // scripts/build-release.mjs copies public/ and .next/static/ next to it.
+  // Self-contained server (.next/standalone/server.js) with only the
+  // node_modules it traces. scripts/build-release.mjs adds public/ and
+  // .next/static/ and packages it for the Linux server.
   output: 'standalone',
-  // argon2 loads its native binary through node-gyp-build at runtime, which
-  // the file tracer cannot see: without this the release ships no binary and
-  // admin login crashes. All prebuilds are included so the same config works
-  // on any build platform (scripts/build-release.mjs checks the target's one).
-  // The MongoDB driver's @mongodb-js/saslprep is traced as package.json only
-  // (its dist/ is missed), which breaks every database call in standalone.
+  turbopack: { root: projectRoot },
+  // Same root for file tracing, so server.js sits at .next/standalone/server.js.
+  outputFileTracingRoot: projectRoot,
+  // argon2 loads its binary through node-gyp-build at runtime, which the
+  // tracer cannot follow, so without this no binary ships and admin login
+  // crashes. Only the Linux x64 prebuild (the production target) is included:
+  // never argon2/build/, the build machine's own compile, which node-gyp-build
+  // would prefer over the prebuild and which is a macOS binary on a Mac.
   outputFileTracingIncludes: {
-    '/**': ['./node_modules/argon2/prebuilds/**/*', './node_modules/@mongodb-js/saslprep/dist/**/*'],
+    '/**': ['./node_modules/argon2/prebuilds/linux-x64/**/*'],
   },
-  // Local-storage path resolution (cwd-relative `<root>/public`, source
-  // folders) makes the tracer copy unrelated project folders into the bundle:
-  // TypeScript sources (Node never executes them), earlier release output,
-  // scratch files and local media. None belongs in a release.
+  // Local-storage path resolution makes the tracer copy unrelated project
+  // folders: earlier release output, scratch files, local media and the
+  // TypeScript sources Node never executes. None belongs in a release.
+  // These globs match anywhere in a path, so each one names a path that cannot
+  // occur inside node_modules: a bare './dist/**' would also drop every
+  // package's dist/ folder (next/dist, @mongodb-js/saslprep/dist, ...).
   outputFileTracingExcludes: {
-    '/**': ['./src/**/*.ts', './src/**/*.tsx', './dist/**/*', './scratch/**/*', './.media-storage/**/*'],
+    '/**': [
+      './dist/release/**/*',
+      './dist/brandworks-next-*',
+      './scratch/**/*',
+      './.media-storage/**/*',
+      './src/server/**/*.ts',
+    ],
   },
-  // Don't advertise the framework in an X-Powered-By header.
-  poweredByHeader: false,
   // Hide the dev-only route badge; compile and runtime errors still surface.
   devIndicators: false,
   async headers() {

@@ -9,8 +9,8 @@ afterEach(() => {
 })
 
 function stubAllEnvsEmpty() {
-  vi.stubEnv('VITE_GTM_CONTAINER_ID', '')
-  vi.stubEnv('VITE_GA_MEASUREMENT_ID', '')
+  vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', '')
+  vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', '')
 }
 
 describe('gtm provider — disabled without a container ID', () => {
@@ -26,7 +26,7 @@ describe('gtm provider — disabled without a container ID', () => {
 describe('gtm provider — initializes when configured', () => {
   it('inserts exactly one script pointed at the configured container ID', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GTM_CONTAINER_ID', 'GTM-TEST')
+    vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', 'GTM-TEST')
     const { default: gtm } = await import('./gtm')
     gtm.init()
     const script = document.getElementById('gtm-script') as HTMLScriptElement | null
@@ -36,7 +36,7 @@ describe('gtm provider — initializes when configured', () => {
 
   it('initializes only once — a second init() call does not insert a second script or push gtm.start twice', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GTM_CONTAINER_ID', 'GTM-TEST')
+    vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', 'GTM-TEST')
     const { default: gtm } = await import('./gtm')
     gtm.init()
     gtm.init()
@@ -52,7 +52,7 @@ describe('gtm provider — initializes when configured', () => {
 describe('gtm provider — trackPageView pushes to dataLayer', () => {
   it('pushes a page_view event object', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GTM_CONTAINER_ID', 'GTM-TEST')
+    vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', 'GTM-TEST')
     const { default: gtm } = await import('./gtm')
     gtm.init()
     gtm.trackPageView({ path: '/blog', location: 'https://example.com/blog', title: 'Blog' })
@@ -68,10 +68,10 @@ describe('gtm provider — trackPageView pushes to dataLayer', () => {
 })
 
 describe('GTM does not duplicate direct GA4 (Part 8)', () => {
-  it('when both VITE_GTM_CONTAINER_ID and VITE_GA_MEASUREMENT_ID are set, only the GTM script is inserted — never a second, direct ga4-script', async () => {
+  it('when both NEXT_PUBLIC_GTM_CONTAINER_ID and NEXT_PUBLIC_GA_MEASUREMENT_ID are set, only the GTM script is inserted — never a second, direct ga4-script', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GTM_CONTAINER_ID', 'GTM-TEST')
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', 'GTM-TEST')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
 
     const { default: gtm } = await import('./gtm')
     const { default: ga4 } = await import('./ga4')

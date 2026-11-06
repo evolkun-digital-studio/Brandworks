@@ -17,7 +17,7 @@ declare global {
 }
 
 /**
- * Meta Pixel — optional, only active when VITE_META_PIXEL_ID is set
+ * Meta Pixel — optional, only active when NEXT_PUBLIC_META_PIXEL_ID is set
  * (Phase 12, Part 9). Loaded with the vendor's standard queue-stub
  * snippet.
  *

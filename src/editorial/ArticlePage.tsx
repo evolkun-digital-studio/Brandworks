@@ -238,13 +238,13 @@ function ArticlePage({ kind, manageMetadata = true }: { kind: EditorialKind; man
           <QuietCta
             text="Building a brand that needs clearer direction?"
             label="Talk to BrandWorks"
-            href="mailto:hello@brandworks.com"
+            href="mailto:socials@brandworks.me"
           />
         ) : (
           <QuietCta
             text="Press and media enquiries."
-            label="hello@brandworks.com"
-            href="mailto:hello@brandworks.com?subject=Press%20enquiry"
+            label="socials@brandworks.me"
+            href="mailto:socials@brandworks.me?subject=Press%20enquiry"
           />
         )}
       </div>

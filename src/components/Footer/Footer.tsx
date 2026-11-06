@@ -25,7 +25,7 @@ function scrollToTop() {
 }
 
 function Footer({
-  contactEmail = 'hello@brandworks.com',
+  contactEmail = 'socials@brandworks.me',
   socialLinks = socials,
 }: {
   contactEmail?: string

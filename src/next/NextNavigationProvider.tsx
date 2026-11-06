@@ -95,6 +95,7 @@ export default function NextNavigationProvider({ children }: { children: ReactNo
     } catch {
       nextState = null
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
     setState(nextState)
   }, [pathname, search])
   const value = useMemo<RouterBindings>(() => ({

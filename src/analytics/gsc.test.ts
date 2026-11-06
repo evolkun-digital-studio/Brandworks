@@ -9,7 +9,7 @@ afterEach(() => {
 
 describe('GSC verification meta tag — absent without a token', () => {
   it('emits no meta[name="google-site-verification"] tag', async () => {
-    vi.stubEnv('VITE_GSC_VERIFICATION', '')
+    vi.stubEnv('NEXT_PUBLIC_GSC_VERIFICATION', '')
     const { applyGscVerification } = await import('./gsc')
     applyGscVerification()
     expect(document.querySelector('meta[name="google-site-verification"]')).toBeNull()
@@ -18,7 +18,7 @@ describe('GSC verification meta tag — absent without a token', () => {
 
 describe('GSC verification meta tag — present with a token', () => {
   it('emits the tag with the configured token as its content', async () => {
-    vi.stubEnv('VITE_GSC_VERIFICATION', 'my-verification-token')
+    vi.stubEnv('NEXT_PUBLIC_GSC_VERIFICATION', 'my-verification-token')
     const { applyGscVerification } = await import('./gsc')
     applyGscVerification()
     const meta = document.querySelector('meta[name="google-site-verification"]')
@@ -26,7 +26,7 @@ describe('GSC verification meta tag — present with a token', () => {
   })
 
   it('is never duplicated — calling it more than once (e.g. React StrictMode) leaves exactly one tag', async () => {
-    vi.stubEnv('VITE_GSC_VERIFICATION', 'my-verification-token')
+    vi.stubEnv('NEXT_PUBLIC_GSC_VERIFICATION', 'my-verification-token')
     const { applyGscVerification } = await import('./gsc')
     applyGscVerification()
     applyGscVerification()

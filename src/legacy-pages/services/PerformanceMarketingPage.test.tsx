@@ -1,8 +1,8 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { Link as RouterLink, MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import PerformanceMarketingPage from './PerformanceMarketingPage'
+import PerformanceMarketingPage, { RENDERED_SECTION_IDS, SERVICE_INDEX } from './PerformanceMarketingPage'
 import { ViteNavigationProvider } from '../../routing/vite'
 
 vi.mock('@gsap/react', () => ({ useGSAP: Object.assign(() => {}, { register: () => {} }) }))
@@ -42,20 +42,20 @@ function mount(hash = '') {
     <MemoryRouter initialEntries={[`/services/performance-marketing${hash}`]}>
       <ViteNavigationProvider>
         <Routes>
-          <Route path="/services/performance-marketing" element={<PerformanceMarketingPage />} />
+          <Route
+            path="/services/performance-marketing"
+            element={<>
+              <PerformanceMarketingPage />
+              {/* Same router Link a service-index entry renders, used to drive real in-page hash navigation. */}
+              <nav data-test-nav>{[...RENDERED_SECTION_IDS].map(id => <RouterLink key={id} to={`#${id}`}>{id}</RouterLink>)}</nav>
+            </>}
+          />
           <Route path="/contact" element={<h1>Contact</h1>} />
           <Route path="/services/seo" element={<h1>SEO</h1>} />
         </Routes>
       </ViteNavigationProvider>
     </MemoryRouter>,
   ))
-}
-
-function clickButton(label: string) {
-  const button = Array.from(container.querySelectorAll('button')).find(item => item.textContent === label)
-  expect(button).toBeDefined()
-  act(() => button!.click())
-  return button!
 }
 
 describe('Performance Marketing service page', () => {
@@ -70,39 +70,81 @@ describe('Performance Marketing service page', () => {
     expect(document.querySelector('meta[property="og:title"]')).toBeNull()
   })
 
-  it('connects all service index links to sections and supports direct approach links', () => {
+  it('supports direct links to a section on load', () => {
     mount('#pm-approach')
     expect(document.activeElement?.id).toBe('pm-approach')
-    expect(container.querySelectorAll('main > section')).toHaveLength(24)
-    const links = container.querySelectorAll<HTMLAnchorElement>('.pm-service-index a')
-    expect(links).toHaveLength(16)
-    links.forEach(link => expect(container.querySelector(link.hash)).not.toBeNull())
-    act(() => links[12].click())
-    expect(document.activeElement?.id).toBe('pm-section-06')
   })
 
-  it('updates the creative combination without resetting other choices', () => {
+  it('RENDERED_SECTION_IDS matches the sections the page actually renders', () => {
     mount()
-    expect(clickButton('Hook C').getAttribute('aria-pressed')).toBe('true')
-    clickButton('Visual B')
-    clickButton('Offer B')
-    clickButton('Audience 02')
-    expect(container.querySelector('.pm-variant')?.textContent).toBe('Selected: H3 / V2 / O2 / A2')
-    expect(container.querySelector('.pm-creative-copy h3')?.textContent).toBe('Designed for your daily rhythm.')
-    expect(container.querySelector('.pm-creative-preview img')?.getAttribute('src')).toContain('photo3-720')
+    const rendered = Array.from(container.querySelectorAll<HTMLElement>('main > section[id]')).map(section => section.id)
+    expect(new Set(rendered)).toEqual(RENDERED_SECTION_IDS)
   })
 
-  it('switches the landing-page concept and exposes native FAQ disclosures', () => {
+  it('in-page hash navigation scrolls to and focuses each rendered section', () => {
     mount()
-    expect(clickButton('Before / Friction').getAttribute('aria-pressed')).toBe('true')
-    expect(container.querySelector('.pm-wireframe h3')?.textContent).toBe('Welcome to our website.')
-    clickButton('After / Clarity')
-    expect(container.querySelector('.pm-wireframe')?.classList.contains('is-improved')).toBe(true)
-    const disclosures = container.querySelectorAll('details')
-    expect(disclosures).toHaveLength(18)
-    const guarantee = disclosures[17]
-    act(() => guarantee.querySelector('summary')!.click())
-    expect(guarantee.open).toBe(true)
-    expect(guarantee.textContent).toContain('advertising outcomes should not be guaranteed')
+    for (const id of RENDERED_SECTION_IDS) {
+      const link = container.querySelector<HTMLAnchorElement>(`[data-test-nav] a[href$="#${id}"]`)!
+      act(() => link.click())
+      expect(document.activeElement?.id).toBe(id)
+      expect(document.activeElement?.tagName).toBe('SECTION')
+    }
+  })
+
+  it('lists all 16 offerings in order, linking only those whose section is rendered', () => {
+    mount()
+    const items = Array.from(container.querySelectorAll<HTMLLIElement>('.pm-service-index > li'))
+    expect(items).toHaveLength(16)
+    expect(SERVICE_INDEX).toHaveLength(16)
+    SERVICE_INDEX.forEach(({ label, target }, index) => {
+      const item = items[index]
+      expect(item.textContent).toContain(String(index + 1).padStart(2, '0'))
+      expect(item.textContent).toContain(label)
+      const link = item.querySelector<HTMLAnchorElement>('a')
+      if (RENDERED_SECTION_IDS.has(target)) {
+        expect(link?.hash).toBe(`#${target}`)
+      } else {
+        // Accessible, non-interactive text: no link, nothing focusable, no "go" arrow.
+        expect(link).toBeNull()
+        expect(item.querySelector('[href], [tabindex], [role="link"], button')).toBeNull()
+        expect(item.querySelector('.pm-index-arrow')).toBeNull()
+        expect(item.querySelector('.pm-index-item')).not.toBeNull()
+      }
+    })
+  })
+
+  it('every service-index link resolves and navigates to its section', () => {
+    mount()
+    const links = Array.from(container.querySelectorAll<HTMLAnchorElement>('.pm-service-index a'))
+    // Currently zero: every offering's section is retired (see RENDERED_SECTION_IDS).
+    expect(links).toHaveLength(SERVICE_INDEX.filter(({ target }) => RENDERED_SECTION_IDS.has(target)).length)
+    for (const link of links) {
+      const target = container.querySelector<HTMLElement>(link.hash)
+      expect(target).not.toBeNull()
+      act(() => link.click())
+      expect(document.activeElement).toBe(target)
+    }
+  })
+
+  // The creative lab (section 06), landing-page comparison (09) and FAQ (23)
+  // were retired from the page in commit de6ad02 — see
+  // docs/decisions/2026-11-06-performance-marketing-retired-sections.md.
+  // These replace the two tests that exercised them.
+  it('the retired creative lab, landing-page comparison and FAQ leave no orphaned controls or copy', () => {
+    mount()
+    expect(container.querySelector('button[aria-pressed]')).toBeNull()
+    expect(container.querySelectorAll('details')).toHaveLength(0)
+    for (const selector of ['.pm-creative-preview', '.pm-variant', '.pm-wireframe', '.pm-faq-list']) {
+      expect(container.querySelector(selector)).toBeNull()
+    }
+    expect(container.textContent).not.toContain('Do you guarantee results?')
+    expect(container.textContent).not.toContain('advertising outcomes should not be guaranteed')
+  })
+
+  it('the performance system lists every stage in order, starting on Research', () => {
+    mount()
+    const stages = Array.from(container.querySelectorAll<HTMLElement>('#pm-system [data-pm-stage]')).map(stage => stage.dataset.pmStage)
+    expect(stages).toEqual(['Research', 'Offer', 'Audience', 'Creative', 'Media', 'Landing Page', 'Tracking', 'Conversion', 'Optimization', 'Scale'])
+    expect(container.querySelector('#pm-system [data-pm-active-stage]')?.textContent).toBe('Research')
   })
 })

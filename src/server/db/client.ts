@@ -27,7 +27,7 @@ function getClientPromise(): Promise<MongoClient> {
     return mongoGlobal.__brandworksMongoClientPromise
   }
 
-  const client = new MongoClient(requireMongoUri(), { serverSelectionTimeoutMS: serverSelectionTimeoutMs() })
+  const client = new MongoClient(requireMongoUri())
   const pending: Promise<MongoClient> = client.connect()
     .then(async (connectedClient) => {
       try {

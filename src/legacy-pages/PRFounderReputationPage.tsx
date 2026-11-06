@@ -165,6 +165,7 @@ function useInView<T extends Element>(options: IntersectionObserverInit = { thre
     const el = ref.current
     if (!el) return
     if (typeof IntersectionObserver === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
       setSeen(true)
       return
     }
@@ -185,6 +186,7 @@ function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false)
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
     setReduced(mq.matches)
     const onChange = () => setReduced(mq.matches)
     mq.addEventListener('change', onChange)

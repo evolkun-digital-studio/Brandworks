@@ -235,6 +235,7 @@ function BlogList() {
   const { confirm, dialog } = useConfirm()
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setScheduledView(searchParams.get('scheduled') === 'true')
   }, [searchParams])
 
@@ -244,6 +245,7 @@ function BlogList() {
   }, [searchInput])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setPage(1)
     setSelectedIds([])
   }, [debouncedSearch, statusFilter, scheduledView, trashView, sortOrder, contentTypeFilter])
@@ -261,6 +263,7 @@ function BlogList() {
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
     setLoading(true)
     setLoadError(null)
     const request = trashView

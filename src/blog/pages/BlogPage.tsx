@@ -65,6 +65,7 @@ function BlogPage() {
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
     setLoading(true)
     setError(null)
 

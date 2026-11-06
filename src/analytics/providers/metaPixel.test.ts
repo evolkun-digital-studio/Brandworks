@@ -11,7 +11,7 @@ afterEach(() => {
 
 describe('meta pixel provider — disabled without a pixel ID', () => {
   it('init() inserts no script', async () => {
-    vi.stubEnv('VITE_META_PIXEL_ID', '')
+    vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', '')
     const { default: metaPixel } = await import('./metaPixel')
     metaPixel.init()
     expect(document.getElementById('meta-pixel-script')).toBeNull()
@@ -20,7 +20,7 @@ describe('meta pixel provider — disabled without a pixel ID', () => {
 
 describe('meta pixel provider — initializes when configured', () => {
   it('inserts exactly one script and calls fbq(init, id)', async () => {
-    vi.stubEnv('VITE_META_PIXEL_ID', 'PIXEL123')
+    vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', 'PIXEL123')
     const { default: metaPixel } = await import('./metaPixel')
     metaPixel.init()
     expect(document.getElementById('meta-pixel-script')).not.toBeNull()
@@ -28,7 +28,7 @@ describe('meta pixel provider — initializes when configured', () => {
   })
 
   it('does not fire a PageView from init() itself — trackPageView is the sole authoritative source (Part 3)', async () => {
-    vi.stubEnv('VITE_META_PIXEL_ID', 'PIXEL123')
+    vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', 'PIXEL123')
     const { default: metaPixel } = await import('./metaPixel')
     const calls: unknown[][] = []
     metaPixel.init()
@@ -43,7 +43,7 @@ describe('meta pixel provider — initializes when configured', () => {
   })
 
   it('initializes only once — a second init() call does not insert a second script', async () => {
-    vi.stubEnv('VITE_META_PIXEL_ID', 'PIXEL123')
+    vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', 'PIXEL123')
     const { default: metaPixel } = await import('./metaPixel')
     metaPixel.init()
     metaPixel.init()
@@ -53,7 +53,7 @@ describe('meta pixel provider — initializes when configured', () => {
 
 describe('meta pixel provider — trackPageView', () => {
   it('is the one call that sends a PageView event', async () => {
-    vi.stubEnv('VITE_META_PIXEL_ID', 'PIXEL123')
+    vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', 'PIXEL123')
     const { default: metaPixel } = await import('./metaPixel')
     metaPixel.init()
     const calls: unknown[][] = []
@@ -67,7 +67,7 @@ describe('meta pixel provider — trackPageView', () => {
   })
 
   it('does nothing when disabled', async () => {
-    vi.stubEnv('VITE_META_PIXEL_ID', '')
+    vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', '')
     const { default: metaPixel } = await import('./metaPixel')
     expect(() => metaPixel.trackPageView({ path: '/', location: 'https://example.com/', title: 'Home' })).not.toThrow()
     expect(window.fbq).toBeUndefined()

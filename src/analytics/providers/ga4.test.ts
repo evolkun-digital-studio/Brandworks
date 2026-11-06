@@ -9,7 +9,7 @@ afterEach(() => {
 })
 
 function stubAllEnvsEmpty() {
-  for (const key of ['VITE_GA_MEASUREMENT_ID', 'VITE_GTM_CONTAINER_ID']) {
+  for (const key of ['NEXT_PUBLIC_GA_MEASUREMENT_ID', 'NEXT_PUBLIC_GTM_CONTAINER_ID']) {
     vi.stubEnv(key, '')
   }
 }
@@ -26,7 +26,7 @@ describe('ga4 provider — disabled without a measurement ID', () => {
 describe('ga4 provider — initializes when configured', () => {
   it('inserts exactly one script pointed at the configured measurement ID', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
     const { default: ga4 } = await import('./ga4')
     ga4.init()
     const script = document.getElementById('ga4-script') as HTMLScriptElement | null
@@ -36,7 +36,7 @@ describe('ga4 provider — initializes when configured', () => {
 
   it('configures gtag with send_page_view: false — this codebase owns page_view timing, not gtag.js', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
     const { default: ga4 } = await import('./ga4')
     ga4.init()
     const dataLayer = window.dataLayer as unknown[]
@@ -46,7 +46,7 @@ describe('ga4 provider — initializes when configured', () => {
 
   it('initializes only once — a second init() call does not insert a second script or push a second config', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
     const { default: ga4 } = await import('./ga4')
     ga4.init()
     ga4.init()
@@ -58,8 +58,8 @@ describe('ga4 provider — initializes when configured', () => {
 
   it('is disabled (no script, no config) when a GTM container also owns GA4 delivery', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
-    vi.stubEnv('VITE_GTM_CONTAINER_ID', 'GTM-TEST')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', 'GTM-TEST')
     const { default: ga4 } = await import('./ga4')
     ga4.init()
     expect(document.getElementById('ga4-script')).toBeNull()
@@ -69,7 +69,7 @@ describe('ga4 provider — initializes when configured', () => {
 describe('ga4 provider — trackPageView', () => {
   it('pushes a page_view event with page_location/page_path/page_title', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
     const { default: ga4 } = await import('./ga4')
     ga4.init()
     ga4.trackPageView({ path: '/blog', location: 'https://example.com/blog', title: 'Blog | BRANDWORKS' })
@@ -93,7 +93,7 @@ describe('ga4 provider — trackPageView', () => {
 describe('ga4 provider — error safety', () => {
   it('trackEvent never throws even if the DOM/window state is unusable', async () => {
     stubAllEnvsEmpty()
-    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', 'G-TEST123')
     const { default: ga4 } = await import('./ga4')
     ga4.init()
     expect(() => ga4.trackEvent({ name: 'custom_event', params: { foo: 'bar' } })).not.toThrow()
