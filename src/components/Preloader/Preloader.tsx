@@ -238,6 +238,7 @@ function Preloader() {
 
   useLayoutEffect(() => {
     const nextMode = resolveIntroMode()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
     setCompact(window.matchMedia?.('(max-width: 767px)').matches ?? false)
     setMode(nextMode)
     setDone(nextMode === 'none')

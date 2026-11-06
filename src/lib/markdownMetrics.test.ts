@@ -79,7 +79,7 @@ describe('classifyLink', () => {
   it('treats relative paths, hashes, mailto, and tel as internal', () => {
     expect(classifyLink('/blog/other-post')).toBe('internal')
     expect(classifyLink('#section')).toBe('internal')
-    expect(classifyLink('mailto:hello@brandworks.com')).toBe('internal')
+    expect(classifyLink('mailto:socials@brandworks.me')).toBe('internal')
     expect(classifyLink('tel:+1234567890')).toBe('internal')
   })
 

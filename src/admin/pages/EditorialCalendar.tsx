@@ -13,7 +13,7 @@ function localDateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
-function CalendarDay({ date, posts }: { date: string; posts: AdminBlogPost[] }) {
+function CalendarDay({ date, posts, now }: { date: string; posts: AdminBlogPost[]; now: number }) {
   const day = new Date(`${date}T12:00:00`)
   const isToday = date === localDateKey(new Date())
 
@@ -28,7 +28,7 @@ function CalendarDay({ date, posts }: { date: string; posts: AdminBlogPost[] }) 
       </header>
       <div className="admin-list">
         {posts.map((post) => {
-          const overdue = Boolean(post.scheduledAt && new Date(post.scheduledAt).getTime() < Date.now())
+          const overdue = Boolean(post.scheduledAt && new Date(post.scheduledAt).getTime() < now)
           const reviewLabel = overdue ? 'Overdue' : post.reviewStatus === 'in_review' ? 'In review' : post.reviewStatus === 'approved' ? 'Approved' : 'Draft'
           const reviewTone = overdue ? 'danger' : post.reviewStatus === 'approved' ? 'success' : post.reviewStatus === 'in_review' ? 'warning' : 'neutral'
           return (
@@ -55,12 +55,15 @@ function EditorialCalendar() {
   const [posts, setPosts] = useState<AdminBlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Overdue is judged against when the schedule was last loaded, not re-read during render.
+  const [loadedAt, setLoadedAt] = useState(0)
 
   async function load() {
     setLoading(true)
     setError(null)
     try {
       setPosts((await blogApi.listBlogPosts({ scheduled: true, limit: 100, sort: 'scheduled_asc' })).items)
+      setLoadedAt(Date.now())
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not load the publishing calendar.')
     } finally {
@@ -68,6 +71,7 @@ function EditorialCalendar() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
   useEffect(() => { void load() }, [])
 
   const groups = useMemo(() => {
@@ -79,7 +83,7 @@ function EditorialCalendar() {
     return [...grouped.entries()]
   }, [posts])
 
-  const overdueCount = posts.filter((post) => Boolean(post.scheduledAt && new Date(post.scheduledAt).getTime() < Date.now())).length
+  const overdueCount = posts.filter((post) => Boolean(post.scheduledAt && new Date(post.scheduledAt).getTime() < loadedAt)).length
   const nextPublish = posts[0]?.scheduledAt ? new Date(posts[0].scheduledAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : null
 
   return (
@@ -103,7 +107,7 @@ function EditorialCalendar() {
         </div>
       ) : (
         <div className="flex flex-col gap-4" aria-live="polite">
-          {groups.map(([date, items]) => <CalendarDay key={date} date={date} posts={items} />)}
+          {groups.map(([date, items]) => <CalendarDay key={date} date={date} posts={items} now={loadedAt} />)}
         </div>
       )}
     </div>

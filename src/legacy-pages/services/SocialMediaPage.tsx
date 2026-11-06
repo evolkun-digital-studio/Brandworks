@@ -563,6 +563,7 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
   const count = reels.length
   const reel = reels[clip % Math.max(1, count)]
   const cylinder = useCylinderSwap()
+  const { outRef: cylinderOutRef, inRef: cylinderInRef, inImgRef: cylinderInImgRef } = cylinder
 
   useEffect(() => {
     if (!autoPlayInView) return
@@ -626,7 +627,7 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
   ref={wrapRef}
   className="relative h-full w-full overflow-hidden rounded-[clamp(16px,1.35vw,23px)] bg-[#151515] text-white shadow-[0_24px_60px_rgba(16,17,15,0.22)]"
 >
-      <div ref={cylinder.outRef} className="absolute inset-0 [backface-visibility:hidden]">
+      <div ref={cylinderOutRef} className="absolute inset-0 [backface-visibility:hidden]">
       {status === 'loading' && <span className="absolute inset-0 animate-pulse bg-gradient-to-br from-white/10 via-white/5 to-transparent" aria-hidden="true" />}
       <video
         ref={videoRef}
@@ -656,7 +657,7 @@ function HeroVideoPlayer({ reels, takeover = false, autoPlayInView = false }: { 
       {status === 'error' && <span className="absolute inset-0 grid place-items-center text-[11px] uppercase tracking-[0.08em] text-white/60">Video unavailable</span>}
       <CylShade />
       </div>
-      <CylinderIncomingFace faceRef={cylinder.inRef} imgRef={cylinder.inImgRef} />
+      <CylinderIncomingFace faceRef={cylinderInRef} imgRef={cylinderInImgRef} />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/55" />
 
       <span className="pointer-events-none absolute right-5 top-14 z-20 text-[13px] font-semibold tabular-nums text-[#fffaf7]  ">
@@ -934,7 +935,7 @@ function StoryGroupCard({
   const shouldPlay = active && inView
   const shouldPlayRef = useRef(shouldPlay)
   const wasActiveRef = useRef(active)
-  shouldPlayRef.current = shouldPlay
+  useBrowserLayoutEffect(() => { shouldPlayRef.current = shouldPlay })
 
   useEffect(() => {
     const card = cardRef.current
@@ -1388,9 +1389,13 @@ function ProjectRail({ onOpen }: { onOpen: (reel: SocialReel, trigger: HTMLEleme
   const fallbackImages = [mediaUrl('Strategy.jpg'), mediaUrl('content_creation.avif'), mediaUrl('enga.webp')]
   const heroItems = heroReels.map((reel, index) => ({ reel, image: reel.poster || fallbackImages[index] || fallbackImages[0] }))
   const centerItem = heroItems[1] || heroItems[0]
+  // Keyed on the reel itself (a stable module-level object), not
+  // centerItem, which heroItems rebuilds every render. Same reel as
+  // centerItem.reel: heroItems[i].reel is SOCIAL_REELS[i].
+  const centerReel = SOCIAL_REELS[1] || SOCIAL_REELS[0]
   const playlist = useMemo(
-    () => (centerItem ? [centerItem.reel, ...SOCIAL_REELS.filter((reel) => reel.id !== centerItem.reel.id)].slice(0, 6) : []),
-    [centerItem],
+    () => (centerReel ? [centerReel, ...SOCIAL_REELS.filter((reel) => reel.id !== centerReel.id)].slice(0, 6) : []),
+    [centerReel],
   )
   const heroBackdrop = mediaUrl('Strategy.jpg')
   const teamPhoto = mediaUrl('team-04.webp')

@@ -51,6 +51,7 @@ function CommandPalette({ open, isAdmin, onClose, onThemeChange }: CommandPalett
 
   useEffect(() => {
     if (!open) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setQuery('')
     setArticles([])
     setActive(0)
@@ -65,6 +66,7 @@ function CommandPalette({ open, isAdmin, onClose, onThemeChange }: CommandPalett
   useEffect(() => {
     const term = query.trim()
     if (!open || term.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clears stale article results when the query is too short to search
       setArticles([])
       return
     }
@@ -121,6 +123,7 @@ function CommandPalette({ open, isAdmin, onClose, onThemeChange }: CommandPalett
   }, [articles, commands, navigate, query])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resets local UI state when the value it depends on changes
     setActive((index) => Math.min(index, Math.max(results.length - 1, 0)))
   }, [results.length])
 

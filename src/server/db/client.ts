@@ -11,14 +11,24 @@ type MongoGlobal = typeof globalThis & {
 
 const mongoGlobal = globalThis as MongoGlobal
 
+/**
+ * How long the driver waits to find a usable server before failing. The
+ * driver default (30s) makes every page and API call hang that long when the
+ * database is down, tying up workers. Override with
+ * MONGODB_SERVER_SELECTION_TIMEOUT_MS (1000–60000; anything else → 10000).
+ */
+export function serverSelectionTimeoutMs(source: NodeJS.ProcessEnv = process.env): number {
+  const value = Number(source.MONGODB_SERVER_SELECTION_TIMEOUT_MS)
+  return Number.isInteger(value) && value >= 1000 && value <= 60_000 ? value : 10_000
+}
+
 function getClientPromise(): Promise<MongoClient> {
   if (mongoGlobal.__brandworksMongoClientPromise) {
     return mongoGlobal.__brandworksMongoClientPromise
   }
 
-  const client = new MongoClient(requireMongoUri())
-  let pending: Promise<MongoClient>
-  pending = client.connect()
+  const client = new MongoClient(requireMongoUri(), { serverSelectionTimeoutMS: serverSelectionTimeoutMs() })
+  const pending: Promise<MongoClient> = client.connect()
     .then(async (connectedClient) => {
       try {
         await connectedClient.db().command({ ping: 1 })
@@ -45,8 +55,7 @@ export function getDatabase(): Promise<Db> {
     return mongoGlobal.__brandworksMongoDbPromise
   }
 
-  let pending: Promise<Db>
-  pending = getClientPromise()
+  const pending: Promise<Db> = getClientPromise()
     .then(async (client) => {
       const db = client.db()
       await ensureDatabaseIndexes(db)

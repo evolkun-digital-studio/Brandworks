@@ -16,6 +16,7 @@ function HeroCaption({ activeId, reducedMotion }: { activeId: HeroServiceId; red
   const [waiting, setWaiting] = useState(false)
   useEffect(() => {
     if (reducedMotion || !isIntroPending()) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads browser-only state (storage/media query/navigator/clock/intro gate) after hydration; unavailable during SSR
     setWaiting(true)
     return onIntroDone(() => window.setTimeout(() => setWaiting(false), 300))
   }, [reducedMotion])

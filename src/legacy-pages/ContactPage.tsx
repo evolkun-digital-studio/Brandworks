@@ -9,7 +9,7 @@ import { BackButton, Chip, EASE, ErrorText, Label, PillButton, ProgressBar, Text
 /*  Content                                                                   */
 /* -------------------------------------------------------------------------- */
 
-const EMAIL = 'hello@brandworks.me'
+const EMAIL = 'socials@brandworks.me'
 
 const services = [
   'Videography',

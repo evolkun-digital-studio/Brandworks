@@ -62,6 +62,9 @@ const post = (body: unknown, signal?: AbortSignal) =>
   })
 
 beforeEach(() => {
+  // Model the deployed setup: one trusted, appending reverse proxy, so the
+  // X-Forwarded-For values below identify distinct clients.
+  vi.stubEnv('TRUSTED_PROXY_HOPS', '1')
   vi.stubEnv('OPENAI_API_KEY', '')
   vi.stubEnv('ANTHROPIC_API_KEY', '')
   vi.stubEnv('AI_PROVIDER', '')
@@ -248,6 +251,15 @@ describe('POST /api/questionnaire/assist/stream', () => {
     expect(first.at(-1)!.event).toBe('done')
     expect(second).toEqual([{ event: 'fallback', data: JSON.stringify({ ai: false, text: '' }) }])
     expect(fetchSpy).toHaveBeenCalledTimes(1)
+    // A forged first X-Forwarded-For entry does not buy the same client a fresh budget…
+    const spoofed = { ...headers, 'x-forwarded-for': '1.2.3.4, 10.8.8.8' }
+    const third = await eventsOf(await streamRoute(new Request(url, { method: 'POST', headers: spoofed, body })))
+    expect(third).toEqual([{ event: 'fallback', data: JSON.stringify({ ai: false, text: '' }) }])
+    // …while a genuinely different client still gets its own.
+    const other = { ...headers, 'x-forwarded-for': '10.8.8.9' }
+    const fourth = await eventsOf(await streamRoute(new Request(url, { method: 'POST', headers: other, body })))
+    expect(fourth.at(-1)!.event).toBe('done')
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
   })
 
   it('aborts the upstream model request when the visitor disconnects', async () => {

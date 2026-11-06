@@ -79,6 +79,7 @@ function SeoWorkspace() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- flags the start of the async request this effect owns
   useEffect(() => { void load() }, [])
 
   async function addRedirect(event: FormEvent) {

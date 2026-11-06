@@ -15,7 +15,7 @@ function gtag(...args: unknown[]): void {
 
 /**
  * Direct GA4 (gtag.js) provider — only active when
- * VITE_GA_MEASUREMENT_ID is set AND no GTM container also owns GA4
+ * NEXT_PUBLIC_GA_MEASUREMENT_ID is set AND no GTM container also owns GA4
  * delivery (see config.ts's gaOwnedByGtm / Phase 12 Part 8).
  *
  * `send_page_view: false` on the config call is deliberate: GA4's own

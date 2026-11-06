@@ -9,17 +9,17 @@ afterEach(() => {
 })
 
 function enableGtmOnly() {
-  vi.stubEnv('VITE_GTM_CONTAINER_ID', 'GTM-TEST')
-  vi.stubEnv('VITE_GA_MEASUREMENT_ID', '')
-  vi.stubEnv('VITE_CLARITY_PROJECT_ID', '')
-  vi.stubEnv('VITE_META_PIXEL_ID', '')
+  vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', 'GTM-TEST')
+  vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', '')
+  vi.stubEnv('NEXT_PUBLIC_CLARITY_PROJECT_ID', '')
+  vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', '')
 }
 
 function disableAll() {
-  vi.stubEnv('VITE_GTM_CONTAINER_ID', '')
-  vi.stubEnv('VITE_GA_MEASUREMENT_ID', '')
-  vi.stubEnv('VITE_CLARITY_PROJECT_ID', '')
-  vi.stubEnv('VITE_META_PIXEL_ID', '')
+  vi.stubEnv('NEXT_PUBLIC_GTM_CONTAINER_ID', '')
+  vi.stubEnv('NEXT_PUBLIC_GA_MEASUREMENT_ID', '')
+  vi.stubEnv('NEXT_PUBLIC_CLARITY_PROJECT_ID', '')
+  vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', '')
 }
 
 describe('initAnalytics', () => {

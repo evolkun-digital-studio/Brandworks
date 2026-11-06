@@ -21,17 +21,20 @@ function read(relativePath: string): string {
 }
 
 describe('Hero — service media loading strategy', () => {
-  const hero = read('Hero.tsx')
+  const hero = read('components/Hero/Hero.tsx')
   const media = read('components/Hero/HeroMedia.tsx')
   const data = read('data/heroServices.ts')
 
-  it('starts with only the default (Photography) layer mounted', () => {
+  // The default service is a product decision (it moved from
+  // Photography to Videography); the guard is that only that one layer
+  // is mounted at first paint, whichever service it is.
+  it('starts with only the default service layer mounted', () => {
     expect(hero).toContain('new Set([DEFAULT_HERO_SERVICE])')
-    expect(data).toContain("DEFAULT_HERO_SERVICE: HeroServiceId = 'photography'")
+    expect(data).toMatch(/export const DEFAULT_HERO_SERVICE: HeroServiceId = '[a-z-]+'/)
   })
 
   it('warms the other services only after load, when the page is idle', () => {
-    expect(hero).toContain("addEventListener('load'")
+    expect(hero).toMatch(/addEventListener\((['"])load\1/)
     expect(hero).toContain('requestIdleCallback')
   })
 
@@ -57,26 +60,28 @@ describe('Hero — service media loading strategy', () => {
 })
 
 describe('About.tsx — video source and loading strategy', () => {
-  const source = read('About.tsx')
+  const source = read('components/About.tsx')
+  const video = source.slice(source.indexOf('<video'), source.indexOf('/>', source.indexOf('<video')))
 
-  it('uses the supplied Cloudinary video with native background playback attributes', () => {
-    const video = source.slice(source.indexOf('<video'), source.indexOf('/>', source.indexOf('<video')))
-    expect(video).toContain('https://res.cloudinary.com/dpjdnoqii/video/upload/v1790402778/gemini_generated_video_b01ac751_umpdsx.mp4')
-    for (const attr of ['autoPlay', 'muted', 'loop', 'playsInline', 'preload="metadata"']) {
+  // The Cloudinary film was replaced by an R2-hosted clip that the
+  // visitor plays/pauses by clicking the frame, so it no longer autoplays.
+  it('serves the film from the R2 media helper as a muted, looping, inline background clip without native controls', () => {
+    expect(video).toMatch(/src=\{mediaUrl\(["'][^"']+\.mp4["']\)\}/)
+    expect(source).not.toContain('res.cloudinary.com')
+    for (const attr of ['muted', 'loop', 'playsInline', 'preload="metadata"']) {
       expect(video).toContain(attr)
     }
     expect(video).not.toContain('controls')
-    expect(video).toContain('absolute inset-0 block h-full w-full object-cover object-center')
+    expect(video).toContain('absolute inset-0 h-full w-full object-cover object-center')
   })
 
-  it('reserves layout space via a fixed-dimension container', () => {
-    expect(source).toContain('h-[365px]')
-    expect(source).toContain('w-[572px]')
+  it('reserves layout space via a fixed aspect-ratio container', () => {
+    expect(source).toContain('aspect-[16/10]')
   })
 })
 
 describe('Industries.tsx — Real Estate case study film', () => {
-  const source = read('Industries.tsx')
+  const source = read('components/Industries.tsx')
 
   it('uses LazyBackgroundVideo, not a raw <video> element', () => {
     expect(source).toContain('LazyBackgroundVideo')
@@ -97,57 +102,51 @@ describe('Industries.tsx — Real Estate case study film', () => {
   })
 })
 
-describe('Videography.tsx — YouTube-driven pinned section', () => {
-  const source = read('Videography.tsx')
+describe('Videography.tsx — pinned film section', () => {
+  const source = read('components/Videography.tsx')
+  const videos = [...source.matchAll(/<video[\s\S]*?\/>/g)].map((m) => m[0])
 
   it('uses no <img> as storytelling media', () => {
     expect(source).not.toMatch(/<img/)
   })
 
-  it('wires the four films by clean video ID, never share (?si=) links', () => {
-    for (const id of ['PJWHAiDARMQ', '5EpyN_6dqyk', 'weeI1G46q0o', '_r-nPqWGG6c']) {
-      expect(source).toContain(`videoId: '${id}'`)
-    }
+  // The YouTube embeds were replaced by direct R2-hosted films.
+  it('plays direct video files, with no YouTube iframes or share (?si=) links', () => {
+    expect(source).not.toMatch(/<iframe/)
+    expect(source).not.toMatch(/youtube(-nocookie)?\.com/)
     expect(source).not.toMatch(/[?&]si=[A-Za-z0-9_-]/)
+    expect(videos.length).toBeGreaterThan(0)
   })
 
-  it('builds one embed URL: autoplay, muted, looping via playlist, no controls or related videos', () => {
-    expect(source.match(/<iframe/g)).toHaveLength(1)
-    for (const param of ['autoplay=1', 'mute=1', 'loop=1', '&playlist=${videoId}', 'controls=0', 'rel=0', 'playsinline=1']) {
-      expect(source).toContain(param)
+  it('every film is muted, inline, metadata-preloaded, hidden from assistive tech, with no native controls', () => {
+    for (const video of videos) {
+      expect(video).toMatch(/\bmuted\b/)
+      expect(video).toContain('playsInline')
+      expect(video).toContain('preload="metadata"')
+      expect(video).toContain('aria-hidden="true"')
+      expect(video).not.toMatch(/\bcontrols\b/)
     }
   })
 
-  it('keeps the embeds non-interactive', () => {
-    const iframe = source.slice(source.indexOf('<iframe'), source.indexOf('/>', source.indexOf('<iframe')))
-    expect(iframe).toContain("pointerEvents: 'none'")
-    expect(iframe).toContain('tabIndex={-1}')
-  })
-
-  it('the direct-video fallback is muted, looping, inline and has no native controls', () => {
-    const video = source.slice(source.indexOf('<video'), source.indexOf('/>', source.indexOf('<video')))
-    for (const attr of ['autoPlay', 'muted', 'loop', 'playsInline']) expect(video).toContain(attr)
-    expect(video).not.toContain('controls')
-  })
-
-  it('mounts reel players only while their card is in view', () => {
-    expect(source).toContain('new IntersectionObserver')
+  it('plays a film only while its scene is live, pausing it otherwise', () => {
+    expect(source).toMatch(/if \(live( && !paused)?\) \{\s*video\.play\(\)/)
+    expect(source).toContain('video.pause()')
   })
 })
 
 describe('production video assets are untouched', () => {
-  it('all three source files still exist at their original paths and sizes are unchanged from the Phase 10 audit', () => {
+  // Brand2.mp4 was deliberately removed in commit 4735d76 when the
+  // films moved to R2; the two that remain bundled are still guarded.
+  it('the bundled source files still exist at their original paths and sizes are unchanged from the Phase 10 audit', () => {
     const assetsDir = path.join(srcDir, 'assets')
     const sizes = {
       'ForWebsite.mp4': statSync(path.join(assetsDir, 'ForWebsite.mp4')).size,
       'Brand1.mp4': statSync(path.join(assetsDir, 'Brand1.mp4')).size,
-      'Brand2.mp4': statSync(path.join(assetsDir, 'Brand2.mp4')).size,
     }
     // Exact byte sizes recorded during the Phase 10/11 audit — any
     // change here means a source video was modified, which Phase 11
     // explicitly must not do (Part 11/20).
     expect(sizes['ForWebsite.mp4']).toBe(1821344)
     expect(sizes['Brand1.mp4']).toBe(12924373)
-    expect(sizes['Brand2.mp4']).toBe(28123477)
   })
 })

@@ -57,8 +57,8 @@
 .pm-intro :is(h1, h2) { max-width: 28ch; }
 .pm-service-index { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--content-gap); }
 .pm-service-index li { border-top: 1px solid var(--pm-rule); }
-.pm-service-index a { display: flex; align-items: center; gap: 20px; padding: 16px 0; font-size: 15px; transition: padding .25s; color: inherit; text-decoration: none; }
-.pm-service-index a > :first-child { font-size: 10px; color: var(--pm-muted); }
+.pm-service-index a, .pm-service-index .pm-index-item { display: flex; align-items: center; gap: 20px; padding: 16px 0; font-size: 15px; transition: padding .25s; color: inherit; text-decoration: none; }
+.pm-service-index a > :first-child, .pm-service-index .pm-index-item > :first-child { font-size: 10px; color: var(--pm-muted); }
 .pm-index-arrow { margin-left: auto; opacity: 0; transition: opacity .25s; }
 .pm-service-index a:hover, .pm-service-index a:focus-visible { padding-inline: 10px; }
 .pm-service-index a:hover .pm-index-arrow, .pm-service-index a:focus-visible .pm-index-arrow { opacity: 1; }
@@ -210,7 +210,7 @@
   .pm-section { padding-block: 48px; }
   .pm-split, .pm-channel-meta, .pm-channel-google, .pm-channel-linkedin, .pm-system-layout, .pm-creative-lab, .pm-audience-layout, .pm-landing-layout, .pm-commercial-note, .pm-report-row { grid-template-columns: 1fr; gap: 30px; }
   .pm-service-index { grid-template-columns: 1fr; }
-  .pm-service-index a { padding-block: 15px; }
+  .pm-service-index a, .pm-service-index .pm-index-item { padding-block: 15px; }
   .pm-index-arrow { opacity: 1; }
   .pm-channel { padding-block: 24px; }
   .pm-system-aside { position: static; }

@@ -99,7 +99,7 @@ function PasswordForm() {
 const fallbackSettings: SiteSettings = {
   siteName: 'BRANDWORKS',
   siteDescription: 'We help brands build a stronger presence through strategic brand identity, social media, content, marketing, development and SEO.',
-  contactEmail: 'hello@brandworks.com',
+  contactEmail: 'socials@brandworks.me',
   footerTagline: 'Based in India, working worldwide.',
   socialLinks: [{ label: 'Instagram', url: '#' }, { label: 'LinkedIn', url: '#' }, { label: 'X', url: '#' }],
   navLabels: { home: 'Home', about: 'About', services: 'Services', projects: 'Projects', insights: 'Insights' },

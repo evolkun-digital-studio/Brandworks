@@ -43,13 +43,16 @@ describe('Header — logo link', () => {
     expect(html).toContain('src="/BWorksLogo-01.svg"')
   })
 
-  it('uses app links for the primary navigation and contact CTA', () => {
+  // The CTA now opens the project planner (/start-project) rather than /contact.
+  it('uses app links for the primary navigation and the start-project CTA', () => {
     const html = renderToStaticMarkup(
       <MemoryRouter>
         <ViteNavigationProvider><Header /></ViteNavigationProvider>
       </MemoryRouter>,
     )
-    expect(html).toContain('href="/contact"')
+    for (const href of ['/', '/about', '/services', '/work', '/blog', '/start-project']) {
+      expect(html).toContain(`href="${href}"`)
+    }
     expect(html).not.toContain('href="#"')
   })
 
